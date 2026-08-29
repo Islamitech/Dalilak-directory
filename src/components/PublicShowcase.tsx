@@ -24,8 +24,13 @@ import {
   Map as MapIcon,
   Sun,
   Moon,
+  Video,
+  Film,
+  Play,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { VideoWatermarkBadge } from './VideoWatermarkBadge';
+import { VideoPlayerModal } from './VideoPlayerModal';
 
 interface PublicShowcaseProps {
   businesses: Business[];
@@ -47,6 +52,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   // Selected Business for Detail Modal
   const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
+  const [selectedVideoBiz, setSelectedVideoBiz] = useState<Business | null>(null);
 
   // Quick Consultation Form State (Default to 'الجيزة')
   const [formBizName, setFormBizName] = useState<string>('');
@@ -360,8 +366,23 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
 
+                        {/* Center Play Button Overlay for Videos */}
+                        {biz.videos && biz.videos.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedVideoBiz(biz);
+                            }}
+                            className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-slate-950/75 hover:bg-amber-500 text-amber-400 hover:text-slate-950 flex items-center justify-center backdrop-blur-md border border-amber-500/60 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 z-10 cursor-pointer group-hover:scale-105"
+                            title="تشغيل فيديو النشاط الموثق (30 ثانية)"
+                          >
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
+                          </button>
+                        )}
+
                         {/* Top Badges */}
-                        <div className="absolute top-3 right-3 left-3 flex items-center justify-between">
+                        <div className="absolute top-3 right-3 left-3 flex items-center justify-between z-10">
                           {biz.verificationStatus === 'verified' || biz.googleSyncStatus === 'synced' ? (
                             <span className="bg-emerald-600/90 text-white text-[10px] font-black px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1 shadow-sm">
                               <CheckCircle2 className="w-3 h-3" />
@@ -372,6 +393,21 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                               <Sparkles className="w-3 h-3" />
                               <span>نشاط مسجل</span>
                             </span>
+                          )}
+
+                          {biz.videos && biz.videos.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedVideoBiz(biz);
+                              }}
+                              className="bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md hover:scale-105 transition-transform cursor-pointer border border-amber-400/60"
+                              title="مشاهدة فيديو النشاط"
+                            >
+                              <Play className="w-2.5 h-2.5 fill-slate-950" />
+                              <span>فيديو 30ث</span>
+                            </button>
                           )}
 
                           <span className="bg-slate-950/70 text-amber-400 text-[10.5px] font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 backdrop-blur-md">
@@ -417,7 +453,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                             onClick={() => setSelectedBiz(biz)}
                             className="flex-1 bg-[var(--input-bg)] hover:bg-amber-500 hover:text-slate-950 text-[var(--text-primary)] font-black text-xs py-2 rounded-xl border border-[var(--border-color)] transition-all cursor-pointer text-center"
                           >
-                            التفاصيل والصور 📸
+                            {biz.videos && biz.videos.length > 0 ? 'التفاصيل والفيديو 🎬' : 'التفاصيل والصور 📸'}
                           </button>
 
                           {/* Direct Phone / Call */}
@@ -717,6 +753,30 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                 </div>
               )}
 
+              {/* Video Gallery (Short Videos - 30s) */}
+              {selectedBiz.videos && selectedBiz.videos.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-amber-500 font-black text-xs">
+                    <Video className="w-4 h-4" />
+                    <span>فيديو ترويجي للنشاط (Short Video) 🎬</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedBiz.videos.map((vid, idx) => (
+                      <div key={idx} className="relative rounded-2xl overflow-hidden bg-slate-950 border border-[var(--border-color)] shadow-md">
+                        <video
+                          src={vid}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="w-full h-44 object-cover bg-black"
+                        />
+                        <VideoWatermarkBadge position="bottom-right" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Information Grid */}
               <div className="bg-[var(--input-bg)] p-4 rounded-2xl border border-[var(--border-color)] space-y-2.5">
                 <div className="flex justify-between items-center">
@@ -808,7 +868,15 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             جميع الحقوق محفوظة © {new Date().getFullYear()} - منصة "دليلك" لتوثيق الأنشطة والخدمات الميدانية في مصر 🇪🇬
           </p>
 
-          <div className="flex items-center gap-3 font-bold text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-3 font-bold text-[11px]">
+            <a href="https://www.dalilaak.com/" className="text-amber-600 dark:text-amber-400 hover:underline">
+              https://www.dalilaak.com/
+            </a>
+            <span>•</span>
+            <a href="mailto:info@dalilaak.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+              info@dalilaak.com
+            </a>
+            <span>•</span>
             <a href="#explore" className="hover:text-amber-500 transition-colors">
               معرض الأنشطة
             </a>
@@ -828,6 +896,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           </div>
         </div>
       </footer>
+
+      {/* 🌟 9. ON-DEMAND SHORT VIDEO PLAYER MODAL */}
+      {selectedVideoBiz && (
+        <VideoPlayerModal
+          business={selectedVideoBiz}
+          onClose={() => setSelectedVideoBiz(null)}
+        />
+      )}
     </div>
   );
 };
