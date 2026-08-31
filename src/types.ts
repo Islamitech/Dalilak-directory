@@ -13,6 +13,7 @@ export interface Business {
   landmark?: string;
   phone: string;
   secondaryPhone?: string;
+  whatsapp?: string;
   workingHours: string;
   description: string;
   lat: number;
@@ -23,6 +24,8 @@ export interface Business {
   nationalId?: string;
   photos: string[];
   videos?: string[];
+  logo?: string;
+  createdAt?: string;
   repId: string;
   repName: string;
   packageId: string;
@@ -34,7 +37,8 @@ export interface Business {
   cashCollectedByRep?: number; // المبلغ الكاش المستلم في يد المندوب
   paymentStatus: PaymentStatus;
   verificationStatus: VerificationStatus;
-  googleMapsUrl?: string;
+  repLocationUrl?: string; // رابط موقع النقطة الميداني المرسل من المندوب (غير موثق - للاستخدام الإداري والمراجعة فقط)
+  googleMapsUrl?: string;  // رابط خرائط Google المعتمد والموثق رسمياً (تضيفه الإدارة بعد التوثيق والظهور على خرائط Google)
   googlePlaceId?: string;
   googleSyncStatus?: 'synced' | 'in_progress' | 'failed' | 'not_synced';
   googleSyncDate?: string;
