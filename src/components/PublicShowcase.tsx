@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Business, PackageOption } from '../types';
-import { EGYPT_GOVERNORATES, CATEGORY_GROUPS, PACKAGES } from '../data/mockData';
+import { EGYPT_GOVERNORATES, EGYPT_CITIES_BY_GOV, CATEGORY_GROUPS, PACKAGES } from '../data/mockData';
 import { Logo } from './Logo';
 import { InteractiveMap } from './InteractiveMap';
 import {
@@ -64,8 +64,17 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   // Search and Filters (Default to 'الجيزة' for targeted launch)
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
+  const [cityFilter, setCityFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [activeView, setActiveView] = useState<'grid' | 'map'>('grid');
+
+  // Available areas based on chosen Governorate
+  const availableCities = useMemo(() => {
+    if (govFilter === 'all') {
+      return EGYPT_CITIES_BY_GOV['الجيزة'] || [];
+    }
+    return EGYPT_CITIES_BY_GOV[govFilter] || [];
+  }, [govFilter]);
 
   // Selected Business for Detail Modal
   const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
@@ -207,6 +216,33 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           return false;
         }
       }
+      if (cityFilter !== 'all') {
+        const qCity = cityFilter.toLowerCase().trim();
+        const cleanLetterMatch = qCity.match(/منطقة\s+([أ-ي]+)/);
+        const letter = cleanLetterMatch ? cleanLetterMatch[1] : null;
+
+        const bCity = (b.city || '').toLowerCase().trim();
+        const bStreet = (b.street || '').toLowerCase().trim();
+        const bLandmark = (b.landmark || '').toLowerCase().trim();
+        const bAddress = `${bCity} ${bStreet} ${bLandmark}`;
+
+        const matchDirect = bAddress.includes(qCity) || (bCity && qCity.includes(bCity));
+        const matchLetter = letter
+          ? bAddress.includes(`منطقة ${letter}`) ||
+            bAddress.includes(`منطقة (${letter})`) ||
+            bAddress.includes(` ${letter} `) ||
+            bAddress.endsWith(` ${letter}`) ||
+            bStreet.includes(`منطقة ${letter}`) ||
+            bCity.includes(`منطقة ${letter}`)
+          : false;
+
+        const keyWord = qCity.split('(')[0].trim();
+        const matchKeyword = keyWord && bAddress.includes(keyWord);
+
+        if (!matchDirect && !matchLetter && !matchKeyword) {
+          return false;
+        }
+      }
       if (categoryFilter !== 'all') {
         const grp = CATEGORY_GROUPS.find((g) => g.group === categoryFilter);
         if (grp) {
@@ -217,7 +253,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
       return true;
     });
-  }, [publicBusinesses, searchQuery, govFilter, categoryFilter]);
+  }, [publicBusinesses, searchQuery, govFilter, cityFilter, categoryFilter]);
 
   // Dynamic WhatsApp Message generator for Package Orders
   const getPackageWhatsAppUrl = (pkg: PackageOption) => {
@@ -320,10 +356,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           </div>
 
           {/* 🔍 UNIFIED SMART SEARCH & FILTER BAR */}
-          <div className="max-w-4xl mx-auto bg-[var(--bg-card)] border-2 border-amber-500/30 dark:border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-xl">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 sm:gap-3">
+          <div className="max-w-5xl mx-auto bg-[var(--bg-card)] border-2 border-amber-500/30 dark:border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 sm:gap-3">
               {/* Search text input */}
-              <div className="relative md:col-span-6">
+              <div className="relative sm:col-span-2 lg:col-span-4">
                 <Search className="w-4 h-4 text-amber-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -343,11 +379,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </div>
 
               {/* Governorate selector */}
-              <div className="md:col-span-3">
+              <div className="lg:col-span-3">
                 <select
                   value={govFilter}
-                  onChange={(e) => setGovFilter(e.target.value)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl px-3.5 py-3 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
+                  onChange={(e) => {
+                    setGovFilter(e.target.value);
+                    setCityFilter('all');
+                  }}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl px-3 py-3 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
                 >
                   <option value="all">📍 كل المحافظات</option>
                   {EGYPT_GOVERNORATES.map((g) => (
@@ -358,12 +397,32 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                 </select>
               </div>
 
+              {/* Area / District / Zone Selector */}
+              <div className="lg:col-span-3">
+                <select
+                  value={cityFilter}
+                  onChange={(e) => setCityFilter(e.target.value)}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl px-3 py-3 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
+                >
+                  <option value="all">
+                    {govFilter === 'all'
+                      ? '🏙️ كل المناطق والأحياء'
+                      : `🏙️ كل مناطق ${govFilter} (${availableCities.length})`}
+                  </option>
+                  {availableCities.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Category dropdown */}
-              <div className="md:col-span-3">
+              <div className="lg:col-span-2">
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl px-3.5 py-3 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl px-3 py-3 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
                 >
                   <option value="all">🏷️ كل التصنيفات</option>
                   {CATEGORY_GROUPS.map((grp) => (
@@ -383,11 +442,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </span>
 
               <div className="flex items-center gap-3">
-                {(searchQuery || govFilter !== 'all' || categoryFilter !== 'all') && (
+                {(searchQuery || govFilter !== 'all' || cityFilter !== 'all' || categoryFilter !== 'all') && (
                   <button
                     onClick={() => {
                       setSearchQuery('');
                       setGovFilter('all');
+                      setCityFilter('all');
                       setCategoryFilter('all');
                     }}
                     className="text-rose-500 hover:text-rose-600 font-black text-xs cursor-pointer transition-colors"
