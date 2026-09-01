@@ -214,13 +214,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       <header className="sticky top-0 z-50 bg-[var(--nav-bg)] backdrop-blur-xl border-b border-[var(--border-color)] transition-colors duration-300 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo size="md" />
-            <div className="hidden sm:block">
-              <span className="inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10.5px] font-black px-2.5 py-0.5 rounded-full border border-amber-500/30">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>دليل الأنشطة والخدمات المعتمدة</span>
-              </span>
-            </div>
+            <Logo size="md" showSubtitle={false} />
           </div>
 
           <div className="hidden md:flex items-center gap-6 text-xs font-black text-[var(--text-secondary)]">
@@ -273,13 +267,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
-          {/* Main Badge & Headline */}
-          <div className="space-y-3 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-black text-amber-700 dark:text-amber-300 shadow-xs">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>دليل مصر التجاري المعتمد والموثق على خرائط Google 🇪🇬</span>
-            </div>
-
+          {/* Main Headline */}
+          <div className="space-y-2.5 max-w-3xl mx-auto">
             <h1 className="text-2xl sm:text-4xl font-black text-[var(--text-primary)] leading-tight tracking-tight">
               اكتشف أفضل المحلات والأنشطة التجارية والخدمات الميدانية
             </h1>
