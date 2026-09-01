@@ -45,8 +45,13 @@ export interface Business {
   invoiceNumber: string;
   invoiceDate: string;
   repCommissionRate?: number;
+  isFeeExempt?: boolean; // نشاط رائج بالمنطقة معفى من الرسوم والتحصيل المالي (إدراج مجاني)
+  feeExemptionReason?: string; // سبب الإعفاء
   notes?: string;
   createdDate: string;
+  _offlineUserId?: string;
+  _offlineTimestamp?: number;
+  _isOfflinePending?: boolean;
 }
 
 export interface ToastNotification {
