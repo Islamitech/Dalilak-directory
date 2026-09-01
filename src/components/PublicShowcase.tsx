@@ -218,30 +218,62 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
       if (cityFilter !== 'all') {
         const qCity = cityFilter.toLowerCase().trim();
-        const cleanLetterMatch = qCity.match(/منطقة\s+([أ-ي]+)/);
-        const letter = cleanLetterMatch ? cleanLetterMatch[1] : null;
-
         const bCity = (b.city || '').toLowerCase().trim();
         const bStreet = (b.street || '').toLowerCase().trim();
         const bLandmark = (b.landmark || '').toLowerCase().trim();
-        const bAddress = `${bCity} ${bStreet} ${bLandmark}`;
+        const bGov = (b.governorate || '').toLowerCase().trim();
 
-        const matchDirect = bAddress.includes(qCity) || (bCity && qCity.includes(bCity));
-        const matchLetter = letter
-          ? bAddress.includes(`منطقة ${letter}`) ||
-            bAddress.includes(`منطقة (${letter})`) ||
-            bAddress.includes(` ${letter} `) ||
-            bAddress.endsWith(` ${letter}`) ||
-            bStreet.includes(`منطقة ${letter}`) ||
-            bCity.includes(`منطقة ${letter}`)
-          : false;
+        // Normalize Arabic characters for robust fuzzy matching
+        const norm = (str: string) =>
+          str
+            .replace(/[إأآا]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/[\u064B-\u065F]/g, ''); // strip tashkeel
 
-        const keyWord = qCity.split('(')[0].trim();
-        const matchKeyword = keyWord && bAddress.includes(keyWord);
+        const normQ = norm(qCity);
+        const normAddress = norm(`${bCity} ${bStreet} ${bLandmark} ${bGov}`);
 
-        if (!matchDirect && !matchLetter && !matchKeyword) {
-          return false;
+        // 1. Comprehensive Hadayek Al Ahram: Match any business in Hadayek Al Ahram or its letter zones (منطقة أ - ع)
+        if (normQ.includes('حدايق الاهرام') || normQ.includes('حدايق اهرام') || normQ.includes('هضبه الاهرام')) {
+          const isHadayek =
+            normAddress.includes('حدايق الاهرام') ||
+            normAddress.includes('هضبه الاهرام') ||
+            normAddress.includes('الاهرام') ||
+            normAddress.includes('منطقه ') ||
+            norm(bCity).includes('منطقه') ||
+            norm(bStreet).includes('حدايق');
+          if (isHadayek) return true;
         }
+
+        // 2. Specific Zone Letter Match (e.g. 'منطقة ط' -> letter 'ط')
+        const letterMatch = qCity.match(/منطقة\s+([أ-ي]+)/);
+        const letter = letterMatch ? norm(letterMatch[1]) : null;
+
+        if (letter) {
+          const isLetterMatch =
+            normAddress.includes(`منطقه ${letter}`) ||
+            normAddress.includes(`منطقه (${letter})`) ||
+            normAddress.includes(`(${letter})`) ||
+            normAddress.includes(` ${letter} `) ||
+            normAddress.endsWith(` ${letter}`) ||
+            norm(bCity).includes(`منطقه ${letter}`) ||
+            norm(bStreet).includes(`منطقه ${letter}`);
+          if (isLetterMatch) return true;
+        }
+
+        // 3. General Keyword / City match
+        const mainKeyword = normQ.split('(')[0].trim();
+        if (mainKeyword && normAddress.includes(mainKeyword)) {
+          return true;
+        }
+
+        // 4. Direct address match
+        if (normAddress.includes(normQ) || (bCity && normQ.includes(norm(bCity)))) {
+          return true;
+        }
+
+        return false;
       }
       if (categoryFilter !== 'all') {
         const grp = CATEGORY_GROUPS.find((g) => g.group === categoryFilter);
