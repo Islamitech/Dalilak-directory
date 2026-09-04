@@ -573,27 +573,45 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-black text-[var(--text-secondary)]">
             <a href="#explore" className="hover:text-amber-500 transition-colors">معرض الأنشطة</a>
-            <a href="#free-listing" className="text-emerald-600 dark:text-emerald-400 hover:underline transition-colors flex items-center gap-1 font-black">
+            <button
+              type="button"
+              onClick={() => openPackagesModal('pkg_free')}
+              className="text-emerald-600 dark:text-emerald-400 hover:underline transition-colors flex items-center gap-1 font-black cursor-pointer"
+            >
               <span>🎁</span>
               <span>الظهور المجاني (0 ج)</span>
-            </a>
+            </button>
             <button
               type="button"
               onClick={() => openPackagesModal('pkg_basic')}
-              className="text-amber-500 hover:text-amber-400 transition-all flex items-center gap-1.5 font-black cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-full border border-amber-500/30 shadow-xs active:scale-95"
+              className="text-amber-500 hover:text-amber-400 transition-all flex items-center gap-1.5 font-black cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/30 shadow-xs active:scale-95"
             >
               <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>دليل وشرح الباقات 💎</span>
             </button>
-            <a href="#packages" className="hover:text-amber-500 transition-colors flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => openPackagesModal('pkg_pro')}
+              className="hover:text-amber-500 transition-colors flex items-center gap-1 font-black cursor-pointer"
+            >
               <span>🚀</span>
               <span>الحملات الدعائية (حسب الطلب)</span>
-            </a>
+            </button>
             <a href="#map" className="hover:text-amber-500 transition-colors">الخريطة المباشرة</a>
             <a href="#why-dalelak" className="hover:text-amber-500 transition-colors">لماذا دليلك؟</a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => openPackagesModal('pkg_basic')}
+              className="md:hidden bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[11px] font-black px-2.5 py-2 rounded-xl flex items-center gap-1 cursor-pointer"
+              title="دليل الباقات"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>الباقات 💎</span>
+            </button>
+
             <button
               onClick={toggleTheme}
               aria-label="Toggle Theme"
@@ -1370,6 +1388,15 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                 <MessageCircle className="w-4 h-4" />
                 <span>اطلب ظهور نشاطك مجاناً الآن عبر واتساب 🎁</span>
               </a>
+
+              <button
+                type="button"
+                onClick={() => openPackagesModal('pkg_free')}
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl font-black text-xs text-emerald-600 dark:text-emerald-400 hover:text-white hover:bg-emerald-600 bg-emerald-500/10 border border-emerald-500/30 text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>استعراض الشرح في النافذة 🔍</span>
+              </button>
 
               <a
                 href="#consultation"
