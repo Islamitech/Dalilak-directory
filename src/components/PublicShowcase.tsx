@@ -88,8 +88,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   // Search and Filters
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [govFilter, setGovFilter] = useState<string>('all');
-  const [cityFilter, setCityFilter] = useState<string>('all');
+  const [govFilter, setGovFilter] = useState<string>('الجيزة');
+  const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [activeView, setActiveView] = useState<'grid' | 'map'>('grid');
@@ -537,12 +537,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     }, 400);
   };
 
-  const hasActiveFilters = searchQuery || govFilter !== 'all' || cityFilter !== 'all' || hadayekZoneFilter !== 'all' || categoryFilter !== 'all' || showFavoritesOnly || sortBy !== 'default';
+  const hasActiveFilters = searchQuery || govFilter !== 'الجيزة' || cityFilter !== 'حدائق الأهرام' || hadayekZoneFilter !== 'all' || categoryFilter !== 'all' || showFavoritesOnly || sortBy !== 'default';
 
   const resetAllFilters = () => {
     setSearchQuery('');
-    setGovFilter('all');
-    setCityFilter('all');
+    setGovFilter('الجيزة');
+    setCityFilter('حدائق الأهرام');
     setHadayekZoneFilter('all');
     setCategoryFilter('all');
     setShowFavoritesOnly(false);
@@ -592,31 +592,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               <span className="hidden sm:inline">اطلب الظهور مجاناً</span>
               <span className="sm:hidden">أضف مجاناً</span>
             </a>
-          </div>
-        </div>
-
-        {/* ✨ Trust Bar */}
-        <div className="border-t border-[var(--border-color)] bg-gradient-to-r from-amber-500/5 via-transparent to-emerald-500/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-center gap-6 text-[10.5px] font-black text-[var(--text-muted)]">
-            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>ظهور النشاط مجاني 100% بدون أي رسوم</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5">
-              <span><span className="text-[var(--text-primary)] font-mono">{publicBusinesses.length}</span> نشاط معتمد</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-amber-500" />
-              <span>حدائق الأهرام · الجيزة</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
-              <span>منصة رسمية معتمدة</span>
-            </span>
-            <span className="flex items-center gap-1">
-              {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />)}
-              <span className="mr-0.5">4.9</span>
-            </span>
           </div>
         </div>
       </header>
