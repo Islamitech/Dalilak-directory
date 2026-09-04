@@ -19,7 +19,10 @@ export default function App() {
       const cached = localStorage.getItem('dalelak_directory_cache') || localStorage.getItem('dalelak_cached_businesses');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Strip any old stale base64 photos so cards always display fresh live images
+          return parsed.map((b: any) => ({ ...b, photos: [] }));
+        }
       }
     } catch {}
     return [];
@@ -162,29 +165,7 @@ export default function App() {
         if (res.ok) {
           const raw = await res.json();
           if (Array.isArray(raw) && isMounted && raw.length > 0) {
-            // Merge existing cached photos instantly so cover images don't blink
-            const cachedPhotosMap = new Map<string, string[]>();
-            try {
-              const cached = localStorage.getItem('dalelak_directory_cache');
-              if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed)) {
-                  parsed.forEach((b: any) => {
-                    if (b && b.id && Array.isArray(b.photos) && b.photos.length > 0) {
-                      cachedPhotosMap.set(b.id, b.photos);
-                    }
-                  });
-                }
-              }
-            } catch {}
-
-            const mapped: Business[] = raw.map((r) => {
-              const b = mapRawToBusiness(r);
-              if ((!b.photos || b.photos.length === 0) && cachedPhotosMap.has(b.id)) {
-                b.photos = cachedPhotosMap.get(b.id)!;
-              }
-              return b;
-            });
+            const mapped: Business[] = raw.map((r) => mapRawToBusiness(r));
 
             setBusinesses(() => {
               const updated = mapped.sort(
@@ -192,13 +173,14 @@ export default function App() {
               );
 
               try {
-                // Keep cache lightweight (cover photo only) so localStorage quota is never exceeded and loads in 0ms
+                // Keep cache lightweight (metadata only, zero base64) so localStorage quota is never exceeded and loads in 0ms
                 const cacheable = updated.map((b) => ({
                   ...b,
-                  photos: b.photos && b.photos.length > 0 ? [b.photos[0]] : [],
+                  photos: [],
                 }));
                 localStorage.setItem('dalelak_directory_cache', JSON.stringify(cacheable));
                 localStorage.setItem('dalelak_directory_last_sync', new Date().toISOString());
+                localStorage.removeItem('dalelak_cached_businesses');
               } catch {}
 
               return updated;

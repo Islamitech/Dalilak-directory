@@ -150,7 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const pngBuffer = resvg.render().asPng();
 
           res.setHeader('Content-Type', 'image/png');
-          res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+          res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
           return res.status(200).send(pngBuffer);
         } catch (svgErr) {
           console.warn('Failed rendering SVG photo:', svgErr);
@@ -163,7 +163,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const imgBuffer = Buffer.from(b64, 'base64');
         res.setHeader('Content-Type', 'image/jpeg');
         res.setHeader('Content-Length', imgBuffer.length);
-        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
         return res.status(200).send(imgBuffer);
       }
 
@@ -173,7 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const imgBuffer = Buffer.from(b64, 'base64');
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Content-Length', imgBuffer.length);
-        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
         return res.status(200).send(imgBuffer);
       }
 
@@ -191,7 +191,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pngBuffer = resvg.render().asPng();
 
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).send(pngBuffer);
 
   } catch (err) {
