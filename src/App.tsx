@@ -6,8 +6,12 @@ import { supabase } from './services/storage';
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || 'https://xdqpbajymacpdccorjcj.supabase.co').trim();
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_VJ8y1c53by7_sEn90hy8Pw_vO_K_b2x').trim();
-const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,whatsapp,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,google_maps_url,google_place_id,google_sync_status,notes,created_at';
+// VERIFIED columns that exist in Supabase (whatsapp, google_maps_url, google_place_id, google_sync_status do NOT exist).
+// google_maps_url, google_place_id, google_sync_status are stored in the 'notes' JSON field.
+// whatsapp is read from phone field as fallback in mapRawToBusiness.
+const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,photos,created_at';
 const SUPABASE_REST_URL = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&order=created_at.desc`;
+// Photos are now included in main select — no need for a separate photos request
 const SUPABASE_PHOTOS_URL = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/businesses?select=id,photos&package_id=neq.pkg_interested_lead&order=created_at.desc`;
 
 export default function App() {
@@ -88,7 +92,7 @@ export default function App() {
       lng,
       phone: r.phone || '',
       secondaryPhone: r.secondary_phone || r.secondaryPhone || '',
-      whatsapp: r.whatsapp || '',
+      whatsapp: r.whatsapp || r.phone || '',
       workingHours: r.working_hours || r.workingHours || '',
       description: r.description || '',
       photos: rawPhotos,
