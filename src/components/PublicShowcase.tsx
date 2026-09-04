@@ -926,47 +926,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </div>
             </div>
           </div>
-
-          {/* 🏷️ CATEGORY CHIPS with counts */}
-          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2 pt-1 pb-2">
-            <button
-              onClick={() => setCategoryFilter('all')}
-              className={`px-4 py-2 rounded-full text-xs font-black shrink-0 transition-all cursor-pointer shadow-xs ${
-                categoryFilter === 'all'
-                  ? 'bg-amber-500 text-slate-950 shadow-md scale-105 shadow-amber-500/30'
-                  : 'bg-[var(--bg-card)] hover:bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-              }`}
-            >
-              ✨ كل الأنشطة{' '}
-              {categoryFilter === 'all' && publicBusinesses.length > 0 && (
-                <span className="mr-0.5 opacity-75">({publicBusinesses.length})</span>
-              )}
-            </button>
-
-            {CATEGORY_GROUPS.map((grp) => {
-              const isActive = categoryFilter === grp.group;
-              const count = categoryCounts[grp.group] || 0;
-              return (
-                <button
-                  key={grp.group}
-                  onClick={() => setCategoryFilter(isActive ? 'all' : grp.group)}
-                  className={`px-3.5 py-2 rounded-full text-xs font-black shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
-                    isActive
-                      ? 'bg-amber-500 text-slate-950 shadow-md scale-105 shadow-amber-500/30'
-                      : 'bg-[var(--bg-card)] hover:bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-                  }`}
-                >
-                  <span>{grp.icon}</span>
-                  <span>{grp.group.split(' ')[0]}</span>
-                  {count > 0 && (
-                    <span className={`text-[9.5px] px-1 rounded-full font-mono ${isActive ? 'bg-slate-950/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </section>
 
@@ -974,6 +933,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           🌟 3. DIRECTORY SHOWCASE
           ============================================================ */}
       <section id="explore" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
         {/* Section Header & View Mode Switcher */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-4">
           <div>
