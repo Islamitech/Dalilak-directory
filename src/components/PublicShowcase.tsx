@@ -43,10 +43,24 @@ import {
   CheckCheck,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  Compass,
+  ArrowUpDown,
+  UserPlus,
+  History,
+  Trash2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { VideoWatermarkBadge } from './VideoWatermarkBadge';
 import { VideoPlayerModal } from './VideoPlayerModal';
+import {
+  calculateDistanceKm,
+  formatDistanceString,
+  getBusinessOpenStatus,
+  downloadBusinessVCard,
+  getSmartWhatsAppUrl,
+  injectBusinessSchemaLd,
+} from '../utils/directoryEnhancements';
 
 interface PublicShowcaseProps {
   businesses: Business[];
@@ -74,6 +88,40 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [activeView, setActiveView] = useState<'grid' | 'map'>('grid');
+
+  // ❤️ User Favorites
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('dalelak_user_favorites');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+
+  // 📍 Sorting & Real GPS Distance
+  const [sortBy, setSortBy] = useState<'default' | 'nearest' | 'newest' | 'has_video' | 'open_now' | 'alpha'>('default');
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocatingUser, setIsLocatingUser] = useState<boolean>(false);
+
+  // 🔍 Search Autocomplete & Recent History
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('dalelak_recent_searches');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.slice(0, 5);
+      }
+    } catch {}
+    return [];
+  });
+
+  // 📇 vCard Download state feedback
+  const [vCardDownloadedBizId, setVCardDownloadedBizId] = useState<string | null>(null);
 
   // Available areas based on chosen Governorate
   const availableCities = useMemo(() => {
@@ -149,6 +197,84 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     }
   }, [initialBizId, businesses]);
 
+  // Dynamic Schema.org LocalBusiness injection for Google SEO
+  useEffect(() => {
+    injectBusinessSchemaLd(selectedBiz);
+  }, [selectedBiz]);
+
+  // Toggle Favorite
+  const toggleFavorite = (bizId: string) => {
+    setFavorites((prev) => {
+      const isAdded = !prev.includes(bizId);
+      const next = isAdded ? [...prev, bizId] : prev.filter((id) => id !== bizId);
+      try {
+        localStorage.setItem('dalelak_user_favorites', JSON.stringify(next));
+      } catch {}
+      setShareToastText(isAdded ? 'تمت الإضافة إلى محلاتك المفضلة ❤️' : 'تمت الإزالة من المفضلة');
+      setTimeout(() => setShareToastText(null), 2500);
+      return next;
+    });
+  };
+
+  // Request GPS User Location for Smart Proximity Sorting
+  const handleRequestLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setShareToastText('متصفحك لا يدعم خاصية تحديد الموقع الجغرافي');
+      setTimeout(() => setShareToastText(null), 3000);
+      return;
+    }
+    setIsLocatingUser(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocatingUser(false);
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setSortBy('nearest');
+        setShareToastText('تم تحديد موقعك بدقة! يتم الآن ترتيب الأنشطة من الأقرب إليك 📍');
+        setTimeout(() => setShareToastText(null), 3500);
+      },
+      () => {
+        setIsLocatingUser(false);
+        setShareToastText('تعذر تحديد الموقع، يرجى تفعيل إذن الوصول للموقع في المتصفح');
+        setTimeout(() => setShareToastText(null), 3500);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Download Business vCard Contact
+  const handleDownloadVCard = (biz: Business) => {
+    downloadBusinessVCard(biz);
+    setVCardDownloadedBizId(biz.id);
+    setShareToastText('تم حفظ بيانات النشاط في دفتر عناوين هاتفك 📇');
+    setTimeout(() => {
+      setVCardDownloadedBizId(null);
+      setShareToastText(null);
+    }, 3000);
+  };
+
+  // Add term to recent searches
+  const addRecentSearch = (term: string) => {
+    const clean = term.trim();
+    if (!clean) return;
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((s) => s.toLowerCase() !== clean.toLowerCase());
+      const updated = [clean, ...filtered].slice(0, 5);
+      try {
+        localStorage.setItem('dalelak_recent_searches', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Clear recent searches
+  const handleClearRecentSearches = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem('dalelak_recent_searches');
+    } catch {}
+  };
+
   // Open Business and update browser URL without reload
   const handleOpenBusiness = (biz: Business) => {
     setSelectedBiz(biz);
@@ -212,10 +338,40 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     });
   }, [businesses, isPreviewMode, initialBizId]);
 
-  // Filtered Businesses
+  // Search Autocomplete Suggestions
+  const searchSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return { businesses: [], categories: [], zones: [] };
+
+    const matchingBusinesses = publicBusinesses
+      .filter((b) => (b.nameAr && b.nameAr.toLowerCase().includes(q)) || (b.nameEn && b.nameEn.toLowerCase().includes(q)))
+      .slice(0, 4);
+
+    const matchingCategories = CATEGORY_GROUPS
+      .filter((grp) => grp.group.toLowerCase().includes(q) || grp.items.some((item) => item.toLowerCase().includes(q)))
+      .slice(0, 3);
+
+    const matchingZones = HADAYEK_ALAHRAM_ZONES
+      .filter((z) => z.toLowerCase().includes(q))
+      .slice(0, 3);
+
+    return {
+      businesses: matchingBusinesses,
+      categories: matchingCategories,
+      zones: matchingZones,
+    };
+  }, [searchQuery, publicBusinesses]);
+
+  // Filtered & Sorted Businesses
   const filteredBusinesses = useMemo(() => {
-    return publicBusinesses.filter((b) => {
+    const list = publicBusinesses.filter((b) => {
       if (!b) return false;
+
+      // 1. Favorites-only filter
+      if (showFavoritesOnly && !favorites.includes(b.id)) {
+        return false;
+      }
+
       if (searchQuery) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = (b.nameAr || '').toLowerCase().includes(q) || (b.nameEn || '').toLowerCase().includes(q);
@@ -300,7 +456,32 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
       return true;
     });
-  }, [publicBusinesses, searchQuery, govFilter, cityFilter, hadayekZoneFilter, categoryFilter]);
+
+    // 2. Sorting Pipeline
+    if (sortBy === 'nearest' && userCoords) {
+      return [...list].sort((a, b) => {
+        const distA = calculateDistanceKm(userCoords.lat, userCoords.lng, a.lat, a.lng);
+        const distB = calculateDistanceKm(userCoords.lat, userCoords.lng, b.lat, b.lng);
+        return distA - distB;
+      });
+    } else if (sortBy === 'newest') {
+      return [...list].sort(
+        (a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime()
+      );
+    } else if (sortBy === 'has_video') {
+      return [...list].sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0));
+    } else if (sortBy === 'open_now') {
+      return [...list].sort((a, b) => {
+        const aOpen = getBusinessOpenStatus(a.workingHours).isOpen ? 1 : 0;
+        const bOpen = getBusinessOpenStatus(b.workingHours).isOpen ? 1 : 0;
+        return bOpen - aOpen;
+      });
+    } else if (sortBy === 'alpha') {
+      return [...list].sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
+    }
+
+    return list;
+  }, [publicBusinesses, showFavoritesOnly, favorites, searchQuery, govFilter, cityFilter, hadayekZoneFilter, categoryFilter, sortBy, userCoords]);
 
   // Dynamic WhatsApp Message generator for Package Orders
   const getPackageWhatsAppUrl = (pkg: PackageOption) => {
@@ -405,23 +586,148 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           {/* 🔍 UNIFIED SMART SEARCH & FILTER BAR */}
           <div className="max-w-6xl mx-auto bg-[var(--bg-card)] border-2 border-amber-500/30 dark:border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 sm:gap-3">
-              {/* Search text input */}
+              {/* Search text input with live autocomplete */}
               <div className={`relative sm:col-span-2 ${cityFilter === 'حدائق الأهرام' ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
                 <Search className="w-4 h-4 text-amber-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="ابحث باسم المحل، النشاط، أو الخدمة..."
                   value={searchQuery}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 250)}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      addRecentSearch(searchQuery);
+                      setIsSearchFocused(false);
+                    }
+                  }}
                   className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl pr-10 pl-4 py-3 text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs font-bold"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs font-bold cursor-pointer"
                   >
                     ✕
                   </button>
+                )}
+
+                {/* 🔍 LIVE PREDICTIVE AUTOCOMPLETE & RECENT SEARCHES */}
+                {isSearchFocused && (searchQuery.trim().length > 0 || recentSearches.length > 0) && (
+                  <div
+                    className="absolute top-full right-0 left-0 mt-2 bg-[var(--bg-card)] border-2 border-amber-500/40 rounded-2xl p-3 shadow-2xl z-50 animate-fade-in text-right max-h-80 overflow-y-auto"
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    {/* Recent Searches */}
+                    {!searchQuery && recentSearches.length > 0 && (
+                      <div className="space-y-2 pb-2 border-b border-[var(--border-color)]">
+                        <div className="flex items-center justify-between text-[11px] font-black text-[var(--text-muted)]">
+                          <span className="flex items-center gap-1">
+                            <History className="w-3.5 h-3.5 text-amber-500" />
+                            <span>عمليات البحث الأخيرة</span>
+                          </span>
+                          <button
+                            onClick={handleClearRecentSearches}
+                            className="text-rose-500 hover:underline flex items-center gap-0.5 cursor-pointer text-[10px]"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>مسح</span>
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {recentSearches.map((term, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setSearchQuery(term);
+                                setIsSearchFocused(false);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-secondary)] hover:text-amber-500 border border-[var(--border-color)] text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Matching Businesses */}
+                    {searchQuery && searchSuggestions.businesses.length > 0 && (
+                      <div className="space-y-1.5 py-2">
+                        <span className="text-[10.5px] font-black text-[var(--text-muted)] block">الأنشطة المطابقة:</span>
+                        {searchSuggestions.businesses.map((b) => (
+                          <div
+                            key={b.id}
+                            onClick={() => {
+                              addRecentSearch(b.nameAr);
+                              handleOpenBusiness(b);
+                              setIsSearchFocused(false);
+                            }}
+                            className="p-2 rounded-xl hover:bg-amber-500/10 flex items-center justify-between gap-2.5 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img
+                                src={b.photos?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=100&q=80'}
+                                alt={b.nameAr}
+                                className="w-8 h-8 rounded-lg object-cover shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <span className="font-black text-xs text-[var(--text-primary)] truncate block">{b.nameAr}</span>
+                                <span className="text-[10px] text-[var(--text-muted)] font-bold">{b.category} • {b.city || b.governorate}</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-black text-amber-500 shrink-0">عرض ↗</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Matching Categories */}
+                    {searchQuery && searchSuggestions.categories.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
+                        <span className="text-[10.5px] font-black text-[var(--text-muted)] block">التصنيفات المقترحة:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {searchSuggestions.categories.map((grp) => (
+                            <button
+                              key={grp.group}
+                              onClick={() => {
+                                setCategoryFilter(grp.group);
+                                addRecentSearch(grp.group);
+                                setIsSearchFocused(false);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-black border border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            >
+                              {grp.icon} {grp.group}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Matching Zones */}
+                    {searchQuery && searchSuggestions.zones.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
+                        <span className="text-[10.5px] font-black text-[var(--text-muted)] block">قطاعات حدائق الأهرام:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {searchSuggestions.zones.map((z) => (
+                            <button
+                              key={z}
+                              onClick={() => {
+                                setCityFilter('حدائق الأهرام');
+                                setHadayekZoneFilter(z);
+                                addRecentSearch(z);
+                                setIsSearchFocused(false);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] cursor-pointer hover:border-amber-500 transition-colors"
+                            >
+                              📍 {z}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -503,15 +809,62 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </div>
             </div>
 
-            {/* Quick Stats & Active Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-2 border-t border-[var(--border-color)] text-xs">
-              <span className="text-[11.5px] text-[var(--text-muted)] font-bold">
-                عرض <strong className="text-amber-500 font-mono text-sm">{filteredBusinesses.length}</strong> من إجمالي{' '}
-                <strong className="text-[var(--text-primary)] font-mono text-sm">{publicBusinesses.length}</strong> نشاط معتمد
-              </span>
+            {/* Quick Stats, Favorites & Sorting Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 mt-2 border-t border-[var(--border-color)] text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11.5px] text-[var(--text-muted)] font-bold">
+                  عرض <strong className="text-amber-500 font-mono text-sm">{filteredBusinesses.length}</strong> من إجمالي{' '}
+                  <strong className="text-[var(--text-primary)] font-mono text-sm">{publicBusinesses.length}</strong> نشاط معتمد
+                </span>
 
-              <div className="flex items-center gap-3">
-                {(searchQuery || govFilter !== 'all' || cityFilter !== 'all' || hadayekZoneFilter !== 'all' || categoryFilter !== 'all') && (
+                {/* ❤️ Favorites Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                    showFavoritesOnly
+                      ? 'bg-rose-600 text-white shadow-md'
+                      : 'bg-[var(--input-bg)] text-[var(--text-secondary)] hover:text-rose-500 border border-[var(--border-color)]'
+                  }`}
+                  title="عرض المحلات المفضلة فقط"
+                >
+                  <Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : 'text-rose-500'}`} />
+                  <span>المفضلة</span>
+                  {favorites.length > 0 && (
+                    <span className="bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                      {favorites.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* 📍 Smart Sort Dropdown */}
+                <div className="flex items-center gap-1.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-2.5 py-1.5 text-xs shadow-xs">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      const val = e.target.value as any;
+                      if (val === 'nearest' && !userCoords) {
+                        handleRequestLocation();
+                      } else {
+                        setSortBy(val);
+                      }
+                    }}
+                    className="bg-transparent text-[var(--text-primary)] font-black text-xs focus:outline-none cursor-pointer"
+                  >
+                    <option value="default">الترتيب الافتراضي</option>
+                    <option value="nearest">📍 الأقرب لموقعي (GPS)</option>
+                    <option value="newest">⚡ الأحدث إضافة</option>
+                    <option value="has_video">🎬 يحتوي على فيديو</option>
+                    <option value="open_now">🟢 مفتوح الآن</option>
+                    <option value="alpha">🔤 أبجدياً (أ - ي)</option>
+                  </select>
+                  {isLocatingUser && <Loader2 className="w-3.5 h-3.5 text-amber-500 animate-spin" />}
+                </div>
+
+                {(searchQuery || govFilter !== 'all' || cityFilter !== 'all' || hadayekZoneFilter !== 'all' || categoryFilter !== 'all' || showFavoritesOnly || sortBy !== 'default') && (
                   <button
                     onClick={() => {
                       setSearchQuery('');
@@ -519,6 +872,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                       setCityFilter('all');
                       setHadayekZoneFilter('all');
                       setCategoryFilter('all');
+                      setShowFavoritesOnly(false);
+                      setSortBy('default');
                     }}
                     className="text-rose-500 hover:text-rose-600 font-black text-xs cursor-pointer transition-colors"
                   >
@@ -726,13 +1081,16 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                       : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80';
 
                   const isVerified = biz.verificationStatus === 'verified' || biz.googleSyncStatus === 'synced';
+                  const openStatus = getBusinessOpenStatus(biz.workingHours);
+                  const isFav = favorites.includes(biz.id);
+                  const distanceKm = userCoords ? calculateDistanceKm(userCoords.lat, userCoords.lng, biz.lat, biz.lng) : null;
 
                   return (
                     <div
                       key={biz.id}
                       className="group bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-amber-500/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between"
                     >
-                      {/* Photo banner with badge */}
+                      {/* Photo banner with badge, live status & favorites */}
                       <div className="relative h-52 bg-slate-950 overflow-hidden">
                         <img
                           src={mainPhoto}
@@ -743,6 +1101,40 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                         />
                         {/* High-Contrast Gradient Backdrop for Text Readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-slate-950/20" />
+
+                        {/* Top-Right: ❤️ Favorite Toggle Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(biz.id);
+                          }}
+                          className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer backdrop-blur-md shadow-md ${
+                            isFav
+                              ? 'bg-rose-600 text-white scale-110 shadow-rose-600/50'
+                              : 'bg-slate-950/60 text-white/80 hover:text-white hover:bg-slate-950/80 hover:scale-105'
+                          }`}
+                          title={isFav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة ❤️'}
+                        >
+                          <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                        </button>
+
+                        {/* Top-Left: 🟢 Live Open Status & GPS Distance Badges */}
+                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md border shadow-md ${openStatus.statusClass}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${openStatus.dotColor} ${openStatus.isOpen ? 'animate-ping' : ''}`} />
+                            <span>{openStatus.badgeText}</span>
+                          </span>
+
+                          {distanceKm !== null && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-950/80 text-amber-300 border border-amber-500/30 backdrop-blur-md shadow-md">
+                              <Compass className="w-3 h-3 text-amber-400 shrink-0" />
+                              <span>{formatDistanceString(distanceKm)}</span>
+                            </span>
+                          )}
+                        </div>
 
                         {/* Center Play Button Overlay for Videos */}
                         {biz.videos && biz.videos.length > 0 && (
@@ -1088,6 +1480,20 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {/* Favorite Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(selectedBiz.id)}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer border shadow-xs ${
+                    favorites.includes(selectedBiz.id)
+                      ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
+                      : 'bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-rose-500 border-[var(--border-color)]'
+                  }`}
+                  title={favorites.includes(selectedBiz.id) ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة ❤️'}
+                >
+                  <Heart className={`w-4 h-4 ${favorites.includes(selectedBiz.id) ? 'fill-current text-rose-500' : ''}`} />
+                </button>
+
                 {/* Share Business Link */}
                 <button
                   type="button"
@@ -1315,18 +1721,29 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
               {/* 📋 DETAILED BUSINESS INFO CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {/* Working Hours */}
-                <div className="bg-[var(--input-bg)] p-3.5 rounded-2xl border border-[var(--border-color)] flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[10.5px] text-[var(--text-muted)] font-bold block">مواعيد العمل:</span>
-                    <span className="font-black text-[var(--text-primary)]">
-                      {selectedBiz.workingHours || 'يومياً على مدار الساعة'}
-                    </span>
-                  </div>
-                </div>
+                {/* Working Hours with Live Status */}
+                {(() => {
+                  const status = getBusinessOpenStatus(selectedBiz.workingHours);
+                  return (
+                    <div className="bg-[var(--input-bg)] p-3.5 rounded-2xl border border-[var(--border-color)] flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10.5px] text-[var(--text-muted)] font-bold block">مواعيد العمل:</span>
+                          <span className={`inline-flex items-center gap-1 text-[9.5px] font-black px-2 py-0.5 rounded-full border ${status.statusClass}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor}`} />
+                            <span>{status.badgeText}</span>
+                          </span>
+                        </div>
+                        <span className="font-black text-[var(--text-primary)] block">
+                          {selectedBiz.workingHours || 'يومياً على مدار الساعة'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Location & Address */}
                 <div className="bg-[var(--input-bg)] p-3.5 rounded-2xl border border-[var(--border-color)] flex items-start gap-3">
@@ -1364,31 +1781,42 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
             {/* 🌟 STREAMLINED ACTION FOOTER */}
             <div className="p-3.5 sm:p-4 bg-[var(--input-bg)] border-t border-[var(--border-color)] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5">
-              {/* WhatsApp Action */}
+              {/* WhatsApp Action with smart contextual message */}
               <a
-                href={`https://wa.me/20${(selectedBiz.whatsapp || selectedBiz.phone || selectedBiz.ownerPhone || '')
-                  .replace(/\D/g, '')
-                  .replace(/^0/, '')}?text=${encodeURIComponent(
-                  `السلام عليكم 👋 أود الاستفسار عن خدمات ومنتجات نشاط "${selectedBiz.nameAr}" المعروض على منصة دليلك.`
-                )}`}
+                href={getSmartWhatsAppUrl(selectedBiz)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 min-w-[130px] bg-emerald-500/15 hover:bg-emerald-500 text-emerald-700 dark:text-emerald-300 hover:text-white border border-emerald-500/40 font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
+                className="flex-1 min-w-[125px] bg-emerald-500/15 hover:bg-emerald-500 text-emerald-700 dark:text-emerald-300 hover:text-white border border-emerald-500/40 font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>مراسلة عبر واتساب</span>
+                <span>واتساب</span>
               </a>
 
               {/* Direct Phone Call */}
               {selectedBiz.phone && (
                 <a
                   href={`tel:${selectedBiz.phone}`}
-                  className="flex-1 min-w-[120px] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-md"
+                  className="flex-1 min-w-[110px] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-md"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>اتصال هاتفياً</span>
+                  <span>اتصال</span>
                 </a>
               )}
+
+              {/* vCard Download Contact */}
+              <button
+                type="button"
+                onClick={() => handleDownloadVCard(selectedBiz)}
+                className={`flex-1 min-w-[135px] border font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs ${
+                  vCardDownloadedBizId === selectedBiz.id
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-[var(--input-bg)] hover:bg-slate-200 dark:hover:bg-slate-800 text-[var(--text-primary)] border-[var(--border-color)]'
+                }`}
+                title="حفظ بيانات النشاط في دفتر عناوين الهاتف"
+              >
+                <UserPlus className="w-4 h-4 text-amber-500" />
+                <span>{vCardDownloadedBizId === selectedBiz.id ? 'تم الحفظ ✓' : 'حفظ بجهات الاتصال 📇'}</span>
+              </button>
 
               {/* Google Maps Primary CTA */}
               {selectedBiz.googleMapsUrl && selectedBiz.googleMapsUrl.startsWith('http') && (
@@ -1396,10 +1824,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                   href={selectedBiz.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 min-w-[160px] bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg"
+                  className="flex-1 min-w-[155px] bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg"
                 >
                   <Navigation className="w-4 h-4" />
-                  <span>فتح على خرائط Google 🗺️</span>
+                  <span>Google Maps 🗺️</span>
                 </a>
               )}
             </div>
@@ -1567,13 +1995,84 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       {/* 🌟 11. FLOATING SHARE TOAST NOTIFICATION */}
       {shareToastText && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999999] pointer-events-auto inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900/95 text-emerald-400 border border-emerald-500/50 backdrop-blur-xl text-xs font-black shadow-2xl animate-fade-in transition-all"
+          className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-[999999] pointer-events-auto inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900/95 text-emerald-400 border border-emerald-500/50 backdrop-blur-xl text-xs font-black shadow-2xl animate-fade-in transition-all"
           style={{ direction: 'rtl' }}
         >
           <CheckCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{shareToastText}</span>
         </div>
       )}
+
+      {/* 🌟 12. MOBILE BOTTOM NAVIGATION BAR */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[var(--nav-bg)]/95 backdrop-blur-2xl border-t border-[var(--border-color)] px-3 py-2 flex items-center justify-around shadow-2xl">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveView('grid');
+            setShowFavoritesOnly(false);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10.5px] font-black cursor-pointer transition-colors ${
+            activeView === 'grid' && !showFavoritesOnly ? 'text-amber-500' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>استكشاف</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveView('map');
+            const el = document.getElementById('explore');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10.5px] font-black cursor-pointer transition-colors ${
+            activeView === 'map' ? 'text-amber-500' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+          }`}
+        >
+          <MapIcon className="w-4 h-4" />
+          <span>الخريطة</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveView('grid');
+            setShowFavoritesOnly(true);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10.5px] font-black cursor-pointer transition-colors relative ${
+            showFavoritesOnly ? 'text-rose-500' : 'text-[var(--text-muted)] hover:text-rose-500'
+          }`}
+        >
+          <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+          <span>المفضلة</span>
+          {favorites.length > 0 && (
+            <span className="absolute top-0 right-2 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center">
+              {favorites.length}
+            </span>
+          )}
+        </button>
+
+        <a
+          href="#packages"
+          className="flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10.5px] font-black text-[var(--text-muted)] hover:text-amber-500 cursor-pointer transition-colors"
+        >
+          <Award className="w-4 h-4" />
+          <span>الباقات</span>
+        </a>
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl text-[10.5px] font-black text-[var(--text-muted)] hover:text-amber-500 cursor-pointer transition-colors"
+          title="تبديل الوضع"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+          <span>{theme === 'dark' ? 'نهاري' : 'ليلي'}</span>
+        </button>
+      </nav>
     </div>
   );
 };
