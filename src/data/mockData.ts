@@ -1,4 +1,4 @@
-import { Business, PackageOption, Representative, PaymentGatewayConfig } from '../types';
+import { PackageOption } from '../types';
 
 export const EGYPT_GOVERNORATES = [
   'القاهرة',
@@ -398,36 +398,5 @@ export const PACKAGES: PackageOption[] = [
   }
 ];
 
-export const MOCK_REPRESENTATIVES: Representative[] = [
-  {
-    id: 'rep_ahmed_ezalden',
-    name: 'Ahmed Ezalden',
-    email: 'info@dalilaak.com',
-    phone: '01143888355',
-    role: 'admin',
-    roleTitle: 'مدير النظام',
-    governorate: 'الجيزة',
-    targetMonth: 50,
-    avatar: '',
-    avatarStatus: 'approved',
-    commissionRate: 42.86,
-    status: 'active',
-    password: 'admin',
-    referralCode: 'DALIL-8355',
-    referralUnlocked: true,
-    adminBypassReferral: true,
-  },
-];
-
-export const DEFAULT_PAYMENT_CONFIG: PaymentGatewayConfig = {
-  vodafoneCashNumber: '01143888355',
-  vodafoneCashNumber2: '01556221141',
-  fawryMerchantCode: '',
-  instaPayHandle: '@daz31181',
-  cardGatewayActive: false
-};
-
-// Clean initial registry for production - only real user-created businesses are stored
-export const INITIAL_BUSINESSES: Business[] = [];
 
 

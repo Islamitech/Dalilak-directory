@@ -4,8 +4,11 @@ import { PublicShowcase } from './components/PublicShowcase';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { supabase } from './services/storage';
 
-const SUPABASE_REST_URL = 'https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses?select=*&order=created_at.desc';
-const SUPABASE_ANON_KEY = 'sb_publishable_VJ8y1c53by7_sEn90hy8Pw_vO_K_b2x';
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || 'https://xdqpbajymacpdccorjcj.supabase.co').trim();
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_VJ8y1c53by7_sEn90hy8Pw_vO_K_b2x').trim();
+const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,whatsapp,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,google_maps_url,google_place_id,google_sync_status,notes,created_at';
+const SUPABASE_REST_URL = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&order=created_at.desc`;
+const SUPABASE_PHOTOS_URL = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/businesses?select=id,photos&package_id=neq.pkg_interested_lead&order=created_at.desc`;
 
 export default function App() {
   const [businesses, setBusinesses] = useState<Business[]>(() => {
@@ -98,17 +101,17 @@ export default function App() {
       googleSyncStatus: metaGoogleSyncStatus || r.google_sync_status || r.googleSyncStatus || 'not_synced',
       createdAt: r.created_at || r.createdAt || new Date().toISOString(),
       createdDate: r.created_at || r.createdDate || new Date().toISOString(),
-      amountPaid: isFeeExempt ? 0 : (typeof r.amount_paid === 'number' ? r.amount_paid : 0),
-      ownerName: r.owner_name || r.ownerName || '',
-      ownerPhone: r.owner_phone || r.ownerPhone || '',
-      repId: r.rep_id || r.repId || '',
-      repName: r.rep_name || r.repName || '',
+      amountPaid: 0,
+      ownerName: '',
+      ownerPhone: '',
+      repId: '',
+      repName: '',
       packageId: isFeeExempt ? 'pkg_exempt' : (r.package_id || r.packageId || 'pkg_basic'),
       packageName: isFeeExempt ? 'نشاط رائج بالمنطقة (إدراج مجاني بدون رسوم)' : (r.package_name || r.packageName || 'باقة التوثيق الأساسي'),
       packagePrice: isFeeExempt ? 0 : (typeof r.package_price === 'number' ? r.package_price : 250),
       paymentStatus: isFeeExempt ? 'fully_paid' : (r.payment_status || r.paymentStatus || 'fully_paid'),
-      invoiceNumber: r.invoice_number || r.invoiceNumber || '',
-      invoiceDate: r.invoice_date || r.invoiceDate || '',
+      invoiceNumber: '',
+      invoiceDate: '',
       isFeeExempt,
       feeExemptionReason: metaFeeExemptionReason,
     };
@@ -130,7 +133,7 @@ export default function App() {
       if (!force && typeof document !== 'undefined' && document.hidden) return;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
         const res = await fetch(SUPABASE_REST_URL, {
@@ -159,6 +162,31 @@ export default function App() {
 
               return updated;
             });
+
+            // 📸 Non-blocking background photo hydration
+            fetch(SUPABASE_PHOTOS_URL, {
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              },
+            })
+              .then((r) => (r.ok ? r.json() : []))
+              .then((photosData) => {
+                if (Array.isArray(photosData) && photosData.length > 0 && isMounted) {
+                  const photoMap = new Map<string, string[]>();
+                  photosData.forEach((item: any) => {
+                    if (item.id && Array.isArray(item.photos) && item.photos.length > 0) {
+                      photoMap.set(item.id, item.photos);
+                    }
+                  });
+                  if (photoMap.size > 0) {
+                    setBusinesses((prev) =>
+                      prev.map((b) => (photoMap.has(b.id) ? { ...b, photos: photoMap.get(b.id)! } : b))
+                    );
+                  }
+                }
+              })
+              .catch(() => {});
           }
         }
       } catch (e) {
