@@ -5,6 +5,20 @@
       "maxDuration": 15
     }
   },
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "biz",
+          "value": "(?<bizId>[^&]+)"
+        }
+      ],
+      "destination": "/biz/:bizId",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -13,16 +27,6 @@
     {
       "source": "/biz/:id",
       "destination": "/api/share?biz=:id"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "query",
-          "key": "biz"
-        }
-      ],
-      "destination": "/api/share"
     },
     {
       "source": "/(.*)",
