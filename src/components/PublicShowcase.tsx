@@ -52,6 +52,8 @@ import {
   ChevronDown,
   Menu,
   Zap,
+  Crown,
+  Rocket,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { VideoWatermarkBadge } from './VideoWatermarkBadge';
@@ -497,6 +499,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     let text = '';
     if (pkg.price === 0) {
       text = `مرحباً دليلك 👋\nأرغب في طلب إدراج وظهور نشاطي التجاري مجاناً في دليل منصة دليلك بدون أي رسوم (0 ج.م) 🎁.\nيرجى تزويدي بالخطوات المطلوبة لإرسال بيانات المحل والظهور في الدليل.`;
+    } else if (pkg.price === 20000) {
+      text = `مرحباً دليلك 👋\nأود الاستفسار والاشتراك في "باقة الانطلاق الكبرى والتأسيس من الصفر (20,000 ج.م)" لنشاطي التجاري (تحت الإنشاء) 👑.\nأرغب في التكفل الشامل بالهوية والشعار واللافتة والتأسيس الرقمي وفيديو الافتتاح السينمائي وبناء نظام الزبون المنتظم.`;
     } else {
       text = `مرحباً دليلك 👋\nأود الاستفسار والاشتراك في "${pkg.title}" بقيمة (${pkg.price} ج.م) كحملة دعائية لتطوير ومضاعفة مبيعات نشاطي التجاري.`;
     }
@@ -515,6 +519,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     let text = `السلام عليكم ورحمة الله وبركاته 🌿\n`;
     if (formSelectedPackage.includes('مجاني') || formSelectedPackage.includes('0')) {
       text += `طلب إدراج وظهور نشاط تجاري مجاناً في دليل دليلك (0 ج.م بدون أي رسوم) 🎁:\n`;
+    } else if (formSelectedPackage.includes('20000') || formSelectedPackage.includes('الإنشاء') || formSelectedPackage.includes('الانطلاق')) {
+      text += `طلب حجز باقة الانطلاق الكبرى والتأسيس من الصفر (20,000 ج.م) للأنشطة تحت الإنشاء 👑:\n`;
     } else {
       text += `طلب استفسار وحجز حملة دعائية لتطوير نشاط تجاري 🚀:\n`;
     }
@@ -1394,9 +1400,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             </p>
           </div>
 
-          {/* 🌟 3. CAMPAIGNS GRID (The 3 paid promotional campaigns) */}
+          {/* 🌟 3. CAMPAIGNS GRID (The 3 standard paid promotional campaigns) */}
           <div className="grid grid-cols-1 md:grid-cols-3 max-w-7xl mx-auto gap-6 sm:gap-7 items-stretch">
-            {PACKAGES.slice(1).map((pkg) => (
+            {PACKAGES.slice(1, 4).map((pkg) => (
               <div
                 key={pkg.id}
                 className={`relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 ${
@@ -1461,6 +1467,76 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               </div>
             ))}
           </div>
+
+          {/* 🌟 4. THE FLAGSHIP 20,000 EGP ENTERPRISE LAUNCH PACKAGE */}
+          {PACKAGES[4] && (
+            <div className="max-w-5xl mx-auto bg-gradient-to-br from-amber-500/15 via-[var(--bg-card)] to-yellow-500/10 border-2 border-amber-500 rounded-3xl p-6 sm:p-9 shadow-2xl shadow-amber-500/15 space-y-8 relative overflow-hidden">
+              {/* Glow circle */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
+              
+              {/* Header */}
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 border-b border-[var(--border-color)] pb-6 relative z-10">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 text-xs font-black px-3.5 py-1.5 rounded-full shadow-md">
+                    <Crown className="w-4 h-4 fill-slate-950" />
+                    <span>باقة التأسيس والانطلاق الشامل من الصفر (للأنشطة تحت الإنشاء)</span>
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">
+                    {PACKAGES[4].title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[var(--text-muted)] font-bold max-w-2xl leading-relaxed">
+                    {PACKAGES[4].description}
+                  </p>
+                </div>
+
+                <div className="text-right lg:text-left bg-gradient-to-b from-amber-500/15 to-amber-500/5 border border-amber-500/40 p-5 rounded-2xl shrink-0 shadow-sm">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl sm:text-5xl font-black text-amber-500 font-mono">20,000</span>
+                    <span className="text-sm font-bold text-[var(--text-secondary)]">جنيه مصري</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 block mt-1">
+                    شامل كافة التجهيزات والهوية والافتتاح والتدريب حتى استقرار الأرباح
+                  </span>
+                </div>
+              </div>
+
+              {/* Features in 2 columns */}
+              <div className="space-y-3 relative z-10">
+                <span className="text-xs font-black text-amber-500 uppercase tracking-wider block">
+                  💎 كل ما تتكفل به المنظومة خطوة بخطوة حتى الحصول على الزبون المنتظم:
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {PACKAGES[4].features.map((feat, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-[var(--text-secondary)] font-bold bg-[var(--input-bg)] p-3 rounded-2xl border border-[var(--border-color)]">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 stroke-[3]" />
+                      <span className="leading-relaxed">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action CTA */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3 relative z-10">
+                <a
+                  href={getPackageWhatsAppUrl(PACKAGES[4])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:flex-1 py-4 rounded-2xl font-black text-xs sm:text-sm bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:to-yellow-600 text-slate-950 shadow-xl shadow-amber-500/20 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Crown className="w-4 h-4 fill-slate-950" />
+                  <span>طلب باقة التأسيس والانطلاق الكبرى (20,000 ج.م) عبر واتساب 💬</span>
+                </a>
+
+                <a
+                  href="#consultation"
+                  onClick={() => setFormSelectedPackage(PACKAGES[4].title)}
+                  className="w-full sm:w-auto px-6 py-4 rounded-2xl font-black text-xs text-[var(--text-secondary)] hover:text-amber-500 bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-amber-500/40 text-center transition-all cursor-pointer"
+                >
+                  حجز موعد استشارة تأسيس
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
