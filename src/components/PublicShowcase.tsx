@@ -185,7 +185,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [formOwnerName, setFormOwnerName] = useState<string>('');
   const [formPhone, setFormPhone] = useState<string>('');
   const [formGov, setFormGov] = useState<string>('الجيزة');
-  const [formSelectedPackage, setFormSelectedPackage] = useState<string>(PACKAGES[1].title);
+  const [formSelectedPackage, setFormSelectedPackage] = useState<string>(PACKAGES[0].title);
   const [consultSuccess, setConsultSuccess] = useState<boolean>(false);
 
   // Deep Link Auto-Select Business on load
@@ -494,7 +494,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   // Dynamic WhatsApp Message generator for Package Orders
   const getPackageWhatsAppUrl = (pkg: PackageOption) => {
     const defaultPhone = '201143888355';
-    let text = `مرحباً دليلك 👋\nأرغب في الاستفسار والاشتراك في "${pkg.title}" بقيمة (${pkg.price} ج.م) لتوثيق وتطوير نشاطي التجاري على خرائط Google.`;
+    let text = '';
+    if (pkg.price === 0) {
+      text = `مرحباً دليلك 👋\nأرغب في طلب إدراج وظهور نشاطي التجاري مجاناً في دليل منصة دليلك بدون أي رسوم (0 ج.م) 🎁.\nيرجى تزويدي بالخطوات المطلوبة لإرسال بيانات المحل والظهور في الدليل.`;
+    } else {
+      text = `مرحباً دليلك 👋\nأود الاستفسار والاشتراك في "${pkg.title}" بقيمة (${pkg.price} ج.م) كحملة دعائية لتطوير ومضاعفة مبيعات نشاطي التجاري.`;
+    }
     if (referralCode) {
       text += `\n(كود المندوب الإرشادي: ${referralCode})`;
     }
@@ -507,12 +512,17 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     if (!formBizName || !formPhone) return;
 
     const defaultPhone = '201143888355';
-    let text = `السلام عليكم ورحمة الله وبركاته 🌿\nأرغب في حجز زيارة ميدانية وتوثيق نشاطي التجاري:\n`;
+    let text = `السلام عليكم ورحمة الله وبركاته 🌿\n`;
+    if (formSelectedPackage.includes('مجاني') || formSelectedPackage.includes('0')) {
+      text += `طلب إدراج وظهور نشاط تجاري مجاناً في دليل دليلك (0 ج.م بدون أي رسوم) 🎁:\n`;
+    } else {
+      text += `طلب استفسار وحجز حملة دعائية لتطوير نشاط تجاري 🚀:\n`;
+    }
     text += `🏬 اسم النشاط: ${formBizName.trim()}\n`;
     if (formOwnerName) text += `👤 المسؤول: ${formOwnerName.trim()}\n`;
     text += `📱 رقم التواصل: ${formPhone.trim()}\n`;
     text += `📍 المحافظة: ${formGov}\n`;
-    text += `💎 الباقة المفضلة: ${formSelectedPackage}\n`;
+    text += `🎯 نوع الطلب / الحملة: ${formSelectedPackage}\n`;
     if (referralCode) text += `🔖 كود الإحالة: ${referralCode}\n`;
 
     setConsultSuccess(true);
@@ -547,7 +557,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-black text-[var(--text-secondary)]">
             <a href="#explore" className="hover:text-amber-500 transition-colors">معرض الأنشطة</a>
-            <a href="#packages" className="hover:text-amber-500 transition-colors">باقات التوثيق</a>
+            <a href="#free-listing" className="text-emerald-600 dark:text-emerald-400 hover:underline transition-colors flex items-center gap-1 font-black">
+              <span>🎁</span>
+              <span>الظهور المجاني (0 ج)</span>
+            </a>
+            <a href="#packages" className="hover:text-amber-500 transition-colors flex items-center gap-1">
+              <span>🚀</span>
+              <span>الحملات الدعائية (حسب الطلب)</span>
+            </a>
             <a href="#map" className="hover:text-amber-500 transition-colors">الخريطة المباشرة</a>
             <a href="#why-dalelak" className="hover:text-amber-500 transition-colors">لماذا دليلك؟</a>
           </nav>
@@ -562,17 +579,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             </button>
 
             <a
-              href={`https://wa.me/201143888355?text=${encodeURIComponent(
-                `مرحباً دليلك 👋 أود الاستفسار عن توثيق نشاطي التجاري على خرائط Google` +
-                  (referralCode ? ` (كود: ${referralCode})` : '')
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#free-listing"
               className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md flex items-center gap-1.5 transition-all hover:shadow-emerald-500/30 hover:shadow-lg active:scale-95 cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4 fill-white/20" />
-              <span className="hidden sm:inline">طلب توثيق فوري</span>
-              <span className="sm:hidden">واتساب</span>
+              <span>🎁</span>
+              <span className="hidden sm:inline">اطلب الظهور مجاناً</span>
+              <span className="sm:hidden">أضف مجاناً</span>
             </a>
           </div>
         </div>
@@ -580,8 +592,11 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         {/* ✨ Trust Bar */}
         <div className="border-t border-[var(--border-color)] bg-gradient-to-r from-amber-500/5 via-transparent to-emerald-500/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-center gap-6 text-[10.5px] font-black text-[var(--text-muted)]">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>ظهور النشاط مجاني 100% بدون أي رسوم</span>
+            </span>
+            <span className="hidden sm:flex items-center gap-1.5">
               <span><span className="text-[var(--text-primary)] font-mono">{publicBusinesses.length}</span> نشاط معتمد</span>
             </span>
             <span className="hidden sm:flex items-center gap-1.5">
@@ -590,7 +605,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             </span>
             <span className="hidden sm:flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
-              <span>موقع آمن ومعتمد</span>
+              <span>منصة رسمية معتمدة</span>
             </span>
             <span className="flex items-center gap-1">
               {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />)}
@@ -630,6 +645,43 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             <p className="text-sm text-[var(--text-muted)] font-bold max-w-2xl mx-auto leading-relaxed">
               عناوين دقيقة · أرقام تواصل مباشرة · مقاطع فيديو ترويجية · مواقع معتمدة على الخريطة
             </p>
+          </div>
+
+          {/* 📣 Free Listing Reassurance Card & Direct Action */}
+          <div className="max-w-3xl mx-auto bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-amber-500/10 border-2 border-emerald-500/40 rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-right animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 text-2xl font-bold shadow-xs">
+                🎁
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-emerald-700 dark:text-emerald-300 font-black text-sm sm:text-base">
+                    ظهور نشاطك في الدليل مجاني تماماً 100% وبدون أي رسوم!
+                  </span>
+                  <span className="bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    بدون أي اشتراكات
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--text-muted)] font-bold leading-relaxed">
+                  فقط اطلب الظهور وسيتم إدراج نشاطك مجاناً. والباقات المتوفرة هي حملات دعائية حسب الطلب لتنمية مبيعاتك.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+              <a
+                href="#free-listing"
+                className="flex-1 sm:flex-initial bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs px-4 py-3 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer hover:shadow-emerald-500/30 hover:shadow-lg"
+              >
+                <span>اطلب الظهور مجاناً 🚀</span>
+              </a>
+              <a
+                href="#packages"
+                className="bg-[var(--bg-card)] hover:bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-amber-500/40 text-[var(--text-secondary)] font-black text-xs px-3.5 py-3 rounded-2xl transition-all cursor-pointer"
+              >
+                <span>الحملات الدعائية</span>
+              </a>
+            </div>
           </div>
 
           {/* Stats Row */}
@@ -917,11 +969,17 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                 )}
 
                 <a
+                  href="#free-listing"
+                  className="text-emerald-600 dark:text-emerald-400 hover:underline font-black text-xs flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/15 px-2.5 py-1.5 rounded-xl border border-emerald-500/20 transition-colors"
+                >
+                  <span>🎁 أضف نشاطك مجاناً</span>
+                </a>
+                <a
                   href="#packages"
                   className="text-amber-600 dark:text-amber-400 hover:underline font-black text-xs flex items-center gap-1"
                 >
                   <Award className="w-3.5 h-3.5" />
-                  <span>توثيق نشاطك 💎</span>
+                  <span>الحملات الدعائية 💎</span>
                 </a>
               </div>
             </div>
@@ -1243,42 +1301,123 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       </section>
 
       {/* ============================================================
-          🌟 4. PACKAGES SECTION
+          🌟 4. PACKAGES & CAMPAIGNS SECTION (FREE LISTING + PROMOTIONAL CAMPAIGNS)
           ============================================================ */}
-      <section id="packages" className="py-12 sm:py-18 bg-gradient-to-b from-[var(--bg-primary)] via-amber-500/5 to-[var(--bg-primary)] border-t border-b border-[var(--border-color)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="text-center space-y-2.5 max-w-2xl mx-auto">
-            <span className="text-amber-500 text-xs font-black uppercase tracking-wider bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30">
-              💎 باقات وعروض التوثيق المعتمدة
+      <section id="packages" className="py-14 sm:py-20 bg-gradient-to-b from-[var(--bg-primary)] via-amber-500/5 to-[var(--bg-primary)] border-t border-b border-[var(--border-color)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          {/* Main Section Header */}
+          <div className="text-center space-y-3 max-w-3xl mx-auto">
+            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider bg-emerald-500/15 px-4 py-1.5 rounded-full border border-emerald-500/30 inline-flex items-center gap-2">
+              <span>🎁</span>
+              <span>الظهور مجاني تماماً 100% · والباقات حملات دعائية حسب الطلب</span>
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-[var(--text-primary)]">
-              اختر الباقة المناسبة لتنمية نشاطك التجاري
+              ظهور نشاطك التجاري في الدليل مجاني وبدون أي رسوم!
             </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-bold">
-              أسعار رسمية ثابتة وبدون أي رسوم خفية، مع توثيق فوري وزيارات ميدانية معتمدة في كافة المحافظات
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-bold leading-relaxed">
+              لا نفرض أي اشتراكات أو تكاليف لإدراج محلك وظهوره لآلاف الزبائن في منصة دليلك. فقط اطلب الظهور وسيتم نشره مجاناً.
+              أما إذا أردت مضاعفة مبيعاتك وتصدر نتائج البحث، نوفر لك حملات دعائية احترافية حسب رغبتك واحتياجك.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-6 sm:gap-8">
-            {PACKAGES.filter((p) => p.price !== 250).map((pkg) => (
+          {/* 🌟 1. STANDALONE FREE LISTING FEATURED CARD */}
+          <div id="free-listing" className="max-w-4xl mx-auto bg-gradient-to-br from-emerald-500/15 via-[var(--bg-card)] to-teal-500/10 border-2 border-emerald-500 rounded-3xl p-6 sm:p-9 shadow-2xl shadow-emerald-500/10 space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-6">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-[11px] font-black px-3 py-1 rounded-full border border-emerald-500/40">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>إدراج فوري دائم بدون رسوم</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+                  إدراج وظهور النشاط في دليل المنصة
+                </h3>
+                <p className="text-xs sm:text-sm text-[var(--text-muted)] font-bold leading-relaxed">
+                  متاح لجميع الأنشطة والمحلات التجارية والخدمية في كافة المحافظات دون دفع أي قرش
+                </p>
+              </div>
+
+              <div className="text-right sm:text-left bg-emerald-500/15 border border-emerald-500/30 px-5 py-3 rounded-2xl shrink-0">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 font-mono">0</span>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">جنيه مصري</span>
+                </div>
+                <span className="text-[11px] font-black text-emerald-800 dark:text-emerald-300 block mt-0.5">
+                  مجاني 100% مدى الحياة 🎁
+                </span>
+              </div>
+            </div>
+
+            {/* Free features list */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {PACKAGES[0].features.map((feat, i) => (
+                <div key={i} className="flex items-start gap-2.5 text-xs text-[var(--text-secondary)] font-bold">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 stroke-[3]" />
+                  <span className="leading-relaxed">{feat}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons for Free */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+              <a
+                href={getPackageWhatsAppUrl(PACKAGES[0])}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:flex-1 py-3.5 rounded-2xl font-black text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>اطلب ظهور نشاطك مجاناً الآن عبر واتساب 🎁</span>
+              </a>
+
+              <a
+                href="#consultation"
+                onClick={() => setFormSelectedPackage(PACKAGES[0].title)}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-xs text-[var(--text-secondary)] hover:text-emerald-600 dark:hover:text-emerald-400 bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-emerald-500/40 text-center transition-all cursor-pointer"
+              >
+                تسجيل البيانات عبر النموذج
+              </a>
+            </div>
+          </div>
+
+          {/* 🌟 2. ON-DEMAND ADVERTISING CAMPAIGNS HEADER */}
+          <div className="pt-8 text-center space-y-2.5 max-w-2xl mx-auto">
+            <span className="text-amber-500 text-xs font-black uppercase tracking-wider bg-amber-500/15 px-3.5 py-1.5 rounded-full border border-amber-500/30 inline-flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>حملات دعائية وترويجية (اختيارية حسب الطلب)</span>
+            </span>
+            <h3 className="text-xl sm:text-3xl font-black text-[var(--text-primary)]">
+              باقات الحملات الدعائية والتسويق الاحترافي
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-bold leading-relaxed">
+              هذه الباقات ليست شرطاً لظهورك في الدليل، بل هي حملات دعائية وتسويقية إضافية تكون حسب رغبتك لتعزيز مبيعاتك وتصدر نتائج البحث وجذب آلاف الزبائن الجدد.
+            </p>
+          </div>
+
+          {/* 🌟 3. CAMPAIGNS GRID (The 3 paid promotional campaigns) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 max-w-7xl mx-auto gap-6 sm:gap-7 items-stretch">
+            {PACKAGES.slice(1).map((pkg) => (
               <div
                 key={pkg.id}
                 className={`relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 ${
                   pkg.popular
-                    ? 'bg-gradient-to-b from-amber-500/15 via-[var(--bg-card)] to-[var(--bg-card)] border-2 border-amber-500 shadow-2xl shadow-amber-500/10 scale-100 sm:scale-105 z-10'
+                    ? 'bg-gradient-to-b from-amber-500/15 via-[var(--bg-card)] to-[var(--bg-card)] border-2 border-amber-500 shadow-2xl shadow-amber-500/15 scale-100 lg:scale-105 z-10'
                     : 'bg-[var(--bg-card)] border border-[var(--border-color)] shadow-md hover:border-amber-500/40'
                 }`}
               >
                 {pkg.popular && (
                   <div className="absolute -top-3.5 right-1/2 translate-x-1/2 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black text-[11px] px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
                     <Star className="w-3.5 h-3.5 fill-slate-950" />
-                    <span>العرض الأكثر طلباً واختياراً</span>
+                    <span>الحملة الأكثر طلباً واختياراً 🔥</span>
                   </div>
                 )}
 
                 <div className="space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="font-black text-lg text-[var(--text-primary)]">{pkg.title}</h3>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 inline-block">
+                      حملة دعائية حسب الطلب
+                    </span>
+                    <h4 className="font-black text-lg text-[var(--text-primary)] leading-tight">{pkg.title}</h4>
                     <p className="text-xs text-[var(--text-muted)] font-bold leading-relaxed">{pkg.description}</p>
                   </div>
 
@@ -1288,18 +1427,22 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                       <span className="text-xs font-bold text-[var(--text-secondary)]">جنيه مصري</span>
                     </div>
                     <span className="text-[10.5px] text-[var(--text-muted)] font-bold block mt-1">
-                      سداد لمرة واحدة مع توثيق دائم وفاتورة إلكترونية معتمدة
+                      {pkg.price === 2000 ? 'شامل الإدارة الشهرية الكاملة والتصوير الميداني' : 'سداد لمرة واحدة مع توثيق وفاتورة إلكترونية معتمدة'}
                     </span>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs text-[var(--text-secondary)]">
-                    {pkg.features.map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2 leading-relaxed">
-                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 stroke-[2.5]" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Feature list */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-black text-[var(--text-primary)] block">المميزات والتفاصيل الكاملة:</span>
+                    <ul className="space-y-2.5 text-xs text-[var(--text-secondary)]">
+                      {pkg.features.map((feat, i) => (
+                        <li key={i} className="flex items-start gap-2 leading-relaxed">
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 stroke-[2.5]" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
                 <a
@@ -1308,12 +1451,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
                   rel="noopener noreferrer"
                   className={`w-full text-center py-3.5 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black shadow-amber-500/20'
                       : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                   }`}
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>طلب الاشتراك في هذه الباقة 💬</span>
+                  <span>طلب هذه الحملة الدعائية 💬</span>
                 </a>
               </div>
             ))}
@@ -1359,16 +1502,19 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       </section>
 
       {/* ============================================================
-          🌟 6. CONSULTATION FORM
+          🌟 6. CONSULTATION & REQUEST FORM
           ============================================================ */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <section id="consultation" className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         <div className="bg-gradient-to-br from-amber-500/15 via-[var(--bg-card)] to-yellow-500/15 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-9 space-y-6 shadow-xl text-center">
           <div className="space-y-2">
+            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 inline-block">
+              🎁 الظهور مجاني 100% · والحملات الدعائية حسب الطلب
+            </span>
             <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
-              جاهز لتوثيق نشاطك التجاري؟ اطلب زيارة مندوبك المعتمد الآن 📍
+              جاهز للانضمام؟ اطلب الظهور المجاني أو احجز حملتك الدعائية الآن 📍
             </h2>
             <p className="text-xs text-[var(--text-muted)] font-bold">
-              سجل بياناتك وسيتواصل معك المندوب المعتمد لمحافظتك لترتيب موعد الزيارة والتصوير الميداني
+              سجل بياناتك وسيتواصل معك المندوب المعتمد لمحافظتك لتأكيد الظهور المجاني في الدليل أو ترتيب الحملة الدعائية المطلوبة
             </p>
           </div>
 
@@ -1430,15 +1576,15 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             </div>
 
             <div>
-              <label className="block text-[var(--text-primary)] font-black mb-1 text-xs">الباقة التي ترغب بها</label>
+              <label className="block text-[var(--text-primary)] font-black mb-1 text-xs">نوع الطلب (الظهور المجاني أو الحملة الدعائية)</label>
               <select
                 value={formSelectedPackage}
                 onChange={(e) => setFormSelectedPackage(e.target.value)}
                 className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-3 focus:outline-none focus:border-amber-500 font-bold text-amber-600 dark:text-amber-400 text-xs shadow-xs cursor-pointer"
               >
-                {PACKAGES.filter((p) => p.price !== 250).map((p) => (
+                {PACKAGES.map((p) => (
                   <option key={p.id} value={p.title}>
-                    {p.title} ({p.price} ج.م)
+                    {p.price === 0 ? `🎁 ${p.title} (مجاناً 0 ج.م)` : `🚀 ${p.title} (${p.price} ج.م)`}
                   </option>
                 ))}
               </select>
@@ -1449,11 +1595,87 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               className="w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-sm py-4 rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer hover:shadow-amber-500/30 hover:shadow-2xl"
             >
               <Send className="w-4 h-4" />
-              <span>إرسال الطلب والتواصل مع المندوب الميداني 🚀</span>
+              <span>
+                {formSelectedPackage.includes('مجاني') || formSelectedPackage.includes('0')
+                  ? 'إرسال طلب الظهور المجاني في الدليل 🎁'
+                  : 'إرسال طلب الحملة الدعائية والتواصل مع المندوب 🚀'}
+              </span>
             </button>
           </form>
         </div>
       </section>
+
+      {/* ============================================================
+          🌟 6.5. FOOTER
+          ============================================================ */}
+      <footer className="border-t border-[var(--border-color)] bg-[var(--nav-bg)] py-12 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-right">
+            {/* Col 1: About */}
+            <div className="space-y-3">
+              <Logo size="md" showSubtitle={true} />
+              <p className="text-[var(--text-muted)] font-bold leading-relaxed">
+                منصة دليلك الرقمية للأنشطة التجارية والميدانية المعتمدة. دليلك الموثوق للوصول لأفضل المحلات والخدمات في مصر.
+              </p>
+            </div>
+
+            {/* Col 2: Free Listing Notice */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black text-sm">
+                <span>🎁</span>
+                <span>الظهور المجاني في الدليل</span>
+              </div>
+              <p className="text-[var(--text-muted)] font-bold leading-relaxed">
+                إدراج وظهور النشاط التجاري في دليل منصة دليلك مجاني تماماً 100% وبدون أي رسوم أو اشتراكات شهرية أو سنوية.
+              </p>
+              <a
+                href="#free-listing"
+                className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-black hover:underline"
+              >
+                <span>اطلب الظهور مجاناً الآن ←</span>
+              </a>
+            </div>
+
+            {/* Col 3: Promotional Campaigns */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-amber-500 font-black text-sm">
+                <span>🚀</span>
+                <span>الحملات الدعائية (حسب الطلب)</span>
+              </div>
+              <p className="text-[var(--text-muted)] font-bold leading-relaxed">
+                حملات تسويقية وترويجية اختيارية لتصدر نتائج بحث Google والخرائط وتأسيس المنصات الرقمية وتنمية المبيعات.
+              </p>
+              <a
+                href="#packages"
+                className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-black hover:underline"
+              >
+                <span>استعراض مميزات الحملات ←</span>
+              </a>
+            </div>
+
+            {/* Col 4: Quick Links & Contact */}
+            <div className="space-y-3">
+              <h4 className="font-black text-[var(--text-primary)] text-sm">روابط وتواصل سريع</h4>
+              <ul className="space-y-2 text-[var(--text-secondary)] font-bold">
+                <li><a href="#explore" className="hover:text-amber-500 transition-colors">معرض الأنشطة والخدمات</a></li>
+                <li><a href="#map" className="hover:text-amber-500 transition-colors">الخريطة المباشرة</a></li>
+                <li><a href="#why-dalelak" className="hover:text-amber-500 transition-colors">لماذا توثق في دليلك؟</a></li>
+                <li><a href="#consultation" className="hover:text-amber-500 transition-colors">تسجيل طلب جديد</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-[var(--border-color)] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-right text-[11px] text-[var(--text-muted)] font-bold">
+            <p>© {new Date().getFullYear()} منصة دليلك · جميع الحقوق محفوظة | الظهور مجاني تماماً 100%</p>
+            <p className="flex items-center justify-center gap-1">
+              <span>تواصل مباشر:</span>
+              <a href="https://wa.me/201143888355" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 hover:underline dir-ltr font-mono font-bold">
+                +20 114 388 8355
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* ============================================================
           🌟 7. BUSINESS DETAILS MODAL
