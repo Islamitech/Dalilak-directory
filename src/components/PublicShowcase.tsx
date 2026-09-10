@@ -55,6 +55,28 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     }
   });
 
+  // Unified onboarding completion handler – sets filters based on wizard selections
+  const handleOnboardingComplete = useCallback((selectedCategory: string, selectedGovernorate: string, selectedCity: string) => {
+    setShowOnboarding(false);
+    // Apply category filter if not "all"
+    if (selectedCategory && selectedCategory !== 'all') {
+      setCategoryFilter(selectedCategory);
+    }
+    // Apply governorate and city filters
+    if (selectedGovernorate && selectedGovernorate !== 'all') {
+      setGovFilter(selectedGovernorate);
+    }
+    if (selectedCity && selectedCity !== 'all') {
+      setCityFilter(selectedCity);
+    }
+    // Scroll to explore section if any filter was applied
+    const elem = document.getElementById('explore');
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  // Original handlers retained for backward compatibility (not used by new wizard)
   const handleExploreAround = useCallback((governorate = 'الجيزة', city = 'حدائق الأهرام') => {
     setShowOnboarding(false);
     setGovFilter(governorate);
@@ -403,7 +425,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   };
 
   // Close Business and restore browser URL
+  // If the business was opened via a deep link, reset the category filter to the closed business's category
   const handleCloseBusiness = () => {
+    // Preserve the category of the currently selected business before clearing it
+    const closedBiz = selectedBiz;
     setSelectedBiz(null);
     try {
       const url = new URL(window.location.href);
@@ -414,8 +439,11 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       const cleanPath = url.pathname.startsWith('/biz') ? '/' : url.pathname;
       window.history.replaceState(null, '', cleanPath + (url.search ? url.search : ''));
     } catch {}
+    // If this component was opened with an initialBizId (deep link), restore the category filter
+    if (initialBizId && closedBiz && closedBiz.category) {
+      setCategoryFilter(closedBiz.category);
+    }
   };
-
   // Share Business Direct Link
   const handleShareBusiness = async (biz: Business, e?: React.MouseEvent) => {
     if (e) {
@@ -799,12 +827,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-300">
-      {/* 0. Interactive Onboarding Experience («دليلك يبدأ من مكانك») */}
+      {/* 0. Interactive Onboarding Experience (Guided Wizard) */}
       {showOnboarding && (
         <InteractiveOnboardingExperience
-          onExploreAround={handleExploreAround}
-          onSearchSpecific={handleSearchSpecific}
-          onAddBusinessFree={handleAddBusinessFree}
+          onComplete={handleOnboardingComplete}
           onSkip={handleSkipOnboarding}
         />
       )}
