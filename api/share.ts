@@ -128,14 +128,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Google rating snippet
     let ratingPart = '';
-    let ratingTitlePart = '';
     if (googleRatingEnabled && googleRating) {
       const formattedRating = googleRating.toFixed(1);
       ratingPart = `⭐ تقييم Google: ${formattedRating}${googleReviewsCount ? ` (${googleReviewsCount} تقييم)` : ''}`;
-      ratingTitlePart = ` ⭐ ${formattedRating}`;
     }
 
-    const pageTitle = `نشاط ${nameAr}${ratingTitlePart} | منصة دليلك المعتمدة`;
+    const pageTitle = `${nameAr} | منصة دليلك المعتمدة`;
     const cleanPageTitle = pageTitle.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
 
     // Business Description from "وصف الأنشطة والخدمات"
@@ -234,7 +232,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </head>
   <body style="background:#020617;color:#f8fafc;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
     <div style="text-align:center;">
-      <h2>جاري تحويلك إلى نشاط ${escapeHtml(nameAr)}...</h2>
+      <h2>جاري تحويلك إلى ${escapeHtml(nameAr)}...</h2>
       <script>window.location.replace('${pageUrl}');</script>
     </div>
   </body>
