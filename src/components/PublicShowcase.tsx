@@ -5,6 +5,7 @@ import {
   getBusinessOpenStatus,
   injectBusinessSchemaLd,
 } from '../utils/directoryEnhancements';
+import { getDirectoryPath } from '../utils/directoryUrl';
 import { matchesCategoryFilter } from '../utils/categoryMatcher';
 import { matchesBusinessSearch, normalizeArabicText } from '../utils/arabicSearch';
 import { AppNavbar } from './layout/AppNavbar';
@@ -125,18 +126,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     );
   };
 
-  // Initial silent geolocation request
-  useEffect(() => {
-    if (userCoords || typeof navigator === 'undefined' || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {},
-      { enableHighAccuracy: false, timeout: 6000 }
-    );
-  }, []);
-
   // 4. Favorites Management
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
@@ -169,9 +158,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     // 🛡️ Normal browsing clicks preserve the user's active filter and do NOT hijack it
     isDirectLinkOpenRef.current = false;
     try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('biz', biz.id);
-      window.history.replaceState(null, '', url.toString());
+      const cleanPath = getDirectoryPath(biz);
+      window.history.replaceState(null, '', cleanPath);
     } catch {}
   };
 
@@ -186,13 +174,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     setSelectedBiz(null);
     setCurrentPath('/search');
     try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('biz');
-      url.searchParams.delete('b');
-      url.searchParams.delete('id');
-      url.searchParams.delete('preview');
-      const clean = '/search';
-      window.history.replaceState(null, '', clean + (url.search ? url.search : ''));
+      window.history.replaceState(null, '', '/search');
     } catch {}
   };
 
@@ -212,6 +194,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       const bId = (b.id || '').toLowerCase();
       if (targetId && (bId === targetId || raw.toLowerCase().includes(bId))) return true;
       if (bId === raw.toLowerCase()) return true;
+      if (b.customDirectoryUrl && b.customDirectoryUrl.trim().toLowerCase() === raw.toLowerCase()) return true;
       const bNameAr = (b.nameAr || '').trim().toLowerCase();
       if (bNameAr && (bNameAr === raw.toLowerCase() || raw.toLowerCase().includes(bNameAr))) return true;
       return false;
@@ -369,7 +352,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       return [...list].sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
     }
 
-    // Default Sorting ('default'): Unbiased, natural listing (no video forcing)
+    // Default Sorting ('default'): Unbiased, randomized natural showcase (not ordered by join date)
     return [...list].sort((a, b) => {
       const aFeatured = a.isFeatured || a.partnerStatus === 'certified' ? 1 : 0;
       const bFeatured = b.isFeatured || b.partnerStatus === 'certified' ? 1 : 0;
@@ -379,9 +362,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       const bHasPhoto = (b.photos?.length || 0) > 0 || !!b.coverPhoto ? 1 : 0;
       if (bHasPhoto !== aHasPhoto) return bHasPhoto - aHasPhoto;
 
-      const aTime = new Date(a.createdDate || 0).getTime();
-      const bTime = new Date(b.createdDate || 0).getTime();
-      if (bTime !== aTime) return bTime - aTime;
+      // Stable pseudo-random hash distribution across businesses
+      const hashA = ((a.id || '').split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0) >>> 0);
+      const hashB = ((b.id || '').split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0) >>> 0);
+      if (hashA !== hashB) return hashA - hashB;
 
       return (a.id || '').localeCompare(b.id || '');
     });
