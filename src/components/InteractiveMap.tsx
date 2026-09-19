@@ -27,6 +27,9 @@ import {
   Crosshair,
   Zap,
   Eye,
+  EyeOff,
+  SlidersHorizontal,
+  Filter,
   Search,
   Layers,
   Loader2,
@@ -78,6 +81,8 @@ export interface InteractiveMapProps {
   } | null;
   showHadayekGates?: boolean;
   onSelectZone?: (zoneLetter: string) => void;
+  initialShowBusinesses?: boolean;
+  onToggleBusinessesVisibility?: (visible: boolean) => void;
 }
 
 // Egyptian governorate approximate coordinates map
@@ -109,6 +114,20 @@ const GOVERNORATE_COORDS: Record<string, { lat: number; lng: number }> = {
   'جنوب سيناء (شرم الشيخ)': { lat: 27.9158, lng: 34.3299 },
 };
 
+
+export const MAP_QUICK_CATEGORIES = [
+  { id: 'all', name: 'الكل (جميع الأنشطة)', icon: '🌟' },
+  { id: 'صيدلية', name: 'صيدليات ورعاية طبية', icon: '💊' },
+  { id: 'سوبرماركت', name: 'سوبرماركت وبقالة', icon: '🛒' },
+  { id: 'مطعم', name: 'مطاعم ومأكولات', icon: '🍔' },
+  { id: 'كافيه', name: 'كافيهات ومقاهي', icon: '☕' },
+  { id: 'مخبز', name: 'مخابز وأفران', icon: '🥐' },
+  { id: 'صيانة', name: 'صيانة ومنزلية وحرفيين', icon: '🔧' },
+  { id: 'طبي', name: 'عيادات ومراكز طبية', icon: '🩺' },
+  { id: 'تعليم', name: 'مدارس وحضانات', icon: '📚' },
+  { id: 'سيارات', name: 'خدمات سيارات', icon: '🚗' },
+];
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   mode = 'view',
   lat = 29.9753,
@@ -121,7 +140,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   targetBuilding = null,
   showHadayekGates = true,
   onSelectZone,
+  initialShowBusinesses = true,
+  onToggleBusinessesVisibility,
 }) => {
+  // Businesses layer visibility & filters state
+  const [showBusinesses, setShowBusinesses] = useState<boolean>(initialShowBusinesses);
+  const [mapCategoryFilter, setMapCategoryFilter] = useState<string>('all');
+  const [onlyVerifiedFilter, setOnlyVerifiedFilter] = useState<boolean>(false);
+  const [isMapFilterOpen, setIsMapFilterOpen] = useState<boolean>(false);
+  const [showGatesLayer, setShowGatesLayer] = useState<boolean>(true);
+  const [showTargetPin, setShowTargetPin] = useState<boolean>(true);
   const [currentLat, setCurrentLat] = useState<number>(lat);
   const [currentLng, setCurrentLng] = useState<number>(lng);
   const [zoomLevel, setZoomLevel] = useState<number>(16);
@@ -372,12 +400,22 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       }
     } else {
       // View Mode: Render Businesses with Smart Screen-Space Marker Clustering
-      const filteredBusinesses = businesses.filter((b) => {
-        if (selectedGovFilter !== 'all' && !b.governorate.includes(selectedGovFilter)) {
-          return false;
-        }
-        return true;
-      });
+      const filteredBusinesses = !showBusinesses
+        ? []
+        : businesses.filter((b) => {
+            if (selectedGovFilter !== 'all' && !b.governorate.includes(selectedGovFilter)) {
+              return false;
+            }
+            if (mapCategoryFilter !== 'all') {
+              const catLower = (b.category || '').toLowerCase();
+              const filterLower = mapCategoryFilter.toLowerCase();
+              if (!catLower.includes(filterLower)) return false;
+            }
+            if (onlyVerifiedFilter && b.verificationStatus !== 'verified') {
+              return false;
+            }
+            return true;
+          });
 
       // Cluster pins within ~50 screen pixels of each other to avoid overlap
       const clusterRadiusPx = 52;
@@ -491,12 +529,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       });
 
       // ?? Render Hadayek Gates as Landmark Pins
-      if (showHadayekGates && window.L) {
+      if (showHadayekGates && showGatesLayer && window.L) {
         HADAYEK_GATES.forEach((gate) => {
           const gateHtml = `
             <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;">
               <div style="background: linear-gradient(135deg, #312e81, #1e1b4b); border: 2px solid #818cf8; color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 800; font-size: 11px; box-shadow: 0 4px 14px rgba(49, 46, 129, 0.6); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
-                <span style="font-size: 13px;">??</span>
+                <span style="font-size: 13px;">🚪</span>
                 <span>${escapeHtml(gate.nameAr)} (${escapeHtml(gate.popularNameAr)})</span>
               </div>
               <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #818cf8;"></div>
@@ -524,7 +562,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       }
 
       // ?? Render Target Building Glowing Pin
-      if (targetBuilding && typeof targetBuilding.lat === 'number' && typeof targetBuilding.lng === 'number' && window.L) {
+      if (targetBuilding && showTargetPin && typeof targetBuilding.lat === 'number' && typeof targetBuilding.lng === 'number' && window.L) {
         const bldgLabel = targetBuilding.buildingNumber
           ? `عمارة ${targetBuilding.buildingNumber} منطقة ${targetBuilding.zoneLetter || ''}`
           : `منطقة ${targetBuilding.zoneLetter || 'الحدائق'}`;
@@ -565,7 +603,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         map.flyTo([targetBuilding.lat, targetBuilding.lng], 17, { duration: 1.2 });
       }
     }
-  }, [mode, businesses, selectedGovFilter, currentLat, currentLng, gpsAccuracy, zoomLevel, selectedBiz, targetBuilding, showHadayekGates]);
+  }, [mode, businesses, showBusinesses, mapCategoryFilter, onlyVerifiedFilter, showGatesLayer, showTargetPin, selectedGovFilter, currentLat, currentLng, gpsAccuracy, zoomLevel, selectedBiz, targetBuilding, showHadayekGates]);
 
   // Handle Resize & Fullscreen Invalidation
   useEffect(() => {
@@ -875,6 +913,153 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5 fill-slate-950" />}
                 <span>{isLocating ? 'جاري التحديد...' : 'موقعي الفعلي'}</span>
               </button>
+            )}
+
+            {/* 👁️ زر إخفاء / إظهار الأنشطة لتقليل الزحام */}
+            {mode === 'view' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const nextVal = !showBusinesses;
+                  setShowBusinesses(nextVal);
+                  if (onToggleBusinessesVisibility) onToggleBusinessesVisibility(nextVal);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  showBusinesses
+                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black'
+                    : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40'
+                }`}
+                title={showBusinesses ? 'إخفاء الأنشطة من على الخريطة لتنظيف الرؤية' : 'إظهار الأنشطة على الخريطة'}
+              >
+                {showBusinesses ? (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>إخفاء الأنشطة</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>إظهار الأنشطة</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* 🎯 زر فلاتر الخريطة والتصنيفات */}
+            {mode === 'view' && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsMapFilterOpen(!isMapFilterOpen)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                    mapCategoryFilter !== 'all' || onlyVerifiedFilter
+                      ? 'bg-emerald-500 text-slate-950 font-black ring-2 ring-emerald-400/50'
+                      : 'bg-[var(--input-bg)] hover:bg-amber-500/10 text-[var(--text-primary)] border border-[var(--border-color)]'
+                  }`}
+                  title="تصفية وفلترة الأنشطة المعروضة على الخريطة"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
+                  <span>فلاتر الخريطة</span>
+                  {(mapCategoryFilter !== 'all' || onlyVerifiedFilter) && (
+                    <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping" />
+                  )}
+                </button>
+
+                {/* Floating Map Filters Menu */}
+                {isMapFilterOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-slate-950/95 border border-amber-500/40 rounded-2xl shadow-2xl backdrop-blur-xl p-3.5 z-50 space-y-3 text-right text-white animate-fade-in-scale">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                      <span className="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        <span>تصفية وفلترة أنشطة الخريطة</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsMapFilterOpen(false)}
+                        className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                        title="إغلاق"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Quick Category Grid */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-bold text-slate-300 block">تصنيف النشاط:</span>
+                      <div className="grid grid-cols-2 gap-1 max-h-44 overflow-y-auto pr-1">
+                        {MAP_QUICK_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setMapCategoryFilter(cat.id);
+                              setShowBusinesses(true);
+                            }}
+                            className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg text-right truncate transition-all cursor-pointer flex items-center gap-1.5 ${
+                              mapCategoryFilter === cat.id
+                                ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800'
+                            }`}
+                          >
+                            <span>{cat.icon}</span>
+                            <span className="truncate">{cat.name.split(' ')[0]}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Toggle Verified & Show/Hide Controls */}
+                    <div className="pt-2 border-t border-slate-800 space-y-2">
+                      <label className="flex items-center justify-between text-xs text-slate-300 font-bold cursor-pointer select-none">
+                        <span>الموثقة رسمياً فقط (Verified)</span>
+                        <input
+                          type="checkbox"
+                          checked={onlyVerifiedFilter}
+                          onChange={(e) => setOnlyVerifiedFilter(e.target.checked)}
+                          className="rounded accent-amber-500 w-4 h-4 cursor-pointer"
+                        />
+                      </label>
+
+                      {showHadayekGates && (
+                        <label className="flex items-center justify-between text-xs text-slate-300 font-bold cursor-pointer select-none">
+                          <span>إظهار دبابيس بوابات الحدائق</span>
+                          <input
+                            type="checkbox"
+                            checked={showGatesLayer}
+                            onChange={(e) => setShowGatesLayer(e.target.checked)}
+                            className="rounded accent-indigo-500 w-4 h-4 cursor-pointer"
+                          />
+                        </label>
+                      )}
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMapCategoryFilter('all');
+                            setOnlyVerifiedFilter(false);
+                            setShowBusinesses(true);
+                          }}
+                          className="text-[11px] font-bold text-amber-400 hover:underline cursor-pointer"
+                        >
+                          إعادة تعيين الكل
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowBusinesses(false);
+                            setIsMapFilterOpen(false);
+                          }}
+                          className="text-[11px] font-black text-rose-400 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg border border-rose-500/30 cursor-pointer transition-colors"
+                        >
+                          إخفاء كافة الأنشطة
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Fullscreen Expand / Minimize Button */}
