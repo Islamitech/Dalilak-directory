@@ -513,10 +513,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const gateMarker = window.L.marker([gate.lat, gate.lng], { icon: gateIcon, zIndexOffset: 400 });
           gateMarker.bindPopup(`
             <div dir="rtl" style="font-family: Cairo, sans-serif; text-align: right; min-width: 190px;">
-              <b style="color: #4338ca; font-size: 13px;">?? ${escapeHtml(gate.nameAr)} (${escapeHtml(gate.popularNameAr)})</b>
-              <p style="margin: 4px 0; font-size: 11px; color: #475569;"><b>?? ??????:</b> ${escapeHtml(gate.accessRoadAr)}</p>
-              <p style="margin: 4px 0; font-size: 11px; color: #047857;"><b>?? ???? ?????:</b> ${escapeHtml(gate.servedZones.join('? '))}</p>
-              <small style="color: #64748b; font-size: 10px;">?? ${escapeHtml(gate.tipsAr)}</small>
+              <b style="color: #4338ca; font-size: 13px;">🚪 ${escapeHtml(gate.nameAr)} (${escapeHtml(gate.popularNameAr)})</b>
+              <p style="margin: 4px 0; font-size: 11px; color: #475569;"><b>🛣️ الطريق:</b> ${escapeHtml(gate.accessRoadAr)}</p>
+              <p style="margin: 4px 0; font-size: 11px; color: #047857;"><b>🎯 تخدم مناطق:</b> ${escapeHtml(gate.servedZones.join('، '))}</p>
+              <small style="color: #64748b; font-size: 10px;">💡 ${escapeHtml(gate.tipsAr)}</small>
             </div>
           `);
           markersGroup.addLayer(gateMarker);
@@ -526,13 +526,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       // ?? Render Target Building Glowing Pin
       if (targetBuilding && typeof targetBuilding.lat === 'number' && typeof targetBuilding.lng === 'number' && window.L) {
         const bldgLabel = targetBuilding.buildingNumber
-          ? `????? ${targetBuilding.buildingNumber} ????? ${targetBuilding.zoneLetter || ''}`
-          : `????? ${targetBuilding.zoneLetter || '???????'}`;
+          ? `عمارة ${targetBuilding.buildingNumber} منطقة ${targetBuilding.zoneLetter || ''}`
+          : `منطقة ${targetBuilding.zoneLetter || 'الحدائق'}`;
 
         const bldgHtml = `
           <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;">
             <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border: 2.5px solid #ffffff; color: #020617; padding: 6px 14px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 900; font-size: 12px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.9), 0 4px 16px rgba(0,0,0,0.4); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-              <span style="font-size: 15px;">??</span>
+              <span style="font-size: 15px;">📍</span>
               <span>${escapeHtml(bldgLabel)}</span>
             </div>
             <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #f59e0b; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));"></div>
