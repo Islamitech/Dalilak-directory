@@ -1,4 +1,5 @@
 import { HADAYEK_GATES, HADAYEK_ZONES, HadayekGate, HadayekZone } from '../data/hadayekAtlasData';
+import { HADAYEK_OFFICIAL_DISTRICTS, HADAYEK_OFFICIAL_GATES } from '../data/hadayekDistrictsGeoData';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Business } from '../types';
 import {
@@ -130,8 +131,8 @@ export const MAP_QUICK_CATEGORIES = [
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   mode = 'view',
-  lat = 29.9753,
-  lng = 31.1120,
+  lat = 29.9680,
+  lng = 31.0980,
   onLocationSelect,
   businesses = [],
   onSelectBusiness,
@@ -149,6 +150,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [onlyVerifiedFilter, setOnlyVerifiedFilter] = useState<boolean>(false);
   const [isMapFilterOpen, setIsMapFilterOpen] = useState<boolean>(false);
   const [showGatesLayer, setShowGatesLayer] = useState<boolean>(true);
+  const [showDistrictsOverlay, setShowDistrictsOverlay] = useState<boolean>(true);
   const [showTargetPin, setShowTargetPin] = useState<boolean>(true);
   const [currentLat, setCurrentLat] = useState<number>(lat);
   const [currentLng, setCurrentLng] = useState<number>(lng);
@@ -528,9 +530,64 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
       });
 
-      // ?? Render Hadayek Gates as Landmark Pins
+      // 🗺️ Render Hadayek Official District Polygons from Shahid3qar
+      if (showDistrictsOverlay && window.L) {
+        HADAYEK_OFFICIAL_DISTRICTS.forEach((district) => {
+          district.polygons.forEach((polyCoords) => {
+            const polygon = window.L.polygon(polyCoords, {
+              color: district.color,
+              weight: 2.5,
+              opacity: 0.9,
+              fillColor: district.color,
+              fillOpacity: 0.22,
+              className: 'hadayek-district-polygon',
+            });
+
+            polygon.on('click', () => {
+              if (onSelectZone) onSelectZone(district.letterAr);
+            });
+
+            polygon.bindTooltip(`
+              <div dir="rtl" style="font-family: Cairo, sans-serif; font-weight: 900; font-size: 12px; color: ${district.color}; padding: 2px 4px;">
+                ${escapeHtml(district.nameAr)} (${escapeHtml(district.nameEn)})
+              </div>
+            `, { sticky: true, direction: 'top' });
+
+            markersGroup.addLayer(polygon);
+          });
+
+          // Add a sleek center badge label for the district
+          const labelHtml = `
+            <div style="transform: translate(-50%, -50%); cursor: pointer; user-select: none; pointer-events: auto;">
+              <div style="background: ${district.color}; color: #ffffff; padding: 2px 7px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 900; font-size: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 1.5px solid #ffffff; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">
+                <span>${escapeHtml(district.nameAr)}</span>
+              </div>
+            </div>
+          `;
+
+          const labelIcon = window.L.divIcon({
+            className: 'custom-district-label',
+            html: labelHtml,
+            iconSize: [70, 22],
+            iconAnchor: [35, 11],
+          });
+
+          const labelMarker = window.L.marker([district.centerLat, district.centerLng], {
+            icon: labelIcon,
+            zIndexOffset: 150,
+          });
+
+          labelMarker.on('click', () => {
+            if (onSelectZone) onSelectZone(district.letterAr);
+          });
+
+          markersGroup.addLayer(labelMarker);
+        });
+      }
+
+      // 🚪 Render Hadayek Official Gates as Landmark Pins
       if (showHadayekGates && showGatesLayer && window.L) {
-        HADAYEK_GATES.forEach((gate) => {
+        HADAYEK_OFFICIAL_GATES.forEach((gate) => {
           const gateHtml = `
             <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;">
               <div style="background: linear-gradient(135deg, #312e81, #1e1b4b); border: 2px solid #818cf8; color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 800; font-size: 11px; box-shadow: 0 4px 14px rgba(49, 46, 129, 0.6); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
@@ -554,7 +611,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <b style="color: #4338ca; font-size: 13px;">🚪 ${escapeHtml(gate.nameAr)} (${escapeHtml(gate.popularNameAr)})</b>
               <p style="margin: 4px 0; font-size: 11px; color: #475569;"><b>🛣️ الطريق:</b> ${escapeHtml(gate.accessRoadAr)}</p>
               <p style="margin: 4px 0; font-size: 11px; color: #047857;"><b>🎯 تخدم مناطق:</b> ${escapeHtml(gate.servedZones.join('، '))}</p>
-              <small style="color: #64748b; font-size: 10px;">💡 ${escapeHtml(gate.tipsAr)}</small>
             </div>
           `);
           markersGroup.addLayer(gateMarker);
@@ -603,7 +659,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         map.flyTo([targetBuilding.lat, targetBuilding.lng], 17, { duration: 1.2 });
       }
     }
-  }, [mode, businesses, showBusinesses, mapCategoryFilter, onlyVerifiedFilter, showGatesLayer, showTargetPin, selectedGovFilter, currentLat, currentLng, gpsAccuracy, zoomLevel, selectedBiz, targetBuilding, showHadayekGates]);
+  }, [mode, businesses, showBusinesses, mapCategoryFilter, onlyVerifiedFilter, showGatesLayer, showDistrictsOverlay, showTargetPin, selectedGovFilter, currentLat, currentLng, gpsAccuracy, zoomLevel, selectedBiz, targetBuilding, showHadayekGates]);
 
   // Handle Resize & Fullscreen Invalidation
   useEffect(() => {
@@ -914,6 +970,21 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 <span>{isLocating ? 'جاري التحديد...' : 'موقعي الفعلي'}</span>
               </button>
             )}
+
+                        {/* 🗺️ زر تقسيمات ومضلعات مناطق الحدائق (أ - ن) */}
+            <button
+              type="button"
+              onClick={() => setShowDistrictsOverlay(!showDistrictsOverlay)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                showDistrictsOverlay
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
+                  : 'bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/40'
+              }`}
+              title="إظهار أو إخفاء مضلعات وتقسيمات مناطق حدائق الأهرام (أ إلى ن)"
+            >
+              <span>🗺️ تقسيمات المناطق</span>
+              <span className={`w-2 h-2 rounded-full ${showDistrictsOverlay ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            </button>
 
             {/* 👁️ زر إخفاء / إظهار الأنشطة لتقليل الزحام */}
             {mode === 'view' && (
