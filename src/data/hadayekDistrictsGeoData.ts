@@ -1,14 +1,15 @@
 /**
  * 🗺️ Hadayek Al-Ahram Official Geographic Districts & Boundaries Data
  * 
- * Extracted and calibrated directly from verified cadastral survey map (shahid3qar.com/map).
- * Contains exact boundary polygons, color codes, centroids, and entrance gates for all 16 Hadayek zones.
+ * Calibrated directly from verified cadastral survey (shahid3qar.com/map) and OpenStreetMap barrier gates.
+ * Contains exact boundary polygons, authentic colors, true centroids, and gate coordinates for all 16 Hadayek zones.
  */
 
 export interface HadayekOfficialGate {
   id: string;
   number: number;
   nameAr: string;
+  shortNameAr: string;
   popularNameAr: string;
   lat: number;
   lng: number;
@@ -31,10 +32,11 @@ export const HADAYEK_OFFICIAL_GATES: HadayekOfficialGate[] = [
   {
     "id": "gate_1",
     "number": 1,
-    "nameAr": "البوابة الأولى",
+    "nameAr": "البوابة الأولى (خوفو)",
+    "shortNameAr": "بوابة خوفو (1)",
     "popularNameAr": "بوابة خوفو",
-    "lat": 29.974,
-    "lng": 31.114,
+    "lat": 29.9777,
+    "lng": 31.1122,
     "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي / مدخل شارع الجيش",
     "servedZones": [
       "أ",
@@ -44,13 +46,28 @@ export const HADAYEK_OFFICIAL_GATES: HadayekOfficialGate[] = [
     ]
   },
   {
+    "id": "gate_ahmes",
+    "number": 2,
+    "nameAr": "بوابة أحمس (2 الجديدة)",
+    "shortNameAr": "بوابة أحمس (2ج)",
+    "popularNameAr": "بوابة أحمس",
+    "lat": 29.9713,
+    "lng": 31.1084,
+    "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي",
+    "servedZones": [
+      "د",
+      "هـ"
+    ]
+  },
+  {
     "id": "gate_2",
     "number": 2,
-    "nameAr": "البوابة الثانية",
-    "popularNameAr": "بوابة خفرع (حورس)",
-    "lat": 29.9705,
-    "lng": 31.1085,
-    "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي",
+    "nameAr": "البوابة الثانية (خفرع)",
+    "shortNameAr": "بوابة خفرع (2)",
+    "popularNameAr": "بوابة خفرع",
+    "lat": 29.9643,
+    "lng": 31.1083,
+    "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي / مدخل شارع الجيش الأوسط",
     "servedZones": [
       "هـ",
       "و",
@@ -60,54 +77,47 @@ export const HADAYEK_OFFICIAL_GATES: HadayekOfficialGate[] = [
   {
     "id": "gate_3",
     "number": 3,
-    "nameAr": "البوابة الثالثة",
+    "nameAr": "البوابة الثالثة (منقرع)",
+    "shortNameAr": "بوابة منقرع (3)",
     "popularNameAr": "بوابة منقرع",
-    "lat": 29.969,
-    "lng": 31.1065,
-    "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي / شارع النادي",
+    "lat": 29.9536,
+    "lng": 31.1037,
+    "accessRoadAr": "طريق القاهرة - الفيوم الصحراوي / مدخل شارع النادي",
     "servedZones": [
       "ح",
-      "ط"
-    ]
-  },
-  {
-    "id": "gate_4",
-    "number": 4,
-    "nameAr": "البوابة الرابعة",
-    "popularNameAr": "بوابة مينا (أحمس)",
-    "lat": 29.9665,
-    "lng": 31.103,
-    "accessRoadAr": "تقاطع طريق الفيوم مع طريق الواحات والدائري",
-    "servedZones": [
-      "ك",
-      "ل",
-      "م",
-      "ن"
-    ]
-  },
-  {
-    "id": "gate_5",
-    "number": 5,
-    "nameAr": "البوابة الخامسة",
-    "popularNameAr": "بوابة 5",
-    "lat": 29.969,
-    "lng": 31.098,
-    "accessRoadAr": "المدخل الغربي",
-    "servedZones": [
+      "ط",
       "س",
       "ص"
     ]
   },
   {
-    "id": "gate_6",
-    "number": 6,
-    "nameAr": "البوابة السادسة",
-    "popularNameAr": "بوابة 6",
-    "lat": 29.972,
-    "lng": 31.095,
-    "accessRoadAr": "طريق الواحات / المدخل الجنوبي",
+    "id": "gate_horus",
+    "number": 4,
+    "nameAr": "بوابة حورس (الجنوبية)",
+    "shortNameAr": "بوابة حورس",
+    "popularNameAr": "بوابة حورس",
+    "lat": 29.949,
+    "lng": 31.0954,
+    "accessRoadAr": "طريق الواحات / المدخل الجنوبي للحدائق",
     "servedZones": [
-      "ع"
+      "ع",
+      "ص"
+    ]
+  },
+  {
+    "id": "gate_4",
+    "number": 4,
+    "nameAr": "البوابة الرابعة (مينا)",
+    "shortNameAr": "بوابة مينا (4)",
+    "popularNameAr": "بوابة مينا",
+    "lat": 29.952,
+    "lng": 31.0881,
+    "accessRoadAr": "الطريق الدائري / طريق الواحات / مدخل شارع الثروة المعدنية",
+    "servedZones": [
+      "ك",
+      "ل",
+      "م",
+      "ن"
     ]
   }
 ];
@@ -119,8 +129,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "nameAr": "منطقة أ",
     "nameEn": "District A",
     "color": "#e74c3c",
-    "centerLat": 29.970001,
-    "centerLng": 31.081167,
+    "centerLat": 29.985605,
+    "centerLng": 31.103333,
     "polygons": [
       [
         [
@@ -231,174 +241,6 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           29.9881261,
           31.1069539
         ]
-      ],
-      [
-        [
-          29.9746276,
-          31.0646888
-        ],
-        [
-          29.9746975,
-          31.064461
-        ],
-        [
-          29.974871,
-          31.0637799
-        ],
-        [
-          29.97618,
-          31.0592616
-        ],
-        [
-          29.9805051,
-          31.0608712
-        ],
-        [
-          29.9796331,
-          31.0638627
-        ],
-        [
-          29.9795476,
-          31.0641257
-        ],
-        [
-          29.9794175,
-          31.0643712
-        ],
-        [
-          29.9792665,
-          31.0645938
-        ],
-        [
-          29.9790968,
-          31.0647923
-        ],
-        [
-          29.97894,
-          31.0649237
-        ],
-        [
-          29.9787925,
-          31.0650632
-        ],
-        [
-          29.9786693,
-          31.065259
-        ],
-        [
-          29.9786043,
-          31.0654762
-        ],
-        [
-          29.976066,
-          31.064909
-        ],
-        [
-          29.9756234,
-          31.0648271
-        ],
-        [
-          29.9746276,
-          31.0646888
-        ]
-      ],
-      [
-        [
-          29.9475979,
-          31.0703905
-        ],
-        [
-          29.9486447,
-          31.0691881
-        ],
-        [
-          29.9487597,
-          31.0690242
-        ],
-        [
-          29.9488369,
-          31.068833
-        ],
-        [
-          29.9488718,
-          31.0686259
-        ],
-        [
-          29.9488622,
-          31.0684153
-        ],
-        [
-          29.9488086,
-          31.0682136
-        ],
-        [
-          29.9470512,
-          31.0655556
-        ],
-        [
-          29.9469874,
-          31.0654958
-        ],
-        [
-          29.9468389,
-          31.0654813
-        ],
-        [
-          29.9466905,
-          31.0654969
-        ],
-        [
-          29.9465468,
-          31.0655423
-        ],
-        [
-          29.946412,
-          31.065616
-        ],
-        [
-          29.9447298,
-          31.0684944
-        ],
-        [
-          29.9456548,
-          31.0694136
-        ],
-        [
-          29.9458516,
-          31.0694455
-        ],
-        [
-          29.9460669,
-          31.0694248
-        ],
-        [
-          29.9462533,
-          31.0693971
-        ],
-        [
-          29.9463374,
-          31.0693845
-        ],
-        [
-          29.9464239,
-          31.0693704
-        ],
-        [
-          29.9465089,
-          31.0693764
-        ],
-        [
-          29.9465869,
-          31.0693957
-        ],
-        [
-          29.9466725,
-          31.0694325
-        ],
-        [
-          29.9475979,
-          31.0703905
-        ]
       ]
     ]
   },
@@ -408,8 +250,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "nameAr": "منطقة ب",
     "nameEn": "District B",
     "color": "#e67e22",
-    "centerLat": 29.967394,
-    "centerLng": 31.085007,
+    "centerLat": 29.979184,
+    "centerLng": 31.106863,
     "polygons": [
       [
         [
@@ -464,70 +306,6 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           29.9809195,
           31.101163
         ]
-      ],
-      [
-        [
-          29.943954,
-          31.0723173
-        ],
-        [
-          29.9451023,
-          31.0734935
-        ],
-        [
-          29.9475979,
-          31.0703905
-        ],
-        [
-          29.9466725,
-          31.0694325
-        ],
-        [
-          29.9465869,
-          31.0693957
-        ],
-        [
-          29.9465089,
-          31.0693764
-        ],
-        [
-          29.9464239,
-          31.0693704
-        ],
-        [
-          29.9463374,
-          31.0693845
-        ],
-        [
-          29.9462533,
-          31.0693971
-        ],
-        [
-          29.943954,
-          31.0723173
-        ]
-      ],
-      [
-        [
-          29.9819615,
-          31.0558753
-        ],
-        [
-          29.9776401,
-          31.0542217
-        ],
-        [
-          29.97618,
-          31.0592616
-        ],
-        [
-          29.9805051,
-          31.0608712
-        ],
-        [
-          29.9819615,
-          31.0558753
-        ]
       ]
     ]
   },
@@ -537,8 +315,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "nameAr": "منطقة ج",
     "nameEn": "District C",
     "color": "#f39c12",
-    "centerLat": 29.962479,
-    "centerLng": 31.093403,
+    "centerLat": 29.974896,
+    "centerLng": 31.108811,
     "polygons": [
       [
         [
@@ -617,60 +395,6 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           29.9795999,
           31.1105508
         ]
-      ],
-      [
-        [
-          29.9462533,
-          31.0693971
-        ],
-        [
-          29.9460669,
-          31.0694248
-        ],
-        [
-          29.9458516,
-          31.0694455
-        ],
-        [
-          29.9456548,
-          31.0694136
-        ],
-        [
-          29.9447298,
-          31.0684944
-        ],
-        [
-          29.9425768,
-          31.0720096
-        ],
-        [
-          29.9428771,
-          31.0722603
-        ],
-        [
-          29.9429305,
-          31.0722953
-        ],
-        [
-          29.9429893,
-          31.072326
-        ],
-        [
-          29.9430526,
-          31.0723429
-        ],
-        [
-          29.9431163,
-          31.0723442
-        ],
-        [
-          29.943954,
-          31.0723173
-        ],
-        [
-          29.9462533,
-          31.0693971
-        ]
       ]
     ]
   },
@@ -680,8 +404,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "nameAr": "منطقة د",
     "nameEn": "District D",
     "color": "#27ae60",
-    "centerLat": 29.960334,
-    "centerLng": 31.088588,
+    "centerLat": 29.976336,
+    "centerLng": 31.102045,
     "polygons": [
       [
         [
@@ -771,88 +495,6 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
         [
           29.9745499,
           31.1071323
-        ]
-      ],
-      [
-        [
-          29.9425768,
-          31.0720096
-        ],
-        [
-          29.9413884,
-          31.0738141
-        ],
-        [
-          29.9413481,
-          31.0740473
-        ],
-        [
-          29.94136,
-          31.0742845
-        ],
-        [
-          29.9414234,
-          31.0745106
-        ],
-        [
-          29.9415343,
-          31.074711
-        ],
-        [
-          29.9416852,
-          31.0748725
-        ],
-        [
-          29.9431025,
-          31.0756603
-        ],
-        [
-          29.9432257,
-          31.075666
-        ],
-        [
-          29.9433473,
-          31.0756434
-        ],
-        [
-          29.9434627,
-          31.0755933
-        ],
-        [
-          29.9435672,
-          31.0755178
-        ],
-        [
-          29.9451023,
-          31.0734935
-        ],
-        [
-          29.943954,
-          31.0723173
-        ],
-        [
-          29.9431163,
-          31.0723442
-        ],
-        [
-          29.9430526,
-          31.0723429
-        ],
-        [
-          29.9429893,
-          31.072326
-        ],
-        [
-          29.9429305,
-          31.0722953
-        ],
-        [
-          29.9428771,
-          31.0722603
-        ],
-        [
-          29.9425768,
-          31.0720096
         ]
       ]
     ]
@@ -2017,9 +1659,22 @@ export function findDistrictForCoordinates(lat: number, lng: number): HadayekOff
 }
 
 /**
- * Get district by letter (e.g. 'أ', 'ب', 'ل')
+ * Get district by letter (e.g. 'أ', 'ب', 'ل', 'هـ')
  */
 export function getDistrictByLetter(letter: string): HadayekOfficialDistrict | undefined {
-  const clean = letter.replace('منطقة', '').trim();
-  return HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === clean);
+  if (!letter) return undefined;
+  const clean = letter.replace(/^منطقة\s+/, '').trim();
+  const normalize = (s: string) => s.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/هـ/g, 'ه').trim();
+  const normClean = normalize(clean);
+
+  return HADAYEK_OFFICIAL_DISTRICTS.find((d) => {
+    return (
+      d.letterAr === clean ||
+      normalize(d.letterAr) === normClean ||
+      d.nameAr === letter ||
+      normalize(d.nameAr) === normalize(letter) ||
+      d.nameEn.toLowerCase() === clean.toLowerCase()
+    );
+  });
 }
+
