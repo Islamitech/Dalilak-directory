@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Business } from '../../../types';
 import { HADAYEK_OFFICIAL_DISTRICTS, HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
-import { createLightweightBadgeHtml, createLightweightClusterHtml } from '../badgeMarkers';
+import { createLightweightBadgeHtml, createLightweightClusterHtml, createDistrictClusterHtml } from '../badgeMarkers';
 import { isBusinessInHadayekZone } from '../../../utils/hadayekZoneHelper';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { useMapInstance } from './useMapInstance';
@@ -43,6 +43,7 @@ export const useMapPinsClustering = ({
   onSelectBusiness,
   onSelectZone,
 }: UseMapPinsClusteringProps) => {
+  const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({});
   const {
     leafletMapRef,
     isMapReady,
@@ -79,6 +80,11 @@ export const useMapPinsClustering = ({
   const previousSelectedZoneRef = useRef<string>(selectedZone);
   const selectedZoneRef = useRef<string>(selectedZone);
   selectedZoneRef.current = selectedZone;
+
+  // Reset expanded clusters whenever selectedZone or mapCategoryFilter changes
+  useEffect(() => {
+    setExpandedZones({});
+  }, [selectedZone, mapCategoryFilter]);
 
   // Single smooth handler to select district, style polygons, and frame view
   const handleSelectDistrict = (letter: string) => {
@@ -478,122 +484,196 @@ export const useMapPinsClustering = ({
         accuracyCircleRef.current = circle;
       }
     } else {
-      // View Mode: Render Businesses with Smart Screen-Space Marker Clustering
+      // 🌟 View Mode: Render Businesses with Activity Cards, Top-3 Prominence, and Cluster Burst
+      // Rule 1: Activities MUST ONLY appear if an activity type/category is selected from filters!
       const hasCategoryFilter = Boolean(mapCategoryFilter && mapCategoryFilter !== 'all' && mapCategoryFilter.trim() !== '');
-      const hasZoneFilter = Boolean(selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '');
-      const shouldRenderBusinesses = hasCategoryFilter || hasZoneFilter || showBusinesses;
+      if (!hasCategoryFilter) {
+        markersGroup.clearLayers();
+        return;
+      }
 
-      const filteredBusinesses = !shouldRenderBusinesses
-        ? []
-        : businesses.filter((b) => {
-            // 🛡️ User Rule 2: If a zone is specified, absolutely NO activity outside that zone may appear
-            if (selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '') {
-              if (!isBusinessInHadayekZone(b, selectedZone)) {
-                return false;
-              }
-            }
+      // Filter businesses matching category and verification
+      const categoryBusinesses = businesses.filter((b) => {
+        if (typeof b.lat !== 'number' || typeof b.lng !== 'number' || isNaN(b.lat) || isNaN(b.lng)) return false;
+        if (onlyVerifiedFilter && b.verificationStatus !== 'verified') return false;
 
-            // Category Filter Check
-            if (hasCategoryFilter) {
-              const catLower = (b.category || '').toLowerCase();
-              const filterLower = mapCategoryFilter.toLowerCase();
-              const matchesDirect = catLower.includes(filterLower);
-              const matchesMatcher = matchesCategoryFilter(b, mapCategoryFilter);
-              if (!matchesDirect && !matchesMatcher) {
-                return false;
-              }
-            }
+        const catLower = (b.category || '').toLowerCase();
+        const filterLower = mapCategoryFilter.toLowerCase();
+        return catLower.includes(filterLower) || matchesCategoryFilter(b, mapCategoryFilter);
+      });
 
-            if (onlyVerifiedFilter && b.verificationStatus !== 'verified') {
-              return false;
-            }
+      // Prominence sorting helper (verified > rating > photos/video)
+      const sortProminent = (list: Business[]) => {
+        return [...list].sort((a, b) => {
+          const scoreA = (a.verificationStatus === 'verified' ? 100 : 0) +
+            ((a.googleRating || a.rating || 0) * 10) +
+            (a.videoUrl ? 15 : 0) +
+            ((a.photos?.length || 0) * 2);
+          const scoreB = (b.verificationStatus === 'verified' ? 100 : 0) +
+            ((b.googleRating || b.rating || 0) * 10) +
+            (b.videoUrl ? 15 : 0) +
+            ((b.photos?.length || 0) * 2);
+          return scoreB - scoreA;
+        });
+      };
 
-            return true;
+      const hasActiveZone = Boolean(selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '');
+
+      if (hasActiveZone) {
+        // 🎯 Scenario A: A specific zone IS selected:
+        // Filter strictly to this zone
+        const zoneList = categoryBusinesses.filter((b) => isBusinessInHadayekZone(b, selectedZone));
+        const sorted = sortProminent(zoneList);
+        const isExpanded = Boolean(expandedZones[selectedZone]);
+
+        if (isExpanded) {
+          // All businesses in this zone burst open as individual Activity Card pins!
+          sorted.forEach((biz, idx) => {
+            const isSelected = selectedBiz?.id === biz.id;
+            const isTop = idx < 3;
+            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, isTop, isTop ? idx + 1 : undefined);
+            const bizIcon = window.L.divIcon({
+              className: 'custom-biz-pin burst-card animate-scale-in',
+              html,
+              iconSize,
+              iconAnchor,
+            });
+            const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 500 - idx * 2 });
+            marker.on('click', () => {
+              setSelectedBiz(biz);
+              map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+              if (onSelectBusiness) onSelectBusiness(biz);
+            });
+            markersGroup.addLayer(marker);
+          });
+        } else {
+          // Show ONLY top 3 prominent activities as Activity Card pins
+          const top3 = sorted.slice(0, 3);
+          const remaining = sorted.slice(3);
+
+          top3.forEach((biz, idx) => {
+            const isSelected = selectedBiz?.id === biz.id;
+            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+            const bizIcon = window.L.divIcon({
+              className: 'custom-biz-pin top-prominent-card',
+              html,
+              iconSize,
+              iconAnchor,
+            });
+            const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 600 - idx * 10 });
+            marker.on('click', () => {
+              setSelectedBiz(biz);
+              map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+              if (onSelectBusiness) onSelectBusiness(biz);
+            });
+            markersGroup.addLayer(marker);
           });
 
-      // Cluster pins within ~52 screen pixels of each other to avoid overlap
-      const clusterRadiusPx = 52;
-      const clusters: Array<{
-        centerLat: number;
-        centerLng: number;
-        items: Business[];
-      }> = [];
+          // Group all remaining activities inside a cluster pin ("دبوس مجمع")
+          if (remaining.length > 0) {
+            const centerLat = remaining.reduce((acc, b) => acc + b.lat, 0) / remaining.length;
+            const centerLng = remaining.reduce((acc, b) => acc + b.lng, 0) / remaining.length;
+            const { html, iconSize, iconAnchor } = createDistrictClusterHtml(remaining.length, mapCategoryFilter);
 
-      filteredBusinesses.forEach((biz) => {
-        if (typeof biz.lat !== 'number' || typeof biz.lng !== 'number' || isNaN(biz.lat) || isNaN(biz.lng)) return;
-        const pt = map.latLngToLayerPoint([biz.lat, biz.lng]);
+            const clusterIcon = window.L.divIcon({
+              className: 'custom-district-cluster-pin animate-bounce-subtle',
+              html,
+              iconSize,
+              iconAnchor,
+            });
+            const clusterMarker = window.L.marker([centerLat, centerLng], { icon: clusterIcon, zIndexOffset: 700 });
 
-        let placed = false;
-        for (const cl of clusters) {
-          const clPt = map.latLngToLayerPoint([cl.centerLat, cl.centerLng]);
-          const dist = Math.hypot(pt.x - clPt.x, pt.y - clPt.y);
-          if (dist < clusterRadiusPx) {
-            cl.items.push(biz);
-            cl.centerLat = (cl.centerLat * (cl.items.length - 1) + biz.lat) / cl.items.length;
-            cl.centerLng = (cl.centerLng * (cl.items.length - 1) + biz.lng) / cl.items.length;
-            placed = true;
-            break;
+            // When clicked: zoom camera in closer and burst open remaining activity card pins!
+            clusterMarker.on('click', () => {
+              const validPts = remaining.map((b) => [b.lat, b.lng] as [number, number]);
+              if (validPts.length > 0) {
+                const bounds = window.L.latLngBounds(validPts);
+                map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 18, duration: 0.8 });
+              }
+              setExpandedZones((prev) => ({ ...prev, [selectedZone]: true }));
+            });
+            markersGroup.addLayer(clusterMarker);
           }
         }
+      } else {
+        // 🧭 Scenario B: No specific zone selected (All zones): Group by Hadayek district
+        const byDistrict: Record<string, Business[]> = {};
+        categoryBusinesses.forEach((biz) => {
+          const z = HADAYEK_OFFICIAL_DISTRICTS.find((d) => isBusinessInHadayekZone(biz, d.letterAr));
+          const key = z ? z.letterAr : 'other';
+          if (!byDistrict[key]) byDistrict[key] = [];
+          byDistrict[key].push(biz);
+        });
 
-        if (!placed) {
-          clusters.push({
-            centerLat: biz.lat,
-            centerLng: biz.lng,
-            items: [biz],
-          });
-        }
-      });
+        Object.entries(byDistrict).forEach(([distKey, bList]) => {
+          const sorted = sortProminent(bList);
+          const isExpanded = Boolean(expandedZones[distKey]);
 
-      clusters.forEach((cluster) => {
-        if (cluster.items.length === 1) {
-          const biz = cluster.items[0];
-          const isSelected = selectedBiz?.id === biz.id;
-          const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true);
+          if (isExpanded) {
+            sorted.forEach((biz, idx) => {
+              const isSelected = selectedBiz?.id === biz.id;
+              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, idx < 3, idx < 3 ? idx + 1 : undefined);
+              const bizIcon = window.L.divIcon({
+                className: 'custom-biz-pin burst-card animate-scale-in',
+                html,
+                iconSize,
+                iconAnchor,
+              });
+              const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 450 - idx * 2 });
+              marker.on('click', () => {
+                setSelectedBiz(biz);
+                map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+                if (onSelectBusiness) onSelectBusiness(biz);
+              });
+              markersGroup.addLayer(marker);
+            });
+          } else {
+            const top3 = sorted.slice(0, 3);
+            const remaining = sorted.slice(3);
 
-          const bizIcon = window.L.divIcon({
-            className: 'custom-biz-pin',
-            html,
-            iconSize,
-            iconAnchor,
-          });
+            top3.forEach((biz, idx) => {
+              const isSelected = selectedBiz?.id === biz.id;
+              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+              const bizIcon = window.L.divIcon({
+                className: 'custom-biz-pin top-prominent-card',
+                html,
+                iconSize,
+                iconAnchor,
+              });
+              const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 550 - idx * 10 });
+              marker.on('click', () => {
+                setSelectedBiz(biz);
+                map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+                if (onSelectBusiness) onSelectBusiness(biz);
+              });
+              markersGroup.addLayer(marker);
+            });
 
-          const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon });
+            if (remaining.length > 0) {
+              const centerLat = remaining.reduce((acc, b) => acc + b.lat, 0) / remaining.length;
+              const centerLng = remaining.reduce((acc, b) => acc + b.lng, 0) / remaining.length;
+              const { html, iconSize, iconAnchor } = createDistrictClusterHtml(remaining.length, mapCategoryFilter);
 
-          marker.on('click', () => {
-            setSelectedBiz(biz);
-            map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
-            if (onSelectBusiness) onSelectBusiness(biz);
-          });
-
-          markersGroup.addLayer(marker);
-        } else {
-          // Cluster pin
-          const { html, iconSize, iconAnchor } = createLightweightClusterHtml(cluster.items.length);
-
-          const clusterIcon = window.L.divIcon({
-            className: 'custom-cluster-pin',
-            html,
-            iconSize,
-            iconAnchor,
-          });
-
-          const clusterMarker = window.L.marker([cluster.centerLat, cluster.centerLng], { icon: clusterIcon });
-
-          clusterMarker.on('click', () => {
-            const currentZoom = map.getZoom();
-            if (currentZoom < 18) {
-              const bounds = window.L.latLngBounds(cluster.items.map((b) => [b.lat, b.lng]));
-              map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
-            } else {
-              setSelectedBiz(cluster.items[0]);
-              if (onSelectBusiness) onSelectBusiness(cluster.items[0]);
+              const clusterIcon = window.L.divIcon({
+                className: 'custom-district-cluster-pin animate-bounce-subtle',
+                html,
+                iconSize,
+                iconAnchor,
+              });
+              const clusterMarker = window.L.marker([centerLat, centerLng], { icon: clusterIcon, zIndexOffset: 650 });
+              clusterMarker.on('click', () => {
+                const validPts = remaining.map((b) => [b.lat, b.lng] as [number, number]);
+                if (validPts.length > 0) {
+                  const bounds = window.L.latLngBounds(validPts);
+                  map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 18, duration: 0.8 });
+                }
+                setExpandedZones((prev) => ({ ...prev, [distKey]: true }));
+              });
+              markersGroup.addLayer(clusterMarker);
             }
-          });
-
-          markersGroup.addLayer(clusterMarker);
-        }
-      });
+          }
+        });
+      }
     }
   }, [
     isMapReady,
@@ -604,6 +684,7 @@ export const useMapPinsClustering = ({
     mapCategoryFilter,
     onlyVerifiedFilter,
     selectedBiz,
+    expandedZones,
     currentLat,
     currentLng,
     gpsAccuracy,

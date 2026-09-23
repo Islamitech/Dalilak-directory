@@ -28,36 +28,76 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
       dir="rtl"
     >
       <div className="pointer-events-auto flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 max-w-7xl mx-auto w-full">
-        {/* District Selector Pill */}
-        <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-md hover:shadow-lg rounded-2xl p-1 sm:p-1.5 flex items-center gap-1 sm:gap-1.5 shrink-0 transition-all">
-          <div className="relative inline-flex items-center">
-            <select
-              value={selectedZone || ''}
-              onChange={(e) => onSelectZone && onSelectZone(e.target.value)}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl pr-2 pl-6 py-1 cursor-pointer outline-none transition-colors"
-              style={{ colorScheme: 'light' }}
-              title="تحديد المنطقة"
-            >
-              <option value="">🧭 كل المناطق (أ - ع)</option>
-              {HADAYEK_OFFICIAL_DISTRICTS.map((d) => (
-                <option key={d.id} value={d.letterAr}>
-                  {d.nameAr}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute left-1.5 pointer-events-none" />
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {/* District Selector Pill */}
+          <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-md hover:shadow-lg rounded-2xl p-1 sm:p-1.5 flex items-center gap-1 sm:gap-1.5 shrink-0 transition-all">
+            <div className="relative inline-flex items-center">
+              <select
+                value={selectedZone || ''}
+                onChange={(e) => onSelectZone && onSelectZone(e.target.value)}
+                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl pr-2 pl-6 py-1 cursor-pointer outline-none transition-colors"
+                style={{ colorScheme: 'light' }}
+                title="تحديد المنطقة"
+              >
+                <option value="">🧭 كل المناطق (أ - ع)</option>
+                {HADAYEK_OFFICIAL_DISTRICTS.map((d) => (
+                  <option key={d.id} value={d.letterAr}>
+                    {d.nameAr}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute left-1.5 pointer-events-none" />
+            </div>
+
+            {selectedZone && (
+              <button
+                type="button"
+                onClick={() => onSelectZone && onSelectZone('')}
+                className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                title="إلغاء تحديد المنطقة وعرض كل المناطق"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
 
-          {selectedZone && (
-            <button
-              type="button"
-              onClick={() => onSelectZone && onSelectZone('')}
-              className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
-              title="إلغاء تحديد المنطقة وعرض كل المناطق"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
+          {/* Activity Category Selector Pill */}
+          <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-md hover:shadow-lg rounded-2xl p-1 sm:p-1.5 flex items-center gap-1 sm:gap-1.5 shrink-0 transition-all">
+            <div className="relative inline-flex items-center">
+              <select
+                value={categoryFilter || 'all'}
+                onChange={(e) => onCategoryChange && onCategoryChange(e.target.value)}
+                className={`border font-bold text-xs rounded-xl pr-2 pl-6 py-1 cursor-pointer outline-none transition-colors ${
+                  categoryFilter && categoryFilter !== 'all'
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-950 font-black'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                }`}
+                style={{ colorScheme: 'light' }}
+                title="اختر نوع النشاط لعرضه على الخريطة"
+              >
+                <option value="all">🌟 اختر نوع النشاط لإظهاره</option>
+                {categories
+                  .filter((c) => c.id !== 'all')
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute left-1.5 pointer-events-none" />
+            </div>
+
+            {categoryFilter && categoryFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => onCategoryChange && onCategoryChange('all')}
+                className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                title="إلغاء الفلتر وإخفاء الأنشطة"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
