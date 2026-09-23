@@ -1,27 +1,110 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1EH17YQTVR');
+    </script>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="alternate icon" type="image/png" href="./logo.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- Primary Meta Tags -->
-    <title>دليل دليلك التجاري والخدمي في مصر • Dalelak Directory</title>
-    <meta name="title" content="دليل دليلك التجاري والخدمي في مصر • Dalelak Directory" />
-    <meta name="description" content="الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية في الجيزة وكافة محافظات مصر بإحداثيات GPS دقيقة وأرقام التواصل المباشرة." />
-    <meta name="theme-color" content="#d97706" />
+    <title>منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر</title>
+    <meta name="title" content="منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر" />
+    <meta name="description" content="الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps." />
+    <meta name="theme-color" content="#c59b27" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <meta name="reader-mode" content="no" />
+    <meta name="format-detection" content="telephone=no" />
 
-    <!-- Google Fonts -->
+    <!-- Canonical & OpenGraph / WhatsApp / Facebook Sharing -->
+    <link rel="canonical" href="https://www.dalilaak.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="منصة دليلك - Dalelak" />
+    <meta property="og:url" content="https://www.dalilaak.com/" />
+    <meta property="og:title" content="منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر" />
+    <meta property="og:description" content="الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps." />
+    <meta property="og:image" content="https://www.dalilaak.com/og-image.jpg?v=2026_dalilak_v5_platform" />
+    <meta property="og:image:secure_url" content="https://www.dalilaak.com/og-image.jpg?v=2026_dalilak_v5_platform" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="682" />
+    <meta property="og:image:alt" content="دليلك - المنصة الشاملة لتوثيق الأنشطة التجارية والخدمات الميدانية" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.dalilaak.com/" />
+    <meta name="twitter:title" content="منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر" />
+    <meta name="twitter:description" content="الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps." />
+    <meta name="twitter:image" content="https://www.dalilaak.com/og-image.jpg?v=2026_dalilak_v5_platform" />
+
+    <!-- CDN Resource Hints & Preconnect for Fast LCP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://xdqpbajymacpdccorjcj.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://xdqpbajymacpdccorjcj.supabase.co">
+    <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
+    <link rel="dns-prefetch" href="https://lh3.googleusercontent.com">
 
-    <!-- Leaflet Map CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script type="module" crossorigin src="./assets/index-i4YZGh36.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-lgNxSh_A.css">
+    <!-- Optimized Google Fonts with font-display: swap -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <!-- Leaflet Map Engine Stylesheet & Script (Immediate Render) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" crossorigin src="./assets/index-BdYYcUnh.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/react-vendor-DFNyvYiR.js">
+    <link rel="modulepreload" crossorigin href="./assets/supabase-vendor-C5o0XR4z.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-QNB4EDe8.css">
   </head>
-  <body class="bg-slate-950 text-slate-100 font-['Cairo',sans-serif] antialiased min-h-screen">
-    <div id="root"></div>
+  <body class="bg-slate-50 text-slate-900 font-['Cairo',sans-serif] antialiased min-h-screen">
+    <div id="root" role="application" aria-label="بوابة دليلك التفاعلية" data-readability-ignore="true" data-reader-skip="true">
+      <!-- Critical Fast-Paint Shell for Instant Seamless App & PWA Launch (<0.4s) -->
+      <div id="critical-portal-shell" style="min-height: 100vh; background-color: #0b0f19; color: #f8fafc; font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column;">
+        <!-- Header Shell -->
+        <header style="height: 60px; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; color: #020617; font-weight: 900; font-size: 16px; box-shadow: 0 2px 10px rgba(245,158,11,0.3);">د</div>
+            <div>
+              <span style="font-size: 17px; font-weight: 900; color: #ffffff; line-height: 1.2;">دليلك</span>
+              <span style="display: block; font-size: 10px; font-weight: 800; color: #fbbf24;">خريطة حدائق الأهرام التفاعلية</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="height: 28px; width: 80px; border-radius: 10px; background: rgba(255,255,255,0.06);"></div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.06);"></div>
+          </div>
+        </header>
+
+        <!-- Map Container Shell -->
+        <div style="flex: 1; margin: 12px; border-radius: 20px; background: #090d16; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; overflow: hidden; position: relative; min-height: 520px;">
+          <!-- Map Header Skeleton -->
+          <div style="height: 48px; background: rgba(15,23,42,0.9); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="height: 28px; width: 110px; border-radius: 10px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3);"></div>
+              <div style="height: 28px; width: 90px; border-radius: 10px; background: rgba(255,255,255,0.06);"></div>
+            </div>
+            <div style="height: 28px; width: 80px; border-radius: 10px; background: rgba(255,255,255,0.06);"></div>
+          </div>
+          <!-- Map Canvas Background -->
+          <div style="flex: 1; background: #0f172a; display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="text-align: center; opacity: 0.7;">
+              <div style="width: 24px; height: 24px; border: 2.5px solid rgba(245,158,11,0.25); border-top-color: #f59e0b; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px;"></div>
+              <span style="font-size: 11px; font-weight: 700; color: #94a3b8;">جاري تحميل خريطة حدائق الأهرام...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
