@@ -1,4 +1,4 @@
-import{r as t,j as e,b as j,ac as n,M as N,ad as g,ae as w,B as v}from"./react-vendor-DFNyvYiR.js";import{F as a,E as y}from"./index-BdYYcUnh.js";import"./supabase-vendor-C5o0XR4z.js";const E=({onNavigate:c})=>{const[l,i]=t.useState(""),[o,m]=t.useState(""),[r,p]=t.useState(""),[d,b]=t.useState("الجيزة"),[h,u]=t.useState(!1),f=s=>{if(s.preventDefault(),!l||!r)return;const x=`مرحباً دليلك 👋 أود إدراج نشاطي في المنصة:
+import{r as t,j as e,b as j,ac as n,M as N,ad as g,ae as w,B as v}from"./react-vendor-DFNyvYiR.js";import{F as a,E as y}from"./index-Bl7InXMv.js";import"./supabase-vendor-C5o0XR4z.js";const E=({onNavigate:c})=>{const[l,i]=t.useState(""),[o,m]=t.useState(""),[r,p]=t.useState(""),[d,b]=t.useState("الجيزة"),[h,u]=t.useState(!1),f=s=>{if(s.preventDefault(),!l||!r)return;const x=`مرحباً دليلك 👋 أود إدراج نشاطي في المنصة:
 - اسم النشاط: ${l}
 - اسم المسؤول: ${o||"صاحب النشاط"}
 - رقم الهاتف: ${r}
