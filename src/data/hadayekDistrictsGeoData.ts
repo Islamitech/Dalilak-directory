@@ -1636,15 +1636,45 @@ export function isPointInPolygon(lat: number, lng: number, polygon: [number, num
   return inside;
 }
 
+interface IndexedDistrictPolygon {
+  district: HadayekOfficialDistrict;
+  polygon: [number, number][];
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
+// Bounding-box pre-index: most points are rejected without running ray casting
+// against every vertex of every district on each filter/render pass.
+const DISTRICT_POLYGON_INDEX: IndexedDistrictPolygon[] = HADAYEK_OFFICIAL_DISTRICTS.flatMap((district) =>
+  district.polygons.map((polygon) => {
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+    polygon.forEach(([pointLat, pointLng]) => {
+      minLat = Math.min(minLat, pointLat);
+      maxLat = Math.max(maxLat, pointLat);
+      minLng = Math.min(minLng, pointLng);
+      maxLng = Math.max(maxLng, pointLng);
+    });
+    return { district, polygon, minLat, maxLat, minLng, maxLng };
+  })
+);
+
 /**
  * Determine which Hadayek district a point (lat, lng) belongs to
  */
 export function findDistrictForCoordinates(lat: number, lng: number): HadayekOfficialDistrict | null {
-  for (const district of HADAYEK_OFFICIAL_DISTRICTS) {
-    for (const poly of district.polygons) {
-      if (isPointInPolygon(lat, lng, poly)) {
-        return district;
-      }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  for (const entry of DISTRICT_POLYGON_INDEX) {
+    if (lat < entry.minLat || lat > entry.maxLat || lng < entry.minLng || lng > entry.maxLng) {
+      continue;
+    }
+    if (isPointInPolygon(lat, lng, entry.polygon)) {
+      return entry.district;
     }
   }
   return null;

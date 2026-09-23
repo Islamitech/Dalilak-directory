@@ -58,6 +58,31 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+function createDistrictLetterHtml(
+  letter: string,
+  color: string,
+  isSelected: boolean,
+  hasActiveZone: boolean
+): string {
+  const stateClass = isSelected
+    ? 'is-selected'
+    : hasActiveZone
+    ? 'is-muted'
+    : 'is-overview';
+
+  return `
+    <div
+      class="hadayek-zone-map-label ${stateClass}"
+      style="--zone-color:${color}"
+      role="button"
+      aria-label="منطقة ${escapeHtml(letter)}"
+      title="منطقة ${escapeHtml(letter)}"
+    >
+      <span aria-hidden="true">${escapeHtml(letter)}</span>
+    </div>
+  `;
+}
+
 export const useMapPinsClustering = ({
   mapInstance,
   state,
@@ -94,6 +119,8 @@ export const useMapPinsClustering = ({
     onlyVerifiedFilter,
     selectedBiz,
     setSelectedBiz,
+    setSelectedZone,
+    setShowBusinesses,
     showDistrictsOverlay,
     showGatesLayer,
     showTargetPin,
@@ -154,20 +181,20 @@ export const useMapPinsClustering = ({
 
   // Handler to select district
   const handleSelectDistrict = useCallback((letter: string) => {
-    state.setSelectedZone(letter);
+    setSelectedZone(letter);
     if (onSelectZoneRef.current) onSelectZoneRef.current(letter);
-  }, [state]);
+  }, [setSelectedZone]);
 
   // Global handler for popup action button
   useEffect(() => {
     (window as any).__selectHadayekDistrict = (letter: string) => {
       handleSelectDistrict(letter);
-      state.setShowBusinesses(true);
+      setShowBusinesses(true);
     };
     return () => {
       delete (window as any).__selectHadayekDistrict;
     };
-  }, [handleSelectDistrict, state]);
+  }, [handleSelectDistrict, setShowBusinesses]);
 
   // Cleanup selected business if it no longer matches the current zone or category filters
   useEffect(() => {
@@ -199,6 +226,10 @@ export const useMapPinsClustering = ({
     if (!map.getPane('districtsPane')) {
       const districtsPane = map.createPane('districtsPane');
       districtsPane.style.zIndex = '360';
+    }
+    if (!map.getPane('districtLabelsPane')) {
+      const districtLabelsPane = map.createPane('districtLabelsPane');
+      districtLabelsPane.style.zIndex = '460';
     }
     if (!map.getPane('pinsPane')) {
       const pinsPane = map.createPane('pinsPane');
@@ -313,37 +344,18 @@ export const useMapPinsClustering = ({
       });
 
       // Centroid marker with Arabic letter
-      const badgeHtml = `
-        <div class="hadayek-zone-letter-badge" style="
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #ffffff;
-          border: 2px solid ${district.color};
-          color: #0f172a;
-          font-family: 'Cairo', system-ui, sans-serif;
-          font-weight: 900;
-          font-size: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-          cursor: pointer;
-          user-select: none;
-          line-height: 1;
-        ">${district.letterAr}</div>
-      `;
+      const badgeHtml = createDistrictLetterHtml(district.letterAr, district.color, false, false);
 
       const badgeIcon = window.L.divIcon({
-        className: 'hadayek-zone-letter-marker',
+        className: 'hadayek-zone-letter-marker hadayek-zone-letter-marker-overview',
         html: badgeHtml,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [44, 36],
+        iconAnchor: [22, 18],
       });
 
       const marker = window.L.marker([district.centerLat, district.centerLng], {
         icon: badgeIcon,
-        pane: 'districtsPane',
+        pane: 'districtLabelsPane',
         zIndexOffset: 200,
       });
 
@@ -421,36 +433,18 @@ export const useMapPinsClustering = ({
       if (!marker) return;
 
       const isSelected = hasActiveZone && district.letterAr === effectiveSelectedZone;
-      const badgeHtml = `
-        <div class="hadayek-zone-letter-badge" style="
-          width: ${isSelected ? '28px' : '24px'};
-          height: ${isSelected ? '28px' : '24px'};
-          border-radius: 50%;
-          background: ${isSelected ? district.color : '#ffffff'};
-          border: 2px solid ${isSelected ? '#fef08a' : district.color};
-          color: ${isSelected ? '#ffffff' : '#0f172a'};
-          font-family: 'Cairo', system-ui, sans-serif;
-          font-weight: 900;
-          font-size: ${isSelected ? '14px' : '12px'};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: ${isSelected ? '0 0 14px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3)' : '0 2px 5px rgba(0, 0, 0, 0.25)'};
-          opacity: ${hasActiveZone && !isSelected ? 0.5 : 1.0};
-          cursor: pointer;
-          user-select: none;
-          line-height: 1;
-        ">${district.letterAr}</div>
-      `;
-
-      const badgeSize = isSelected ? [28, 28] : [24, 24];
-      const badgeAnchor = isSelected ? [14, 14] : [12, 12];
+      const badgeHtml = createDistrictLetterHtml(
+        district.letterAr,
+        district.color,
+        isSelected,
+        hasActiveZone
+      );
 
       const badgeIcon = window.L.divIcon({
-        className: 'hadayek-zone-letter-marker',
+        className: `hadayek-zone-letter-marker ${isSelected ? 'hadayek-zone-letter-marker-selected' : 'hadayek-zone-letter-marker-overview'}`,
         html: badgeHtml,
-        iconSize: badgeSize,
-        iconAnchor: badgeAnchor,
+        iconSize: [44, 36],
+        iconAnchor: [22, 18],
       });
 
       marker.setIcon(badgeIcon);
@@ -472,12 +466,12 @@ export const useMapPinsClustering = ({
         try {
           map.stop();
           const bounds = window.L.latLngBounds(decision.targetBounds);
-          map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 16.5, duration: 0.6 });
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16.5, animate: true, duration: 0.45 });
         } catch {}
       } else if (decision.type === 'overview' && decision.targetCenter) {
         try {
           map.stop();
-          map.flyTo(decision.targetCenter, decision.targetZoom || 14, { duration: 0.6 });
+          map.flyTo(decision.targetCenter, decision.targetZoom || 14, { duration: 0.45 });
         } catch {}
       }
     }
@@ -1075,12 +1069,15 @@ export const useMapPinsClustering = ({
     setSelectedBiz,
   ]);
 
-  // 7. 🔄 Recalculate Screen-Space Offsets on zoomend and moveend ONLY (preserving 60 FPS panning)
+  // 7. 🔄 Recalculate card offsets only when scale or viewport size changes.
+  // Pure panning is a translation: relative screen distances do not change, so
+  // recalculating after moveend only makes cards visibly jump for no benefit.
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map || !isMapReady || mode !== 'view') return;
 
-    const handleMovementEnd = () => {
+    let frameId: number | null = null;
+    const recalculateOffsets = () => {
       if (selectedBizRef.current) return;
       const containerWidth = map.getSize()?.x || 800;
       const cardLimit = getResponsiveCardLimit(containerWidth);
@@ -1115,12 +1112,21 @@ export const useMapPinsClustering = ({
       });
     };
 
-    map.on('moveend', handleMovementEnd);
-    map.on('zoomend', handleMovementEnd);
+    const scheduleRecalculation = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        frameId = null;
+        recalculateOffsets();
+      });
+    };
+
+    map.on('zoomend', scheduleRecalculation);
+    map.on('resize', scheduleRecalculation);
 
     return () => {
-      map.off('moveend', handleMovementEnd);
-      map.off('zoomend', handleMovementEnd);
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      map.off('zoomend', scheduleRecalculation);
+      map.off('resize', scheduleRecalculation);
     };
   }, [isMapReady, mode, sortedBusinesses]);
 };

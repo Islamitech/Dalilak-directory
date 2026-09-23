@@ -18,13 +18,13 @@ import { MessageCircle } from 'lucide-react';
 
 // Code-splitting via React.lazy to reduce initial JS payload for mobile Lighthouse performance
 const SearchView = React.lazy(() => import('./views/SearchView').then(m => ({ default: m.SearchView })));
-import { MapView } from './views/MapView';
+const MapView = React.lazy(() => import('./views/MapView').then(m => ({ default: m.MapView })));
 const FavoritesView = React.lazy(() => import('./views/FavoritesView').then(m => ({ default: m.FavoritesView })));
 const ForBusinessView = React.lazy(() => import('./views/ForBusinessView').then(m => ({ default: m.ForBusinessView })));
 const BusinessPricingView = React.lazy(() => import('./views/BusinessPricingView').then(m => ({ default: m.BusinessPricingView })));
 const AboutView = React.lazy(() => import('./views/AboutView').then(m => ({ default: m.AboutView })));
 const MapSandboxView = React.lazy(() => import('./views/MapSandboxView').then(m => ({ default: m.MapSandboxView })));
-import { ActivityDetailModal } from './activity/ActivityDetailModal';
+const ActivityDetailModal = React.lazy(() => import('./activity/ActivityDetailModal').then(m => ({ default: m.ActivityDetailModal })));
 const VideoPlayerModal = React.lazy(() => import('./VideoPlayerModal').then(m => ({ default: m.VideoPlayerModal })));
 
 export interface PublicShowcaseProps {
@@ -92,7 +92,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
-  const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>('all');
+  const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    return new URLSearchParams(window.location.search).get('zone') || 'all';
+  });
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
   const [openNowOnly, setOpenNowOnly] = useState<boolean>(false);
@@ -390,13 +393,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         );
 
         if (normCity.includes('حدايق الاهرام') || normCity.includes('هضبه الاهرام')) {
-          const isHadayek =
-            normBizAddress.includes('حدايق الاهرام') ||
-            normBizAddress.includes('هضبه الاهرام') ||
-            normBizAddress.includes('الاهرام') ||
-            normBizAddress.includes('منطقه ') ||
-            (typeof b.lat === 'number' && b.lat > 29.93 && b.lat < 30.01 && b.lng > 31.06 && b.lng < 31.13);
-          if (!isHadayek) return false;
+          // Search cards, counters and map pins must share the same geographic
+          // authority. A broad rectangle allowed nearby activities to appear in
+          // lists while disappearing from the selected district on the map.
+          if (!isBusinessInHadayekZone(b, 'all')) return false;
 
           if (hadayekZoneFilter !== 'all') {
             if (!isBusinessInHadayekZone(b, hadayekZoneFilter)) {
@@ -724,7 +724,13 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       />
 
       {/* 2. Main Dispatched View */}
-      <main className={isMapRoute ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col" : "flex-1 pb-16 md:pb-0"}>
+      <main
+        className={
+          isMapRoute
+            ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
+            : "flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0"
+        }
+      >
         <React.Suspense fallback={
           <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 p-8">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
@@ -740,19 +746,21 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
       {/* 4. Activity Details Modal */}
       {selectedBiz && (
-        <ActivityDetailModal
-          business={selectedBiz}
-          onClose={handleCloseBusiness}
-          isFavorite={favorites.includes(selectedBiz.id)}
-          onToggleFavorite={toggleFavorite}
-          onOpenVideoModal={(b) => setSelectedVideoBiz(b)}
-          allBusinesses={publicBusinesses}
-          onSelectBusiness={(b) => setSelectedBiz(b)}
-          onNavigateToBusinessClaim={(b) => {
-            handleCloseBusiness();
-            handleNavigate('/for-business');
-          }}
-        />
+        <React.Suspense fallback={null}>
+          <ActivityDetailModal
+            business={selectedBiz}
+            onClose={handleCloseBusiness}
+            isFavorite={favorites.includes(selectedBiz.id)}
+            onToggleFavorite={toggleFavorite}
+            onOpenVideoModal={(b) => setSelectedVideoBiz(b)}
+            allBusinesses={publicBusinesses}
+            onSelectBusiness={(b) => setSelectedBiz(b)}
+            onNavigateToBusinessClaim={(b) => {
+              handleCloseBusiness();
+              handleNavigate('/for-business');
+            }}
+          />
+        </React.Suspense>
       )}
 
       {/* 5. Video Player Modal */}

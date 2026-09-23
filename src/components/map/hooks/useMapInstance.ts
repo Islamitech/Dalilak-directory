@@ -8,6 +8,14 @@ export const HADAYEK_BOUNDS: [[number, number], [number, number]] = [
   HADAYEK_BOUNDS_COORDS.ne,
 ];
 
+// Tight visual frame around the official district polygons. Navigation can
+// still use the wider HADAYEK_BOUNDS, but the first paint should not waste
+// most of a phone screen on surrounding desert and roads.
+export const HADAYEK_VIEW_BOUNDS: [[number, number], [number, number]] = [
+  [29.9465, 31.0865],
+  [29.9902, 31.1140],
+];
+
 export const HADAYEK_TILE_BOUNDS: [[number, number], [number, number]] = [
   [29.9100, 31.0400],
   [30.0250, 31.1550],
@@ -125,9 +133,7 @@ export const useMapInstance = ({
     setTileLayer(newType);
     if (!leafletMapRef.current || !window.L) return;
 
-    if (tileLayerRef.current) {
-      leafletMapRef.current.removeLayer(tileLayerRef.current);
-    }
+    const previousLayer = tileLayerRef.current;
 
     const cfg = getTileLayerConfig(newType);
     const newLayer = window.L.tileLayer(cfg.url, {
@@ -144,6 +150,23 @@ export const useMapInstance = ({
 
     newLayer.addTo(leafletMapRef.current);
     tileLayerRef.current = newLayer;
+
+    // Keep the previous tiles visible until the replacement has painted.
+    // This avoids the white flash that used to make layer switching feel broken.
+    if (previousLayer && previousLayer !== newLayer) {
+      let finalized = false;
+      const removePreviousLayer = () => {
+        if (finalized) return;
+        finalized = true;
+        try {
+          if (leafletMapRef.current?.hasLayer(previousLayer)) {
+            leafletMapRef.current.removeLayer(previousLayer);
+          }
+        } catch {}
+      };
+      newLayer.once('load', removePreviousLayer);
+      window.setTimeout(removePreviousLayer, 2500);
+    }
 
     // Trigger pre-warming for the newly selected tile provider
     preloadHadayekTiles(newType);
@@ -218,6 +241,19 @@ export const useMapInstance = ({
         map.setMaxBounds(HADAYEK_BOUNDS);
         map.options.minZoom = isMobile ? 12.8 : 13.2;
         map.options.maxZoom = 19.5;
+
+        // Resolve the final overview before adding the tile layer. Previously
+        // tiles were requested once for the constructor zoom and again after
+        // fitBounds, doubling first-map network and producing a visible snap.
+        try {
+          map.fitBounds(HADAYEK_VIEW_BOUNDS, { padding: [12, 12], maxZoom: 14.5, animate: false });
+          const fittedCenter = map.getCenter();
+          liveCenterRef.current = {
+            lat: fittedCenter.lat,
+            lng: fittedCenter.lng,
+            zoom: map.getZoom(),
+          };
+        } catch {}
       } else {
         map.options.minZoom = 6;
         map.options.maxZoom = 19.5;
@@ -246,13 +282,6 @@ export const useMapInstance = ({
 
       // 🚀 Background pre-warming of all Hadayek Al-Ahram tiles into cache
       preloadHadayekTiles(tileLayer);
-
-      // Automatically calibrate Hadayek Al-Ahram bounds on initial load
-      if (mode === 'view') {
-        try {
-          map.fitBounds(HADAYEK_BOUNDS, { padding: [16, 16], maxZoom: 14.5 });
-        } catch {}
-      }
 
       // Stop ongoing programmatic transitions when the user drags the map
       map.on('dragstart', () => {
@@ -347,13 +376,17 @@ export const useMapInstance = ({
 
   // Handle Resize & Fullscreen Invalidation (Zero Center Drift - commit 3471e21)
   useEffect(() => {
+    let resizeFrame: number | null = null;
     const handleResize = () => {
-      if (leafletMapRef.current) {
+      if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null;
+        if (!leafletMapRef.current) return;
         if (containerRef.current && !containerRef.current.classList.contains('leaflet-container')) {
           containerRef.current.classList.add('leaflet-container');
         }
         leafletMapRef.current.invalidateSize({ animate: false, pan: false });
-      }
+      });
     };
 
     window.addEventListener('resize', handleResize);
@@ -370,6 +403,7 @@ export const useMapInstance = ({
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
+      if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
       if (resizeObserver) resizeObserver.disconnect();
     };
   }, [containerRef]);

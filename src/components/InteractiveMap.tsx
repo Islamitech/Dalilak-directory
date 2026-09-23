@@ -248,7 +248,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
         {/* ⚠️ Empty Category Notice Banner (Non-intrusive lightweight pill) */}
         {mode === 'view' && activeCategory && activeCategory !== 'all' && matchingBusinessesCount === 0 && (
-          <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
+          <div className="absolute top-[7.5rem] sm:top-20 left-1/2 -translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
               <span>لا توجد أنشطة مسجلة في تصنيف &quot;{activeCategory}&quot; {activeZone && activeZone !== 'all' ? `بمنطقة ${activeZone}` : 'حالياً'}</span>
@@ -258,7 +258,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
         {/* 🔍 In-Zone Scoped Search Bar (Displays when a zone is active) */}
         {mode === 'view' && activeZone && activeZone !== 'all' && !navigationTargetState && (
-          <div className="absolute top-16 sm:top-20 right-3 left-3 sm:right-6 sm:left-6 z-[890] pointer-events-none flex justify-center">
+          <div className="absolute top-[7.5rem] sm:top-20 right-3 left-3 sm:right-6 sm:left-6 z-[890] pointer-events-none flex justify-center">
             <div className="pointer-events-auto w-full max-w-md">
               <ZoneScopedSearchBar
                 selectedZone={activeZone}

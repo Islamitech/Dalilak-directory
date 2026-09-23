@@ -370,7 +370,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
           </div>
 
           {/* Drawer Sticky Footer Actions */}
-          <div className="p-4 border-t border-[var(--border-color)] bg-slate-50 flex items-center justify-between gap-3 pb-safe">
+          <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[var(--border-color)] bg-slate-50 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={onResetAll}

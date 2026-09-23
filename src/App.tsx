@@ -6,7 +6,7 @@ import { supabase, SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from './services/supa
 
 // VERIFIED columns that exist in Supabase (whatsapp, google_maps_url, google_place_id, google_sync_status do NOT exist).
 // google_maps_url, google_place_id, google_sync_status are stored in the 'notes' JSON field.
-const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo,photos';
+const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';
 const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc`;
 const SUPABASE_PHOTOS_URL = `${SUPABASE_REST_BASE}/businesses?select=id,photos&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc`;
 
@@ -16,8 +16,10 @@ const BIDI_CONTROL_REGEX = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069\uFEFF]
 function getSafeCacheList(list: Business[]): any[] {
   return list.map((b) => ({
     ...b,
+    // Startup cache stays intentionally small: cards only need one hosted image
+    // for the first paint. The full gallery is hydrated after the UI is idle.
     photos: Array.isArray(b.photos)
-      ? b.photos.filter((p: string) => typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))).slice(0, 10)
+      ? b.photos.filter((p: string) => typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))).slice(0, 1)
       : (b.coverPhoto && !b.coverPhoto.startsWith('data:') ? [b.coverPhoto] : []),
   }));
 }
@@ -240,11 +242,17 @@ export default function App() {
   // Fetch real-time businesses from Supabase REST API + WebSockets Live Channel
   useEffect(() => {
     let isMounted = true;
+    let activeLoadController: AbortController | null = null;
+    let photoHydrationTimer: number | null = null;
 
     async function loadBusinesses(force: boolean = false) {
       if (!force && typeof document !== 'undefined' && document.hidden) return;
 
+      // A visibility refresh or a realtime sync must supersede an older request.
+      // This prevents multiple full-catalog downloads racing each other.
+      activeLoadController?.abort();
       const controller = new AbortController();
+      activeLoadController = controller;
       const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       try {
@@ -281,27 +289,38 @@ export default function App() {
             });
             if (isMounted) setLoading(false);
 
-            // ⚡ TIER 2: Stream remaining businesses in the background without UI blocking
+            // ⚡ TIER 2: Stream remaining businesses sequentially in the background.
+            // Avoiding Promise.all prevents a burst of large responses competing
+            // with map tiles, fonts and the first interactive paint.
             if (!isNaN(totalCount) && totalCount > FAST_BATCH_SIZE) {
-              const BATCH_SIZE = 1000;
-              const promises: Promise<any[]>[] = [];
+              const BATCH_SIZE = 500;
               for (let from = FAST_BATCH_SIZE; from < totalCount; from += BATCH_SIZE) {
+                if (!isMounted || controller.signal.aborted) break;
                 const to = Math.min(from + BATCH_SIZE - 1, totalCount - 1);
-                promises.push(
-                  fetch(SUPABASE_REST_URL, {
+                try {
+                  const batchResponse = await fetch(SUPABASE_REST_URL, {
+                    signal: controller.signal,
                     headers: {
                       apikey: SUPABASE_ANON_KEY,
                       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
                       Range: `${from}-${to}`,
                       'Range-Unit': 'items',
                     },
-                  })
-                    .then(async (r) => (r.ok ? r.json() : []))
-                    .catch(() => [])
-                );
+                  });
+                  if (batchResponse.ok) {
+                    const batch = await batchResponse.json();
+                    if (Array.isArray(batch)) raw.push(...batch);
+                  }
+                } catch (error: any) {
+                  if (error?.name !== 'AbortError') {
+                    console.warn('Failed to stream a directory batch:', error);
+                  }
+                  break;
+                }
+
+                // Yield to rendering/input between catalog pages.
+                await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
               }
-              const restBatches = await Promise.all(promises);
-              raw = raw.concat(...restBatches);
             }
 
             const mapped: Business[] = raw
@@ -346,8 +365,10 @@ export default function App() {
             });
           }
         }
-      } catch (e) {
-        console.warn('Failed to fetch from live Supabase DB:', e);
+      } catch (e: any) {
+        if (e?.name !== 'AbortError') {
+          console.warn('Failed to fetch from live Supabase DB:', e);
+        }
       } finally {
         clearTimeout(timeoutId);
         try {
@@ -357,10 +378,12 @@ export default function App() {
       }
 
       // Background photo hydration after initial paint is settled (idle delay to save network contention)
-      setTimeout(async () => {
+      if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
+      photoHydrationTimer = window.setTimeout(async () => {
         if (!isMounted) return;
         try {
           const pRes = await fetch(SUPABASE_PHOTOS_URL, {
+            signal: controller.signal,
             headers: {
               apikey: SUPABASE_ANON_KEY,
               Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -398,7 +421,7 @@ export default function App() {
             }
           }
         } catch {}
-      }, 1500);
+      }, 1800);
     }
 
     // 1. Initial Load
@@ -530,11 +553,14 @@ export default function App() {
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
-    // 6. Lightweight Background Delta Poll Interval every 60 seconds
-    const intervalId = setInterval(() => loadBusinesses(true), 60000);
+    // 6. Realtime is authoritative. A five-minute safety refresh is enough and
+    // avoids repeatedly competing with map tiles and user navigation.
+    const intervalId = setInterval(() => loadBusinesses(true), 300000);
 
     return () => {
       isMounted = false;
+      activeLoadController?.abort();
+      if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
       clearInterval(intervalId);
       supabase.removeChannel(realtimeChannel);
       if (syncChannel) syncChannel.close();

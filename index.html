@@ -53,23 +53,28 @@
     <link rel="dns-prefetch" href="https://xdqpbajymacpdccorjcj.supabase.co">
     <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
     <link rel="dns-prefetch" href="https://lh3.googleusercontent.com">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
 
     <!-- Optimized Google Fonts with font-display: swap -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
-    <!-- Leaflet Map Engine Stylesheet & Script (Immediate Render) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet is loaded on demand by the map hook. Keeping it out of the
+         document head lets discovery, search and shared business pages mount
+         without waiting for a third-party map CDN. -->
     <style>
       /* Universal Reset to eliminate any unwanted borders, boxes, or outlines */
       *, *::before, *::after {
         box-sizing: border-box;
         border: 0 solid transparent;
-        outline: none !important;
         -webkit-tap-highlight-color: transparent;
       }
-      *:focus, *:focus-visible {
+      *:focus:not(:focus-visible) {
         outline: none !important;
+      }
+      *:focus-visible {
+        outline: 3px solid #f59e0b !important;
+        outline-offset: 2px;
       }
       #initial-loading-overlay {
         position: fixed;

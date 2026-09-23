@@ -86,17 +86,22 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs pt-[env(safe-area-inset-top)]" dir="rtl">
+      <div className="max-w-7xl mx-auto px-2.5 min-[380px]:px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Right (RTL Start): Brand Logo & Location Pill */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
           <button
             type="button"
             onClick={() => handleLinkClick('/')}
             className="flex items-center gap-2 cursor-pointer focus:outline-none shrink-0"
             aria-label="الصفحة الرئيسية لمنصة دليلك"
           >
-            <Logo size="md" showSubtitle={false} />
+            <span className="hidden min-[380px]:block">
+              <Logo size="md" showSubtitle={false} />
+            </span>
+            <span className="min-[380px]:hidden">
+              <Logo size="sm" variant="icon" showSubtitle={false} />
+            </span>
           </button>
 
           {/* 📍 Sleek Native Location Badge ("فعال لكن مخفي") */}
@@ -109,7 +114,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               aria-label="المنطقة الحالية"
             >
               <span className="text-xs sm:text-sm">📍</span>
-              <span className="truncate max-w-[80px] sm:max-w-[130px] font-black">
+              <span className="truncate max-w-[54px] min-[380px]:max-w-[76px] sm:max-w-[130px] font-black">
                 {activeLocation || 'حدائق الأهرام'}
               </span>
             </button>
@@ -117,7 +122,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             {/* Floating Location Selection Popover */}
             {isLocationMenuOpen && (
               <div
-                className="absolute top-full mt-2 right-0 w-72 sm:w-80 bg-white/98 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 z-50 p-2.5 animate-scale-in text-slate-800"
+                className="fixed top-[calc(4rem+env(safe-area-inset-top))] right-3 left-3 w-auto sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-auto sm:w-80 bg-white/98 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 z-50 p-2.5 animate-scale-in text-slate-800"
                 dir="rtl"
               >
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
@@ -210,7 +215,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
         </nav>
 
         {/* Left (RTL End): Business Owner CTA & Mobile Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Subtle Pricing / Growth link for interested owners */}
           <button
             type="button"
@@ -225,11 +230,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
           <button
             type="button"
             onClick={() => handleLinkClick('/for-business')}
-            className="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs px-3.5 sm:px-4 py-2.5 rounded-xl shadow-xs hover:shadow-sm flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+            className="w-10 min-[360px]:w-auto min-h-10 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs px-0 min-[360px]:px-3 sm:px-4 py-2.5 rounded-xl shadow-xs hover:shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
+            aria-label="أضف نشاطك مجاناً"
           >
             <Store className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">هل تملك نشاطاً؟ أضفه مجاناً</span>
-            <span className="sm:hidden">أضف نشاطك</span>
+            <span className="hidden min-[360px]:inline sm:hidden">أضف نشاطك</span>
           </button>
 
           {/* Mobile Hamburger Button */}
@@ -246,7 +252,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-2 animate-fade-in shadow-xl">
+        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-2 animate-fade-in shadow-xl max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain">
           {navLinks.map((link) => {
             const isActive =
               link.path === '/'

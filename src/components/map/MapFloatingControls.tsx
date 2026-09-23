@@ -58,7 +58,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* FLOATING CONTROLS TOOLBAR OVER MAP */}
       {/* 1. Zoom, Center Pin, & Reset Controls (Top Right Overlay) */}
-      <div className="absolute top-20 right-3 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[900]">
+      <div className="absolute top-[7.5rem] right-3 sm:top-20 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[900]">
         <button
           type="button"
           onClick={handleZoomIn}

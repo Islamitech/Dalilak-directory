@@ -204,11 +204,11 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col text-right shadow-2xl overflow-hidden my-auto animate-fade-in-scale"
+        className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl sm:rounded-3xl max-w-2xl w-full max-h-[calc(100dvh-0.75rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] sm:max-h-[92dvh] flex flex-col text-right shadow-2xl overflow-hidden my-auto animate-fade-in-scale"
         style={{ direction: 'rtl' }}
       >
         {/* Modal Top Bar */}
@@ -262,7 +262,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-4 sm:p-6 space-y-6 overflow-y-auto max-h-[calc(92vh-130px)] text-xs">
+        <div className="p-4 sm:p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 text-xs">
           {/* Main Visual Photo & Gallery */}
           <div className="space-y-3">
             <div

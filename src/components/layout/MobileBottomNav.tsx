@@ -52,7 +52,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       }}
       aria-label="التنقل على الهاتف"
     >
-      <div className="grid grid-cols-4 h-15 max-w-md mx-auto items-center px-2 gap-1">
+      <div className="grid grid-cols-4 h-16 max-w-md mx-auto items-center px-2 gap-1">
         {items.map((item) => {
           const Icon = item.icon;
           const active = item.isActive;
@@ -61,11 +61,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               key={item.path}
               type="button"
               onClick={() => onNavigate(item.path)}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-1 sm:px-2 transition-all cursor-pointer select-none rounded-xl active:scale-95 ${
+              className={`relative min-h-12 flex flex-col items-center justify-center py-1.5 px-1 sm:px-2 transition-all cursor-pointer select-none rounded-xl active:scale-95 ${
                 active
                   ? 'bg-amber-100/80 text-slate-950 font-extrabold shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800 font-medium'
               }`}
+              aria-current={active ? 'page' : undefined}
             >
               <div className="relative">
                 <Icon
