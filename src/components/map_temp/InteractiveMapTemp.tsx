@@ -124,6 +124,8 @@ export const InteractiveMapTemp: React.FC<InteractiveMapProps> = ({
 
         <MapFloatingControls
           mode={mode}
+          tileLayer={mapInstance.tileLayer}
+          switchTileLayer={mapInstance.switchTileLayer}
           centerReticleActive={state.centerReticleActive}
           setCenterReticleActive={state.setCenterReticleActive}
           handleZoomIn={mapInstance.handleZoomIn}

@@ -157,7 +157,7 @@ export function createLightweightBadgeHtml(
     : (biz.city || (biz.street ? biz.street.split('،')[0].trim() : '') || 'حدائق الأهرام');
   const safeLocation = escapeHtml(locationLabel);
 
-  const ratingVal = (biz.googleRating || biz.rating || 4.9).toFixed(1);
+  const ratingVal = (biz.googleRating || 4.9).toFixed(1);
 
   const cardWidth = isSelected ? 196 : 184;
   const photoHeight = isSelected ? 82 : 76;
@@ -339,4 +339,55 @@ export function createDistrictClusterHtml(
     iconAnchor: [width / 2, totalHeight],
   };
 }
+
+/**
+ * Creates a sleek, glowing golden Origin Hub Pin marking the true physical ground location
+ * from which fanned-out activity cards branch.
+ */
+export function createOriginHubHtml(): {
+  html: string;
+  iconSize: [number, number];
+  iconAnchor: [number, number];
+} {
+  const html = `
+    <div class="origin-hub-pin" style="
+      position: relative;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      pointer-events: none;
+    ">
+      <!-- Pulsing halo ring -->
+      <div style="
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.35);
+        animation: pulseGlow 2s infinite ease-in-out;
+      "></div>
+      <!-- Inner sharp hub dot -->
+      <div style="
+        position: relative;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f59e0b;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.95);
+        z-index: 2;
+      "></div>
+    </div>
+  `;
+
+  return {
+    html,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  };
+}
+
 

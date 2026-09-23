@@ -10,9 +10,9 @@ import {
   ChevronDown,
   Search,
 } from 'lucide-react';
-import { MapTileLayerType, MAP_QUICK_CATEGORIES } from './constants/mapConstants';
+import { MapTileLayerType, MAP_QUICK_CATEGORIES, GOVERNORATE_COORDS } from './constants/mapConstants';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../../data/hadayekDistrictsGeoData';
-import { estimateBuildingCoordinates } from '../../data/hadayekAtlasData';
+import { estimateBuildingCoordinates, searchBuildingCoordinatesExact } from '../../data/hadayekAtlasData';
 import { useMapState } from './hooks/useMapState';
 import { useMapInstance } from './hooks/useMapInstance';
 
@@ -22,7 +22,7 @@ export interface MapHeaderBarProps {
   tileLayer: MapTileLayerType;
   switchTileLayer: (type: MapTileLayerType) => void;
   state: ReturnType<typeof useMapState>;
-  onGovChange: (govName: string) => void;
+  onGovChange?: (govName: string) => void;
   isLocating?: boolean;
   handleGetLocation?: () => void;
   showHadayekGates?: boolean;
@@ -37,6 +37,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
   tileLayer,
   switchTileLayer,
   state,
+  onGovChange = () => {},
   isLocating = false,
   handleGetLocation,
   showHadayekGates = true,

@@ -17,5 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true
   },
-  "include": ["src", "api"]
+  "include": ["src", "api"],
+  "exclude": ["src/components/map_temp", "node_modules", "dist"]
 }
+

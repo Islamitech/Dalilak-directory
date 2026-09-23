@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Business } from '../../../types';
 import { HADAYEK_OFFICIAL_DISTRICTS, HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
-import { createLightweightBadgeHtml, createLightweightClusterHtml, createDistrictClusterHtml } from '../badgeMarkers';
+import { createLightweightBadgeHtml, createLightweightClusterHtml, createDistrictClusterHtml, createOriginHubHtml } from '../badgeMarkers';
+import { disperseCoincidentPins } from '../utils/pinDispersal';
 import { isBusinessInHadayekZone } from '../../../utils/hadayekZoneHelper';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { useMapInstance } from './useMapInstance';
@@ -505,13 +506,15 @@ export const useMapPinsClustering = ({
       // Prominence sorting helper (verified > rating > photos/video)
       const sortProminent = (list: Business[]) => {
         return [...list].sort((a, b) => {
-          const scoreA = (a.verificationStatus === 'verified' ? 100 : 0) +
-            ((a.googleRating || a.rating || 0) * 10) +
-            (a.videoUrl ? 15 : 0) +
+          const scoreA =
+            (a.verificationStatus === 'verified' ? 100 : 0) +
+            ((a.googleRating || 0) * 10) +
+            (a.videos && a.videos.length > 0 ? 15 : 0) +
             ((a.photos?.length || 0) * 2);
-          const scoreB = (b.verificationStatus === 'verified' ? 100 : 0) +
-            ((b.googleRating || b.rating || 0) * 10) +
-            (b.videoUrl ? 15 : 0) +
+          const scoreB =
+            (b.verificationStatus === 'verified' ? 100 : 0) +
+            ((b.googleRating || 0) * 10) +
+            (b.videos && b.videos.length > 0 ? 15 : 0) +
             ((b.photos?.length || 0) * 2);
           return scoreB - scoreA;
         });
@@ -547,23 +550,66 @@ export const useMapPinsClustering = ({
             markersGroup.addLayer(marker);
           });
         } else {
-          // Show ONLY top 3 prominent activities as Activity Card pins
+          // Show top 3 prominent activities as Activity Card pins (with coincident dispersal)
           const top3 = sorted.slice(0, 3);
           const remaining = sorted.slice(3);
 
-          top3.forEach((biz, idx) => {
+          // Get centroid of selected zone to guide dispersal inwards into the district
+          const currentDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === selectedZone);
+          const centroid: [number, number] | null = currentDistrict
+            ? [currentDistrict.centerLat, currentDistrict.centerLng]
+            : null;
+
+          const dispersedResults = disperseCoincidentPins(top3, centroid);
+          const renderedHubs = new Set<string>();
+
+          dispersedResults.forEach((item, idx) => {
+            const { biz, originCoord, dispersedCoord, isDispersed } = item;
             const isSelected = selectedBiz?.id === biz.id;
             const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+
+            if (isDispersed) {
+              // 1. Draw connecting leader line from original ground point to dispersed card pin
+              const leaderLine = window.L.polyline([originCoord, dispersedCoord], {
+                color: '#f59e0b',
+                weight: 2.2,
+                opacity: 0.85,
+                dashArray: '5, 4',
+                lineCap: 'round',
+                lineJoin: 'round',
+              });
+              markersGroup.addLayer(leaderLine);
+
+              // 2. Render origin hub marker once per shared ground coordinate
+              const hubKey = `${originCoord[0].toFixed(5)}_${originCoord[1].toFixed(5)}`;
+              if (!renderedHubs.has(hubKey)) {
+                renderedHubs.add(hubKey);
+                const hubData = createOriginHubHtml();
+                const hubIcon = window.L.divIcon({
+                  className: 'custom-origin-hub-pin',
+                  html: hubData.html,
+                  iconSize: hubData.iconSize,
+                  iconAnchor: hubData.iconAnchor,
+                });
+                const hubMarker = window.L.marker(originCoord, { icon: hubIcon, zIndexOffset: 350 });
+                markersGroup.addLayer(hubMarker);
+              }
+            }
+
+            // 3. Render Activity Card Pin at its designated position
             const bizIcon = window.L.divIcon({
               className: 'custom-biz-pin top-prominent-card',
               html,
               iconSize,
               iconAnchor,
             });
-            const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 600 - idx * 10 });
+            const marker = window.L.marker(dispersedCoord, {
+              icon: bizIcon,
+              zIndexOffset: 600 - idx * 10 + (isSelected ? 200 : 0),
+            });
             marker.on('click', () => {
               setSelectedBiz(biz);
-              map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+              map.flyTo(originCoord, Math.max(map.getZoom(), 17), { duration: 0.7 });
               if (onSelectBusiness) onSelectBusiness(biz);
             });
             markersGroup.addLayer(marker);
@@ -631,19 +677,58 @@ export const useMapPinsClustering = ({
             const top3 = sorted.slice(0, 3);
             const remaining = sorted.slice(3);
 
-            top3.forEach((biz, idx) => {
+            const distDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === distKey);
+            const distCentroid: [number, number] | null = distDistrict
+              ? [distDistrict.centerLat, distDistrict.centerLng]
+              : null;
+
+            const dispersedResults = disperseCoincidentPins(top3, distCentroid);
+            const renderedHubs = new Set<string>();
+
+            dispersedResults.forEach((item, idx) => {
+              const { biz, originCoord, dispersedCoord, isDispersed } = item;
               const isSelected = selectedBiz?.id === biz.id;
               const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+
+              if (isDispersed) {
+                const leaderLine = window.L.polyline([originCoord, dispersedCoord], {
+                  color: '#f59e0b',
+                  weight: 2.2,
+                  opacity: 0.85,
+                  dashArray: '5, 4',
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                });
+                markersGroup.addLayer(leaderLine);
+
+                const hubKey = `${originCoord[0].toFixed(5)}_${originCoord[1].toFixed(5)}`;
+                if (!renderedHubs.has(hubKey)) {
+                  renderedHubs.add(hubKey);
+                  const hubData = createOriginHubHtml();
+                  const hubIcon = window.L.divIcon({
+                    className: 'custom-origin-hub-pin',
+                    html: hubData.html,
+                    iconSize: hubData.iconSize,
+                    iconAnchor: hubData.iconAnchor,
+                  });
+                  const hubMarker = window.L.marker(originCoord, { icon: hubIcon, zIndexOffset: 350 });
+                  markersGroup.addLayer(hubMarker);
+                }
+              }
+
               const bizIcon = window.L.divIcon({
                 className: 'custom-biz-pin top-prominent-card',
                 html,
                 iconSize,
                 iconAnchor,
               });
-              const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 550 - idx * 10 });
+              const marker = window.L.marker(dispersedCoord, {
+                icon: bizIcon,
+                zIndexOffset: 550 - idx * 10 + (isSelected ? 200 : 0),
+              });
               marker.on('click', () => {
                 setSelectedBiz(biz);
-                map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+                map.flyTo(originCoord, Math.max(map.getZoom(), 17), { duration: 0.7 });
                 if (onSelectBusiness) onSelectBusiness(biz);
               });
               markersGroup.addLayer(marker);

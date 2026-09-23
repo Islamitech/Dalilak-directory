@@ -846,6 +846,14 @@ img, picture, video {
   animation: bounceSubtle 2.4s ease-in-out infinite;
 }
 
+/* 📍 Origin Hub Pin for Fanned-Out Activities */
+.custom-origin-hub-pin {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+}
+
+
 
 
 
