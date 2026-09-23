@@ -2,7 +2,11 @@ import { Business } from '../../types';
 import { escapeHtml } from './constants/mapConstants';
 import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
-import { getBusinessOpenStatus } from '../../utils/directoryEnhancements';
+import {
+  getBusinessOpenStatus,
+  getBusinessMapDetails,
+  getSmartWhatsAppUrl,
+} from '../../utils/directoryEnhancements';
 import { getBusinessHadayekZoneLetter } from '../../utils/hadayekZoneHelper';
 
 export interface CategoryBadgeConfig {
@@ -159,16 +163,149 @@ export function createLightweightBadgeHtml(
 
   const ratingVal = (biz.googleRating || 4.9).toFixed(1);
 
-  const cardWidth = isSelected ? 196 : 184;
-  const photoHeight = isSelected ? 82 : 76;
+  // If card is selected, render the Expanded Professional Details Card
+  if (isSelected) {
+    const cardWidth = 256;
+    const photoHeight = 100;
+    const pointerHeight = 9;
+    const phone = biz.phone || biz.secondaryPhone || biz.ownerPhone || '';
+    const { effectiveUrl } = getBusinessMapDetails(biz);
+    const smartWhatsAppUrl = getSmartWhatsAppUrl(biz);
+
+    const rankBadgeHtml = isTopProminent && prominenceRank
+      ? `<span style="position: absolute; top: 6px; left: 36px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 900; padding: 2px 7px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; border: 0.5px solid #fef08a; box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
+      : '';
+
+    const verifiedBadgeHtml = isVerified
+      ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 900; padding: 2px 6.5px; border-radius: 9999px; background: #059669; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+      : '';
+
+    const openStatusBadgeHtml = `
+      <span style="position: absolute; bottom: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 3px; font-size: 8px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px; background: rgba(15, 23, 42, 0.88); color: ${openStatus.isOpen ? '#34d399' : '#f87171'}; border: 0.5px solid ${openStatus.isOpen ? 'rgba(52,211,153,0.4)' : 'rgba(248,113,113,0.4)'}; line-height: 1.2;">
+        <span style="width: 4px; height: 4px; border-radius: 50%; background: ${openStatus.isOpen ? '#34d399' : '#f87171'};"></span>
+        ${openStatus.badgeText || (openStatus.isOpen ? 'مفتوح للخدمة' : 'مغلق')}
+      </span>
+    `;
+
+    const html = `
+      <div class="activity-card-pin selected-expanded-pin" style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: default; user-select: none; width: ${cardWidth}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl;">
+        <!-- Card Container with glowing golden amber border -->
+        <div style="background: #ffffff; border: 2.5px solid #f59e0b; box-shadow: 0 0 28px rgba(245, 158, 11, 0.85), 0 12px 36px rgba(0,0,0,0.3); border-radius: 16px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+          
+          <!-- 1. Visual Photo Header with Close Button -->
+          <div style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 14px; border-top-right-radius: 14px;">
+            <img
+              src="${photoUrl}"
+              alt="${safeName}"
+              style="width: 100%; height: 100%; object-fit: cover; display: block;"
+              onerror="if(this.src!=='${escapeHtml(fallbackCover)}'){this.src='${escapeHtml(fallbackCover)}';}"
+            />
+            <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.1) 45%, transparent 100%); pointer-events: none;"></div>
+
+            <!-- Close Button (✕) to deselect and return to 3 cards view -->
+            <button
+              type="button"
+              onclick="event.stopPropagation(); if (window.__closeSelectedCard) window.__closeSelectedCard();"
+              style="position: absolute; top: 6px; left: 6px; z-index: 10; width: 24px; height: 24px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"
+              title="إغلاق والعودة للخريطة"
+            >✕</button>
+
+            ${verifiedBadgeHtml}
+            ${rankBadgeHtml}
+            ${openStatusBadgeHtml}
+          </div>
+
+          <!-- 2. Rich Business Details -->
+          <div style="background: #ffffff; padding: 8px 10px 10px 10px; display: flex; flex-direction: column; gap: 4px; direction: rtl; text-align: right; box-sizing: border-box;">
+            <!-- Category and Location Zone -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; line-height: 1.2;">
+              <span style="color: #b45309; font-weight: 900; font-size: 10px; background: #fef3c7; padding: 1.5px 7px; border-radius: 6px; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${safeCategory}</span>
+              <span style="color: #64748b; font-size: 9.5px; font-weight: 700; white-space: nowrap;">${safeLocation}</span>
+            </div>
+
+            <!-- Business Name (Bold Cairo) -->
+            <div style="font-size: 13px; font-weight: 900; color: #0f172a; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="${safeName}">
+              ${safeName}
+            </div>
+
+            <!-- Street / Exact Address if available -->
+            ${biz.street ? `
+              <div style="display: flex; align-items: center; gap: 4px; font-size: 9.5px; color: #64748b; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(biz.street)}</span>
+              </div>
+            ` : ''}
+
+            <!-- Rating & Review Count -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 1px;">
+              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 10px; font-weight: 900; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
+                <svg width="9.5" height="9.5" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>${ratingVal}</span>
+              </span>
+              <span style="font-size: 9px; color: #64748b; font-weight: 700;">
+                ${biz.googleReviewsCount ? `(${biz.googleReviewsCount} تقييم)` : 'موثق رسمياً'}
+              </span>
+            </div>
+
+            <!-- Direct Quick Action Trio (Directions, WhatsApp, Call) -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 3px;">
+              ${effectiveUrl ? `
+                <a href="${escapeHtml(effectiveUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="خرائط Google">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  <span>اتجاهات</span>
+                </a>
+              ` : `
+                <span style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4.5px 2px; font-size: 9.5px; font-weight: 800;">
+                  <span>اتجاهات</span>
+                </span>
+              `}
+              ${smartWhatsAppUrl ? `
+                <a href="${escapeHtml(smartWhatsAppUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="محادثة واتساب">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <span>واتساب</span>
+                </a>
+              ` : `
+                <span style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4.5px 2px; font-size: 9.5px; font-weight: 800;">
+                  <span>واتساب</span>
+                </span>
+              `}
+              ${phone ? `
+                <a href="tel:${escapeHtml(phone)}" onclick="event.stopPropagation();" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="اتصال هاتفي">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <span>اتصال</span>
+                </a>
+              ` : `
+                <span style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4.5px 2px; font-size: 9.5px; font-weight: 800;">
+                  <span>اتصال</span>
+                </span>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <!-- Precision Anchor Pointer -->
+        <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; border: 2px solid #ffffff; margin-top: -2px; box-shadow: 0 0 10px rgba(245,158,11,0.9);"></div>
+      </div>
+    `;
+
+    const estimatedTotalHeight = photoHeight + 155 + pointerHeight;
+    return {
+      html,
+      iconSize: [cardWidth, estimatedTotalHeight],
+      iconAnchor: [cardWidth / 2, estimatedTotalHeight],
+    };
+  }
+
+  // Otherwise, render the Standard Compact Activity Card Pin (Top 3 Prominent or Grid)
+  const cardWidth = 184;
+  const photoHeight = 76;
   const bodyHeight = 58;
   const pointerHeight = 9;
   const totalHeight = photoHeight + bodyHeight + pointerHeight;
 
   // Border & shadow styling inspired by Dalelak BusinessCard
-  const cardBorder = isSelected
-    ? 'border: 2px solid #f59e0b; box-shadow: 0 0 24px rgba(245, 158, 11, 0.8), 0 8px 24px rgba(0,0,0,0.25);'
-    : isTopProminent
+  const cardBorder = isTopProminent
     ? 'border: 2px solid #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35), 0 2px 8px rgba(0,0,0,0.12);'
     : 'border: 1.5px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0,0,0,0.06);';
 

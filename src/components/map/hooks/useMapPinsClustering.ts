@@ -81,6 +81,35 @@ export const useMapPinsClustering = ({
   const previousSelectedZoneRef = useRef<string>(selectedZone);
   const selectedZoneRef = useRef<string>(selectedZone);
   selectedZoneRef.current = selectedZone;
+  const selectedBizRef = useRef<Business | null>(selectedBiz);
+  selectedBizRef.current = selectedBiz;
+
+  // Global handler to deselect / close selected card
+  useEffect(() => {
+    (window as any).__closeSelectedCard = () => {
+      setSelectedBiz(null);
+    };
+    return () => {
+      delete (window as any).__closeSelectedCard;
+    };
+  }, [setSelectedBiz]);
+
+  // Click on open map background deselects card and restores 3 fanned cards
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady) return;
+
+    const handleMapBackgroundClick = () => {
+      if (selectedBizRef.current) {
+        setSelectedBiz(null);
+      }
+    };
+
+    map.on('click', handleMapBackgroundClick);
+    return () => {
+      map.off('click', handleMapBackgroundClick);
+    };
+  }, [isMapReady, setSelectedBiz]);
 
   // Reset expanded clusters whenever selectedZone or mapCategoryFilter changes
   useEffect(() => {
@@ -530,21 +559,36 @@ export const useMapPinsClustering = ({
         const isExpanded = Boolean(expandedZones[selectedZone]);
 
         if (isExpanded) {
-          // All businesses in this zone burst open as individual Activity Card pins!
-          sorted.forEach((biz, idx) => {
+          // If a card is selected, isolate it: only render that single card
+          const listToRender = selectedBiz
+            ? sorted.filter((b) => b.id === selectedBiz.id)
+            : sorted;
+
+          listToRender.forEach((biz, idx) => {
             const isSelected = selectedBiz?.id === biz.id;
             const isTop = idx < 3;
-            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, isTop, isTop ? idx + 1 : undefined);
+            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(
+              biz,
+              isSelected,
+              isTop,
+              isTop ? idx + 1 : undefined
+            );
             const bizIcon = window.L.divIcon({
-              className: 'custom-biz-pin burst-card animate-scale-in',
+              className: `custom-biz-pin ${isSelected ? 'selected-isolated-card' : 'burst-card animate-scale-in'}`,
               html,
               iconSize,
               iconAnchor,
             });
-            const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 500 - idx * 2 });
-            marker.on('click', () => {
+            const marker = window.L.marker([biz.lat, biz.lng], {
+              icon: bizIcon,
+              zIndexOffset: isSelected ? 900 : 500 - idx * 2,
+            });
+            marker.on('click', (e: any) => {
+              if (window.L && window.L.DomEvent) {
+                window.L.DomEvent.stopPropagation(e);
+              }
               setSelectedBiz(biz);
-              map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+              map.flyTo([biz.lat, biz.lng], 18, { duration: 0.8 });
               if (onSelectBusiness) onSelectBusiness(biz);
             });
             markersGroup.addLayer(marker);
@@ -554,21 +598,33 @@ export const useMapPinsClustering = ({
           const top3 = sorted.slice(0, 3);
           const remaining = sorted.slice(3);
 
+          // If a prominent card is selected, isolate it completely and hide the other two cards!
+          const isSelectedInTop3 = selectedBiz && top3.some((b) => b.id === selectedBiz.id);
+          const itemsToProcess = isSelectedInTop3
+            ? top3.filter((b) => b.id === selectedBiz.id)
+            : (selectedBiz ? [] : top3);
+
           // Get centroid of selected zone to guide dispersal inwards into the district
           const currentDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === selectedZone);
           const centroid: [number, number] | null = currentDistrict
             ? [currentDistrict.centerLat, currentDistrict.centerLng]
             : null;
 
-          const dispersedResults = disperseCoincidentPins(top3, centroid);
+          const dispersedResults = disperseCoincidentPins(itemsToProcess, centroid);
           const renderedHubs = new Set<string>();
 
           dispersedResults.forEach((item, idx) => {
             const { biz, originCoord, dispersedCoord, isDispersed } = item;
             const isSelected = selectedBiz?.id === biz.id;
-            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+            const origRank = top3.findIndex((b) => b.id === biz.id) + 1;
+            const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(
+              biz,
+              isSelected,
+              true,
+              origRank > 0 ? origRank : idx + 1
+            );
 
-            if (isDispersed) {
+            if (isDispersed && !isSelected) {
               // 1. Draw connecting leader line from original ground point to dispersed card pin
               const leaderLine = window.L.polyline([originCoord, dispersedCoord], {
                 color: '#f59e0b',
@@ -597,26 +653,33 @@ export const useMapPinsClustering = ({
             }
 
             // 3. Render Activity Card Pin at its designated position
+            // When selected, place directly on its physical GPS coordinate [biz.lat, biz.lng]
+            const renderPosition = isSelected ? ([biz.lat, biz.lng] as [number, number]) : dispersedCoord;
+
             const bizIcon = window.L.divIcon({
-              className: 'custom-biz-pin top-prominent-card',
+              className: `custom-biz-pin ${isSelected ? 'selected-isolated-card' : 'top-prominent-card'}`,
               html,
               iconSize,
               iconAnchor,
             });
-            const marker = window.L.marker(dispersedCoord, {
+            const marker = window.L.marker(renderPosition, {
               icon: bizIcon,
-              zIndexOffset: 600 - idx * 10 + (isSelected ? 200 : 0),
+              zIndexOffset: isSelected ? 900 : 600 - idx * 10,
             });
-            marker.on('click', () => {
+            marker.on('click', (e: any) => {
+              if (window.L && window.L.DomEvent) {
+                window.L.DomEvent.stopPropagation(e);
+              }
               setSelectedBiz(biz);
-              map.flyTo(originCoord, Math.max(map.getZoom(), 17), { duration: 0.7 });
+              map.flyTo([biz.lat, biz.lng], 18, { duration: 0.8 });
               if (onSelectBusiness) onSelectBusiness(biz);
             });
             markersGroup.addLayer(marker);
           });
 
           // Group all remaining activities inside a cluster pin ("دبوس مجمع")
-          if (remaining.length > 0) {
+          // Hide cluster pin while a card is actively selected / isolated
+          if (!selectedBiz && remaining.length > 0) {
             const centerLat = remaining.reduce((acc, b) => acc + b.lat, 0) / remaining.length;
             const centerLng = remaining.reduce((acc, b) => acc + b.lng, 0) / remaining.length;
             const { html, iconSize, iconAnchor } = createDistrictClusterHtml(remaining.length, mapCategoryFilter);
@@ -652,23 +715,43 @@ export const useMapPinsClustering = ({
         });
 
         Object.entries(byDistrict).forEach(([distKey, bList]) => {
+          // If a business is selected, ONLY process the district containing selectedBiz!
+          if (selectedBiz && !bList.some((b) => b.id === selectedBiz.id)) {
+            return;
+          }
+
           const sorted = sortProminent(bList);
           const isExpanded = Boolean(expandedZones[distKey]);
 
           if (isExpanded) {
-            sorted.forEach((biz, idx) => {
+            const listToRender = selectedBiz
+              ? sorted.filter((b) => b.id === selectedBiz.id)
+              : sorted;
+
+            listToRender.forEach((biz, idx) => {
               const isSelected = selectedBiz?.id === biz.id;
-              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, idx < 3, idx < 3 ? idx + 1 : undefined);
+              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(
+                biz,
+                isSelected,
+                idx < 3,
+                idx < 3 ? idx + 1 : undefined
+              );
               const bizIcon = window.L.divIcon({
-                className: 'custom-biz-pin burst-card animate-scale-in',
+                className: `custom-biz-pin ${isSelected ? 'selected-isolated-card' : 'burst-card animate-scale-in'}`,
                 html,
                 iconSize,
                 iconAnchor,
               });
-              const marker = window.L.marker([biz.lat, biz.lng], { icon: bizIcon, zIndexOffset: 450 - idx * 2 });
-              marker.on('click', () => {
+              const marker = window.L.marker([biz.lat, biz.lng], {
+                icon: bizIcon,
+                zIndexOffset: isSelected ? 900 : 450 - idx * 2,
+              });
+              marker.on('click', (e: any) => {
+                if (window.L && window.L.DomEvent) {
+                  window.L.DomEvent.stopPropagation(e);
+                }
                 setSelectedBiz(biz);
-                map.flyTo([biz.lat, biz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+                map.flyTo([biz.lat, biz.lng], 18, { duration: 0.8 });
                 if (onSelectBusiness) onSelectBusiness(biz);
               });
               markersGroup.addLayer(marker);
@@ -677,20 +760,31 @@ export const useMapPinsClustering = ({
             const top3 = sorted.slice(0, 3);
             const remaining = sorted.slice(3);
 
+            const isSelectedInTop3 = selectedBiz && top3.some((b) => b.id === selectedBiz.id);
+            const itemsToProcess = isSelectedInTop3
+              ? top3.filter((b) => b.id === selectedBiz.id)
+              : (selectedBiz ? [] : top3);
+
             const distDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === distKey);
             const distCentroid: [number, number] | null = distDistrict
               ? [distDistrict.centerLat, distDistrict.centerLng]
               : null;
 
-            const dispersedResults = disperseCoincidentPins(top3, distCentroid);
+            const dispersedResults = disperseCoincidentPins(itemsToProcess, distCentroid);
             const renderedHubs = new Set<string>();
 
             dispersedResults.forEach((item, idx) => {
               const { biz, originCoord, dispersedCoord, isDispersed } = item;
               const isSelected = selectedBiz?.id === biz.id;
-              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true, idx + 1);
+              const origRank = top3.findIndex((b) => b.id === biz.id) + 1;
+              const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(
+                biz,
+                isSelected,
+                true,
+                origRank > 0 ? origRank : idx + 1
+              );
 
-              if (isDispersed) {
+              if (isDispersed && !isSelected) {
                 const leaderLine = window.L.polyline([originCoord, dispersedCoord], {
                   color: '#f59e0b',
                   weight: 2.2,
@@ -716,25 +810,30 @@ export const useMapPinsClustering = ({
                 }
               }
 
+              const renderPosition = isSelected ? ([biz.lat, biz.lng] as [number, number]) : dispersedCoord;
+
               const bizIcon = window.L.divIcon({
-                className: 'custom-biz-pin top-prominent-card',
+                className: `custom-biz-pin ${isSelected ? 'selected-isolated-card' : 'top-prominent-card'}`,
                 html,
                 iconSize,
                 iconAnchor,
               });
-              const marker = window.L.marker(dispersedCoord, {
+              const marker = window.L.marker(renderPosition, {
                 icon: bizIcon,
-                zIndexOffset: 550 - idx * 10 + (isSelected ? 200 : 0),
+                zIndexOffset: isSelected ? 900 : 550 - idx * 10,
               });
-              marker.on('click', () => {
+              marker.on('click', (e: any) => {
+                if (window.L && window.L.DomEvent) {
+                  window.L.DomEvent.stopPropagation(e);
+                }
                 setSelectedBiz(biz);
-                map.flyTo(originCoord, Math.max(map.getZoom(), 17), { duration: 0.7 });
+                map.flyTo([biz.lat, biz.lng], 18, { duration: 0.8 });
                 if (onSelectBusiness) onSelectBusiness(biz);
               });
               markersGroup.addLayer(marker);
             });
 
-            if (remaining.length > 0) {
+            if (!selectedBiz && remaining.length > 0) {
               const centerLat = remaining.reduce((acc, b) => acc + b.lat, 0) / remaining.length;
               const centerLng = remaining.reduce((acc, b) => acc + b.lng, 0) / remaining.length;
               const { html, iconSize, iconAnchor } = createDistrictClusterHtml(remaining.length, mapCategoryFilter);

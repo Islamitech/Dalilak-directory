@@ -48,7 +48,7 @@ function getDeterministicJitter(id: string, factor: number): number {
 export function disperseCoincidentPins(
   businesses: Business[],
   districtCentroid?: [number, number] | null,
-  collisionThresholdMeters = 55
+  collisionThresholdMeters = 120
 ): DispersedPinResult[] {
   if (!businesses || businesses.length === 0) return [];
 
@@ -118,49 +118,49 @@ export function disperseCoincidentPins(
     }
 
     // 3. Fan-out geometry configuration according to cluster size
-    // For 3 activities, distribute: Left (-42°), Center (0°), Right (+42°)
-    // with staggered radial distance to guarantee zero card collision
+    // Wide clearance separation matching User Image 4 & Image 2 (Zero Overlap Guaranteed)
     const count = cluster.length;
 
     cluster.forEach((biz, idx) => {
       let angleOffsetDeg = 0;
-      let baseDistanceMeters = 85;
+      let baseDistanceMeters = 220;
 
       if (count === 2) {
-        angleOffsetDeg = idx === 0 ? -32 : 32;
-        baseDistanceMeters = 85 + (idx % 2 === 0 ? 0 : 15);
+        angleOffsetDeg = idx === 0 ? -40 : 40;
+        baseDistanceMeters = 230 + (idx % 2 === 0 ? 0 : 25);
       } else if (count === 3) {
         if (idx === 0) {
-          // #1 Prominent (Center-Forward along vector)
-          angleOffsetDeg = 0;
-          baseDistanceMeters = 115;
+          // #1 Prominent: Upper-inward flank
+          angleOffsetDeg = -46;
+          baseDistanceMeters = 235;
         } else if (idx === 1) {
-          // #2 Prominent (Left flank)
-          angleOffsetDeg = -44;
-          baseDistanceMeters = 75;
+          // #2 Prominent: Lower-inward flank
+          angleOffsetDeg = 46;
+          baseDistanceMeters = 235;
         } else {
-          // #3 Prominent (Right flank)
-          angleOffsetDeg = 44;
-          baseDistanceMeters = 78;
+          // #3 Prominent: Center-inward path
+          angleOffsetDeg = 0;
+          baseDistanceMeters = 265;
         }
       } else {
         // Fallback for > 3 items
-        const stepDeg = 160 / Math.max(1, count - 1);
-        angleOffsetDeg = -80 + idx * stepDeg;
-        baseDistanceMeters = 75 + (idx % 3) * 20;
+        const stepDeg = 150 / Math.max(1, count - 1);
+        angleOffsetDeg = -75 + idx * stepDeg;
+        baseDistanceMeters = 210 + (idx % 3) * 30;
       }
 
       // Add subtle organic jitter so lines look natural and not mechanically identical
       const angleJitterRad =
-        (getDeterministicJitter(biz.id, 6) * Math.PI) / 180;
-      const distJitterMeters = getDeterministicJitter(biz.id + '_dist', 8);
+        (getDeterministicJitter(biz.id, 5) * Math.PI) / 180;
+      const distJitterMeters = getDeterministicJitter(biz.id + '_dist', 15);
 
       const finalAngleRad =
         baseAngle + (angleOffsetDeg * Math.PI) / 180 + angleJitterRad;
       const finalDistanceMeters = Math.max(
-        55,
+        150,
         baseDistanceMeters + distJitterMeters
       );
+
 
       const [deltaLat, deltaLng] = offsetMetersToLatLng(
         originLat,
