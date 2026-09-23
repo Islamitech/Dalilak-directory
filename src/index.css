@@ -796,7 +796,8 @@ img, picture, video {
 }
 
 .custom-biz-pin:hover .activity-card-pin {
-  transform: translateY(-4px) scale(1.04);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22), 0 0 16px rgba(245, 158, 11, 0.45);
 }
 
 .custom-district-cluster-pin {
@@ -806,12 +807,12 @@ img, picture, video {
 }
 
 .custom-district-cluster-pin .district-cluster-pin {
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
 }
 
 .custom-district-cluster-pin:hover .district-cluster-pin {
-  transform: translateY(-3px) scale(1.06);
-  filter: brightness(1.15);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.45);
 }
 
 @keyframes burstCardScaleIn {

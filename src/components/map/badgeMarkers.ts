@@ -1,5 +1,9 @@
 import { Business } from '../../types';
 import { escapeHtml } from './constants/mapConstants';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
+import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
+import { getBusinessOpenStatus } from '../../utils/directoryEnhancements';
+import { getBusinessHadayekZoneLetter } from '../../utils/hadayekZoneHelper';
 
 export interface CategoryBadgeConfig {
   bg: string;
@@ -121,9 +125,16 @@ export function getCategoryBadgeConfig(category: string = ''): CategoryBadgeConf
 }
 
 /**
- * Creates a modern, high-performance Activity Card (بطاقة النشاط الميدانية) for a business pin on the map.
- * Replaces the old round pins with an interactive card showing the activity name, category branding,
- * official verification checkmark, ratings, and optional top-3 prominence rank.
+ * Creates an authentic, photo-rich Activity Card Pin (بطاقة النشاط الميدانية بالصور) for a business on the map.
+ * Inspired directly by the visual identity and traits of Dalelak's BusinessCard:
+ * - Cover photo with anti-extraction protective gradient
+ * - Official verification badge (موثق) in emerald
+ * - Top-3 prominence badge (#1 الأبرز, #2, #3) in golden amber
+ * - Live open/closed status indicator
+ * - Category in amber-700
+ * - High-contrast business name in Cairo typography
+ * - Star rating in monospace with amber pill
+ * - Map pin downward pointer tip with amber location dot
  */
 export function createLightweightBadgeHtml(
   biz: Business,
@@ -131,59 +142,102 @@ export function createLightweightBadgeHtml(
   isTopProminent: boolean = false,
   prominenceRank?: number
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
-  const cfg = getCategoryBadgeConfig(biz.category);
   const isVerified = biz.verificationStatus === 'verified';
   const safeName = escapeHtml(biz.nameAr || 'منشأة معتمدة');
   const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
-  const ratingText = biz.googleRating ? `★ ${biz.googleRating.toFixed(1)}` : (biz.rating ? `★ ${biz.rating.toFixed(1)}` : '★ 4.9');
+  const fallbackCover = getCategoryFallbackCover(biz.category);
+  const rawPhoto = biz.coverPhoto || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : fallbackCover);
+  const photoUrl = getOptimizedImageUrl(rawPhoto, 360, 160);
+  const openStatus = getBusinessOpenStatus(biz.workingHours);
 
-  const cardWidth = isSelected ? 195 : 180;
-  const cardHeight = isTopProminent ? 48 : 44;
-  const totalHeight = cardHeight + 10;
+  // Determine district / location label
+  const zoneLetter = getBusinessHadayekZoneLetter(biz);
+  const locationLabel = zoneLetter
+    ? `منطقة ${zoneLetter}`
+    : (biz.city || (biz.street ? biz.street.split('،')[0].trim() : '') || 'حدائق الأهرام');
+  const safeLocation = escapeHtml(locationLabel);
 
+  const ratingVal = (biz.googleRating || biz.rating || 4.9).toFixed(1);
+
+  const cardWidth = isSelected ? 196 : 184;
+  const photoHeight = isSelected ? 82 : 76;
+  const bodyHeight = 58;
+  const pointerHeight = 9;
+  const totalHeight = photoHeight + bodyHeight + pointerHeight;
+
+  // Border & shadow styling inspired by Dalelak BusinessCard
   const cardBorder = isSelected
-    ? 'border: 2px solid #f59e0b; box-shadow: 0 0 24px rgba(245, 158, 11, 0.8), 0 8px 24px rgba(0,0,0,0.5);'
+    ? 'border: 2px solid #f59e0b; box-shadow: 0 0 24px rgba(245, 158, 11, 0.8), 0 8px 24px rgba(0,0,0,0.25);'
     : isTopProminent
-    ? `border: 2px solid ${cfg.borderColor}; box-shadow: 0 4px 16px rgba(0,0,0,0.35), 0 0 12px ${cfg.borderColor}40;`
-    : `border: 1.5px solid ${cfg.borderColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.35);`;
+    ? 'border: 2px solid #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35), 0 2px 8px rgba(0,0,0,0.12);'
+    : 'border: 1.5px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0,0,0,0.06);';
 
+  // Badges on photo
   const rankBadgeHtml = isTopProminent && prominenceRank
-    ? `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 8.5px; font-weight: 900; padding: 0.5px 4.5px; border-radius: 4px; border: 0.5px solid #fef08a; flex-shrink: 0;">#${prominenceRank} الأبرز</span>`
+    ? `<span style="position: absolute; top: 5px; left: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 900; padding: 1.5px 6px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; border: 0.5px solid #fef08a; box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
     : '';
+
+  const verifiedBadgeHtml = isVerified
+    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 900; padding: 1.5px 5.5px; border-radius: 9999px; background: #059669; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    : '';
+
+  const openStatusBadgeHtml = isTopProminent && prominenceRank
+    ? `<span style="position: absolute; bottom: 4px; left: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 7.5px; font-weight: 800; padding: 1px 4.5px; border-radius: 9999px; background: rgba(15, 23, 42, 0.82); color: ${openStatus.isOpen ? '#34d399' : '#f87171'}; border: 0.5px solid ${openStatus.isOpen ? 'rgba(52,211,153,0.35)' : 'rgba(248,113,113,0.35)'}; line-height: 1.2;"><span style="width: 3.5px; height: 3.5px; border-radius: 50%; background: ${openStatus.isOpen ? '#34d399' : '#f87171'};"></span>${openStatus.isOpen ? 'مفتوح' : 'مغلق'}</span>`
+    : `<span style="position: absolute; top: 5px; left: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 3px; font-size: 8px; font-weight: 800; padding: 1.5px 5px; border-radius: 9999px; background: rgba(15, 23, 42, 0.85); color: ${openStatus.isOpen ? '#34d399' : '#f87171'}; border: 0.5px solid ${openStatus.isOpen ? 'rgba(52,211,153,0.4)' : 'rgba(248,113,113,0.4)'}; line-height: 1.2;"><span style="width: 4px; height: 4px; border-radius: 50%; background: ${openStatus.isOpen ? '#34d399' : '#f87171'};"></span>${openStatus.isOpen ? 'مفتوح' : 'مغلق'}</span>`;
 
   const html = `
     <div class="activity-card-pin ${isTopProminent ? 'top-prominent-pin' : ''}" style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: ${cardWidth}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl;">
-      <!-- Main Activity Card Body -->
-      <div style="background: rgba(15, 23, 42, 0.94); ${cardBorder} color: #ffffff; padding: 4px 7px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 7px; backdrop-filter: blur(10px);">
-        <!-- Category Avatar Icon -->
-        <div style="background: ${cfg.bg}; width: 25px; height: 25px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.35);">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-            ${cfg.iconSvg}
-          </svg>
+      <!-- Card Container (replicates BusinessCard) -->
+      <div style="background: #ffffff; ${cardBorder} border-radius: 14px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+        <!-- 1. Visual Photo Header -->
+        <div style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+          <img
+            src="${photoUrl}"
+            alt="${safeName}"
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+            onerror="if(this.src!=='${escapeHtml(fallbackCover)}'){this.src='${escapeHtml(fallbackCover)}';}"
+            loading="lazy"
+          />
+          <!-- Anti-extraction gradient overlay -->
+          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.08) 45%, transparent 100%); pointer-events: none;"></div>
+          ${verifiedBadgeHtml}
+          ${rankBadgeHtml}
+          ${openStatusBadgeHtml}
         </div>
 
-        <!-- Activity Info Text -->
-        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1.2;">
-          <div style="display: flex; align-items: center; gap: 3px;">
-            <span style="font-weight: 800; font-size: 11px; max-width: ${isTopProminent ? 95 : 110}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;">
-              ${safeName}
-            </span>
-            ${rankBadgeHtml}
-            ${isVerified && !rankBadgeHtml ? '<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 9px; font-weight: 900; padding: 0.5px 3px; border-radius: 4px; border: 0.5px solid rgba(52, 211, 153, 0.5); flex-shrink: 0;" title="موثق رسمياً">✓</span>' : ''}
+        <!-- 2. Business Details Summary -->
+        <div style="background: #ffffff; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; direction: rtl; text-align: right; box-sizing: border-box;">
+          <!-- Category & Location -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; line-height: 1;">
+            <span style="color: #b45309; font-weight: 800; font-size: 9.5px; max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${safeCategory}</span>
+            <span style="color: #64748b; font-size: 8.5px; font-weight: 600; white-space: nowrap;">${safeLocation}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 3px; font-size: 9px; margin-top: 1.5px;">
-            <span style="color: #fbbf24; font-weight: 800; font-family: monospace;">${ratingText}</span>
-            <span style="color: #64748b;">•</span>
-            <span style="color: #94a3b8; font-weight: 600; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              ${safeCategory}
+
+          <!-- Business Name -->
+          <div style="font-size: 11.5px; font-weight: 900; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="${safeName}">
+            ${safeName}
+          </div>
+
+          <!-- Rating & Action Link -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 3.5px; margin-top: 2px;">
+            <!-- Rating pill matching BusinessCard -->
+            <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 9.5px; font-weight: 900; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 0.5px 5px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span>${ratingVal}</span>
+            </span>
+
+            <!-- Mini Action Link -->
+            <span style="font-size: 9px; font-weight: 800; color: #d97706; display: inline-flex; align-items: center; gap: 2px;">
+              <span>التفاصيل</span>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </span>
           </div>
         </div>
       </div>
 
-      <!-- Precision Anchor Pointer -->
-      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0f172a; margin-top: -1px;"></div>
-      <div style="width: 6px; height: 6px; border-radius: 9999px; background: ${isSelected ? '#f59e0b' : cfg.bg}; margin-top: -2px; border: 1.5px solid #ffffff; box-shadow: 0 0 8px ${cfg.bg};"></div>
+      <!-- Precision Anchor Pointer (White triangle with amber base dot) -->
+      <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
+      <div style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #ffffff; margin-top: -2px; box-shadow: 0 0 8px rgba(245,158,11,0.85);"></div>
     </div>
   `;
 
@@ -202,29 +256,29 @@ export function createLightweightClusterHtml(
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
   const html = `
     <div style="position: relative; cursor: pointer; user-select: none; font-family: 'Cairo', system-ui, sans-serif;">
-      <div style="background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%); border: 2.5px solid #ffffff; color: #ffffff; width: 42px; height: 42px; border-radius: 9999px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <span style="font-size: 13px; font-weight: 900; line-height: 1;">${count}</span>
-        <span style="font-size: 8px; font-weight: 800; color: #c7d2fe; line-height: 1;">نشاطاً</span>
+      <div style="background: #ffffff; border: 2.5px solid #f59e0b; color: #0f172a; width: 44px; height: 44px; border-radius: 9999px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-size: 13px; font-weight: 900; line-height: 1; color: #d97706;">${count}</span>
+        <span style="font-size: 8px; font-weight: 800; color: #64748b; line-height: 1;">نشاطاً</span>
       </div>
     </div>
   `;
 
   return {
     html,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   };
 }
 
 /**
- * Creates an interactive District Cluster Pill ("دبوس مجمع") for remaining activities in a zone.
+ * Creates an interactive District Cluster Pill ("دبوس مجمع") matching the colors and theme of Dalelak.
  * When clicked, triggers camera zoom and bursts remaining activities into cards!
  */
 export function createDistrictClusterHtml(
   count: number,
   categoryLabel?: string
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
-  const width = 165;
+  const width = 172;
   const height = 38;
   const totalHeight = height + 10;
   const safeLabel = escapeHtml(categoryLabel ? `${categoryLabel}` : 'أنشطة');
@@ -242,9 +296,9 @@ export function createDistrictClusterHtml(
       direction: rtl;
     ">
       <div style="
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        color: #ffffff;
-        border: 2px solid #818cf8;
+        background: #ffffff;
+        color: #0f172a;
+        border: 2px solid #f59e0b;
         border-radius: 9999px;
         padding: 4px 10px;
         width: 100%;
@@ -253,29 +307,29 @@ export function createDistrictClusterHtml(
         align-items: center;
         justify-content: center;
         gap: 6px;
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45), 0 2px 8px rgba(0,0,0,0.4);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35), 0 2px 8px rgba(0,0,0,0.12);
       ">
         <span style="
-          background: #4f46e5;
+          background: #f59e0b;
           color: #ffffff;
           font-size: 11px;
           font-weight: 900;
-          padding: 1px 7px;
+          padding: 1.5px 7px;
           border-radius: 9999px;
-          border: 1px solid #c7d2fe;
+          box-shadow: 0 1px 4px rgba(245, 158, 11, 0.4);
           flex-shrink: 0;
         ">+${count}</span>
         <span style="
           font-size: 11px;
           font-weight: 800;
-          color: #e2e8f0;
+          color: #0f172a;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         ">${safeLabel} إضافية 🔍</span>
       </div>
-      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0f172a; margin-top: -1px;"></div>
-      <div style="width: 6px; height: 6px; border-radius: 50%; background: #818cf8; border: 1.5px solid #ffffff; margin-top: -2px; box-shadow: 0 0 8px #818cf8;"></div>
+      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
+      <div style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #ffffff; margin-top: -2px; box-shadow: 0 0 8px #f59e0b;"></div>
     </div>
   `;
 
