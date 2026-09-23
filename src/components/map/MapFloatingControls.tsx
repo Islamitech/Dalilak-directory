@@ -115,7 +115,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* 2. D-PAD Directional Pan Movement Controls (Only for Picker Mode) */}
       {mode === 'picker' && (
-        <div className="absolute top-20 left-3 bg-white/95 border border-slate-200 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-20 flex flex-col items-center gap-1">
+        <div className="absolute top-20 left-3 bg-white/95 border border-slate-200 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-[900] flex flex-col items-center gap-1">
           <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">تحريك دقيق</span>
 
           <button

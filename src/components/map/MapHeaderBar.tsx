@@ -125,21 +125,6 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
   const handleDistrictChange = (letter: string) => {
     setSelectedZone(letter);
     if (onSelectZone) onSelectZone(letter);
-    if (!letter) {
-      if (mapInstance?.leafletMapRef?.current && window.L) {
-        mapInstance.leafletMapRef.current.fitBounds([[29.9477, 31.0881], [29.9888, 31.1122]], { padding: [20, 20], maxZoom: 14.5, duration: 1.0 });
-      }
-      return;
-    }
-    const district = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === letter);
-    if (district && mapInstance?.leafletMapRef?.current && window.L) {
-      if (district.polygons && district.polygons[0]) {
-        const bounds = window.L.latLngBounds(district.polygons[0]);
-        mapInstance.leafletMapRef.current.flyToBounds(bounds, { padding: [40, 40], maxZoom: 17, duration: 0.9 });
-      } else {
-        mapInstance.leafletMapRef.current.flyTo([district.centerLat, district.centerLng], 17, { duration: 0.9 });
-      }
-    }
   };
 
   const filterButtonRef = useRef<HTMLButtonElement | null>(null);

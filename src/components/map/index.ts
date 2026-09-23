@@ -11,4 +11,7 @@ export * from './MapModernTopBar';
 export * from './MapSearchBox';
 export * from './MapFloatingControls';
 export * from './MapSelectedBusinessDrawer';
+export * from './BuildingDetailDrawer';
+export * from './ZoneScopedSearchBar';
+export * from './InAppNavigationDrawer';
 export * from './MapFooterBar';

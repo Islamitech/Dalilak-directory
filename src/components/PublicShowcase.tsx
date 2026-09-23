@@ -7,7 +7,7 @@ import {
   shuffleBusinessesWithSeed,
 } from '../utils/directoryEnhancements';
 import { getDirectoryPath } from '../utils/directoryUrl';
-import { matchesCategoryFilter } from '../utils/categoryMatcher';
+import { matchesCategorySelection, resolveCategorySelection } from '../utils/categoryMatcher';
 import { matchesBusinessSearch, normalizeArabicText } from '../utils/arabicSearch';
 import { isBusinessInHadayekZone } from '../utils/hadayekZoneHelper';
 import { AppNavbar } from './layout/AppNavbar';
@@ -63,7 +63,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       const url = new URL(newPath, window.location.origin);
       const catParam = url.searchParams.get('cat');
       if (catParam) {
-        setCategoryFilter(decodeURIComponent(catParam));
+        const selection = resolveCategorySelection(decodeURIComponent(catParam));
+        setCategoryFilter(selection.mainCategoryId);
+        setSubcategoryFilter(selection.subcategoryId);
       }
       setCurrentPath(url.pathname);
     } else {
@@ -92,6 +94,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
   const [openNowOnly, setOpenNowOnly] = useState<boolean>(false);
   const [hasRatingOnly, setHasRatingOnly] = useState<boolean>(false);
   const [hasVideoOnly, setHasVideoOnly] = useState<boolean>(false);
@@ -106,6 +109,43 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   // 🗺️ Active Map Center Coordinates (Default: Hadayek Al-Ahram)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 29.9683, lng: 31.1002 });
+
+  const handleCategoryChange = useCallback((nextCategory: string) => {
+    const selection = resolveCategorySelection(nextCategory);
+    setCategoryFilter(selection.mainCategoryId);
+    setSubcategoryFilter(selection.subcategoryId);
+  }, []);
+
+  const effectiveMapCategoryFilter = subcategoryFilter !== 'all' ? subcategoryFilter : categoryFilter;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get('cat');
+    const subcategoryParam = params.get('subcat');
+    if (categoryParam) {
+      const selection = resolveCategorySelection(categoryParam);
+      setCategoryFilter(selection.mainCategoryId);
+      if (subcategoryParam) {
+        const subSelection = resolveCategorySelection(subcategoryParam);
+        setSubcategoryFilter(
+          subSelection.mainCategoryId === selection.mainCategoryId ? subSelection.subcategoryId : selection.subcategoryId
+        );
+      } else {
+        setSubcategoryFilter(selection.subcategoryId);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location.pathname.startsWith('/search')) return;
+    const url = new URL(window.location.href);
+    if (categoryFilter === 'all') url.searchParams.delete('cat');
+    else url.searchParams.set('cat', categoryFilter);
+    if (subcategoryFilter === 'all') url.searchParams.delete('subcat');
+    else url.searchParams.set('subcat', subcategoryFilter);
+    window.history.replaceState(window.history.state, '', url.toString());
+  }, [categoryFilter, subcategoryFilter]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -182,14 +222,16 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [selectedVideoBiz, setSelectedVideoBiz] = useState<Business | null>(null);
   const [pinnedDirectBizId, setPinnedDirectBizId] = useState<string | null>(null);
   const isDirectLinkOpenRef = React.useRef<boolean>(Boolean(initialBizId));
+  const previousPathBeforeModalRef = React.useRef<string>(currentPath);
 
   const handleOpenBusiness = (biz: Business) => {
+    previousPathBeforeModalRef.current = currentPath;
     setSelectedBiz(biz);
     // 🛡️ Normal browsing clicks preserve the user's active filter and do NOT hijack it
     isDirectLinkOpenRef.current = false;
     try {
       const cleanPath = getDirectoryPath(biz);
-      window.history.replaceState(null, '', cleanPath);
+      window.history.pushState({ modal: 'business_details', bizId: biz.id }, '', cleanPath);
     } catch {}
   };
 
@@ -201,17 +243,30 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     }
     isDirectLinkOpenRef.current = false;
     setSelectedBiz(null);
-    setCurrentPath('/search');
+
+    // Keep user on their active view (e.g. /map) without forcing /search
+    const returnPath = previousPathBeforeModalRef.current || currentPath;
+    setCurrentPath(returnPath);
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete('biz');
       url.searchParams.delete('b');
       url.searchParams.delete('id');
       url.searchParams.delete('preview');
-      const clean = '/search';
-      window.history.replaceState(null, '', clean + (url.search ? url.search : ''));
+      window.history.replaceState(null, '', returnPath + (url.search ? url.search : ''));
     } catch {}
   };
+
+  // Back Button integration: Close modal first when user taps browser/mobile Back
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedBiz) {
+        handleCloseBusiness();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedBiz]);
 
   // Deep Link Auto-Select Business on load, lock category context & pin business at #1
   useEffect(() => {
@@ -265,6 +320,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     setCityFilter('حدائق الأهرام');
     setHadayekZoneFilter('all');
     setCategoryFilter('all');
+    setSubcategoryFilter('all');
     setOpenNowOnly(false);
     setHasRatingOnly(false);
     setHasVideoOnly(false);
@@ -277,6 +333,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     (cityFilter !== 'حدائق الأهرام' && cityFilter !== 'all') ||
     hadayekZoneFilter !== 'all' ||
     categoryFilter !== 'all' ||
+    subcategoryFilter !== 'all' ||
     openNowOnly ||
     hasRatingOnly ||
     hasVideoOnly ||
@@ -304,7 +361,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
       // 2. Category Filter (Enhanced with Canonical Aliases, Root Synonyms, and Groups)
       if (categoryFilter !== 'all') {
-        if (!matchesCategoryFilter(b, categoryFilter)) {
+        if (!matchesCategorySelection(b, categoryFilter, subcategoryFilter)) {
           return false;
         }
       }
@@ -436,6 +493,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       cityFilter !== 'all' ||
       hadayekZoneFilter !== 'all' ||
       categoryFilter !== 'all' ||
+      subcategoryFilter !== 'all' ||
       openNowOnly ||
       hasRatingOnly ||
       hasVideoOnly;
@@ -467,6 +525,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     cityFilter,
     hadayekZoneFilter,
     categoryFilter,
+    subcategoryFilter,
     openNowOnly,
     hasRatingOnly,
     hasVideoOnly,
@@ -487,8 +546,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           <MapView
             businesses={publicBusinesses}
             filteredBusinesses={filteredBusinesses}
-            categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
+            categoryFilter={effectiveMapCategoryFilter}
+            onCategoryChange={handleCategoryChange}
             selectedZone={hadayekZoneFilter}
             onZoneChange={setHadayekZoneFilter}
             sortBy={sortBy}
@@ -548,7 +607,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             selectedZone={hadayekZoneFilter}
             onZoneChange={setHadayekZoneFilter}
             categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
+            onCategoryChange={handleCategoryChange}
+            subcategoryFilter={subcategoryFilter}
+            onSubcategoryChange={setSubcategoryFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
             openNowOnly={openNowOnly}
@@ -616,7 +677,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             selectedZone={hadayekZoneFilter}
             onZoneChange={setHadayekZoneFilter}
             categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
+            onCategoryChange={handleCategoryChange}
+            subcategoryFilter={subcategoryFilter}
+            onSubcategoryChange={setSubcategoryFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
             openNowOnly={openNowOnly}

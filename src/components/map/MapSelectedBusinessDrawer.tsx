@@ -11,12 +11,14 @@ export interface MapSelectedBusinessDrawerProps {
   selectedBiz: Business | null;
   setSelectedBiz: (biz: Business | null) => void;
   onSelectBusiness?: (biz: Business) => void;
+  onStartNavigation?: (biz: Business) => void;
 }
 
 export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps> = ({
   selectedBiz,
   setSelectedBiz,
   onSelectBusiness,
+  onStartNavigation,
 }) => {
   if (!selectedBiz) return null;
 
@@ -31,7 +33,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
       : `/api/biz-og?biz=${selectedBiz.id}`);
 
   return (
-    <div className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white/98 border border-slate-200/90 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl backdrop-blur-xl z-30 flex flex-col gap-2.5 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
+    <div className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2.5 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <img
@@ -77,7 +79,17 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
       {/* Direct Seeker Action Buttons */}
       <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 text-xs font-black">
         {/* Directions */}
-        {effectiveUrl ? (
+        {onStartNavigation ? (
+          <button
+            type="button"
+            onClick={() => onStartNavigation(selectedBiz)}
+            className="py-2 px-1 rounded-xl text-center flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black border border-amber-400"
+            title="بدء التوجيه والملاحة إلى هذا النشاط"
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            <span className="text-[11px]">ملاحة</span>
+          </button>
+        ) : effectiveUrl ? (
           <a
             href={effectiveUrl}
             target="_blank"

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   InteractiveMapProps,
   MapTileLayerType,
@@ -13,8 +13,12 @@ import {
   MapSearchBox,
   MapFloatingControls,
   MapSelectedBusinessDrawer,
+  BuildingDetailDrawer,
+  ZoneScopedSearchBar,
+  InAppNavigationDrawer,
   MapFooterBar,
 } from './map';
+import { filterBusinessesForMap } from '../utils/hadayekZoneHelper';
 
 export type { InteractiveMapProps, MapTileLayerType };
 export { MAP_QUICK_CATEGORIES };
@@ -29,6 +33,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onEditBusiness,
   heightClass = 'h-[380px]',
   targetBuilding = null,
+  onSelectBuilding: externalOnSelectBuilding,
   showHadayekGates = true,
   selectedZone,
   onSelectZone,
@@ -40,19 +45,75 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onExploreDirectory,
   onOpenGatesGuide,
   quickCategories,
+  activeRoute: externalActiveRoute,
+  onUpdateRoute,
+  onStartNavigation: externalOnStartNavigation,
+  onClearBuilding,
+  onOpenRadar,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
 
+  const activeZone = selectedZone !== undefined ? selectedZone : state.selectedZone;
+  const activeCategory = categoryFilter !== undefined ? categoryFilter : state.mapCategoryFilter;
+
+  const matchingBusinessesCount = useMemo(() => {
+    return filterBusinessesForMap(
+      businesses,
+      activeZone || 'all',
+      activeCategory || 'all',
+      state.onlyVerifiedFilter
+    ).length;
+  }, [businesses, activeZone, activeCategory, state.onlyVerifiedFilter]);
+
+  // Local state for interactive building inspection
+  const [selectedBuildingState, setSelectedBuildingState] = useState<{
+    buildingNumber: string;
+    zoneLetter: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  // Sync selectedBuildingState with targetBuilding from props
+  useEffect(() => {
+    if (targetBuilding && targetBuilding.buildingNumber && targetBuilding.zoneLetter) {
+      setSelectedBuildingState({
+        buildingNumber: targetBuilding.buildingNumber,
+        zoneLetter: targetBuilding.zoneLetter,
+        lat: targetBuilding.lat || 0,
+        lng: targetBuilding.lng || 0,
+      });
+    } else if (!targetBuilding) {
+      setSelectedBuildingState(null);
+    }
+  }, [targetBuilding]);
+
+  // Local state for in-app navigation target
+  const [navigationTargetState, setNavigationTargetState] = useState<{
+    title: string;
+    lat: number;
+    lng: number;
+    type: 'building' | 'business';
+    details?: string;
+  } | null>(null);
+
+  // Local route state
+  const [localRoute, setLocalRoute] = useState<{
+    origin: { lat: number; lng: number; label: string };
+    destination: { lat: number; lng: number; label: string };
+  } | null>(null);
+
+  const activeRoute = externalActiveRoute !== undefined ? externalActiveRoute : localRoute;
+
   // Sync state if selectedZone prop changes from parent
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedZone !== undefined) {
       state.setSelectedZone(selectedZone);
     }
   }, [selectedZone]);
 
   // Sync state if categoryFilter prop changes from parent
-  React.useEffect(() => {
+  useEffect(() => {
     if (categoryFilter !== undefined) {
       state.setMapCategoryFilter(categoryFilter);
     }
@@ -68,15 +129,38 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     onLocationSelect,
   });
 
+  const effectiveTargetBuilding =
+    targetBuilding ||
+    (selectedBuildingState
+      ? {
+          zoneLetter: selectedBuildingState.zoneLetter,
+          buildingNumber: selectedBuildingState.buildingNumber,
+          lat: selectedBuildingState.lat,
+          lng: selectedBuildingState.lng,
+        }
+      : null);
+
   useMapPinsClustering({
     mapInstance,
     state,
     mode,
     businesses,
     showHadayekGates,
-    targetBuilding,
-    onSelectBusiness,
+    selectedZone: activeZone,
+    categoryFilter: activeCategory,
+    targetBuilding: effectiveTargetBuilding,
+    onSelectBusiness: (biz) => {
+      setSelectedBuildingState(null);
+      state.setSelectedBiz(biz);
+      if (onSelectBusiness) onSelectBusiness(biz);
+    },
     onSelectZone,
+    onSelectBuilding: (bldg) => {
+      setSelectedBuildingState(bldg);
+      state.setSelectedBiz(null);
+      if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
+    },
+    activeRoute,
   });
 
   const geolocation = useMapGeolocation({
@@ -90,7 +174,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (mapInstance.isMapReady && mapInstance.leafletMapRef.current) {
       const timer = setTimeout(() => {
         mapInstance.leafletMapRef.current?.invalidateSize();
@@ -99,9 +183,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [mapInstance.isMapReady]);
 
-  const filteredBusinessesCount = businesses.filter(
-    (b) => state.selectedGovFilter === 'all' || b.governorate.includes(state.selectedGovFilter)
-  ).length;
+  const filteredBusinessesCount = matchingBusinessesCount;
 
   const canvasWrapperClasses = 'relative w-full flex-1 h-full min-h-0 overflow-hidden z-0';
 
@@ -145,12 +227,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {/* 🧭 Clean District & Activity Filter Bar (Shows only within Hadayek Al-Ahram area) */}
         {mode === 'view' && (Math.abs(lat - 29.9683) < 0.06 && Math.abs(lng - 31.1002) < 0.06) && (
           <MapModernTopBar
-            selectedZone={selectedZone !== undefined ? selectedZone : state.selectedZone}
+            selectedZone={activeZone}
             onSelectZone={(z) => {
               state.setSelectedZone(z);
+              setSelectedBuildingState(null);
+              setNavigationTargetState(null);
+              setLocalRoute(null);
+              if (onClearBuilding) onClearBuilding();
               if (onSelectZone) onSelectZone(z);
             }}
-            categoryFilter={categoryFilter !== undefined ? categoryFilter : state.mapCategoryFilter}
+            categoryFilter={activeCategory}
             onCategoryChange={(cat) => {
               state.setMapCategoryFilter(cat);
               if (onCategoryChange) onCategoryChange(cat);
@@ -158,6 +244,49 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             quickCategories={quickCategories}
             filteredBusinessesCount={filteredBusinessesCount}
           />
+        )}
+
+        {/* ⚠️ Empty Category Notice Banner (Non-intrusive lightweight pill) */}
+        {mode === 'view' && activeCategory && activeCategory !== 'all' && matchingBusinessesCount === 0 && (
+          <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
+            <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
+              <span className="text-sm">🔍</span>
+              <span>لا توجد أنشطة مسجلة في تصنيف &quot;{activeCategory}&quot; {activeZone && activeZone !== 'all' ? `بمنطقة ${activeZone}` : 'حالياً'}</span>
+            </div>
+          </div>
+        )}
+
+        {/* 🔍 In-Zone Scoped Search Bar (Displays when a zone is active) */}
+        {mode === 'view' && activeZone && activeZone !== 'all' && !navigationTargetState && (
+          <div className="absolute top-16 sm:top-20 right-3 left-3 sm:right-6 sm:left-6 z-[890] pointer-events-none flex justify-center">
+            <div className="pointer-events-auto w-full max-w-md">
+              <ZoneScopedSearchBar
+                selectedZone={activeZone}
+                businesses={businesses}
+                selectedBuilding={selectedBuildingState}
+                onSelectBuilding={(bldg) => {
+                  setSelectedBuildingState(bldg);
+                  state.setSelectedBiz(null);
+                  if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
+                }}
+                onSelectBusiness={(biz) => {
+                  state.setSelectedBiz(biz);
+                  setSelectedBuildingState(null);
+                  if (onSelectBusiness) onSelectBusiness(biz);
+                }}
+                onClearBuilding={() => {
+                  setSelectedBuildingState(null);
+                  if (onClearBuilding) onClearBuilding();
+                }}
+                onClearZone={() => {
+                  state.setSelectedZone('');
+                  setSelectedBuildingState(null);
+                  if (onClearBuilding) onClearBuilding();
+                  if (onSelectZone) onSelectZone('');
+                }}
+              />
+            </div>
+          </div>
         )}
 
         <MapFloatingControls
@@ -173,11 +302,61 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           switchTileLayer={mapInstance.switchTileLayer}
         />
 
-        {mode === 'view' && (
+        {/* 🏪 Selected Business Drawer */}
+        {mode === 'view' && !navigationTargetState && !selectedBuildingState && (
           <MapSelectedBusinessDrawer
             selectedBiz={state.selectedBiz}
             setSelectedBiz={state.setSelectedBiz}
             onSelectBusiness={onSelectBusiness}
+            onStartNavigation={(biz) => {
+              const target = {
+                title: biz.nameAr,
+                lat: biz.lat,
+                lng: biz.lng,
+                type: 'business' as const,
+                details: biz.category,
+              };
+              setNavigationTargetState(target);
+              if (externalOnStartNavigation) externalOnStartNavigation(target);
+            }}
+          />
+        )}
+
+        {/* 🏢 Selected Building Detail Drawer */}
+        {mode === 'view' && !navigationTargetState && selectedBuildingState && (
+          <BuildingDetailDrawer
+            building={selectedBuildingState}
+            businesses={businesses}
+            onClose={() => {
+              setSelectedBuildingState(null);
+              if (onClearBuilding) onClearBuilding();
+            }}
+            onSelectBusiness={(biz) => {
+              state.setSelectedBiz(biz);
+              setSelectedBuildingState(null);
+              if (onSelectBusiness) onSelectBusiness(biz);
+            }}
+            onStartNavigation={(target) => {
+              setNavigationTargetState(target);
+              if (externalOnStartNavigation) externalOnStartNavigation(target);
+            }}
+            onOpenRadar={onOpenRadar}
+          />
+        )}
+
+        {/* 🧭 Interactive In-App Navigation Drawer */}
+        {mode === 'view' && navigationTargetState && (
+          <InAppNavigationDrawer
+            target={navigationTargetState}
+            onClose={() => {
+              setNavigationTargetState(null);
+              setLocalRoute(null);
+              if (onUpdateRoute) onUpdateRoute(null);
+            }}
+            onUpdateRoute={(route) => {
+              setLocalRoute(route);
+              if (onUpdateRoute) onUpdateRoute(route);
+            }}
           />
         )}
       </div>
@@ -190,3 +369,4 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     </div>
   );
 };
+
