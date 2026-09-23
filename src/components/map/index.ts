@@ -7,6 +7,7 @@ export * from './hooks/useMapGeolocation';
 export * from './hooks/useMapSearch';
 export * from './hooks/useMapState';
 export * from './MapHeaderBar';
+export * from './MapModernTopBar';
 export * from './MapSearchBox';
 export * from './MapFloatingControls';
 export * from './MapSelectedBusinessDrawer';

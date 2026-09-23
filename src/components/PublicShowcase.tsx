@@ -9,6 +9,7 @@ import {
 import { getDirectoryPath } from '../utils/directoryUrl';
 import { matchesCategoryFilter } from '../utils/categoryMatcher';
 import { matchesBusinessSearch, normalizeArabicText } from '../utils/arabicSearch';
+import { isBusinessInHadayekZone } from '../utils/hadayekZoneHelper';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
 import { MobileBottomNav } from './layout/MobileBottomNav';
@@ -41,6 +42,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   referralCode,
   loading = false,
 }) => {
+
   // 1. Client-Side Router State
   const [currentPath, setCurrentPath] = useState<string>(() => {
     if (typeof window === 'undefined') return '/';
@@ -86,8 +88,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   // 2. Search & Filter State
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [govFilter, setGovFilter] = useState<string>('all');
-  const [cityFilter, setCityFilter] = useState<string>('all');
+  const [govFilter, setGovFilter] = useState<string>('الجيزة');
+  const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [openNowOnly, setOpenNowOnly] = useState<boolean>(false);
@@ -102,12 +104,29 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [isLocatingUser, setIsLocatingUser] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // 🗺️ Active Map Center Coordinates (Default: Hadayek Al-Ahram)
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 29.9683, lng: 31.1002 });
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage((c) => (c === msg ? null : c));
     }, 3500);
   };
+
+  const handleLocationChange = useCallback((locationName: string, coords?: { lat: number; lng: number }, gov?: string) => {
+    setCityFilter(locationName);
+    if (gov) {
+      setGovFilter(gov);
+    }
+    if (locationName !== 'حدائق الأهرام') {
+      setHadayekZoneFilter('all');
+    }
+    if (coords) {
+      setMapCenter(coords);
+    }
+    showToast(`تم الانتقال إلى ${locationName} 📍`);
+  }, []);
 
   const handleReshuffle = useCallback(() => {
     setShuffleSeed(Date.now() ^ Math.floor(Math.random() * 1000000));
@@ -175,11 +194,22 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   };
 
   const handleCloseBusiness = () => {
+    // 💡 Retain category context if the visitor came directly via an external shared link,
+    // so they discover related businesses in that category after viewing the shared card.
+    if (isDirectLinkOpenRef.current && selectedBiz?.category) {
+      setCategoryFilter(selectedBiz.category);
+    }
     isDirectLinkOpenRef.current = false;
     setSelectedBiz(null);
-    setCurrentPath('/');
+    setCurrentPath('/search');
     try {
-      window.history.replaceState(null, '', '/');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('biz');
+      url.searchParams.delete('b');
+      url.searchParams.delete('id');
+      url.searchParams.delete('preview');
+      const clean = '/search';
+      window.history.replaceState(null, '', clean + (url.search ? url.search : ''));
     } catch {}
   };
 
@@ -231,8 +261,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     isDirectLinkOpenRef.current = false;
     setPinnedDirectBizId(null);
     setSearchQuery('');
-    setGovFilter('all');
-    setCityFilter('all');
+    setGovFilter('الجيزة');
+    setCityFilter('حدائق الأهرام');
     setHadayekZoneFilter('all');
     setCategoryFilter('all');
     setOpenNowOnly(false);
@@ -243,8 +273,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   const hasActiveFilters =
     searchQuery !== '' ||
-    govFilter !== 'all' ||
-    cityFilter !== 'all' ||
+    (govFilter !== 'الجيزة' && govFilter !== 'all') ||
+    (cityFilter !== 'حدائق الأهرام' && cityFilter !== 'all') ||
     hadayekZoneFilter !== 'all' ||
     categoryFilter !== 'all' ||
     openNowOnly ||
@@ -279,7 +309,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         }
       }
 
-      // 3. Governorate Filter
+      // 3. Hadayek Zone Filter (Strict Zone Boundary Protection)
+      if (hadayekZoneFilter && hadayekZoneFilter !== 'all') {
+        if (!isBusinessInHadayekZone(b, hadayekZoneFilter)) {
+          return false;
+        }
+      }
+
+      // 4. Governorate Filter
       if (govFilter !== 'all') {
         const safeGov = (b.governorate || '').toLowerCase().trim();
         const safeTarget = govFilter.toLowerCase().trim();
@@ -300,13 +337,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             normBizAddress.includes('حدايق الاهرام') ||
             normBizAddress.includes('هضبه الاهرام') ||
             normBizAddress.includes('الاهرام') ||
-            normBizAddress.includes('منطقه ');
+            normBizAddress.includes('منطقه ') ||
+            (typeof b.lat === 'number' && b.lat > 29.93 && b.lat < 30.01 && b.lng > 31.06 && b.lng < 31.13);
           if (!isHadayek) return false;
 
           if (hadayekZoneFilter !== 'all') {
-            const letterMatch = hadayekZoneFilter.match(/منطقة\s+([أ-ي]+)/);
-            const letter = letterMatch ? normalizeArabicText(letterMatch[1]) : null;
-            if (letter && !normBizAddress.includes(`منطقه ${letter}`)) {
+            if (!isBusinessInHadayekZone(b, hadayekZoneFilter)) {
               return false;
             }
           }
@@ -453,6 +489,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             filteredBusinesses={filteredBusinesses}
             categoryFilter={categoryFilter}
             onCategoryChange={setCategoryFilter}
+            selectedZone={hadayekZoneFilter}
+            onZoneChange={setHadayekZoneFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
             openNowOnly={openNowOnly}
@@ -462,6 +500,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             favorites={favorites}
             userCoords={userCoords}
             onNavigate={handleNavigate}
+            lat={mapCenter.lat}
+            lng={mapCenter.lng}
           />
         );
 
@@ -600,17 +640,28 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     }
   };
 
+  const isMapRoute = currentPath === '/' || currentPath === '/map';
+
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]" style={{ direction: 'rtl' }}>
+    <div
+      className={
+        isMapRoute
+          ? "h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
+          : "min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
+      }
+      style={{ direction: 'rtl' }}
+    >
       {/* 1. Unified App Header */}
       <AppNavbar
         currentPath={currentPath}
         onNavigate={handleNavigate}
         favoritesCount={favorites.length}
+        activeLocation={cityFilter}
+        onLocationChange={handleLocationChange}
       />
 
       {/* 2. Main Dispatched View */}
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className={isMapRoute ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col" : "flex-1 pb-16 md:pb-0"}>
         <React.Suspense fallback={
           <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 p-8">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
@@ -622,7 +673,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       </main>
 
       {/* 3. Unified Institutional Footer */}
-      <AppFooter onNavigate={handleNavigate} />
+      {!isMapRoute && <AppFooter onNavigate={handleNavigate} />}
 
       {/* 4. Activity Details Modal */}
       {selectedBiz && (
@@ -658,7 +709,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-20 md:bottom-6 left-6 z-30 w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+        className="hidden md:flex fixed bottom-6 left-6 z-30 w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
         title="تواصل معنا عبر واتساب"
         aria-label="WhatsApp"
       >

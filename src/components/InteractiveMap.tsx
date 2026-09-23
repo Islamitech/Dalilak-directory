@@ -1,6 +1,4 @@
 import React, { useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { Maximize2 } from 'lucide-react';
 import {
   InteractiveMapProps,
   MapTileLayerType,
@@ -11,6 +9,7 @@ import {
   useMapSearch,
   useMapState,
   MapHeaderBar,
+  MapModernTopBar,
   MapSearchBox,
   MapFloatingControls,
   MapSelectedBusinessDrawer,
@@ -33,10 +32,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   showHadayekGates = true,
   selectedZone,
   onSelectZone,
+  categoryFilter,
+  onCategoryChange,
   initialShowBusinesses = false,
   onToggleBusinessesVisibility,
   defaultExpanded = false,
   onExploreDirectory,
+  onOpenGatesGuide,
+  quickCategories,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
@@ -48,6 +51,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [selectedZone]);
 
+  // Sync state if categoryFilter prop changes from parent
+  React.useEffect(() => {
+    if (categoryFilter !== undefined) {
+      state.setMapCategoryFilter(categoryFilter);
+    }
+  }, [categoryFilter]);
+
   const mapInstance = useMapInstance({
     containerRef,
     mode,
@@ -57,24 +67,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     isExpanded: state.isExpanded,
     onLocationSelect,
   });
-
-  React.useEffect(() => {
-    if (!mapInstance.leafletMapRef.current || !window.L) return;
-    const map = mapInstance.leafletMapRef.current;
-    
-    // Restrict bounds heavily when Hadayek Al Ahram is selected
-    if (state.selectedGovFilter === 'حدائق الأهرام') {
-      const bounds = window.L.latLngBounds(
-        window.L.latLng(29.930, 31.050),
-        window.L.latLng(30.010, 31.140)
-      );
-      map.setMaxBounds(bounds);
-      map.options.minZoom = 13;
-    } else {
-      map.setMaxBounds(null);
-      map.options.minZoom = 5;
-    }
-  }, [state.selectedGovFilter, mapInstance.leafletMapRef.current]);
 
   useMapPinsClustering({
     mapInstance,
@@ -94,71 +86,78 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   const search = useMapSearch({
     updateSelectedPosition: async (lat, lng, flyTo, zoom) => {
-      // Check if location is outside the roughly bounded Hadayek area
-      const isOutside = lat < 29.930 || lat > 30.010 || lng < 31.050 || lng > 31.140;
-      if (isOutside && state.selectedGovFilter === 'حدائق الأهرام') {
-        state.setSelectedGovFilter('all');
-        // Let the state and map bounds update first, then fly
-        setTimeout(() => {
-          mapInstance.updateSelectedPosition(lat, lng, flyTo, zoom);
-        }, 100);
-      } else {
-        await mapInstance.updateSelectedPosition(lat, lng, flyTo, zoom);
-      }
+      await mapInstance.updateSelectedPosition(lat, lng, flyTo, zoom);
     },
   });
+
+  React.useEffect(() => {
+    if (mapInstance.isMapReady && mapInstance.leafletMapRef.current) {
+      const timer = setTimeout(() => {
+        mapInstance.leafletMapRef.current?.invalidateSize();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [mapInstance.isMapReady]);
 
   const filteredBusinessesCount = businesses.filter(
     (b) => state.selectedGovFilter === 'all' || b.governorate.includes(state.selectedGovFilter)
   ).length;
 
-  const canvasWrapperClasses = state.isExpanded
-    ? 'relative w-full flex-1 h-full min-h-[400px] overflow-hidden min-h-0 z-0'
-    : `relative w-full ${heightClass} overflow-hidden z-0`;
+  const canvasWrapperClasses = 'relative w-full flex-1 h-full min-h-0 overflow-hidden z-0';
 
   const mapInnerContent = (
     <>
-      <MapHeaderBar
-        mode={mode}
-        filteredBusinessesCount={filteredBusinessesCount}
-        tileLayer={mapInstance.tileLayer}
-        switchTileLayer={mapInstance.switchTileLayer}
-        state={state}
-        onGovChange={(gov) => state.handleGovChange(gov, mapInstance.updateSelectedPosition)}
-        isLocating={geolocation.isLocating}
-        handleGetLocation={geolocation.handleGetLocation}
-        showHadayekGates={showHadayekGates}
-        onToggleBusinessesVisibility={onToggleBusinessesVisibility}
-        onSelectZone={onSelectZone}
-        mapInstance={mapInstance}
-        onExploreDirectory={onExploreDirectory}
-      />
-
       {mode === 'picker' && (
-        <MapSearchBox
-          searchQuery={search.searchQuery}
-          isSearching={search.isSearching}
-          searchResults={search.searchResults}
-          showSearchResults={search.showSearchResults}
-          setShowSearchResults={search.setShowSearchResults}
-          handleSearchChange={search.handleSearchChange}
-          handleSelectSearchResult={search.handleSelectSearchResult}
-          handleClearSearch={search.handleClearSearch}
-        />
+        <>
+          <MapHeaderBar
+            mode={mode}
+            filteredBusinessesCount={filteredBusinessesCount}
+            tileLayer={mapInstance.tileLayer}
+            switchTileLayer={mapInstance.switchTileLayer}
+            state={state}
+            businesses={businesses}
+            onGovChange={(gov) => state.handleGovChange(gov, mapInstance.updateSelectedPosition)}
+            isLocating={geolocation.isLocating}
+            handleGetLocation={geolocation.handleGetLocation}
+            showHadayekGates={showHadayekGates}
+            onToggleBusinessesVisibility={onToggleBusinessesVisibility}
+            onSelectZone={onSelectZone}
+            onCategorySelect={onCategoryChange}
+            mapInstance={mapInstance}
+            onExploreDirectory={onExploreDirectory}
+          />
+          <MapSearchBox
+            searchQuery={search.searchQuery}
+            isSearching={search.isSearching}
+            searchResults={search.searchResults}
+            showSearchResults={search.showSearchResults}
+            setShowSearchResults={search.setShowSearchResults}
+            handleSearchChange={search.handleSearchChange}
+            handleSelectSearchResult={search.handleSelectSearchResult}
+            handleClearSearch={search.handleClearSearch}
+          />
+        </>
       )}
 
       <div className={canvasWrapperClasses}>
         <div ref={containerRef} className="w-full h-full cursor-crosshair leaflet-map-canvas touch-none" />
 
-        {/* Hero Title Overlay */}
-        {state.selectedGovFilter === 'حدائق الأهرام' && mode === 'view' && (
-          <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none drop-shadow-2xl text-center select-none animate-fade-in-scale w-max max-w-[90vw]">
-            <h2 className="text-[11px] sm:text-xl font-black text-white px-3 sm:px-6 py-1 sm:py-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-500/40 rounded-full shadow-2xl tracking-wide flex items-center gap-1.5 sm:gap-2">
-              <span>خريطة</span>
-              <span className="text-amber-400">حدائق الأهرام</span>
-              <span className="hidden sm:inline">التفاعلية</span>
-            </h2>
-          </div>
+        {/* 🧭 Clean District & Activity Filter Bar (Shows only within Hadayek Al-Ahram area) */}
+        {mode === 'view' && (Math.abs(lat - 29.9683) < 0.06 && Math.abs(lng - 31.1002) < 0.06) && (
+          <MapModernTopBar
+            selectedZone={selectedZone !== undefined ? selectedZone : state.selectedZone}
+            onSelectZone={(z) => {
+              state.setSelectedZone(z);
+              if (onSelectZone) onSelectZone(z);
+            }}
+            categoryFilter={categoryFilter !== undefined ? categoryFilter : state.mapCategoryFilter}
+            onCategoryChange={(cat) => {
+              state.setMapCategoryFilter(cat);
+              if (onCategoryChange) onCategoryChange(cat);
+            }}
+            quickCategories={quickCategories}
+            filteredBusinessesCount={filteredBusinessesCount}
+          />
         )}
 
         <MapFloatingControls
@@ -186,48 +185,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   );
 
   return (
-    <>
-      {/* Inline Placeholder when Expanded (maintains page flow & prevents layout jitter - commit 3471e21) */}
-      {state.isExpanded && (
-        <div
-          className={`relative w-full ${heightClass} rounded-2xl border-2 border-dashed border-amber-500/35 bg-[var(--bg-card)]/40 flex flex-col items-center justify-center gap-2.5 text-slate-400 select-none transition-all duration-300`}
-        >
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center shadow-inner">
-            <Maximize2 className="w-5 h-5 animate-pulse" />
-          </div>
-          <span className="text-xs font-bold text-[var(--text-muted)]">
-            الخريطة معروضة الآن في وضع ملء الشاشة الشامل
-          </span>
-          <button
-            type="button"
-            onClick={() => state.setIsExpanded(false)}
-            className="mt-1 px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-xs font-bold transition-all cursor-pointer"
-          >
-            إنهاء وضع التوسيع
-          </button>
-        </div>
-      )}
-
-      {/* Expanded Mode: True Viewport Portal into document.body */}
-      {state.isExpanded ? (
-        typeof document !== 'undefined' &&
-        createPortal(
-          <div className="fixed inset-0 z-[99999] flex flex-col font-['Cairo',sans-serif]">
-            <div
-              onClick={() => state.setIsExpanded(false)}
-              className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[99998]"
-            />
-            <div className="relative z-[99999] m-0 sm:m-3 flex-1 bg-slate-900 border-0 sm:border-2 border-amber-500/60 rounded-none sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-scale">
-              {mapInnerContent}
-            </div>
-          </div>,
-          document.body
-        )
-      ) : (
-        <div className="relative bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] overflow-hidden shadow-xl flex flex-col transition-colors duration-300">
-          {mapInnerContent}
-        </div>
-      )}
-    </>
+    <div className="relative w-full h-full flex-1 min-h-0 flex flex-col overflow-hidden bg-slate-100">
+      {mapInnerContent}
+    </div>
   );
 };

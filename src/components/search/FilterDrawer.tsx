@@ -10,11 +10,14 @@ import {
   SlidersHorizontal,
   Check,
 } from 'lucide-react';
+import { Business } from '../../types';
 import { EGYPT_GOVERNORATES, CATEGORY_GROUPS, HADAYEK_ALAHRAM_ZONES, EGYPT_CITIES_BY_GOV } from '../../data/mockData';
+import { getBusinessesInZone, getAvailableCategoryGroupsInZone } from '../../utils/hadayekZoneHelper';
 
 export interface FilterDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  allBusinesses?: Business[];
   selectedGov: string;
   onGovChange: (gov: string) => void;
   selectedCity: string;
@@ -38,6 +41,7 @@ export interface FilterDrawerProps {
 export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   isOpen,
   onClose,
+  allBusinesses = [],
   selectedGov,
   onGovChange,
   selectedCity,
@@ -62,6 +66,30 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   const isGiza = selectedGov === 'الجيزة';
   const isHadayek = selectedCity.includes('حدائق الأهرام');
   const availableCities = selectedGov && EGYPT_CITIES_BY_GOV[selectedGov] ? EGYPT_CITIES_BY_GOV[selectedGov] : [];
+
+  // 🧭 Dynamic Zone-Scoped Category Calculation
+  const isZoneScoped = isHadayek && selectedZone !== 'all';
+  const zoneBusinesses = React.useMemo(() => {
+    if (!isZoneScoped || !allBusinesses || allBusinesses.length === 0) return null;
+    return getBusinessesInZone(allBusinesses, selectedZone);
+  }, [allBusinesses, isZoneScoped, selectedZone]);
+
+  const scopedCategoryGroups = React.useMemo(() => {
+    if (!isZoneScoped || !allBusinesses || allBusinesses.length === 0) return null;
+    return getAvailableCategoryGroupsInZone(allBusinesses, selectedZone);
+  }, [allBusinesses, isZoneScoped, selectedZone]);
+
+  // Auto-reset category if previously selected category does not exist in the newly selected zone
+  React.useEffect(() => {
+    if (isZoneScoped && categoryFilter !== 'all' && scopedCategoryGroups) {
+      const existsInZone = scopedCategoryGroups.some(
+        (grp) => grp.group === categoryFilter || grp.items.some((it) => it.name === categoryFilter)
+      );
+      if (!existsInZone) {
+        onCategoryChange('all');
+      }
+    }
+  }, [isZoneScoped, categoryFilter, scopedCategoryGroups, onCategoryChange]);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" style={{ direction: 'rtl' }}>
@@ -177,27 +205,62 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
             {/* 2. Category Filter (فئة النشاط) */}
             <div className="space-y-2 pt-3 border-t border-slate-100">
-              <h4 className="font-black text-slate-900 flex items-center gap-1.5 text-xs">
-                <Layers className="w-3.5 h-3.5 text-amber-600" />
-                <span>فئة النشاط والخدمة</span>
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-black text-slate-900 flex items-center gap-1.5 text-xs">
+                  <Layers className="w-3.5 h-3.5 text-amber-600" />
+                  <span>فئة النشاط والخدمة</span>
+                </h4>
+                {isZoneScoped && (
+                  <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                    نطاق: {selectedZone} ({zoneBusinesses?.length || 0})
+                  </span>
+                )}
+              </div>
+
+              {isZoneScoped && (
+                <div className="bg-amber-50/70 border border-amber-200/90 rounded-xl p-2 text-[11px] text-amber-900 flex items-center justify-between">
+                  <span>📍 الأنشطة المتوفرة فعلياً في {selectedZone} فقط</span>
+                  {categoryFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => onCategoryChange('all')}
+                      className="text-amber-800 font-bold underline text-[10.5px] cursor-pointer"
+                    >
+                      عرض كل أنشطة {selectedZone}
+                    </button>
+                  )}
+                </div>
+              )}
 
               <select
                 value={categoryFilter}
                 onChange={(e) => onCategoryChange(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
               >
-                <option value="all">كافة الفئات والأنشطة</option>
-                {CATEGORY_GROUPS.map((group) => (
-                  <optgroup key={group.group} label={group.group}>
-                    <option value={group.group}>كل {group.group}</option>
-                    {group.items.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
+                <option value="all">
+                  {isZoneScoped ? `كافة أنشطة ${selectedZone} (${zoneBusinesses?.length || 0} مكان)` : 'كافة الفئات والأنشطة'}
+                </option>
+                {isZoneScoped && scopedCategoryGroups
+                  ? scopedCategoryGroups.map((group) => (
+                      <optgroup key={group.group} label={`${group.group} (${group.totalCount})`}>
+                        <option value={group.group}>كل {group.group} ({group.totalCount})</option>
+                        {group.items.map((item) => (
+                          <option key={item.name} value={item.name}>
+                            {item.name} ({item.count})
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))
+                  : CATEGORY_GROUPS.map((group) => (
+                      <optgroup key={group.group} label={group.group}>
+                        <option value={group.group}>كل {group.group}</option>
+                        {group.items.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
-                  </optgroup>
-                ))}
               </select>
             </div>
 

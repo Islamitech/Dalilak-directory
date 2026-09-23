@@ -19,8 +19,12 @@ export interface InteractiveMapProps {
   showHadayekGates?: boolean;
   selectedZone?: string;
   onSelectZone?: (zoneLetter: string) => void;
+  categoryFilter?: string;
+  onCategoryChange?: (category: string) => void;
   initialShowBusinesses?: boolean;
   onToggleBusinessesVisibility?: (visible: boolean) => void;
   defaultExpanded?: boolean;
   onExploreDirectory?: () => void;
+  onOpenGatesGuide?: () => void;
+  quickCategories?: Array<{ id: string; name: string; icon: string; count?: number }>;
 }

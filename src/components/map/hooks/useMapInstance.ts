@@ -26,6 +26,7 @@ export const useMapInstance = ({
   const [zoomLevel, setZoomLevel] = useState<number>(initialZoom);
   const [tileLayer, setTileLayer] = useState<MapTileLayerType>('dalelak-clean');
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [isMapReady, setIsMapReady] = useState<boolean>(false);
 
   const leafletMapRef = useRef<any>(null);
   const tileLayerRef = useRef<any>(null);
@@ -45,7 +46,16 @@ export const useMapInstance = ({
     setCurrentLng(lng);
     liveCenterRef.current.lat = lat;
     liveCenterRef.current.lng = lng;
-  }, [lat, lng]);
+
+    if (leafletMapRef.current && isMapReady) {
+      try {
+        const cur = leafletMapRef.current.getCenter();
+        if (Math.abs(cur.lat - lat) > 0.0005 || Math.abs(cur.lng - lng) > 0.0005) {
+          leafletMapRef.current.flyTo([lat, lng], 14, { duration: 0.9 });
+        }
+      } catch {}
+    }
+  }, [lat, lng, isMapReady]);
 
   // Tile layer URL resolver with high-performance tile caching options
   const getTileLayerConfig = useCallback((type: MapTileLayerType) => {
@@ -150,12 +160,21 @@ export const useMapInstance = ({
         zoom: centerToUse.zoom || zoomLevel,
         zoomControl: false,
         attributionControl: false,
-        zoomSnap: 1,
-        zoomDelta: 1,
-        wheelPxPerZoomLevel: 60,
+        zoomSnap: 0.5,
+        zoomDelta: 0.5,
+        wheelPxPerZoomLevel: 80,
+        preferCanvas: true,
+        inertia: true,
+        inertiaDeceleration: 3000,
+        inertiaMaxSpeed: 1500,
+        easeLinearity: 0.2,
         bounceAtZoomLimits: false,
-        maxBoundsViscosity: 1.0
+        maxBoundsViscosity: 0.65,
       });
+
+      // Broad navigation boundaries (fluid movement without rigid clamp)
+      map.options.minZoom = 8;
+      map.options.maxZoom = 19;
 
       const cfg = getTileLayerConfig(tileLayer);
       const layer = window.L.tileLayer(cfg.url, {
@@ -172,14 +191,15 @@ export const useMapInstance = ({
       tileLayerRef.current = layer;
       markersGroupRef.current = window.L.layerGroup().addTo(map);
       leafletMapRef.current = map;
+      setIsMapReady(true);
       if (containerRef.current) {
         (containerRef.current as any)._leaflet_map = map;
       }
 
       // Automatically calibrate Hadayek Al-Ahram bounds on initial load (Gate 1 to Gate Horus, أ to ص)
-      if (mode === 'view' && !liveCenterRef.current) {
+      if (mode === 'view') {
         try {
-          map.fitBounds([[29.9477, 31.0881], [29.9888, 31.1122]], { padding: [16, 16], maxZoom: 14 });
+          map.fitBounds([[29.9477, 31.0881], [29.9888, 31.1122]], { padding: [16, 16], maxZoom: 14.5 });
         } catch {}
       }
 
@@ -243,6 +263,7 @@ export const useMapInstance = ({
 
     return () => {
       isSubscribed = false;
+      setIsMapReady(false);
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
@@ -333,6 +354,7 @@ export const useMapInstance = ({
 
   return {
     leafletMapRef,
+    isMapReady,
     markersGroupRef,
     pickerMarkerRef,
     accuracyCircleRef,

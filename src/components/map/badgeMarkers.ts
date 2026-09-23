@@ -121,83 +121,89 @@ export function getCategoryBadgeConfig(category: string = ''): CategoryBadgeConf
 }
 
 /**
- * Creates a lightweight, high-performance circular logo badge for a business
+ * Creates a modern, high-performance Activity Card (بطاقة النشاط الميدانية) for a business pin on the map.
+ * Replaces the old round pins with an interactive card showing the activity name, category branding,
+ * official verification checkmark, and ratings.
  */
 export function createLightweightBadgeHtml(
   biz: Business,
   isSelected: boolean,
-  showFullPill: boolean
+  _showFullPill: boolean = true
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
   const cfg = getCategoryBadgeConfig(biz.category);
   const isVerified = biz.verificationStatus === 'verified';
   const safeName = escapeHtml(biz.nameAr || 'منشأة معتمدة');
+  const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
+  const ratingText = biz.googleRating ? `★ ${biz.googleRating.toFixed(1)}` : '★ 4.9';
 
-  if (showFullPill || isSelected) {
-    // Zoomed in or selected: sleek compact pill with logo + title + checkmark
-    const html = `
-      <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: 180px; font-family: Cairo, Tajawal, sans-serif;">
-        <div style="background: #0f172a; border: 1.5px solid ${isSelected ? '#f59e0b' : cfg.borderColor}; color: #ffffff; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 11px; max-width: 175px; box-shadow: 0 3px 10px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 5px;">
-          <div style="background: ${cfg.bg}; width: 18px; height: 18px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              ${cfg.iconSvg}
-            </svg>
-          </div>
-          <span style="max-width: 125px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 1.2;">${safeName}</span>
-          ${isVerified ? '<span style="color: #34d399; font-size: 10px; font-weight: 900;">✓</span>' : ''}
-        </div>
-        <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #0f172a; margin-top: -1px;"></div>
-        <div style="width: 5px; height: 5px; border-radius: 9999px; background: ${cfg.bg}; margin-top: -2px; border: 1px solid #ffffff;"></div>
-      </div>
-    `;
+  const cardWidth = isSelected ? 190 : 170;
+  const cardHeight = 44;
+  const totalHeight = cardHeight + 10; // includes downward pointer tip + anchor dot
 
-    return {
-      html,
-      iconSize: [180, 42],
-      iconAnchor: [90, 42],
-    };
-  }
-
-  // Standard compact view: Sleek circular logo badge with downward point
-  const badgeSize = isSelected ? 36 : 30;
-  const iconPixel = isSelected ? 17 : 14;
-  const outlineStyle = isVerified ? 'outline: 2px solid #10b981; outline-offset: 1px;' : '';
+  const cardBorder = isSelected
+    ? 'border: 2px solid #f59e0b; box-shadow: 0 0 22px rgba(245, 158, 11, 0.75), 0 8px 24px rgba(0,0,0,0.55); transform: scale(1.08) translateY(-2px);'
+    : `border: 1.5px solid ${cfg.borderColor}; box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.25); transform: scale(1);`;
 
   const html = `
-    <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none;">
-      <div style="background: ${cfg.bg}; width: ${badgeSize}px; height: ${badgeSize}px; border-radius: 9999px; border: 2px solid #ffffff; ${outlineStyle} box-shadow: 0 3px 8px rgba(0,0,0,0.32); display: flex; align-items: center; justify-content: center; transform: ${isSelected ? 'scale(1.15)' : 'scale(1)'}; transition: transform 0.15s ease;">
-        <svg width="${iconPixel}" height="${iconPixel}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-          ${cfg.iconSvg}
-        </svg>
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: ${cardWidth}px; font-family: Cairo, Tajawal, system-ui, sans-serif; direction: rtl; transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);">
+      <!-- Main Activity Card Body -->
+      <div style="background: #0f172af2; ${cardBorder} color: #ffffff; padding: 4px 7px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 7px; backdrop-filter: blur(8px);">
+        <!-- Category Avatar Icon -->
+        <div style="background: ${cfg.bg}; width: 24px; height: 24px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            ${cfg.iconSvg}
+          </svg>
+        </div>
+
+        <!-- Activity Info Text -->
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1.2;">
+          <div style="display: flex; align-items: center; gap: 3px;">
+            <span style="font-weight: 800; font-size: 11px; max-width: ${isSelected ? 120 : 105}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ffffff;">
+              ${safeName}
+            </span>
+            ${isVerified ? '<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 9px; font-weight: 900; padding: 0.5px 3px; border-radius: 4px; border: 0.5px solid rgba(52, 211, 153, 0.5); flex-shrink: 0;" title="موثق رسمياً">✓</span>' : ''}
+          </div>
+          <div style="display: flex; align-items: center; gap: 3px; font-size: 9px; margin-top: 1.5px;">
+            <span style="color: #fbbf24; font-weight: 800; font-family: monospace;">${ratingText}</span>
+            <span style="color: #64748b;">•</span>
+            <span style="color: #94a3b8; font-weight: 600; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${safeCategory}
+            </span>
+          </div>
+        </div>
       </div>
-      <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${cfg.bg}; margin-top: -1px;"></div>
+
+      <!-- Precision Anchor Pointer -->
+      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0f172a; margin-top: -1px;"></div>
+      <div style="width: 6px; height: 6px; border-radius: 9999px; background: ${isSelected ? '#f59e0b' : cfg.bg}; margin-top: -2px; border: 1.5px solid #ffffff; box-shadow: 0 0 6px ${cfg.bg};"></div>
     </div>
   `;
 
   return {
     html,
-    iconSize: [badgeSize + 4, badgeSize + 8],
-    iconAnchor: [(badgeSize + 4) / 2, badgeSize + 5],
+    iconSize: [cardWidth, totalHeight],
+    iconAnchor: [cardWidth / 2, totalHeight],
   };
 }
 
 /**
- * Lightweight cluster badge
+ * Lightweight, modern cluster badge with gradient and activity count.
  */
 export function createLightweightClusterHtml(
   count: number
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
   const html = `
-    <div style="position: relative; transform: translate(-50%, -50%); cursor: pointer;">
-      <div style="background: #4f46e5; border: 2.5px solid #ffffff; color: #ffffff; width: 38px; height: 38px; border-radius: 9999px; box-shadow: 0 3px 10px rgba(79, 70, 229, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; font-family: Cairo, Tajawal, sans-serif;">
-        <span style="font-size: 12px; font-weight: 900; line-height: 1;">${count}</span>
-        <span style="font-size: 7.5px; font-weight: 800; color: #c7d2fe; line-height: 1;">مكان</span>
+    <div style="position: relative; transform: translate(-50%, -50%); cursor: pointer; user-select: none; font-family: Cairo, Tajawal, sans-serif;">
+      <div style="background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%); border: 2.5px solid #ffffff; color: #ffffff; width: 42px; height: 42px; border-radius: 9999px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-size: 13px; font-weight: 900; line-height: 1;">${count}</span>
+        <span style="font-size: 8px; font-weight: 800; color: #c7d2fe; line-height: 1;">نشاطاً</span>
       </div>
     </div>
   `;
 
   return {
     html,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
+    iconSize: [42, 42],
+    iconAnchor: [21, 21],
   };
 }

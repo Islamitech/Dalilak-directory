@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Business } from '../../../types';
 import { HADAYEK_OFFICIAL_DISTRICTS, HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
-import { escapeHtml } from '../constants/mapConstants';
 import { createLightweightBadgeHtml, createLightweightClusterHtml } from '../badgeMarkers';
+import { isBusinessInHadayekZone } from '../../../utils/hadayekZoneHelper';
+import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { useMapInstance } from './useMapInstance';
 import { useMapState } from './useMapState';
 
@@ -22,6 +23,16 @@ export interface UseMapPinsClusteringProps {
   onSelectZone?: (zoneLetter: string) => void;
 }
 
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const useMapPinsClustering = ({
   mapInstance,
   state,
@@ -34,6 +45,7 @@ export const useMapPinsClustering = ({
 }: UseMapPinsClusteringProps) => {
   const {
     leafletMapRef,
+    isMapReady,
     markersGroupRef,
     pickerMarkerRef,
     accuracyCircleRef,
@@ -55,15 +67,358 @@ export const useMapPinsClustering = ({
     showDistrictsOverlay,
     showGatesLayer,
     showTargetPin,
+    isInHadayekScope,
   } = state;
 
   const districtPolygonsRef = useRef<Array<{ letterAr: string; polygon: any; color: string }>>([]);
+  const districtMarkersRef = useRef<{ [letterAr: string]: any }>({});
+  const districtsLayerGroupRef = useRef<any>(null);
+  const gatesLayerGroupRef = useRef<any>(null);
+  const targetLayerGroupRef = useRef<any>(null);
+  const lastFlownTargetRef = useRef<string | null>(null);
+  const previousSelectedZoneRef = useRef<string>(selectedZone);
+  const selectedZoneRef = useRef<string>(selectedZone);
+  selectedZoneRef.current = selectedZone;
 
+  // Single smooth handler to select district, style polygons, and frame view
+  const handleSelectDistrict = (letter: string) => {
+    state.setSelectedZone(letter);
+    if (onSelectZone) onSelectZone(letter);
+  };
+
+  // Global handler for popup action button
+  useEffect(() => {
+    (window as any).__selectHadayekDistrict = (letter: string) => {
+      handleSelectDistrict(letter);
+      state.setShowBusinesses(true);
+    };
+    return () => {
+      delete (window as any).__selectHadayekDistrict;
+    };
+  }, [onSelectZone]);
+
+  // 1. Initialize dedicated persistent sub-layers on map to isolate DOM repaints
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady || !window.L) return;
+
+    if (!districtsLayerGroupRef.current || !map.hasLayer(districtsLayerGroupRef.current)) {
+      if (districtsLayerGroupRef.current) {
+        try { districtsLayerGroupRef.current.remove(); } catch {}
+      }
+      districtsLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+    if (!gatesLayerGroupRef.current || !map.hasLayer(gatesLayerGroupRef.current)) {
+      if (gatesLayerGroupRef.current) {
+        try { gatesLayerGroupRef.current.remove(); } catch {}
+      }
+      gatesLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+    if (!targetLayerGroupRef.current || !map.hasLayer(targetLayerGroupRef.current)) {
+      if (targetLayerGroupRef.current) {
+        try { targetLayerGroupRef.current.remove(); } catch {}
+      }
+      targetLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+  }, [isMapReady]);
+
+  // 2. 🗺️ Hadayek Districts Layout & Boundaries (تخطيط ورسم حدود حدائق الأهرام)
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady || !window.L) return;
+
+    if (!districtsLayerGroupRef.current || !map.hasLayer(districtsLayerGroupRef.current)) {
+      if (districtsLayerGroupRef.current) {
+        try { districtsLayerGroupRef.current.remove(); } catch {}
+      }
+      districtsLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+    const districtsLayer = districtsLayerGroupRef.current;
+
+    // Check if map center is within Hadayek Al-Ahram area
+    const isWithinHadayek = Math.abs(currentLat - 29.9683) < 0.10 && Math.abs(currentLng - 31.1002) < 0.10;
+    if (!isWithinHadayek) {
+      districtsLayer.clearLayers();
+      districtPolygonsRef.current = [];
+      districtMarkersRef.current = {};
+      return;
+    }
+
+    districtsLayer.clearLayers();
+    districtPolygonsRef.current = [];
+    districtMarkersRef.current = {};
+
+    const hasActiveZone = Boolean(selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '');
+
+    HADAYEK_OFFICIAL_DISTRICTS.forEach((district) => {
+      const isSelected = hasActiveZone && district.letterAr === selectedZone;
+
+      // Draw cadastral boundary polygon for this district
+      district.polygons.forEach((polyCoords) => {
+        const polygon = window.L.polygon(polyCoords, {
+          color: district.color,
+          weight: isSelected ? 3.5 : hasActiveZone ? 1.5 : 2,
+          opacity: isSelected ? 1.0 : hasActiveZone ? 0.45 : 0.85,
+          fillColor: district.color,
+          fillOpacity: isSelected ? 0.18 : hasActiveZone ? 0.025 : 0.07,
+          dashArray: isSelected ? '6, 6' : undefined,
+          className: isSelected ? 'selected-district-polygon' : 'hadayek-district-polygon',
+        });
+
+        // Click on polygon selects zone
+        polygon.on('click', () => {
+          state.setSelectedZone(district.letterAr);
+          if (onSelectZone) onSelectZone(district.letterAr);
+        });
+
+        // Subtle hover effect
+        polygon.on('mouseover', () => {
+          if (selectedZone !== district.letterAr) {
+            polygon.setStyle({
+              fillOpacity: 0.16,
+              weight: 2.5,
+              opacity: 0.95,
+            });
+          }
+        });
+
+        polygon.on('mouseout', () => {
+          if (selectedZone !== district.letterAr) {
+            polygon.setStyle({
+              fillOpacity: hasActiveZone ? 0.025 : 0.07,
+              weight: hasActiveZone ? 1.5 : 2,
+              opacity: hasActiveZone ? 0.45 : 0.85,
+            });
+          }
+        });
+
+        districtsLayer.addLayer(polygon);
+        districtPolygonsRef.current.push({ letterAr: district.letterAr, polygon, color: district.color });
+      });
+
+      // Compact circular letter badge in the centroid of each zone (حرف المنطقة فقط)
+      const badgeHtml = `
+        <div class="hadayek-zone-letter-badge" style="
+          width: ${isSelected ? '28px' : '24px'};
+          height: ${isSelected ? '28px' : '24px'};
+          border-radius: 50%;
+          background: ${isSelected ? district.color : '#ffffff'};
+          border: 2px solid ${isSelected ? '#fef08a' : district.color};
+          color: ${isSelected ? '#ffffff' : '#0f172a'};
+          font-family: 'Cairo', system-ui, sans-serif;
+          font-weight: 900;
+          font-size: ${isSelected ? '14px' : '12px'};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: ${isSelected ? '0 0 14px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3)' : '0 2px 5px rgba(0, 0, 0, 0.25)'};
+          opacity: ${hasActiveZone && !isSelected ? 0.65 : 1.0};
+          cursor: pointer;
+          user-select: none;
+          line-height: 1;
+        ">${district.letterAr}</div>
+      `;
+
+      const badgeSize = isSelected ? [28, 28] : [24, 24];
+      const badgeAnchor = isSelected ? [14, 14] : [12, 12];
+
+      const badgeIcon = window.L.divIcon({
+        className: 'hadayek-zone-letter-marker',
+        html: badgeHtml,
+        iconSize: badgeSize,
+        iconAnchor: badgeAnchor,
+      });
+
+      const marker = window.L.marker([district.centerLat, district.centerLng], {
+        icon: badgeIcon,
+        zIndexOffset: isSelected ? 400 : 200,
+      });
+
+      marker.on('click', () => {
+        state.setSelectedZone(district.letterAr);
+        if (onSelectZone) onSelectZone(district.letterAr);
+      });
+
+      districtsLayer.addLayer(marker);
+      districtMarkersRef.current[district.letterAr] = marker;
+    });
+
+    // Smooth camera flight when a district is selected or cleared
+    if (hasActiveZone) {
+      if (previousSelectedZoneRef.current !== selectedZone) {
+        previousSelectedZoneRef.current = selectedZone;
+        const targetDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === selectedZone);
+        if (targetDistrict && targetDistrict.polygons && targetDistrict.polygons[0]) {
+          try {
+            const bounds = window.L.latLngBounds(targetDistrict.polygons[0]);
+            map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 16.5, duration: 0.6 });
+          } catch {}
+        }
+      }
+    } else {
+      if (previousSelectedZoneRef.current && previousSelectedZoneRef.current !== 'all') {
+        previousSelectedZoneRef.current = '';
+        map.flyTo([29.9683, 31.1002], 14, { duration: 0.6 });
+      }
+    }
+  }, [selectedZone, isMapReady, currentLat, currentLng]);
+
+  // 4. 🚪 Render Hadayek Official Gates into dedicated layer
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady || !window.L) return;
+
+    if (!gatesLayerGroupRef.current || !map.hasLayer(gatesLayerGroupRef.current)) {
+      if (gatesLayerGroupRef.current) {
+        try { gatesLayerGroupRef.current.remove(); } catch {}
+      }
+      gatesLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+    const gatesLayer = gatesLayerGroupRef.current;
+
+    gatesLayer.clearLayers();
+
+    if (!showHadayekGates || !showGatesLayer) return;
+
+    HADAYEK_OFFICIAL_GATES.forEach((gate) => {
+      const gateHtml = `
+        <div style="
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 2px;
+          cursor: pointer;
+          user-select: none;
+        ">
+          <div style="
+            background: #4f46e5;
+            color: #ffffff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            box-shadow: 0 1.5px 4px rgba(0,0,0,0.4);
+            font-family: 'Arial', sans-serif;
+          ">${gate.number || '🚪'}</div>
+          <div style="
+            color: #312e81;
+            font-family: 'Cairo', system-ui, sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            text-shadow: 
+              -1.5px -1.5px 0 #ffffff, 
+               1.5px -1.5px 0 #ffffff, 
+              -1.5px  1.5px 0 #ffffff, 
+               1.5px  1.5px 0 #ffffff, 
+               0 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            letter-spacing: -0.2px;
+          ">${escapeHtml(gate.popularNameAr || gate.shortNameAr)}</div>
+        </div>
+      `;
+
+      const gateIcon = window.L.divIcon({
+        className: 'custom-gate-pin-native',
+        html: gateHtml,
+        iconSize: [100, 40],
+        iconAnchor: [50, 10],
+      });
+
+      const gateMarker = window.L.marker([gate.lat, gate.lng], { icon: gateIcon, zIndexOffset: 400 });
+      gateMarker.bindPopup(`
+        <div dir="rtl" style="font-family: 'Cairo', system-ui, sans-serif; text-align: right; min-width: 220px; padding: 4px;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+            <span style="background: #4f46e5; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900;">${gate.number || '🚪'}</span>
+            <b style="color: #1e1b4b; font-size: 13px;">${escapeHtml(gate.nameAr)}</b>
+          </div>
+          <p style="margin: 4px 0; font-size: 11px; color: #475569; line-height: 1.4;"><b>🛣️ الطريق:</b> ${escapeHtml(gate.accessRoadAr)}</p>
+          <p style="margin: 4px 0; font-size: 11px; color: #047857; line-height: 1.4;"><b>🎯 تخدم مناطق:</b> ${escapeHtml(gate.servedZones.join('، '))}</p>
+          <div style="margin-top: 8px;">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${gate.lat},${gate.lng}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; background: #4f46e5; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none;">
+              <span>📍 الاتجاهات عبر Google Maps</span>
+            </a>
+          </div>
+        </div>
+      `);
+      gatesLayer.addLayer(gateMarker);
+    });
+  }, [showHadayekGates, showGatesLayer, isMapReady]);
+
+  // 5. 📍 Render Target Building in dedicated layer (without disrupting pan/zoom)
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady || !window.L) return;
+
+    if (!targetLayerGroupRef.current || !map.hasLayer(targetLayerGroupRef.current)) {
+      if (targetLayerGroupRef.current) {
+        try { targetLayerGroupRef.current.remove(); } catch {}
+      }
+      targetLayerGroupRef.current = window.L.layerGroup().addTo(map);
+    }
+    const targetLayer = targetLayerGroupRef.current;
+    targetLayer.clearLayers();
+
+    if (!targetBuilding || !showTargetPin || typeof targetBuilding.lat !== 'number' || typeof targetBuilding.lng !== 'number') {
+      lastFlownTargetRef.current = null;
+      return;
+    }
+
+    const bldgLabel = targetBuilding.buildingNumber
+      ? `عمارة ${targetBuilding.buildingNumber} منطقة ${targetBuilding.zoneLetter || ''}`
+      : `منطقة ${targetBuilding.zoneLetter || 'الحدائق'}`;
+
+    const bldgHtml = `
+      <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;">
+        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border: 2.5px solid #ffffff; color: #020617; padding: 6px 14px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 900; font-size: 12px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.9), 0 4px 16px rgba(0,0,0,0.4); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+          <span style="font-size: 15px;">📍</span>
+          <span>${escapeHtml(bldgLabel)}</span>
+        </div>
+        <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #f59e0b; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));"></div>
+      </div>
+    `;
+
+    const bldgIcon = window.L.divIcon({
+      className: 'custom-target-building-pin',
+      html: bldgHtml,
+      iconSize: [200, 42],
+      iconAnchor: [100, 42],
+    });
+
+    const bldgMarker = window.L.marker([targetBuilding.lat, targetBuilding.lng], { icon: bldgIcon, zIndexOffset: 1000 });
+    targetLayer.addLayer(bldgMarker);
+
+    // Soft Golden Radius Circle (200m)
+    const bldgCircle = window.L.circle([targetBuilding.lat, targetBuilding.lng], {
+      radius: 200,
+      color: '#f59e0b',
+      weight: 2,
+      opacity: 0.8,
+      fillColor: '#f59e0b',
+      fillOpacity: 0.12,
+      dashArray: '5, 5',
+    });
+    targetLayer.addLayer(bldgCircle);
+
+    // Fly smoothly to target ONLY ONCE per distinct building selection
+    const targetKey = `${targetBuilding.zoneLetter || ''}_${targetBuilding.buildingNumber || ''}_${targetBuilding.lat}_${targetBuilding.lng}`;
+    if (lastFlownTargetRef.current !== targetKey) {
+      lastFlownTargetRef.current = targetKey;
+      map.flyTo([targetBuilding.lat, targetBuilding.lng], 17, { duration: 1.0 });
+    }
+  }, [targetBuilding, showTargetPin, isMapReady]);
+
+  // 6. 📍 Render Businesses with Smart Screen-Space Marker Clustering in isolated layer
   useEffect(() => {
     const map = leafletMapRef.current;
     const markersGroup = markersGroupRef.current;
 
-    if (!map || !markersGroup || !window.L) return;
+    if (!map || !markersGroup || !isMapReady || !window.L) return;
 
     markersGroup.clearLayers();
 
@@ -124,26 +479,39 @@ export const useMapPinsClustering = ({
       }
     } else {
       // View Mode: Render Businesses with Smart Screen-Space Marker Clustering
-      // Only render if showBusinesses is enabled OR if a category filter is active!
-      const shouldRenderBusinesses = showBusinesses || mapCategoryFilter !== 'all';
+      const hasCategoryFilter = Boolean(mapCategoryFilter && mapCategoryFilter !== 'all' && mapCategoryFilter.trim() !== '');
+      const hasZoneFilter = Boolean(selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '');
+      const shouldRenderBusinesses = hasCategoryFilter || hasZoneFilter || showBusinesses;
+
       const filteredBusinesses = !shouldRenderBusinesses
         ? []
         : businesses.filter((b) => {
-            if (selectedGovFilter !== 'all' && !b.governorate.includes(selectedGovFilter)) {
-              return false;
+            // 🛡️ User Rule 2: If a zone is specified, absolutely NO activity outside that zone may appear
+            if (selectedZone && selectedZone !== 'all' && selectedZone.trim() !== '') {
+              if (!isBusinessInHadayekZone(b, selectedZone)) {
+                return false;
+              }
             }
-            if (mapCategoryFilter !== 'all') {
+
+            // Category Filter Check
+            if (hasCategoryFilter) {
               const catLower = (b.category || '').toLowerCase();
               const filterLower = mapCategoryFilter.toLowerCase();
-              if (!catLower.includes(filterLower)) return false;
+              const matchesDirect = catLower.includes(filterLower);
+              const matchesMatcher = matchesCategoryFilter(b, mapCategoryFilter);
+              if (!matchesDirect && !matchesMatcher) {
+                return false;
+              }
             }
+
             if (onlyVerifiedFilter && b.verificationStatus !== 'verified') {
               return false;
             }
+
             return true;
           });
 
-      // Cluster pins within ~50 screen pixels of each other to avoid overlap
+      // Cluster pins within ~52 screen pixels of each other to avoid overlap
       const clusterRadiusPx = 52;
       const clusters: Array<{
         centerLat: number;
@@ -181,8 +549,7 @@ export const useMapPinsClustering = ({
         if (cluster.items.length === 1) {
           const biz = cluster.items[0];
           const isSelected = selectedBiz?.id === biz.id;
-          const showFullPill = zoomLevel >= 16;
-          const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, showFullPill);
+          const { html, iconSize, iconAnchor } = createLightweightBadgeHtml(biz, isSelected, true);
 
           const bizIcon = window.L.divIcon({
             className: 'custom-biz-pin',
@@ -227,246 +594,21 @@ export const useMapPinsClustering = ({
           markersGroup.addLayer(clusterMarker);
         }
       });
-
-      // 🗺️ Render Hadayek Official District Polygons
-      if (showDistrictsOverlay && window.L) {
-        districtPolygonsRef.current = [];
-        HADAYEK_OFFICIAL_DISTRICTS.forEach((district) => {
-          const isSelected = selectedZone === district.letterAr;
-
-          district.polygons.forEach((polyCoords) => {
-            const polygon = window.L.polygon(polyCoords, {
-              color: district.color,
-              weight: isSelected ? 3.5 : 1.5,
-              opacity: isSelected ? 1.0 : 0.85,
-              fill: !isSelected,
-              fillColor: district.color,
-              fillOpacity: isSelected ? 0 : 0.10,
-              className: isSelected ? 'hadayek-district-polygon-selected' : 'hadayek-district-polygon',
-            });
-
-            polygon.on('click', (e: any) => {
-              if (e.originalEvent?.target?.blur) {
-                e.originalEvent.target.blur();
-              }
-              state.setSelectedZone(district.letterAr);
-              if (onSelectZone) onSelectZone(district.letterAr);
-              if (map && district.polygons && district.polygons[0]) {
-                const bounds = window.L.latLngBounds(district.polygons[0]);
-                map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 17, duration: 1.0 });
-              }
-            });
-
-            districtPolygonsRef.current.push({ letterAr: district.letterAr, polygon, color: district.color });
-            markersGroup.addLayer(polygon);
-          });
-
-          // Native cartographic map typography for district labels (merged into the map layer, not floating buttons)
-          const labelHtml = `
-            <div style="transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; user-select: none;">
-              <div style="
-                font-family: 'Cairo', system-ui, -apple-system, sans-serif;
-                font-weight: 900;
-                font-size: ${zoomLevel >= 16 ? '16px' : '13px'};
-                color: ${district.color || '#334155'};
-                text-shadow:
-                  0 0 3px #ffffff,
-                  0 0 6px #ffffff,
-                  0 0 10px #ffffff,
-                  -1px -1px 0 #ffffff,
-                  1px -1px 0 #ffffff,
-                  -1px 1px 0 #ffffff,
-                  1px 1px 0 #ffffff;
-                letter-spacing: 0.5px;
-                white-space: nowrap;
-                opacity: 0.95;
-                transition: all 0.2s ease;
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-              ">
-                <span>${escapeHtml(district.nameAr)}</span>
-              </div>
-            </div>
-          `;
-
-          const labelIcon = window.L.divIcon({
-            className: 'custom-district-label',
-            html: labelHtml,
-            iconSize: [90, 24],
-            iconAnchor: [45, 12],
-          });
-
-          const labelMarker = window.L.marker([district.centerLat, district.centerLng], {
-            icon: labelIcon,
-            zIndexOffset: 150,
-          });
-
-          labelMarker.on('click', () => {
-            if (onSelectZone) onSelectZone(district.letterAr);
-          });
-
-          markersGroup.addLayer(labelMarker);
-        });
-      }
-
-      // 🚪 Render Hadayek Official Gates as Modern Landmark Pins
-      if (showHadayekGates && showGatesLayer && window.L) {
-        HADAYEK_OFFICIAL_GATES.forEach((gate) => {
-          const gateHtml = `
-            <div style="
-              display: flex; 
-              flex-direction: column; 
-              align-items: center; 
-              justify-content: center; 
-              gap: 2px;
-              cursor: pointer;
-              user-select: none;
-            ">
-              <div style="
-                background: #4f46e5;
-                color: #ffffff;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid #ffffff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 11px;
-                font-weight: 900;
-                box-shadow: 0 1.5px 4px rgba(0,0,0,0.4);
-                font-family: 'Arial', sans-serif;
-              ">${gate.number || '🚪'}</div>
-              <div style="
-                color: #312e81;
-                font-family: 'Cairo', system-ui, sans-serif;
-                font-weight: 800;
-                font-size: 12px;
-                text-shadow: 
-                  -1.5px -1.5px 0 #ffffff, 
-                   1.5px -1.5px 0 #ffffff, 
-                  -1.5px  1.5px 0 #ffffff, 
-                   1.5px  1.5px 0 #ffffff,
-                   0 2px 4px rgba(0,0,0,0.3);
-                white-space: nowrap;
-                letter-spacing: -0.2px;
-              ">${escapeHtml(gate.popularNameAr || gate.shortNameAr)}</div>
-            </div>
-          `;
-
-          const gateIcon = window.L.divIcon({
-            className: 'custom-gate-pin-native',
-            html: gateHtml,
-            iconSize: [100, 40],
-            iconAnchor: [50, 10], // Anchors perfectly to the center of the circle (20px / 2)
-          });
-
-          const gateMarker = window.L.marker([gate.lat, gate.lng], { icon: gateIcon, zIndexOffset: 400 });
-          gateMarker.bindPopup(`
-            <div dir="rtl" style="font-family: 'Cairo', system-ui, sans-serif; text-align: right; min-width: 220px; padding: 4px;">
-              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="background: #4f46e5; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900;">${gate.number || '🚪'}</span>
-                <b style="color: #1e1b4b; font-size: 13px;">${escapeHtml(gate.nameAr)}</b>
-              </div>
-              <p style="margin: 4px 0; font-size: 11px; color: #475569; line-height: 1.4;"><b>🛣️ الطريق:</b> ${escapeHtml(gate.accessRoadAr)}</p>
-              <p style="margin: 4px 0; font-size: 11px; color: #047857; line-height: 1.4;"><b>🎯 تخدم مناطق:</b> ${escapeHtml(gate.servedZones.join('، '))}</p>
-              <div style="margin-top: 8px;">
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${gate.lat},${gate.lng}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; background: #4f46e5; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-decoration: none;">
-                  <span>📍 الاتجاهات عبر Google Maps</span>
-                </a>
-              </div>
-            </div>
-          `);
-          markersGroup.addLayer(gateMarker);
-        });
-      }
-
-      // 📍 Render Target Building Glowing Pin
-      if (targetBuilding && showTargetPin && typeof targetBuilding.lat === 'number' && typeof targetBuilding.lng === 'number' && window.L) {
-        const bldgLabel = targetBuilding.buildingNumber
-          ? `عمارة ${targetBuilding.buildingNumber} منطقة ${targetBuilding.zoneLetter || ''}`
-          : `منطقة ${targetBuilding.zoneLetter || 'الحدائق'}`;
-
-        const bldgHtml = `
-          <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;">
-            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border: 2.5px solid #ffffff; color: #020617; padding: 6px 14px; border-radius: 9999px; font-family: Cairo, sans-serif; font-weight: 900; font-size: 12px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.9), 0 4px 16px rgba(0,0,0,0.4); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-              <span style="font-size: 15px;">📍</span>
-              <span>${escapeHtml(bldgLabel)}</span>
-            </div>
-            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #f59e0b; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));"></div>
-          </div>
-        `;
-
-        const bldgIcon = window.L.divIcon({
-          className: 'custom-target-building-pin',
-          html: bldgHtml,
-          iconSize: [200, 42],
-          iconAnchor: [100, 42],
-        });
-
-        const bldgMarker = window.L.marker([targetBuilding.lat, targetBuilding.lng], { icon: bldgIcon, zIndexOffset: 1000 });
-        markersGroup.addLayer(bldgMarker);
-
-        // Soft Golden Radius Circle (200m)
-        const bldgCircle = window.L.circle([targetBuilding.lat, targetBuilding.lng], {
-          radius: 200,
-          color: '#f59e0b',
-          weight: 2,
-          opacity: 0.8,
-          fillColor: '#f59e0b',
-          fillOpacity: 0.12,
-          dashArray: '5, 5',
-        });
-        markersGroup.addLayer(bldgCircle);
-
-        // Fly smoothly to target
-        map.flyTo([targetBuilding.lat, targetBuilding.lng], 17, { duration: 1.2 });
-      }
     }
   }, [
+    isMapReady,
     mode,
     businesses,
     showBusinesses,
+    selectedZone,
     mapCategoryFilter,
     onlyVerifiedFilter,
-    showGatesLayer,
-    showDistrictsOverlay,
-    showTargetPin,
-    selectedGovFilter,
+    selectedBiz,
     currentLat,
     currentLng,
     gpsAccuracy,
-    zoomLevel,
-    selectedBiz,
-    targetBuilding,
-    showHadayekGates,
-    leafletMapRef,
-    markersGroupRef,
-    pickerMarkerRef,
-    accuracyCircleRef,
     updateSelectedPosition,
     onSelectBusiness,
-    onSelectZone,
     setSelectedBiz,
   ]);
-
-  // ⚡ Silky-smooth instantaneous style updater when selectedZone changes (zero DOM rebuild / zero lag)
-  useEffect(() => {
-    if (!districtPolygonsRef.current || !districtPolygonsRef.current.length) return;
-    districtPolygonsRef.current.forEach(({ letterAr, polygon, color }) => {
-      const isSelected = selectedZone === letterAr;
-      polygon.setStyle({
-        color: color,
-        weight: isSelected ? 3.5 : 1.5,
-        opacity: isSelected ? 1.0 : 0.85,
-        fill: !isSelected,
-        fillColor: color,
-        fillOpacity: isSelected ? 0 : 0.10,
-      });
-      if (isSelected) {
-        polygon.bringToFront();
-      }
-    });
-  }, [selectedZone]);
 };
