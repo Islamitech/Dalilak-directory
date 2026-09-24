@@ -1,3 +1,6 @@
+import { normalizeBuildingQuery } from '../utils/hadayekBuildingSearch';
+import { getDistrictLabelPosition } from '../components/map/utils/districtLabelPosition';
+import { HADAYEK_OFFICIAL_DISTRICTS as labelDistricts, isPointInPolygon as labelInside } from '../data/hadayekDistrictsGeoData';
 import assert from 'node:assert/strict';
 import {
   isBusinessInHadayekZone,
@@ -76,6 +79,19 @@ function createMockBusiness(
     ...partial,
   };
 }
+
+test('Every district label stays inside its own polygon and is stable across calls', () => {
+  for (const district of labelDistricts) {
+    const point = getDistrictLabelPosition(district);
+    assert.ok(district.polygons.some(ring => labelInside(point[0], point[1], ring)), district.letterAr);
+    assert.deepEqual(getDistrictLabelPosition(district), point);
+  }
+});
+
+test('Building search accepts Arabic and Persian phone keyboard digits', () => {
+  assert.equal(normalizeBuildingQuery(' ٨٨ '), '88');
+  assert.equal(normalizeBuildingQuery('عمارة ۱۲۳'), 'عمارة 123');
+});
 
 console.log('\n========================================');
 console.log('🧪 RUNNING MAP FIXES & COMPLIANCE TESTS');

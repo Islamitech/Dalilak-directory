@@ -30,6 +30,7 @@ export interface UseMapPinsClusteringProps {
   showHadayekGates?: boolean;
   selectedZone?: string;
   categoryFilter?: string;
+  buildingSearchActive?: boolean;
   targetBuilding?: {
     zoneLetter?: string;
     buildingNumber?: string;
@@ -58,31 +59,6 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-function createDistrictLetterHtml(
-  letter: string,
-  color: string,
-  isSelected: boolean,
-  hasActiveZone: boolean
-): string {
-  const stateClass = isSelected
-    ? 'is-selected'
-    : hasActiveZone
-    ? 'is-muted'
-    : 'is-overview';
-
-  return `
-    <div
-      class="hadayek-zone-map-label ${stateClass}"
-      style="--zone-color:${color}"
-      role="button"
-      aria-label="منطقة ${escapeHtml(letter)}"
-      title="منطقة ${escapeHtml(letter)}"
-    >
-      <span aria-hidden="true">${escapeHtml(letter)}</span>
-    </div>
-  `;
-}
-
 export const useMapPinsClustering = ({
   mapInstance,
   state,
@@ -92,6 +68,7 @@ export const useMapPinsClustering = ({
   selectedZone: selectedZoneProp,
   categoryFilter: categoryFilterProp,
   targetBuilding,
+  buildingSearchActive = false,
   onSelectBusiness,
   onSelectZone,
   onSelectBuilding,
@@ -141,7 +118,6 @@ export const useMapPinsClustering = ({
     categoryFilterProp !== undefined ? categoryFilterProp : stateCategory;
 
   const districtPolygonsRef = useRef<Array<{ letterAr: string; polygon: any; color: string }>>([]);
-  const districtMarkersRef = useRef<{ [letterAr: string]: any }>({});
   const maskPolygonRef = useRef<any>(null);
 
   // Dedicated LayerGroups for strict rendering isolation
@@ -298,7 +274,6 @@ export const useMapPinsClustering = ({
     const districtsLayer = districtsLayerGroupRef.current;
     districtsLayer.clearLayers();
     districtPolygonsRef.current = [];
-    districtMarkersRef.current = {};
 
     // World envelope for inverted spotlight focus mask
     const worldRing: [number, number][] = [
@@ -328,10 +303,10 @@ export const useMapPinsClustering = ({
         const polygon = window.L.polygon(polyCoords, {
           pane: 'districtsPane',
           color: district.color,
-          weight: 2,
-          opacity: 0.85,
+          weight: 0.8,
+          opacity: 0.3,
           fillColor: district.color,
-          fillOpacity: 0.07,
+          fillOpacity: 0,
           className: 'hadayek-district-polygon',
         });
 
@@ -343,34 +318,11 @@ export const useMapPinsClustering = ({
         districtPolygonsRef.current.push({ letterAr: district.letterAr, polygon, color: district.color });
       });
 
-      // Centroid marker with Arabic letter
-      const badgeHtml = createDistrictLetterHtml(district.letterAr, district.color, false, false);
-
-      const badgeIcon = window.L.divIcon({
-        className: 'hadayek-zone-letter-marker hadayek-zone-letter-marker-overview',
-        html: badgeHtml,
-        iconSize: [44, 36],
-        iconAnchor: [22, 18],
-      });
-
-      const marker = window.L.marker([district.centerLat, district.centerLng], {
-        icon: badgeIcon,
-        pane: 'districtLabelsPane',
-        zIndexOffset: 200,
-      });
-
-      marker.on('click', () => {
-        handleSelectDistrict(district.letterAr);
-      });
-
-      districtsLayer.addLayer(marker);
-      districtMarkersRef.current[district.letterAr] = marker;
     });
 
     return () => {
       districtsLayer.clearLayers();
       districtPolygonsRef.current = [];
-      districtMarkersRef.current = {};
       maskPolygonRef.current = null;
     };
   }, [isMapReady, handleSelectDistrict]);
@@ -382,9 +334,11 @@ export const useMapPinsClustering = ({
 
     const hasActiveZone = Boolean(effectiveSelectedZone && effectiveSelectedZone.trim() !== '');
 
+    const highlightZone = hasActiveZone && !buildingSearchActive && !targetBuilding && (!effectiveCategoryFilter || effectiveCategoryFilter === 'all');
+
     // 1. Update Inverted Spotlight Mask
     if (maskPolygonRef.current) {
-      if (hasActiveZone) {
+      if (highlightZone) {
         const activeDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === effectiveSelectedZone);
         if (activeDistrict && activeDistrict.polygons && activeDistrict.polygons.length > 0) {
           const worldRing: [number, number][] = [
@@ -394,7 +348,7 @@ export const useMapPinsClustering = ({
             [25.0, 25.0],
           ];
           maskPolygonRef.current.setLatLngs([worldRing, ...activeDistrict.polygons]);
-          maskPolygonRef.current.setStyle({ fillOpacity: 0.52 });
+          maskPolygonRef.current.setStyle({ fillOpacity: 0.12 });
         } else {
           maskPolygonRef.current.setStyle({ fillOpacity: 0.0 });
         }
@@ -408,47 +362,23 @@ export const useMapPinsClustering = ({
       const isSelected = hasActiveZone && letterAr === effectiveSelectedZone;
       if (isSelected) {
         polygon.setStyle({
-          color: '#f59e0b',
-          weight: 3.5,
+          color: '#d97706',
+          weight: 4,
           opacity: 1.0,
-          fillColor: '#ffffff',
-          fillOpacity: 0.0,
+          fillColor: '#f59e0b',
+          fillOpacity: highlightZone ? 0.16 : 0,
           className: 'selected-district-polygon-focus',
         });
       } else {
         polygon.setStyle({
           color,
-          weight: hasActiveZone ? 1 : 2,
-          opacity: hasActiveZone ? 0.35 : 0.85,
+          weight: 0.8,
+          opacity: highlightZone ? 0.12 : 0.3,
           fillColor: color,
-          fillOpacity: hasActiveZone ? 0.02 : 0.07,
+          fillOpacity: 0,
           className: 'hadayek-district-polygon',
         });
       }
-    });
-
-    // 3. Update centroid marker icons & zIndex
-    HADAYEK_OFFICIAL_DISTRICTS.forEach((district) => {
-      const marker = districtMarkersRef.current[district.letterAr];
-      if (!marker) return;
-
-      const isSelected = hasActiveZone && district.letterAr === effectiveSelectedZone;
-      const badgeHtml = createDistrictLetterHtml(
-        district.letterAr,
-        district.color,
-        isSelected,
-        hasActiveZone
-      );
-
-      const badgeIcon = window.L.divIcon({
-        className: `hadayek-zone-letter-marker ${isSelected ? 'hadayek-zone-letter-marker-selected' : 'hadayek-zone-letter-marker-overview'}`,
-        html: badgeHtml,
-        iconSize: [44, 36],
-        iconAnchor: [22, 18],
-      });
-
-      marker.setIcon(badgeIcon);
-      marker.setZIndexOffset(isSelected ? 400 : 200);
     });
 
     // 4. 🚀 Single Owner Camera Transition for District Selection/Clearing
@@ -466,7 +396,8 @@ export const useMapPinsClustering = ({
         try {
           map.stop();
           const bounds = window.L.latLngBounds(decision.targetBounds);
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16.5, animate: true, duration: 0.45 });
+          const mobile = map.getSize().x < 640;
+          map.fitBounds(bounds, { paddingTopLeft: mobile ? [16, 100] : [40, 100], paddingBottomRight: [64, 40], maxZoom: 16.5, animate: true, duration: 0.45 });
         } catch {}
       } else if (decision.type === 'overview' && decision.targetCenter) {
         try {
@@ -475,7 +406,7 @@ export const useMapPinsClustering = ({
         } catch {}
       }
     }
-  }, [effectiveSelectedZone, isMapReady]);
+  }, [effectiveSelectedZone, effectiveCategoryFilter, buildingSearchActive, targetBuilding, isMapReady]);
 
   // 2c. 🖱️ Map Background Click Deselects Active Activity & Restores Top 3 Cards
   useEffect(() => {
