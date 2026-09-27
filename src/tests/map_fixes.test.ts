@@ -1,6 +1,6 @@
 import { normalizeBuildingQuery } from '../utils/hadayekBuildingSearch';
 import { getDistrictLabelPosition } from '../components/map/utils/districtLabelPosition';
-import { HADAYEK_OFFICIAL_DISTRICTS as labelDistricts, isPointInPolygon as labelInside } from '../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_DISTRICTS as labelDistricts, isPointInPolygon as labelInside, findDistrictForCoordinates } from '../data/hadayekDistrictsGeoData';
 import assert from 'node:assert/strict';
 import {
   isBusinessInHadayekZone,
@@ -835,6 +835,21 @@ test('Unknown legacy categories are flagged for review instead of leaking into a
   assert.equal(result.mainCategoryId, 'other');
   assert.equal(result.subcategoryId, 'all');
   assert.equal(result.needsReview, true);
+});
+
+test('Cadastral boundary between Zone H and Zone T accurately separates duplicate building numbers', () => {
+  // Building 278
+  assert.equal(findDistrictForCoordinates(29.97314, 31.096411)?.letterAr, 'ح');
+  assert.equal(findDistrictForCoordinates(29.970452, 31.092889)?.letterAr, 'ط');
+  // Building 260
+  assert.equal(findDistrictForCoordinates(29.976645, 31.096329)?.letterAr, 'ح');
+  assert.equal(findDistrictForCoordinates(29.971591, 31.093481)?.letterAr, 'ط');
+  // Building 280
+  assert.equal(findDistrictForCoordinates(29.972739, 31.09646)?.letterAr, 'ح');
+  assert.equal(findDistrictForCoordinates(29.970909, 31.092933)?.letterAr, 'ط');
+  // Building 281
+  assert.equal(findDistrictForCoordinates(29.972451, 31.096496)?.letterAr, 'ح');
+  assert.equal(findDistrictForCoordinates(29.971138, 31.092954)?.letterAr, 'ط');
 });
 
 console.log('\n========================================');

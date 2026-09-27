@@ -1118,23 +1118,15 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "color": "#e67e22",
     "centerLat": 29.966395,
     "centerLng": 31.096946,
-    "polygons": [
+        "polygons": [
       [
         [
-          29.9688167,
-          31.1008626
+          29.97127,
+          31.10116
         ],
         [
-          29.9693023,
-          31.0938594
-        ],
-        [
-          29.9688167,
-          31.0937977
-        ],
-        [
-          29.9690722,
-          31.0903082
+          29.97201,
+          31.09053
         ],
         [
           29.9665627,
@@ -1185,8 +1177,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           31.1013795
         ],
         [
-          29.9688167,
-          31.1008626
+          29.97127,
+          31.10116
         ]
       ]
     ]
@@ -1280,15 +1272,11 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "color": "#e74c3c",
     "centerLat": 29.975586,
     "centerLng": 31.095207,
-    "polygons": [
+        "polygons": [
       [
         [
-          29.9690722,
-          31.0903082
-        ],
-        [
-          29.9714005,
-          31.0904288
+          29.97201,
+          31.09053
         ],
         [
           29.972302,
@@ -1367,24 +1355,12 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           31.0993955
         ],
         [
-          29.9696231,
-          31.1007387
+          29.97127,
+          31.10116
         ],
         [
-          29.9688167,
-          31.1008626
-        ],
-        [
-          29.9693023,
-          31.0938594
-        ],
-        [
-          29.9688167,
-          31.0937977
-        ],
-        [
-          29.9690722,
-          31.0903082
+          29.97201,
+          31.09053
         ]
       ]
     ]
