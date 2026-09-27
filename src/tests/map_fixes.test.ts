@@ -852,6 +852,30 @@ test('Cadastral boundary between Zone H and Zone T accurately separates duplicat
   assert.equal(findDistrictForCoordinates(29.971138, 31.092954)?.letterAr, 'ط');
 });
 
+test('Zone E (هـ) and Zone T (ط) border along Pressure Street is calibrated without overlap', () => {
+  const zoneE = HADAYEK_OFFICIAL_DISTRICTS.find(d => d.letterAr === 'هـ')!;
+  const zoneT = HADAYEK_OFFICIAL_DISTRICTS.find(d => d.letterAr === 'ط')!;
+  assert.ok(zoneE && zoneT);
+
+  // Point in Zone E interior (east of Pressure street)
+  assert.equal(findDistrictForCoordinates(29.96675, 31.106067)?.letterAr, 'هـ');
+  // Point in Zone T interior (west of Pressure street)
+  assert.equal(findDistrictForCoordinates(29.966395, 31.096946)?.letterAr, 'ط');
+
+  // Verify Zone E does not engulf the western corridor of Pressure street
+  assert.equal(zoneE.polygons.some(ring => labelInside(29.9688167, 31.1008626, ring)), false);
+  assert.equal(zoneE.polygons.some(ring => labelInside(29.9696231, 31.1007387, ring)), false);
+});
+
+test('Cross-zone building search strictly protects distinct zone identities', () => {
+  // Building 523 exists in Zone H (29.973784, 31.092795)
+  // Ensure that coordinate mapping resolves exclusively to Zone H and rejects Zone T/D
+  const resolved = findDistrictForCoordinates(29.973784, 31.092795);
+  assert.equal(resolved?.letterAr, 'ح');
+  assert.notEqual(resolved?.letterAr, 'ط');
+  assert.notEqual(resolved?.letterAr, 'د');
+});
+
 console.log('\n========================================');
 console.log(`🎉 TEST SUMMARY: ${passedTests}/${totalTests} TESTS PASSED!`);
 console.log('========================================\n');

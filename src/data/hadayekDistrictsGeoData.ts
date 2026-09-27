@@ -510,14 +510,6 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
     "polygons": [
       [
         [
-          29.9688167,
-          31.1008626
-        ],
-        [
-          29.9696231,
-          31.1007387
-        ],
-        [
           29.9706244,
           31.1013561
         ],
@@ -606,8 +598,8 @@ export const HADAYEK_OFFICIAL_DISTRICTS: HadayekOfficialDistrict[] = [
           31.1013795
         ],
         [
-          29.9688167,
-          31.1008626
+          29.9706244,
+          31.1013561
         ]
       ]
     ]

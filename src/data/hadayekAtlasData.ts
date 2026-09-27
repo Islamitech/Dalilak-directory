@@ -1,4 +1,4 @@
-import { getDistrictByLetter, HADAYEK_OFFICIAL_DISTRICTS, isPointInPolygon } from './hadayekDistrictsGeoData';
+import { getDistrictByLetter, HADAYEK_OFFICIAL_DISTRICTS, isPointInPolygon, findDistrictForCoordinates } from './hadayekDistrictsGeoData';
 
 /**
  * 🗺️ Hadayek Atlas & Proximity Navigator Data Engine
@@ -523,12 +523,18 @@ export async function searchBuildingCoordinatesExact(
         }
       }
 
-      // Step B: Fallback if cadastral point lies slightly on boundary - pick record closest to district center
+      // Step B: Strict boundary fallback - ONLY if the candidate point is NOT inside another official district
       let closestRec: { lat: number; lng: number } | null = null;
       let minDistance = Infinity;
       for (const rec of records) {
+        // Guard: If point belongs to another official district, NEVER hijack it!
+        const ownerDistrict = findDistrictForCoordinates(rec.lat, rec.lng);
+        if (ownerDistrict && ownerDistrict.letterAr !== district.letterAr) {
+          continue;
+        }
+
         const d = calculateDirectDistanceMeters(rec.lat, rec.lng, district.centerLat, district.centerLng);
-        if (d < 1200 && d < minDistance) {
+        if (d < 300 && d < minDistance) {
           minDistance = d;
           closestRec = { lat: rec.lat, lng: rec.lng };
         }
@@ -536,7 +542,7 @@ export async function searchBuildingCoordinatesExact(
       if (closestRec) {
         return closestRec;
       }
-    } else if (records.length === 1) {
+    } else if (records.length === 1 && !district) {
       return { lat: records[0].lat, lng: records[0].lng };
     }
   }
