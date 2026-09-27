@@ -24,6 +24,8 @@ export type { InteractiveMapProps, MapTileLayerType };
 export { MAP_QUICK_CATEGORIES };
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
+  searchQuery,
+  onSearchChange,
   mode = 'view',
   lat = 29.9683,
   lng = 31.1002,
@@ -229,6 +231,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {/* 🧭 Clean District & Activity Filter Bar (Shows only within Hadayek Al-Ahram area) */}
         {mode === 'view' && (Math.abs(lat - 29.9683) < 0.06 && Math.abs(lng - 31.1002) < 0.06) && (
           <MapModernTopBar
+            searchQuery={searchQuery}
+            onSearchQueryChange={onSearchChange}
             searchMode={mapSearchMode}
             onSearchModeChange={(next) => { setMapSearchMode(next); setSelectedBuildingState(null); onClearBuilding?.(); }}
             buildingNumber={effectiveTargetBuilding?.buildingNumber}
@@ -248,6 +252,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             }}
             quickCategories={quickCategories}
             filteredBusinessesCount={filteredBusinessesCount}
+            businesses={businesses}
+            onSelectBuilding={(bldg) => {
+              setSelectedBuildingState(bldg);
+              state.setSelectedBiz(null);
+              if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
+            }}
+            onSelectBusiness={(biz) => {
+              state.setSelectedBiz(biz);
+              setSelectedBuildingState(null);
+              if (onSelectBusiness) onSelectBusiness(biz);
+            }}
           >
               <ZoneScopedSearchBar
                 key={activeZone}

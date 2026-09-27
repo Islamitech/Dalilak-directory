@@ -544,6 +544,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       case '/map':
         return (
           <MapView
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             businesses={publicBusinesses}
             filteredBusinesses={filteredBusinesses}
             categoryFilter={effectiveMapCategoryFilter}

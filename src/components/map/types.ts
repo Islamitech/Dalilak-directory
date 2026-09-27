@@ -2,6 +2,8 @@ import { Business } from '../../types';
 import { LocationAddressData } from '../../utils/geocoding';
 
 export interface InteractiveMapProps {
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
   mode?: 'picker' | 'view';
   lat?: number;
   lng?: number;

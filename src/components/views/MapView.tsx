@@ -15,6 +15,8 @@ import { ProximityRadarDrawer } from '../atlas/ProximityRadarDrawer';
 import { HadayekGatesModal } from '../atlas/HadayekGatesModal';
 
 export interface MapViewProps {
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
   businesses: Business[];
   filteredBusinesses: Business[];
   categoryFilter: string;
@@ -35,6 +37,8 @@ export interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = ({
+  searchQuery,
+  onSearchChange,
   businesses,
   filteredBusinesses,
   categoryFilter,
@@ -196,7 +200,9 @@ export const MapView: React.FC<MapViewProps> = ({
       {/* 🗺️ Screen-Integrated Map Canvas */}
       <div className="relative w-full h-full flex-1 min-h-0 overflow-hidden z-0">
         <InteractiveMap
-          businesses={businesses}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          businesses={filteredBusinesses}
           mode="view"
           lat={lat}
           lng={lng}

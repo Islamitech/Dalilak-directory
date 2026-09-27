@@ -22,7 +22,7 @@
 - npm
 
 1. افتح المجلد:
-   cd "C:\Users\Ahmed\Desktop\Dalelak_Apps_Export\Dalilak-directory_Production_Clean"
+   cd "C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean"
 
 2. تثبيت الحزم:
    npm install

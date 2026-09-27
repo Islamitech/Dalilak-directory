@@ -137,3 +137,51 @@ export async function searchInsideHadayekZone(
 
   return results;
 }
+
+export interface ParsedHadayekBuilding {
+  buildingNumber: string;
+  zoneLetter: string;
+}
+
+export function parseHadayekBuildingAddress(raw: string, currentZone?: string): ParsedHadayekBuilding | null {
+  if (!raw || !raw.trim()) return null;
+
+  const norm = raw
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x6f0))
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/هـ/g, 'ه')
+    .trim()
+    .toLowerCase();
+
+  const digitMatch = norm.match(/\d+/);
+  if (!digitMatch) return null;
+  const bldgNum = digitMatch[0];
+
+  const rem = norm
+    .replace(/\d+/, '')
+    .replace(/عماره|عمارة|مبني|مبنى|رقم|منطقه|منطقة|في|قطعه|قطعة/g, '')
+    .trim();
+
+  const districtLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح', 'ط', 'ك', 'ل', 'م', 'ن', 'س', 'ص', 'ع'];
+
+  for (const d of districtLetters) {
+    const normD = d
+      .replace(/[أإآ]/g, 'ا')
+      .replace(/هـ/g, 'ه')
+      .toLowerCase();
+
+    const re = new RegExp(`(^|\\s)${normD}($|\\s)`);
+    if (re.test(rem) || rem === normD) {
+      return { buildingNumber: bldgNum, zoneLetter: d };
+    }
+  }
+
+  if (currentZone && currentZone !== 'all' && currentZone.trim()) {
+    return { buildingNumber: bldgNum, zoneLetter: currentZone };
+  }
+
+  return null;
+}
+

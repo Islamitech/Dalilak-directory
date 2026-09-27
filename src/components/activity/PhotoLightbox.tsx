@@ -9,6 +9,7 @@ export interface ShowcasePhotoLightboxProps {
   handlePrevPhoto: () => void;
   handleNextPhoto: () => void;
 }
+export type PhotoLightboxProps = ShowcasePhotoLightboxProps;
 
 export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
   photos,

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Check, 
-  Copy, 
   MessageCircle, 
   X, 
   Sparkles, 
@@ -13,8 +12,6 @@ import {
   Crown, 
   Smartphone, 
   Award,
-  Search,
-  CheckCircle2,
   ArrowLeft,
   ChevronDown
 } from 'lucide-react';
@@ -61,11 +58,6 @@ export const PackagesHub: React.FC<PackagesHubProps> = ({
 }) => {
   const [activeTrack, setActiveTrack] = useState<'foundational' | 'growth' | 'digital'>('foundational');
   const [detailModalPkg, setDetailModalPkg] = useState<GoogleStylePackage | null>(null);
-  const [copiedPkgId, setCopiedPkgId] = useState<string | null>(null);
-  const [copyToast, setCopyToast] = useState<string | null>(null);
-  const [showBizPicker, setShowBizPicker] = useState<boolean>(false);
-  const [bizPickerSearch, setBizPickerSearch] = useState<string>('');
-  const [selectedBizPkg, setSelectedBizPkg] = useState<GoogleStylePackage | null>(null);
   const [expandedPkgIds, setExpandedPkgIds] = useState<Record<string, boolean>>({});
   const [isCorporateExpanded, setIsCorporateExpanded] = useState<boolean>(false);
 
@@ -344,70 +336,6 @@ export const PackagesHub: React.FC<PackagesHubProps> = ({
 
   const currentTrackPackages = PACKAGES.filter(p => p.track === activeTrack);
 
-  // Proposal Copy for Admin
-  const copyProposal = (pkg: GoogleStylePackage) => {
-    const text = `السلام عليكم ورحمة الله وبركاته،
-تحياتنا لكم، يسعدنا في «منظومة دليلك» تقديم تفاصيل العرض المقترح:
-
-*«${pkg.name}»*
-- التصنيف: ${pkg.badge || 'معتمد'}
-- التكلفة: *${pkg.priceText}* (${pkg.billingCadence})
-- مدة التنفيذ والتسليم: *${pkg.deliveryTime}*
-
-الفئة المستهدفة:
-${pkg.forWhom}
-
-━━━━━━━━━━━━━━━━━━━━━
-المخرجات والخدمات التنفيذية:
-${pkg.deliverables.map(d => `• ${d}`).join('\n')}
-
-━━━━━━━━━━━━━━━━━━━━━
-نوفر فاتورة رسمية معتمدة برمز QR ومتابعة مستمرة.
-يسعدنا الإجابة على استفساراتكم والبدء الفوري فور تأكيدكم.
-منظومة دليلك - شريك التوثيق والتطوير الرقمي المعتمد في مصر`;
-
-    navigator.clipboard.writeText(text);
-    setCopiedPkgId(pkg.id);
-    setCopyToast(`تم نسخ تفاصيل عرض «${pkg.name}» بنجاح.`);
-    setTimeout(() => setCopiedPkgId(null), 2500);
-    setTimeout(() => setCopyToast(null), 4000);
-  };
-
-  const sendDirectToBiz = (biz: Business, pkg: GoogleStylePackage) => {
-    const phone = (biz.ownerPhone || biz.phone || '').replace(/[^0-9]/g, '');
-    let formattedPhone = phone;
-    if (formattedPhone.startsWith('0')) formattedPhone = '2' + formattedPhone;
-    else if (!formattedPhone.startsWith('20') && formattedPhone.length === 10) formattedPhone = '20' + formattedPhone;
-
-    const owner = biz.ownerName ? `أستاذ/ة ${biz.ownerName} المحترم/ة` : 'أصحاب وإدارة المنشأة المحترمين';
-    const bizName = biz.name || 'منشأتكم الكريمة';
-
-    const msg = `السلام عليكم ورحمة الله وبركاته،
-تحياتنا لكم ${owner}، بخصوص منشأتكم الكريمة: *«${bizName}»*
-
-يسر فريق العمل بمنظومة دليلك تقديم هذا المقترح لتطوير الحضور الرقمي والمهني لمنشأتكم:
-
-*«${pkg.name}»*
-- التكلفة: *${pkg.priceText}* (${pkg.billingCadence})
-- مدة التنفيذ والتسليم: *${pkg.deliveryTime}*
-
-أبرز المخرجات التنفيذية:
-${pkg.deliverables.map(d => `• ${d}`).join('\n')}
-
-جاهزون للبدء والتنفيذ فور تأكيدكم، ويشرفنا تواصلكم.
-━━━━━━━━━━━━━━━━━━━━━
-منظومة دليلك - شريك التوثيق والتطوير الرقمي المعتمد في مصر`;
-
-    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  const filteredBiz = businesses.filter(b =>
-    b.name?.toLowerCase().includes(bizPickerSearch.toLowerCase()) ||
-    b.ownerName?.toLowerCase().includes(bizPickerSearch.toLowerCase()) ||
-    b.ownerPhone?.includes(bizPickerSearch) ||
-    b.phone?.includes(bizPickerSearch)
-  );
-
   return (
     <div className="space-y-6 font-['Cairo',sans-serif] text-[var(--text-primary)] max-w-6xl mx-auto py-2">
       {/* 1. Ultra-Clean Minimal Title (Zero Clutter, No Helper Wizard) */}
@@ -493,47 +421,19 @@ ${pkg.deliverables.map(d => `• ${d}`).join('\n')}
 
                 {/* Primary Action Button (Like Google AI Subscription Page) */}
                 <div className="pt-1">
-                  {mode === 'public' ? (
-                    <a
-                      href={`https://wa.me/201556221141?text=${encodeURIComponent(`مرحباً دليلك، أود الاستفسار والاشتراك في «${pkg.name}» (${pkg.priceText}).`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-full py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer ${
-                        isPro
-                          ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                          : 'bg-slate-900 hover:bg-slate-800 text-white'
-                      }`}
-                    >
-                      <MessageCircle className={`w-4 h-4 ${isPro ? 'text-slate-950' : 'text-emerald-400'}`} />
-                      <span>طلب الباقة عبر واتساب</span>
-                    </a>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => copyProposal(pkg)}
-                        className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer ${
-                          isPro
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                            : 'bg-slate-900 hover:bg-slate-800 text-white'
-                        }`}
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>{copiedPkgId === pkg.id ? 'تم النسخ ✓' : 'نسخ العرض للعميل'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedBizPkg(pkg);
-                          setShowBizPicker(true);
-                        }}
-                        className="py-2.5 px-3 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--border-color)] text-[var(--text-primary)] font-bold text-xs border border-[var(--border-color)] cursor-pointer"
-                        title="إرسال لمنشأة محددة"
-                      >
-                        إرسال
-                      </button>
-                    </div>
-                  )}
+                  <a
+                    href={`https://wa.me/201556221141?text=${encodeURIComponent(`مرحباً دليلك، أود الاستفسار والاشتراك في «${pkg.name}» (${pkg.priceText}).`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-full py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer ${
+                      isPro
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
+                  >
+                    <MessageCircle className={`w-4 h-4 ${isPro ? 'text-slate-950' : 'text-emerald-400'}`} />
+                    <span>طلب الباقة عبر واتساب</span>
+                  </a>
                 </div>
 
                 {/* Deliverables Checklist (Concise points like Google) */}
@@ -580,13 +480,6 @@ ${pkg.deliverables.map(d => `• ${d}`).join('\n')}
                       <span className="font-bold text-slate-500">مدة التنفيذ والتسليم:</span>
                       <span className="font-black text-amber-600">{pkg.deliveryTime}</span>
                     </div>
-
-                    {mode === 'admin' && (
-                      <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/30 space-y-1 text-[11px]">
-                        <span className="font-black text-amber-700 block">دليل مندوب المبيعات:</span>
-                        <p className="text-slate-700 leading-relaxed">{pkg.pitchGuide.hook}</p>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -721,47 +614,19 @@ ${pkg.deliverables.map(d => `• ${d}`).join('\n')}
                 </div>
               </div>
 
-              {/* Admin Guide (Only in Admin Mode) */}
-              {mode === 'admin' && (
-                <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 space-y-2">
-                  <span className="font-black text-amber-700 block text-[11px]">
-                    دليل توجيه العميل والرد على الاعتراضات:
-                  </span>
-                  <p className="text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                    <strong>الرسالة السريعة:</strong> "{detailModalPkg.pitchGuide.hook}"
-                  </p>
-                  <p className="text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                    <strong>الرد على الاعتراض:</strong> {detailModalPkg.pitchGuide.objection}
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Modal Actions */}
             <div className="pt-3 border-t border-[var(--border-color)] flex items-center justify-between gap-2">
-              {mode === 'public' ? (
-                <a
-                  href={`https://wa.me/201556221141?text=${encodeURIComponent(`مرحباً دليلك، أود الاستفسار والاشتراك في «${detailModalPkg.name}» (${detailModalPkg.priceText}).`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>طلب الباقة عبر واتساب</span>
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    copyProposal(detailModalPkg);
-                    setDetailModalPkg(null);
-                  }}
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Copy className="w-4 h-4" />
-                  <span>نسخ تفاصيل العرض للعميل</span>
-                </button>
-              )}
+              <a
+                href={`https://wa.me/201556221141?text=${encodeURIComponent(`مرحباً دليلك، أود الاستفسار والاشتراك في «${detailModalPkg.name}» (${detailModalPkg.priceText}).`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>طلب الباقة عبر واتساب</span>
+              </a>
 
               <button
                 type="button"
@@ -772,108 +637,6 @@ ${pkg.deliverables.map(d => `• ${d}`).join('\n')}
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 6. Admin Business Selector Modal */}
-      {mode === 'admin' && showBizPicker && selectedBizPkg && (
-        <div className="fixed inset-0 z-[10002] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in">
-          <div className="bg-[var(--modal-bg)] border border-[var(--border-color)] rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col text-[var(--text-primary)]">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <div>
-                <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">
-                  إرسال عرض «{selectedBizPkg.name}» لمنشأة
-                </h3>
-                <p className="text-[11px] text-[var(--text-muted)] font-bold">
-                  اختر المنشأة لإرسال المقترح إليها عبر واتساب
-                </p>
-              </div>
-              <button
-                onClick={() => setShowBizPicker(false)}
-                className="w-8 h-8 rounded-full bg-[var(--input-bg)] hover:text-rose-500 flex items-center justify-center cursor-pointer border border-[var(--border-color)]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="relative">
-              <input
-                type="text"
-                value={bizPickerSearch}
-                onChange={(e) => setBizPickerSearch(e.target.value)}
-                placeholder="ابحث باسم المنشأة، المالك، أو الهاتف..."
-                className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-2.5 pr-10 pl-4 text-xs font-bold focus:outline-none focus:border-amber-500 text-[var(--text-primary)]"
-                autoFocus
-              />
-              <Search className="w-4 h-4 text-[var(--text-muted)] absolute top-3 right-3.5" />
-            </div>
-
-            <div className="overflow-y-auto flex-1 space-y-2 pr-1 custom-scrollbar">
-              {(!businesses || businesses.length === 0) ? (
-                <div className="p-6 text-center text-xs text-[var(--text-muted)] font-bold bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-color)]">
-                  لا توجد منشآت مسجلة محملة حالياً.
-                </div>
-              ) : filteredBiz.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[var(--text-muted)] font-bold bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-color)]">
-                  لا توجد منشأة مطابقة للبحث.
-                </div>
-              ) : (
-                filteredBiz.slice(0, 20).map((biz) => {
-                  const phone = biz.ownerPhone || biz.phone || '';
-                  return (
-                    <div
-                      key={biz.id}
-                      className="p-3 bg-[var(--bg-surface)] hover:bg-amber-500/5 rounded-2xl border border-[var(--border-color)] hover:border-amber-500/40 transition-colors flex items-center justify-between gap-3"
-                    >
-                      <div className="min-w-0 space-y-0.5">
-                        <h4 className="font-black text-xs text-[var(--text-primary)] truncate">
-                          {biz.name}
-                        </h4>
-                        <div className="text-[10.5px] text-[var(--text-muted)] font-bold flex items-center gap-2">
-                          {biz.ownerName && <span>المالك: {biz.ownerName}</span>}
-                          {phone && <span className="font-mono text-emerald-600">{phone}</span>}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {phone && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              sendDirectToBiz(biz, selectedBizPkg);
-                              setShowBizPicker(false);
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1 shadow-xs cursor-pointer"
-                          >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                            <span>واتساب</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="pt-3 border-t border-[var(--border-color)] flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowBizPicker(false)}
-                className="px-4 py-1.5 rounded-xl bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs cursor-pointer"
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Toast Notification */}
-      {copyToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10002] bg-slate-950 text-emerald-400 border border-emerald-500 shadow-2xl rounded-2xl px-5 py-3 text-xs sm:text-sm font-black flex items-center gap-2 animate-bounce">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{copyToast}</span>
         </div>
       )}
     </div>
