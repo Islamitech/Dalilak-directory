@@ -13,8 +13,11 @@ button,a { touch-action:manipulation; }
 .directory-toolbar select { background:#f4f6f3; padding:10px; border-radius:8px; max-width:100%; }
 .directory-chip { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--d-line); border-radius:24px; padding:8px 14px; min-height:40px; font-size:13px; background:white; }
 .directory-chip[aria-pressed=true] { background:#e3eee5; color:var(--d-brand); border-color:var(--d-brand); }
-.directory-dialog-overlay { position:fixed; inset:0; z-index:10000; background:#102c3070; backdrop-filter:blur(5px); display:grid; place-items:center; padding:20px; }
-.directory-dialog { background:white; color:var(--d-ink); border-radius:22px; width:min(760px,100%); max-height:90dvh; overflow:auto; box-shadow:0 24px 100px #102c3030; }
+.directory-dialog-overlay { position:fixed; inset:0; z-index:10000; background:#102c3070; backdrop-filter:blur(5px); display:grid; place-items:center; padding:20px; animation:dir-overlay-in .2s ease; }
+@keyframes dir-overlay-in { from { opacity:0; } to { opacity:1; } }
+.directory-dialog { background:white; color:var(--d-ink); border-radius:22px; width:min(760px,100%); max-height:90dvh; overflow:auto; box-shadow:0 24px 100px #102c3030; animation:dir-dialog-in .22s cubic-bezier(.2,.8,.2,1); }
+@keyframes dir-dialog-in { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+
 .directory-dialog-header { padding:18px 24px; display:flex; justify-content:space-between; gap:16px; align-items:center; position:sticky; top:0; z-index:2; background:white; border-bottom:1px solid var(--d-line); }
 .directory-dialog-header h2 { font-size:18px; font-weight:800; }
 .directory-dialog-close { min-height:44px; min-width:44px; border-radius:50%; display:grid; place-items:center; background:#f0f4ef; }

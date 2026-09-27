@@ -88,8 +88,9 @@
 
 .hm-cluster { border-radius:50%; background:#234f47; box-shadow:0 0 0 5px #ffffff80; }.hm-cluster small { display:block; font-size:8px; font-weight:400; line-height:1.2; }
 /* Featured cards share the directory's tokens and remain clear of the camera target. */
-.hm-canvas { height:760px; min-height:760px; }
-.hm-results { max-height:760px; }
+/* hm-canvas base height is defined above (.hm-canvas { height:650px } line 37).
+   The map-first full-page layout overrides it via .hm-full-page > .hm-canvas { height:100% }. */
+
 .hm-map-legend { top:16px; right:54px; left:auto; bottom:auto; }
 .hm-activity-overlay { position:absolute; inset-inline:16px; bottom:40px; z-index:10; direction:inherit; cursor:default; touch-action:pan-x pan-y; }
 .directory-app[dir=rtl] .hm-activity-overlay { direction:rtl; }
@@ -201,3 +202,18 @@
 .hm-dot.is-active { width:16px; border-radius:4px; background:var(--d-gold,#c59b27); }
 .hm-floating-panel,.hm-map-search,.hm-expanded-card,.hm-featured-card,.hm-gate-overlay { backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
 .hm-featured-cards { scrollbar-width:thin; scrollbar-color:#cbd5e1 transparent; }
+
+/* ── External map link inside expanded card ── */
+.hm-maps-link { flex:0 0 auto; padding:0 10px; text-decoration:none; color:var(--d-brand); }
+.hm-maps-link:hover { color:var(--d-brand-hover); }
+
+/* ── Smooth card reveal when the tray expands ── */
+@keyframes hm-card-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.hm-featured-card { animation:hm-card-in .22s ease both; }
+.hm-expanded-card { animation:hm-card-in .18s ease both; }
+
+/* ── Full-page canvas height fix for mobile (overrides the media query above) ── */
+@media(max-width:767px) {
+  .hm-full-page > .hm-canvas { height:100%; min-height:0; }
+}
+
