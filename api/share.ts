@@ -57,8 +57,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const rawBizQuery = req.query.biz || req.query.id;
     const rawBiz = Array.isArray(rawBizQuery) ? rawBizQuery[0] : rawBizQuery;
-    const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'www.dalilaak.com';
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
+    const ALLOWED_HOSTS = ['www.dalilaak.com', 'dalilaak.com', 'dalilak.vercel.app', 'localhost:5173', '127.0.0.1:5173'];
+    const reqHost = ((req.headers['x-forwarded-host'] as string) || req.headers.host || '').toLowerCase().trim();
+    const host = ALLOWED_HOSTS.includes(reqHost) || reqHost.endsWith('.vercel.app') ? reqHost : 'www.dalilaak.com';
+    const proto = (req.headers['x-forwarded-proto'] as string) === 'http' && host.includes('localhost') ? 'http' : 'https';
     const origin = `${proto}://${host}`;
 
     if (!rawBiz || typeof rawBiz !== 'string') {
@@ -251,7 +253,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       image: ogImageUrl || undefined,
     };
-    const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(jsonLdData)}</script>`;
+    const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(jsonLdData).replace(/</g, '\\u003c')}</script>`;
 
     let html = template;
 
@@ -285,7 +287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <body style="background:#020617;color:#f8fafc;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
     <div style="text-align:center;">
       <h2>جاري تحويلك إلى ${escapeHtml(nameAr)}...</h2>
-      <script>window.location.replace('${pageUrl}');</script>
+      <script>window.location.replace(${JSON.stringify(pageUrl)});</script>
     </div>
   </body>
 </html>`;

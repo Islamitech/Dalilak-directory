@@ -33,9 +33,11 @@ function escapeXml(str: string): string {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'www.dalilaak.com';
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-    const origin = `${proto}://${host}`;
+    const ALLOWED_HOSTS = ['www.dalilaak.com', 'dalilaak.com', 'dalilak.vercel.app', 'localhost:5173', '127.0.0.1:5173'];
+    const reqHost = ((req.headers['x-forwarded-host'] as string) || req.headers.host || '').toLowerCase().trim();
+    const host = ALLOWED_HOSTS.includes(reqHost) || reqHost.endsWith('.vercel.app') ? reqHost : 'www.dalilaak.com';
+    const proto = (req.headers['x-forwarded-proto'] as string) === 'http' && host.includes('localhost') ? 'http' : 'https';
+    const origin = escapeXml(`${proto}://${host}`);
 
     // Fetch verified and published businesses from Supabase
     const apiUrl = `${SUPABASE_URL}/rest/v1/businesses?verification_status=eq.verified&package_id=neq.pkg_interested_lead&select=id,name_ar,name_en,city,updated_at,created_at,notes&order=created_at.desc&limit=2500`;

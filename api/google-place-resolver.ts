@@ -192,8 +192,7 @@ function extractStructuredPlacePhotos(payload: string, limit = 1): string[] {
   return photos;
 }
 
-const GOOGLE_PLACES_API_KEY =
-  process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyD3eyrkvcPrYKgGFqUf2p3OrzKgMep_7c4';
+const GOOGLE_PLACES_API_KEY = (process.env.GOOGLE_PLACES_API_KEY || '').trim();
 
 interface PlacesApiPhotoResult {
   photos: string[];
@@ -330,7 +329,7 @@ function isValidGoogleMapsUrl(urlStr: string): boolean {
       host === 'google.com' ||
       host === 'www.google.com' ||
       host === 'maps.google.com' ||
-      /^[a-z0-9.-]+\.google\.[a-z.]+$/.test(host);
+      /^(?:[a-z0-9-]+\.)*google\.(?:com|com\.eg|eg|net|co\.[a-z]{2})$/i.test(host);
 
     return isGoogleHost;
   } catch {

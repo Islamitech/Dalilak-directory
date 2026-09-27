@@ -191,19 +191,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // 🛡️ WhatsApp & Social scrapers strictly drop images returning 302. We stream image bytes directly with 200 OK!
       if (photo.startsWith('http://') || photo.startsWith('https://')) {
         try {
-          const imgRes = await fetch(photo);
-          if (imgRes.ok) {
-            const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-            const buffer = Buffer.from(await imgRes.arrayBuffer());
-            res.setHeader('Content-Type', contentType);
-            res.setHeader('Content-Length', buffer.length);
-            res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
-            return res.status(200).send(buffer);
+          const parsedPhotoUrl = new URL(photo);
+          const host = parsedPhotoUrl.hostname.toLowerCase();
+          // SSRF Protection: strictly allow only trusted CDN & storage domains
+          const isAllowedHost =
+            host.endsWith('.supabase.co') ||
+            host.endsWith('.googleusercontent.com') ||
+            host.endsWith('.ggpht.com') ||
+            host === 'images.unsplash.com' ||
+            host === 'www.dalilaak.com' ||
+            host === 'dalilaak.com';
+
+          if (!isAllowedHost) {
+            console.warn('[biz-og] Blocked untrusted photo host for SSRF prevention:', host);
+          } else {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000);
+            const imgRes = await fetch(photo, { signal: controller.signal });
+            clearTimeout(timeout);
+            if (imgRes.ok) {
+              const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+              const contentLength = Number(imgRes.headers.get('content-length') || 0);
+              // Max 5MB image guard against memory exhaustion DoS
+              if (!contentLength || contentLength <= 5 * 1024 * 1024) {
+                const buffer = Buffer.from(await imgRes.arrayBuffer());
+                if (buffer.length <= 5 * 1024 * 1024) {
+                  res.setHeader('Content-Type', contentType);
+                  res.setHeader('Content-Length', buffer.length);
+                  res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
+                  return res.status(200).send(buffer);
+                }
+              }
+            }
           }
         } catch (fetchErr) {
-          console.warn('Failed streaming external photo in biz-og, falling back to redirect:', fetchErr);
+          console.warn('Failed streaming external photo in biz-og, falling back to card generator:', fetchErr);
         }
-        return res.redirect(302, photo);
       }
     }
 

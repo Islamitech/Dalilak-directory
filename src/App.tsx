@@ -14,14 +14,17 @@ const SUPABASE_PHOTOS_URL = `${SUPABASE_REST_BASE}/businesses?select=id,photos&p
 const BIDI_CONTROL_REGEX = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069\uFEFF]/g;
 
 function getSafeCacheList(list: Business[]): any[] {
-  return list.map((b) => ({
-    ...b,
-    // Startup cache stays intentionally small: cards only need one hosted image
-    // for the first paint. The full gallery is hydrated after the UI is idle.
-    photos: Array.isArray(b.photos)
-      ? b.photos.filter((p: string) => typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))).slice(0, 1)
-      : (b.coverPhoto && !b.coverPhoto.startsWith('data:') ? [b.coverPhoto] : []),
-  }));
+  return list.map((b) => {
+    const { notes, ...safeBiz } = b;
+    return {
+      ...safeBiz,
+      // Startup cache stays intentionally small: cards only need one hosted image
+      // for the first paint. The full gallery is hydrated after the UI is idle.
+      photos: Array.isArray(b.photos)
+        ? b.photos.filter((p: string) => typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))).slice(0, 1)
+        : (b.coverPhoto && !b.coverPhoto.startsWith('data:') ? [b.coverPhoto] : []),
+    };
+  });
 }
 
 export default function App() {

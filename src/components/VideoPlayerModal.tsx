@@ -164,7 +164,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             )}
 
             <a
-              href={`https://wa.me/20${(business.phone || business.ownerPhone || '').replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(`مرحباً "${business.nameAr}"، رأيت الفيديو الخاص بكم على منصة دليلك.`)}`}
+              href={`https://wa.me/20${(business.whatsapp || business.phone || business.secondaryPhone || '').replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(`مرحباً "${business.nameAr}"، رأيت الفيديو الخاص بكم على منصة دليلك.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 font-black text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer"

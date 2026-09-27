@@ -54,19 +54,18 @@ export function matchesBusinessSearch(biz: Business, rawQuery: string): boolean 
   const normQ = normalizeArabicText(q);
   const cleanQ = q.toLowerCase();
 
-  // 1. Exact or normalized Invoice Number match (e.g. "634" matches "INV-2026-634")
-  const inv = (biz.invoiceNumber || '').toLowerCase();
-  if (inv.includes(cleanQ) || (biz.id && biz.id.toLowerCase().includes(cleanQ))) {
+  // 1. Direct entity ID match
+  if (biz.id && biz.id.toLowerCase().includes(cleanQ)) {
     return true;
   }
 
-  // 2. Phone numbers (clean digits comparison)
+  // 2. Public contact numbers (clean digits comparison)
   const digitsOnlyQ = q.replace(/\D/g, '');
   if (digitsOnlyQ.length >= 3) {
-    const ownerPhone = (biz.ownerPhone || '').replace(/\D/g, '');
     const phone = (biz.phone || '').replace(/\D/g, '');
     const secPhone = (biz.secondaryPhone || '').replace(/\D/g, '');
-    if (ownerPhone.includes(digitsOnlyQ) || phone.includes(digitsOnlyQ) || secPhone.includes(digitsOnlyQ)) {
+    const waPhone = (biz.whatsapp || '').replace(/\D/g, '');
+    if (phone.includes(digitsOnlyQ) || secPhone.includes(digitsOnlyQ) || waPhone.includes(digitsOnlyQ)) {
       return true;
     }
   }
@@ -82,8 +81,11 @@ export function matchesBusinessSearch(biz: Business, rawQuery: string): boolean 
     return true;
   }
 
-  // 4. Category / Activities (e.g. searching "ذهب" or "فضة" or "مجوهرات")
+  // 4. Category & Services (e.g. searching "ذهب" or "فضة" or "مجوهرات")
   if (matchesArabicSearch(biz.category, normQ)) {
+    return true;
+  }
+  if (Array.isArray(biz.services) && biz.services.some(s => matchesArabicSearch(s, normQ))) {
     return true;
   }
 
@@ -97,19 +99,8 @@ export function matchesBusinessSearch(biz: Business, rawQuery: string): boolean 
     return true;
   }
 
-  // 6. Owner & Representative Names
-  if (
-    matchesArabicSearch(biz.ownerName, normQ) ||
-    matchesArabicSearch(biz.repName, normQ)
-  ) {
-    return true;
-  }
-
-  // 7. Semantic Description & Notes (e.g. searching specific goods/services described in details)
-  if (
-    matchesArabicSearch(biz.description, normQ) ||
-    matchesArabicSearch(biz.notes, normQ)
-  ) {
+  // 6. Public Description
+  if (matchesArabicSearch(biz.description, normQ)) {
     return true;
   }
 
