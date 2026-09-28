@@ -85,12 +85,26 @@ export const useMapPinsClustering = ({
   const groupingCache = useRef<{ items: Business[]; zoom: number; groups: Business[][] } | null>(null);
   const filterIdentity = `${selectedZoneProp ?? ''}|${categoryFilterProp ?? ''}`;
   useEffect(() => { seenMarkers.current.clear(); }, [filterIdentity]);
-  const animateNewMarker = (marker: any, id: string) => {
+  const animateNewMarker = (marker: any, id: string, staggerIndex = 0) => {
     if (seenMarkers.current.has(id)) return;
     seenMarkers.current.add(id);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const content = marker.getElement()?.firstElementChild;
-    content?.animate([{ opacity: 0, translate: '0 5px' }, { opacity: 1, translate: '0 0' }], { duration: 180, easing: 'ease-out' });
+    if (!content) return;
+    const delay = Math.min(staggerIndex * 36, 680);
+    content.animate(
+      [
+        { opacity: 0, transform: 'scale(0.25) translateY(14px)' },
+        { opacity: 1, transform: 'scale(1.06) translateY(-2px)', offset: 0.65 },
+        { opacity: 1, transform: 'scale(1) translateY(0)' },
+      ],
+      {
+        duration: 380,
+        delay,
+        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        fill: 'backwards',
+      }
+    );
   };
   const {
     leafletMapRef,
@@ -988,10 +1002,12 @@ export const useMapPinsClustering = ({
       zoom >= 15.5
     );
 
-    if (groupingCache.current?.items !== sortedBusinesses || groupingCache.current.zoom !== zoom) {
-      groupingCache.current = { items: sortedBusinesses, zoom, groups: groupNearbyActivities(sortedBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
+    // 🚀 Performance Optimization: Pre-filter by visible viewport bounds before running spatial clustering
+    const inViewBusinesses = sortedBusinesses.filter(biz => bounds.contains([biz.lat, biz.lng]));
+    if (groupingCache.current?.items !== inViewBusinesses || groupingCache.current.zoom !== zoom) {
+      groupingCache.current = { items: inViewBusinesses, zoom, groups: groupNearbyActivities(inViewBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
     }
-    const groups = groupingCache.current.groups;
+    const visibleGroups = groupingCache.current.groups;
 
     interface OccupiedSpatialSlot {
       x: number;
@@ -1001,8 +1017,6 @@ export const useMapPinsClustering = ({
       isCluster: boolean;
     }
     const occupied: OccupiedSpatialSlot[] = [];
-
-    const visibleGroups = groups.filter(group => group.some(biz => bounds.contains([biz.lat, biz.lng])));
     // Remove stale results before yielding, so a new filter never shows old pins.
     const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
     const clusterKey = (g: Business[]) => g.map(b => `${b.id}:${b.lat}:${b.lng}:${b.nameAr}`).join('|');
@@ -1035,6 +1049,9 @@ export const useMapPinsClustering = ({
       });
     }
     isRenderingActivitiesRef.current = visibleGroups.length > 0;
+
+    let staggerIndex = 0;
+    let overviewCardsCount = 0;
 
     const cancelWork = scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
@@ -1085,7 +1102,7 @@ export const useMapPinsClustering = ({
         });
         clusterLayer.addLayer(marker);
         clusterRegistry.current.set(key, marker);
-        animateNewMarker(marker, key);
+        animateNewMarker(marker, key, staggerIndex++);
         return;
       }
 
@@ -1114,10 +1131,12 @@ export const useMapPinsClustering = ({
                Math.abs(occCenterY - cardCenterY) < (occ.height + cardH) / 2 + 10;
       });
 
-      // If no collision: render full card (Compact Overview in city mode, Rich Badge in district mode).
-      // If collides: collapse gracefully to compact pin dot so it doesn't overlap or occlude anything.
-      const usePinDot = collides;
+      // 🌟 Visual Hierarchy: In City Overview, reserve rich horizontal cards for the top 3 prominent/highest rated activities;
+      // render remaining unselected activities as clean compact pins to eliminate visual chaos and sensory shock.
+      const allowFullCard = isDistrictView || overviewCardsCount < 3;
+      const usePinDot = collides || !allowFullCard;
       if (!usePinDot) {
+        overviewCardsCount++;
         occupied.push({
           x: point.x,
           y: point.y,
@@ -1172,7 +1191,7 @@ export const useMapPinsClustering = ({
           setSelectedBizRef.current(current);
         });
         cardsLayer.addLayer(marker);
-        animateNewMarker(marker, biz.id);
+        animateNewMarker(marker, biz.id, staggerIndex++);
         if ('fallbackCover' in data && typeof data.fallbackCover === 'string') {
           attachCardDomListeners(marker, data.fallbackCover);
         }

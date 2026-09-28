@@ -9,7 +9,6 @@ import { supabase, SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from './services/supa
 // google_maps_url, google_place_id, google_sync_status are stored in the 'notes' JSON field.
 const FAST_BUSINESS_SELECT = 'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';
 const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc`;
-const SUPABASE_PHOTOS_URL = `${SUPABASE_REST_BASE}/businesses?select=id,photos&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc`;
 
 // 🛡️ BiDi Control Characters Regex (strips \u202E, \u202B, \u200E, etc.)
 const BIDI_CONTROL_REGEX = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069\uFEFF]/g;
@@ -61,7 +60,18 @@ export default function App() {
     } catch {}
     return true; // Always true if no verified cached data exists, until Supabase responds
   });
-  const [directoryLoad, setDirectoryLoad] = useState({ pending: true, error: '' });
+  const [directoryLoad, setDirectoryLoad] = useState<{ pending: boolean; error: string }>(() => {
+    try {
+      const cached = localStorage.getItem('dalelak_directory_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.some((b: any) => (b.verificationStatus === 'verified' || b.verification_status === 'verified') && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted')) {
+          return { pending: false, error: '' };
+        }
+      }
+    } catch {}
+    return { pending: true, error: '' };
+  });
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -248,7 +258,6 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     let activeLoadController: AbortController | null = null;
-    let photoHydrationTimer: number | null = null;
 
     async function loadBusinesses(force: boolean = false) {
       if (!force && typeof document !== 'undefined' && document.hidden) return;
@@ -297,13 +306,15 @@ export default function App() {
                 (a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime()
               );
             });
-            if (isMounted) setLoading(false);
+            if (isMounted) {
+              setLoading(false);
+              setDirectoryLoad((prev) => ({ ...prev, pending: false }));
+            }
 
-            // ⚡ TIER 2: Stream remaining businesses sequentially in the background.
-            // Avoiding Promise.all prevents a burst of large responses competing
-            // with map tiles, fonts and the first interactive paint.
+            // ⚡ TIER 2: Stream remaining businesses in consolidated 1,000-item chunks.
+            // Drastically reduces HTTP roundtrips from 10+ to ~2, saving server quota and mobile bandwidth.
             if (!isNaN(totalCount) && totalCount > FAST_BATCH_SIZE) {
-              const BATCH_SIZE = 200;
+              const BATCH_SIZE = 1000;
               for (let from = FAST_BATCH_SIZE; from < totalCount; from += BATCH_SIZE) {
                 if (!isMounted || controller.signal.aborted) break;
                 const to = Math.min(from + BATCH_SIZE - 1, totalCount - 1);
@@ -411,53 +422,6 @@ export default function App() {
         if (isMounted && activeLoadController === controller) { setLoading(false); setDirectoryLoad(prev => ({ ...prev, pending: false })); }
       }
       if (!isMounted || controller.signal.aborted || activeLoadController !== controller) return;
-
-      // Background photo hydration after initial paint is settled (idle delay to save network contention)
-      if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
-      photoHydrationTimer = window.setTimeout(async () => {
-        if (!isMounted || controller.signal.aborted || activeLoadController !== controller) return;
-        try {
-          const pRes = await fetch(SUPABASE_PHOTOS_URL, {
-            signal: controller.signal,
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-          });
-          if (pRes.ok) {
-            const pData = await pRes.json();
-            if (Array.isArray(pData) && pData.length > 0 && isMounted && !controller.signal.aborted && activeLoadController === controller) {
-              const photoMap = new Map<string, string[]>();
-              pData.forEach((item: any) => {
-                if (item.id && Array.isArray(item.photos) && item.photos.length > 0) {
-                  photoMap.set(item.id, item.photos.filter((p: any) => typeof p === 'string' && p.trim().length > 0));
-                }
-              });
-              if (photoMap.size > 0) {
-                setBusinesses((prev) => {
-              if (controller.signal.aborted || activeLoadController !== controller) return prev;
-                  let hasChanges = false;
-                  const next = prev.map((b) => {
-                    const p = photoMap.get(b.id);
-                    if (p && p.length > (b.photos?.length || 0)) {
-                      hasChanges = true;
-                      return { ...b, photos: p };
-                    }
-                    return b;
-                  });
-                  if (hasChanges) {
-                    try {
-                      localStorage.setItem('dalelak_directory_cache', JSON.stringify(getSafeCacheList(next)));
-                    } catch {}
-                    return next;
-                  }
-                  return prev;
-                });
-              }
-            }
-          }
-        } catch {}
-      }, 1800);
     }
 
     const retryLoad = () => { void loadBusinesses(true); };
@@ -601,7 +565,6 @@ export default function App() {
       window.removeEventListener('directory:retry', retryLoad);
       window.removeEventListener('storage', handleStorageChange);
       activeLoadController?.abort();
-      if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
       clearInterval(intervalId);
       supabase.removeChannel(realtimeChannel);
       if (syncChannel) syncChannel.close();

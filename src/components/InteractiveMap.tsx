@@ -207,7 +207,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [mapInstance.isMapReady]);
 
-  const busy = directoryLoad.pending || searchPending;
+  // Precision busy coordinator: active only on user search or first boot with 0 data
+  const isInitialLoading = businesses.length === 0 && directoryLoad.pending;
+  const busy = searchPending || isInitialLoading;
   const [showBusy, setShowBusy] = useState(false);
   useEffect(() => {
     if (!busy) { setShowBusy(false); return; }
@@ -323,7 +325,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {mode === 'view' && ((busy && showBusy) || (!busy && directoryLoad.error)) && (
           <div className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none" role="status" aria-live="polite" aria-atomic="true">
             <div className="flex items-center gap-2 rounded-full bg-white/95 border border-slate-200 px-3 py-2 text-xs text-slate-700 shadow-sm" dir="rtl">
-              {busy ? <><Loader2 size={15} className="animate-spin motion-reduce:animate-none"/><span>جارٍ البحث عن الأنشطة…</span></> : <><span>{directoryLoad.error}</span><button type="button" className="pointer-events-auto min-h-11 px-2 text-amber-700" onClick={() => window.dispatchEvent(new Event('directory:retry'))}>إعادة المحاولة</button></>}
+              {busy ? (
+                <>
+                  <Loader2 size={15} className="animate-spin motion-reduce:animate-none text-amber-600"/>
+                  <span>{searchPending ? 'جارٍ تصفية الأنشطة…' : 'جارٍ تجهيز الأنشطة المعتمدة…'}</span>
+                </>
+              ) : (
+                <>
+                  <span>{directoryLoad.error}</span>
+                  <button type="button" className="pointer-events-auto min-h-11 px-2 text-amber-700 font-bold" onClick={() => window.dispatchEvent(new Event('directory:retry'))}>إعادة المحاولة</button>
+                </>
+              )}
             </div>
           </div>
         )}

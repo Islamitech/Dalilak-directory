@@ -547,39 +547,11 @@ export async function searchBuildingCoordinatesExact(
     }
   }
 
-  // 2. FALLBACK TO OVERPASS API (Network)
-  let filterStr = `29.93,31.05,30.01,31.14`; // Default bbox fallback
-  if (district && district.polygons && district.polygons[0]) {
-    const polyCoords = district.polygons[0].map(p => `${p[0]} ${p[1]}`).join(' ');
-    filterStr = `poly:"${polyCoords}"`;
-  }
-
-  const query = `[out:json][timeout:10];
-(
-  way["addr:housenumber"~"^${cleanNum}$"](${filterStr});
-  node["addr:housenumber"~"^${cleanNum}$"](${filterStr});
-  way["name"~"^${cleanNum}( |$)"](${filterStr});
-  node["name"~"^${cleanNum}( |$)"](${filterStr});
-);
-out center;`;
-
-  try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: query
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.elements && data.elements.length > 0) {
-        const el = data.elements[0];
-        return {
-          lat: el.lat || el.center.lat,
-          lng: el.lon || el.center.lon
-        };
-      }
-    }
-  } catch (err) {
-    console.warn('Overpass network search fallback failed:', err);
+  // 2. ZERO-NETWORK CADASTRAL FALLBACK
+  // Avoid querying external servers (e.g. overpass-api.de) which cause network stalls
+  // and consume mobile quota. Return district cadastral centroid if available.
+  if (district) {
+    return { lat: district.centerLat, lng: district.centerLng };
   }
   return null;
 }
