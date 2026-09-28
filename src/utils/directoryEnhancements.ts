@@ -233,6 +233,45 @@ export function getSmartWhatsAppUrl(biz: Business): string {
 }
 
 /**
+ * Dynamically updates document title, meta description, and canonical link
+ * Ensures full SEO synchronization during client-side SPA navigation.
+ */
+export function updatePageMetadata(options: {
+  title: string;
+  description?: string;
+  canonicalUrl?: string;
+}): void {
+  if (typeof document === 'undefined') return;
+
+  if (options.title && document.title !== options.title) {
+    document.title = options.title;
+  }
+
+  if (options.description) {
+    let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = options.description;
+
+    let ogDesc = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null;
+    if (ogDesc) ogDesc.content = options.description;
+  }
+
+  if (options.canonicalUrl) {
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = options.canonicalUrl;
+  }
+}
+
+/**
  * Injects or updates Schema.org JSON-LD structured data for Google SEO rich snippets
  */
 export function injectBusinessSchemaLd(biz: Business | null): void {
@@ -246,12 +285,39 @@ export function injectBusinessSchemaLd(biz: Business | null): void {
     return;
   }
 
-  const schemaData = {
+  let googleRating: number | null = null;
+  let googleReviewsCount: number | null = null;
+  if (typeof biz.notes === 'string' && biz.notes.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(biz.notes);
+      if (parsed.googleRating !== undefined && parsed.googleRating !== null) {
+        googleRating = Number(parsed.googleRating);
+      }
+      if (parsed.googleReviewsCount !== undefined && parsed.googleReviewsCount !== null) {
+        googleReviewsCount = Number(parsed.googleReviewsCount);
+      }
+    } catch {}
+  }
+
+  const category = (biz.category || '').toLowerCase();
+  let schemaType = 'LocalBusiness';
+  if (category.includes('صيدل') || category.includes('أدوي')) schemaType = 'Pharmacy';
+  else if (category.includes('مطعم') || category.includes('مأكول') || category.includes('وجب')) schemaType = 'Restaurant';
+  else if (category.includes('كافيه') || category.includes('مقهى') || category.includes('قهو')) schemaType = 'CafeOrCoffeeShop';
+  else if (category.includes('أسنان')) schemaType = 'Dentist';
+  else if (category.includes('طبي') || category.includes('عياد') || category.includes('دكتور')) schemaType = 'MedicalBusiness';
+  else if (category.includes('سيار') || category.includes('ميكانيك')) schemaType = 'AutoRepair';
+  else if (category.includes('سوبر') || category.includes('ماركت') || category.includes('بقال')) schemaType = 'GroceryStore';
+  else if (category.includes('حلوي') || category.includes('مخبز') || category.includes('أفران')) schemaType = 'Bakery';
+
+  const schemaData: any = {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    '@type': schemaType,
     name: biz.nameAr || biz.nameEn,
     description: biz.description || `${biz.category} في ${biz.governorate}، ${biz.city}`,
     telephone: biz.phone,
+    priceRange: '$$',
+    currenciesAccepted: 'EGP',
     address: {
       '@type': 'PostalAddress',
       streetAddress: biz.street || undefined,
@@ -259,15 +325,36 @@ export function injectBusinessSchemaLd(biz: Business | null): void {
       addressRegion: biz.governorate,
       addressCountry: 'EG',
     },
-    geo: {
+    url: getPublicDirectoryUrl(biz),
+    image: biz.photos && biz.photos.length > 0 ? biz.photos[0] : undefined,
+  };
+
+  if (typeof biz.lat === 'number' && typeof biz.lng === 'number' && biz.lat !== 0 && biz.lng !== 0) {
+    schemaData.geo = {
       '@type': 'GeoCoordinates',
       latitude: biz.lat,
       longitude: biz.lng,
-    },
-    url: getPublicDirectoryUrl(biz),
-    sameAs: biz.googleMapsUrl ? [biz.googleMapsUrl] : undefined,
-    image: biz.photos && biz.photos.length > 0 ? biz.photos[0] : undefined,
-  };
+    };
+  }
+
+  if (googleRating && googleRating >= 1) {
+    schemaData.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: googleRating.toFixed(1),
+      reviewCount: googleReviewsCount || 1,
+      bestRating: '5',
+      worstRating: '1',
+    };
+  }
+
+  if (biz.workingHours) {
+    schemaData.openingHours = biz.workingHours;
+  }
+
+  if (biz.googleMapsUrl) {
+    schemaData.hasMap = biz.googleMapsUrl;
+    schemaData.sameAs = [biz.googleMapsUrl];
+  }
 
   if (!script) {
     script = document.createElement('script');

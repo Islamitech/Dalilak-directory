@@ -30,49 +30,74 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-black text-white">استكشف الدليل</h4>
             <ul className="space-y-1 text-xs font-bold text-slate-300">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/search')}
+                <a
+                  href="/search"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/search');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   جميع الأنشطة والخدمات
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/map')}
+                <a
+                  href="/map"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/map');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   الخريطة الحية للمواقع
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/favorites')}
+                <a
+                  href="/favorites"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/favorites');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   الأنشطة المحفوظة (المفضلة)
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/search?cat=مطاعم ومأكولات')}
+                <a
+                  href="/search?cat=مطاعم ومأكولات"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/search?cat=مطاعم ومأكولات');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   مطاعم ومأكولات
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/search?cat=طبي وصيدلي')}
+                <a
+                  href="/search?cat=طبي وصيدلي"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/search?cat=طبي وصيدلي');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   عيادات ورعاية طبية
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -82,23 +107,33 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-black text-white">أصحاب الأنشطة</h4>
             <ul className="space-y-1 text-xs font-bold text-slate-300">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/for-business')}
+                <a
+                  href="/for-business"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/for-business');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer text-amber-400 flex items-center gap-1.5 font-black py-1.5 min-h-[38px]"
                 >
                   <Store className="w-3.5 h-3.5" />
                   <span>إدراج النشاط مجاناً (0 ج)</span>
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/pricing')}
+                <a
+                  href="/pricing"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/pricing');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   باقات وحلول النمو التسويقي
-                </button>
+                </a>
               </li>
               <li>
                 <a
@@ -119,13 +154,18 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-black text-white">عن دليلك</h4>
             <ul className="space-y-1 text-xs font-bold text-slate-300">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/about')}
+                <a
+                  href="/about"
+                  onClick={(e) => {
+                    if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                      e.preventDefault();
+                      onNavigate('/about');
+                    }
+                  }}
                   className="hover:text-amber-400 transition-colors cursor-pointer py-1.5 inline-flex items-center min-h-[38px]"
                 >
                   رسالة ورؤية المنصة
-                </button>
+                </a>
               </li>
               <li>
                 <span className="text-slate-400 block py-1">جمهورية مصر العربية</span>

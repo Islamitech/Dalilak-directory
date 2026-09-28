@@ -18,6 +18,22 @@ function escapeHtml(str: string): string {
   });
 }
 
+
+function resolveSchemaType(category?: string): string {
+  if (!category || typeof category !== 'string') return 'LocalBusiness';
+  const c = category.toLowerCase();
+  if (c.includes('صيدل') || c.includes('أدوي') || c.includes('علاج')) return 'Pharmacy';
+  if (c.includes('مطعم') || c.includes('مأكول') || c.includes('وجب') || c.includes('مشوي') || c.includes('بيتزا') || c.includes('برجر') || c.includes('شاورما') || c.includes('أسماك')) return 'Restaurant';
+  if (c.includes('كافيه') || c.includes('مقهى') || c.includes('قهو')) return 'CafeOrCoffeeShop';
+  if (c.includes('أسنان')) return 'Dentist';
+  if (c.includes('طبي') || c.includes('عياد') || c.includes('دكتور') || c.includes('مستشف') || c.includes('بصري')) return 'MedicalBusiness';
+  if (c.includes('سيار') || c.includes('ميكانيك') || c.includes('إطار') || c.includes('زيوت') || c.includes('غسيل سيار')) return 'AutoRepair';
+  if (c.includes('سوبر') || c.includes('ماركت') || c.includes('بقال') || c.includes('أغذية')) return 'GroceryStore';
+  if (c.includes('حلوي') || c.includes('مخبز') || c.includes('أفران') || c.includes('فطائر')) return 'Bakery';
+  if (c.includes('حلاق') || c.includes('تجميل') || c.includes('كوافير') || c.includes('صالون')) return 'BeautySalon';
+  return 'LocalBusiness';
+}
+
 function slugify(name?: string): string {
   if (!name || typeof name !== 'string') return '';
   return name
@@ -78,7 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const bizId = idMatch ? idMatch[1] : decodedParam;
 
     // Fetch business from Supabase
-    const apiUrl = `${SUPABASE_URL}/rest/v1/businesses?id=eq.${encodeURIComponent(bizId)}&select=id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,description,photos,notes`;
+    const apiUrl = `${SUPABASE_URL}/rest/v1/businesses?id=eq.${encodeURIComponent(bizId)}&select=id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,notes,lat,lng`;
     const dbRes = await fetch(apiUrl, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
@@ -97,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Fallback: If no business found by ID and no standard ID was present in slug, search by Arabic name
     if (!biz && !idMatch) {
       const cleanName = decodedParam.replace(/-/g, ' ').trim();
-      const searchUrl = `${SUPABASE_URL}/rest/v1/businesses?name_ar=ilike.%25${encodeURIComponent(cleanName)}%25&select=id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,description,photos,notes&limit=1`;
+      const searchUrl = `${SUPABASE_URL}/rest/v1/businesses?name_ar=ilike.%25${encodeURIComponent(cleanName)}%25&select=id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,notes,lat,lng&limit=1`;
       try {
         const searchRes = await fetch(searchUrl, {
           headers: {
@@ -127,6 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let googleRatingEnabled = false;
     let googleRating: number | null = null;
     let googleReviewsCount: number | null = null;
+    let googleMapsUrl: string | null = null;
 
     if (typeof biz.notes === 'string' && biz.notes.trim().startsWith('{')) {
       try {
@@ -135,6 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (parsed.googleRatingEnabled) googleRatingEnabled = Boolean(parsed.googleRatingEnabled);
           if (parsed.googleRating !== undefined && parsed.googleRating !== null) googleRating = Number(parsed.googleRating);
           if (parsed.googleReviewsCount !== undefined && parsed.googleReviewsCount !== null) googleReviewsCount = Number(parsed.googleReviewsCount);
+          if (parsed.googleMapsUrl || parsed.google_maps_url) googleMapsUrl = String(parsed.googleMapsUrl || parsed.google_maps_url).trim();
         }
       } catch {}
     }
@@ -237,21 +255,89 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const canonicalPageUrl = `${origin}/biz/${biz.id}`;
     const pageUrl = canonicalPageUrl;
 
+    const schemaType = resolveSchemaType(biz.category);
+    const numLat = Number(biz.lat);
+    const numLng = Number(biz.lng);
+    const hasValidCoords = Number.isFinite(numLat) && Number.isFinite(numLng) && numLat !== 0 && numLng !== 0;
+    const finalMapsUrl = googleMapsUrl || (hasValidCoords ? `https://www.google.com/maps?q=${numLat},${numLng}` : undefined);
+
+    const jsonLdGraph: any[] = [
+      {
+        '@type': schemaType,
+        '@id': `${canonicalPageUrl}#business`,
+        name: nameAr,
+        description: cleanShareDesc,
+        url: canonicalPageUrl,
+        telephone: phone || undefined,
+        priceRange: '$',
+        currenciesAccepted: 'EGP',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: biz.city || undefined,
+          addressRegion: biz.governorate || 'الجيزة',
+          streetAddress: biz.street || undefined,
+          addressCountry: 'EG',
+        },
+        image: ogImageUrl || undefined,
+        ...(hasValidCoords ? {
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: numLat,
+            longitude: numLng,
+          },
+        } : {}),
+        ...(googleRating && googleRating >= 1 ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: googleRating.toFixed(1),
+            reviewCount: googleReviewsCount || 1,
+            bestRating: '5',
+            worstRating: '1',
+          },
+        } : {}),
+        ...(biz.working_hours ? {
+          openingHours: String(biz.working_hours).trim(),
+        } : {}),
+        ...(finalMapsUrl ? {
+          hasMap: finalMapsUrl,
+          sameAs: [finalMapsUrl],
+        } : {}),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalPageUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'منصة دليلك',
+            item: `${origin}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: biz.governorate || 'الجيزة',
+            item: `${origin}/search`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: category,
+            item: `${origin}/search?cat=${encodeURIComponent(category)}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: nameAr,
+            item: canonicalPageUrl,
+          },
+        ],
+      },
+    ];
+
     const jsonLdData = {
       '@context': 'https://schema.org',
-      '@type': 'LocalBusiness',
-      name: nameAr,
-      description: cleanShareDesc,
-      url: canonicalPageUrl,
-      telephone: phone || undefined,
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: biz.city || undefined,
-        addressRegion: biz.governorate || undefined,
-        streetAddress: biz.street || undefined,
-        addressCountry: 'EG',
-      },
-      image: ogImageUrl || undefined,
+      '@graph': jsonLdGraph,
     };
     const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(jsonLdData).replace(/</g, '\\u003c')}</script>`;
 
@@ -321,6 +407,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Inject Schema.org structured data before closing head
       if (html.includes('</head>')) {
         html = html.replace('</head>', `  ${jsonLdTag}\n</head>`);
+      }
+
+      // Inject Semantic HTML Snapshot for Search Engines (Wave 1 Pre-rendering)
+      const semanticSnapshotHtml = `
+  <div id="root">
+    <main class="dalilak-crawler-snapshot" dir="rtl" lang="ar" style="max-width: 900px; margin: 2rem auto; padding: 1.5rem; font-family: 'Cairo', system-ui, -apple-system, sans-serif; color: #0f172a; line-height: 1.6;">
+      <article>
+        <header style="border-bottom: 2px solid #f59e0b; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+          <h1 style="font-size: 1.85rem; font-weight: 900; margin: 0 0 0.5rem 0; color: #0f172a;">${escapeHtml(nameAr)}</h1>
+          <p style="margin: 0.25rem 0; font-size: 0.95rem; color: #475569;"><strong>التصنيف المعتمد:</strong> ${escapeHtml(category)}</p>
+          <p style="margin: 0.25rem 0; font-size: 0.95rem; color: #475569;"><strong>العنوان والنطاق:</strong> ${escapeHtml(locationStr)}</p>
+          ${googleRating && googleRating >= 1 ? `<p style="margin: 0.25rem 0; font-size: 0.95rem; color: #d97706;"><strong>تقييم Google الموثق:</strong> ⭐ ${googleRating.toFixed(1)} (${googleReviewsCount || 1} تقييم)</p>` : ''}
+        </header>
+        <section style="margin-bottom: 1.5rem;">
+          ${phone ? `<p style="margin: 0.5rem 0;"><strong>رقم الهاتف المباشر:</strong> <a href="tel:${escapeHtml(phone)}" style="color: #d97706; font-weight: bold; text-decoration: none;">${escapeHtml(phone)}</a></p>` : ''}
+          ${biz.working_hours ? `<p style="margin: 0.5rem 0;"><strong>ساعات العمل:</strong> ${escapeHtml(String(biz.working_hours))}</p>` : ''}
+          ${biz.description ? `<div style="margin: 1rem 0;"><h2 style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">نبذة عن النشاط</h2><p style="color: #334155; margin: 0.25rem 0;">${escapeHtml(String(biz.description))}</p></div>` : ''}
+          ${finalMapsUrl ? `<p style="margin: 1rem 0;"><a href="${escapeHtml(finalMapsUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-decoration: none;">عرض الموقع على خرائط Google Maps</a></p>` : ''}
+        </section>
+        <footer style="border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.85rem; color: #64748b;">
+          <p>منصة دليلك | الدليل المعتمد للأنشطة والخدمات الميدانية في مصر</p>
+        </footer>
+      </article>
+    </main>
+  </div>`;
+
+      if (html.includes('<div id="root"></div>')) {
+        html = html.replace('<div id="root"></div>', semanticSnapshotHtml);
       }
     }
 

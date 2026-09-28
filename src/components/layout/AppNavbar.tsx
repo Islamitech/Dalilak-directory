@@ -85,14 +85,21 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
     setMobileMenuOpen(false);
   };
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.button === 0) {
+      e.preventDefault();
+      handleLinkClick(path);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs pt-[env(safe-area-inset-top)]" dir="rtl">
       <div className="max-w-7xl mx-auto px-2.5 min-[380px]:px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Right (RTL Start): Brand Logo & Location Pill */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-          <button
-            type="button"
-            onClick={() => handleLinkClick('/')}
+          <a
+            href="/"
+            onClick={(e) => handleAnchorClick(e, '/')}
             className="flex items-center gap-2 cursor-pointer focus:outline-none shrink-0"
             aria-label="الصفحة الرئيسية لمنصة دليلك"
           >
@@ -102,7 +109,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             <span className="sm:hidden">
               <Logo size="sm" variant="icon" showSubtitle={false} />
             </span>
-          </button>
+          </a>
 
           {/* 📍 Sleek Native Location Badge ("فعال لكن مخفي") */}
           <div className="relative min-w-0" ref={locationDropdownRef}>
@@ -192,10 +199,10 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 : cleanRoute === link.path || cleanRoute.startsWith(link.path);
             const Icon = link.icon;
             return (
-              <button
+              <a
                 key={link.path}
-                type="button"
-                onClick={() => handleLinkClick(link.path)}
+                href={link.path}
+                onClick={(e) => handleAnchorClick(e, link.path)}
                 className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer ${
                   isActive
                     ? 'bg-amber-500/15 text-amber-800 font-black'
@@ -209,7 +216,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                     {link.badge}
                   </span>
                 )}
-              </button>
+              </a>
             );
           })}
         </nav>
@@ -217,26 +224,26 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
         {/* Left (RTL End): Business Owner CTA & Mobile Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Subtle Pricing / Growth link for interested owners */}
-          <button
-            type="button"
-            onClick={() => handleLinkClick('/pricing')}
+          <a
+            href="/pricing"
+            onClick={(e) => handleAnchorClick(e, '/pricing')}
             className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-slate-600 hover:text-amber-700 hover:bg-amber-50 transition-all cursor-pointer"
           >
             <BadgeDollarSign className="w-4 h-4 text-amber-600" />
             <span>باقات النمو</span>
-          </button>
+          </a>
 
           {/* Primary Business Owner CTA */}
-          <button
-            type="button"
-            onClick={() => handleLinkClick('/for-business')}
+          <a
+            href="/for-business"
+            onClick={(e) => handleAnchorClick(e, '/for-business')}
             className="w-11 min-[400px]:w-auto min-h-11 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs px-0 min-[400px]:px-3 sm:px-4 py-2.5 rounded-xl shadow-xs hover:shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
             aria-label="أضف نشاطك مجاناً"
           >
             <Store className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">هل تملك نشاطاً؟ أضفه مجاناً</span>
             <span className="hidden min-[400px]:inline sm:hidden">أضف نشاطك</span>
-          </button>
+          </a>
 
           {/* Mobile Hamburger Button */}
           <button
@@ -260,10 +267,10 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 : cleanRoute === link.path || cleanRoute.startsWith(link.path);
             const Icon = link.icon;
             return (
-              <button
+              <a
                 key={link.path}
-                type="button"
-                onClick={() => handleLinkClick(link.path)}
+                href={link.path}
+                onClick={(e) => handleAnchorClick(e, link.path)}
                 className={`w-full px-4 py-3 rounded-xl flex items-center justify-between text-xs font-black transition-all cursor-pointer ${
                   isActive
                     ? 'bg-amber-500/15 text-amber-800'
@@ -279,14 +286,14 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                     {link.badge}
                   </span>
                 )}
-              </button>
+              </a>
             );
           })}
 
           <div className="pt-2 border-t border-slate-100 space-y-2">
-            <button
-              type="button"
-              onClick={() => handleLinkClick('/for-business')}
+            <a
+              href="/for-business"
+              onClick={(e) => handleAnchorClick(e, '/for-business')}
               className="w-full px-4 py-3 rounded-xl bg-amber-500 text-slate-950 text-xs font-black flex items-center justify-between transition-all cursor-pointer"
             >
               <div className="flex items-center gap-2">
@@ -294,18 +301,18 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 <span>إدراج نشاطك مجاناً</span>
               </div>
               <span className="text-[10px] bg-slate-950 text-white px-2 py-0.5 rounded-md">مجاني</span>
-            </button>
+            </a>
 
-            <button
-              type="button"
-              onClick={() => handleLinkClick('/pricing')}
+            <a
+              href="/pricing"
+              onClick={(e) => handleAnchorClick(e, '/pricing')}
               className="w-full px-4 py-3 rounded-xl bg-slate-50 hover:bg-amber-50 text-slate-800 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200"
             >
               <div className="flex items-center gap-2">
                 <BadgeDollarSign className="w-4 h-4 text-amber-600" />
                 <span>باقات النمو والظهور المميز</span>
               </div>
-            </button>
+            </a>
           </div>
         </div>
       )}

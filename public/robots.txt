@@ -1,5 +1,7 @@
-﻿# Robots.txt for Dalelak Directory Portal
+# Robots.txt for Dalelak Directory Portal
 User-agent: *
+Allow: /api/biz-og
+Allow: /api/sitemap
 Disallow: /api/
 Allow: /
 Allow: /biz/

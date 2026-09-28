@@ -258,10 +258,16 @@ export const SearchView: React.FC<SearchViewProps> = ({
               </div>
 
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.25]">
-                كل ما تحتاجه،
+                {categoryFilter && categoryFilter !== 'all' ? `دليل ${categoryFilter}` : 'دليل المحلات والأنشطة والخدمات'}،
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600">
-                  أقرب مما تتخيّل.
+                  {selectedZone && selectedZone !== 'all'
+                    ? `في حدائق الأهرام — منطقة (${selectedZone})`
+                    : selectedCity && selectedCity !== 'all'
+                    ? `المعتمدة في ${selectedCity}`
+                    : selectedGov && selectedGov !== 'all'
+                    ? `المعتمدة في ${selectedGov}`
+                    : 'المعتمدة في حدائق الأهرام ومصر'}.
                 </span>
               </h1>
 

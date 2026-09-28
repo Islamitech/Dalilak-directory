@@ -314,9 +314,9 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               </div>
 
               <div className="absolute bottom-3.5 right-4 left-4 text-white space-y-1 z-10">
-                <h2 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
+                <h1 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
                   {business.nameAr}
-                </h2>
+                </h1>
                 <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300 font-bold">
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-amber-400" />

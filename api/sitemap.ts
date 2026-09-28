@@ -39,8 +39,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const proto = (req.headers['x-forwarded-proto'] as string) === 'http' && host.includes('localhost') ? 'http' : 'https';
     const origin = escapeXml(`${proto}://${host}`);
 
-    // Fetch verified and published businesses from Supabase
-    const apiUrl = `${SUPABASE_URL}/rest/v1/businesses?verification_status=eq.verified&package_id=neq.pkg_interested_lead&select=id,name_ar,name_en,city,updated_at,created_at,notes&order=created_at.desc&limit=2500`;
+    // Fetch up to 10,000 verified and published businesses from Supabase
+    const apiUrl = `${SUPABASE_URL}/rest/v1/businesses?verification_status=eq.verified&package_id=neq.pkg_interested_lead&select=id,name_ar,name_en,category,city,governorate,photos,updated_at,created_at,notes&order=created_at.desc&limit=10000`;
 
     const dbRes = await fetch(apiUrl, {
       headers: {
@@ -59,25 +59,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    const urls: string[] = [
-      `  <url>
-    <loc>${origin}/</loc>
-    <lastmod>${todayStr}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>`,
-      `  <url>
-    <loc>${origin}/search</loc>
-    <lastmod>${todayStr}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>`,
+    // Core institutional and exploratory routes
+    const staticRoutes = [
+      { path: '/', lastmod: todayStr },
+      { path: '/search', lastmod: todayStr },
+      { path: '/map', lastmod: todayStr },
+      { path: '/pricing', lastmod: todayStr },
+      { path: '/for-business', lastmod: todayStr },
+      { path: '/about', lastmod: todayStr },
     ];
 
+    const urls: string[] = staticRoutes.map((r) => 
+`  <url>
+    <loc>${origin}${r.path}</loc>
+    <lastmod>${r.lastmod}</lastmod>
+  </url>`
+    );
+
     for (const biz of businesses) {
-      // Check if not unpublished or draft
       let isPublished = true;
       let customSlug = '';
+      let coverPhoto = '';
+
       if (typeof biz.notes === 'string' && biz.notes.startsWith('{')) {
         try {
           const parsed = JSON.parse(biz.notes);
@@ -85,7 +88,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             isPublished = false;
           }
           if (parsed.customDirectoryUrl) {
-            customSlug = parsed.customDirectoryUrl;
+            customSlug = String(parsed.customDirectoryUrl).replace(/^\/biz\//, '').replace(/^\//, '');
+          }
+          if (parsed.coverPhoto) {
+            coverPhoto = String(parsed.coverPhoto);
           }
         } catch {}
       }
@@ -96,19 +102,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const nameSlug = slugify(rawName) || 'نشاط';
       const citySlug = biz.city ? slugify(biz.city) : '';
       const locPart = citySlug && !nameSlug.includes(citySlug) ? `-${citySlug}` : '';
-      const locUrl = `${origin}/biz/${biz.id}`;
+      const fullSlug = customSlug || `${nameSlug}${locPart}-${biz.id}`;
+      const locUrl = `${origin}/biz/${encodeURIComponent(fullSlug)}`;
       const lastMod = (biz.updated_at || biz.created_at || todayStr).slice(0, 10);
 
+      // Collect primary photos for Image Sitemap
+      const primaryPhoto = coverPhoto || (Array.isArray(biz.photos) && biz.photos.length > 0 ? biz.photos[0] : null);
+      let imageTag = '';
+      if (primaryPhoto && typeof primaryPhoto === 'string' && primaryPhoto.startsWith('http')) {
+        imageTag = `
+    <image:image>
+      <image:loc>${escapeXml(primaryPhoto)}</image:loc>
+      <image:title>${escapeXml(rawName)}</image:title>
+      <image:caption>${escapeXml(`${rawName} - ${biz.category || 'نشاط معتمد'} في ${biz.city || 'حدائق الأهرام'}`)}</image:caption>
+    </image:image>`;
+      }
+
       urls.push(`  <url>
-    <loc>${escapeXml(locUrl)}</loc>
-    <lastmod>${lastMod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>${locUrl}</loc>
+    <lastmod>${lastMod}</lastmod>${imageTag}
   </url>`);
     }
 
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join('\n')}
 </urlset>`;
 

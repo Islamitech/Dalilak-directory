@@ -7,8 +7,9 @@ import {
   getBusinessOpenStatus,
   injectBusinessSchemaLd,
   shuffleBusinessesWithSeed,
+  updatePageMetadata,
 } from '../utils/directoryEnhancements';
-import { getDirectoryPath } from '../utils/directoryUrl';
+import { getDirectoryPath, getPublicDirectoryUrl } from '../utils/directoryUrl';
 import { matchesCategorySelection, resolveCategorySelection } from '../utils/categoryMatcher';
 import { matchesBusinessSearch, normalizeArabicText } from '../utils/arabicSearch';
 import { isBusinessInHadayekZone } from '../utils/hadayekZoneHelper';
@@ -333,6 +334,69 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       injectBusinessSchemaLd(null);
     }
   }, [selectedBiz]);
+
+  // Dynamic Page Metadata (Title, Description, Canonical) Synchronization
+  useEffect(() => {
+    if (selectedBiz) {
+      const name = selectedBiz.nameAr || selectedBiz.nameEn || 'نشاط معتمد';
+      const loc = [selectedBiz.city, selectedBiz.governorate].filter(Boolean).join(' - ') || 'مصر';
+      updatePageMetadata({
+        title: `${name} | منصة دليلك المعتمدة`,
+        description: selectedBiz.description || `${selectedBiz.category} في ${loc} - تواصل مباشر وتفاصيل الموقع الجغرافي على الخريطة المعتمدة.`,
+        canonicalUrl: getPublicDirectoryUrl(selectedBiz),
+      });
+      return;
+    }
+
+    const cleanRoute = currentPath.toLowerCase().split('?')[0];
+    const baseDomain = 'https://www.dalilaak.com';
+
+    if (cleanRoute === '/search') {
+      const catLabel = categoryFilter && categoryFilter !== 'all' ? ` — ${categoryFilter}` : '';
+      const zoneLabel = hadayekZoneFilter && hadayekZoneFilter !== 'all' ? ` في منطقة (${hadayekZoneFilter})` : '';
+      updatePageMetadata({
+        title: `استكشف الأنشطة والخدمات المعتمدة${catLabel}${zoneLabel} | منصة دليلك`,
+        description: `دليل المحلات والأنشطة والخدمات المعتمدة في حدائق الأهرام ومحافظات مصر${catLabel}${zoneLabel}. تفاصيل العناوين، أرقام التواصل وساعات العمل.`,
+        canonicalUrl: `${baseDomain}/search`,
+      });
+    } else if (cleanRoute === '/' || cleanRoute === '/map') {
+      updatePageMetadata({
+        title: 'الخريطة التفاعلية والمواقع الموثقة | منصة دليلك',
+        description: 'استكشف المحلات والأنشطة والخدمات الميدانية القريبة منك على الخريطة الحية المعتمدة في حدائق الأهرام ومصر.',
+        canonicalUrl: `${baseDomain}/`,
+      });
+    } else if (cleanRoute === '/pricing') {
+      updatePageMetadata({
+        title: 'باقات النمو والتوثيق الميداني للأنشطة | منصة دليلك',
+        description: 'اكتشف باقات توثيق واعتماد المحلات والشركات، الفواتير الإلكترونية، وبطاقات الدعم الميداني في منصة دليلك.',
+        canonicalUrl: `${baseDomain}/pricing`,
+      });
+    } else if (cleanRoute === '/for-business') {
+      updatePageMetadata({
+        title: 'أضف نشاطك التجاري مجاناً | منصة دليلك',
+        description: 'سجّل محلك أو خدمتك في منصة دليلك المعتمدة مجاناً واحصل على توثيق لموقعك على خرائط Google وتواصل مباشر مع العملاء.',
+        canonicalUrl: `${baseDomain}/for-business`,
+      });
+    } else if (cleanRoute === '/about') {
+      updatePageMetadata({
+        title: 'عن منصة دليلك ورسالتها الميدانية | منصة دليلك',
+        description: 'الرؤية والرسالة المؤسسية لمنظومة دليلك لتنظيم وتوثيق الوصول إلى الخدمات والأنشطة في محافظات مصر.',
+        canonicalUrl: `${baseDomain}/about`,
+      });
+    } else if (cleanRoute === '/favorites') {
+      updatePageMetadata({
+        title: 'الأنشطة المحفوظة والمفضلة | منصة دليلك',
+        description: 'قائمتك المفضلة من المحلات والأنشطة والخدمات المحفوظة للرجوع السريع إليها.',
+        canonicalUrl: `${baseDomain}/favorites`,
+      });
+    } else {
+      updatePageMetadata({
+        title: 'منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر',
+        description: 'الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps.',
+        canonicalUrl: `${baseDomain}/`,
+      });
+    }
+  }, [selectedBiz, currentPath, categoryFilter, hadayekZoneFilter]);
 
   // Reset all filters handler
   const resetAllFilters = () => {

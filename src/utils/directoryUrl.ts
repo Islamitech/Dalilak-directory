@@ -136,9 +136,8 @@ export function getPublicDirectoryUrl(
     }
   }
 
-  // 2. Resolve clean modern identifier without Arabic text (Default: business.id)
-  // Guarantees clean ASCII links without percent-encoding (%D9%...) on WhatsApp and browsers.
-  const shouldIncludeSlug = options?.includeSlug === true;
+  // 2. Resolve clean modern identifier with semantic SEO slug (Default: includes slug)
+  const shouldIncludeSlug = options?.includeSlug !== false;
   const identifier = shouldIncludeSlug ? getBusinessSlug(business) : business.id;
 
   if (options?.format === 'query') {
@@ -174,7 +173,8 @@ export function getPublicDirectoryUrl(
  */
 export function getDirectoryPath(business: BusinessUrlInput): string {
   if (!business || !business.id) return '/search';
-  return `/biz/${business.id}`;
+  const slug = getBusinessSlug(business);
+  return `/biz/${slug || business.id}`;
 }
 
 /**

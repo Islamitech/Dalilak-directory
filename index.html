@@ -46,6 +46,47 @@
     <meta name="twitter:description" content="الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps." />
     <meta name="twitter:image" content="https://www.dalilaak.com/og-image.jpg?v=2026_dalilak_v5_platform" />
 
+    <!-- Structured Data (Schema.org WebSite & Organization for Google Sitelinks Search) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.dalilaak.com/#website",
+          "url": "https://www.dalilaak.com/",
+          "name": "منصة دليلك",
+          "description": "الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والخدمات الميدانية في مصر",
+          "inLanguage": "ar",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.dalilaak.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.dalilaak.com/#organization",
+          "name": "منصة دليلك - Dalelak",
+          "url": "https://www.dalilaak.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://www.dalilaak.com/logo.png",
+            "width": 512,
+            "height": 512
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+201556221141",
+            "contactType": "customer service",
+            "areaServed": "EG",
+            "availableLanguage": ["Arabic", "ar"]
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- CDN Resource Hints & Preconnect for Fast LCP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
