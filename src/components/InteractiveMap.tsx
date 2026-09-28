@@ -18,6 +18,8 @@ import {
   InAppNavigationDrawer,
   MapFooterBar,
 } from './map';
+import { useDirectoryLoad, useDirectorySearchPending } from '../contexts/DirectoryLoadContext';
+import { Loader2 } from 'lucide-react';
 import { filterBusinessesForMap } from '../utils/hadayekZoneHelper';
 
 export type { InteractiveMapProps, MapTileLayerType };
@@ -55,6 +57,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   focusedBusiness,
   onClearFocusedBusiness,
 }) => {
+  const directoryLoad = useDirectoryLoad();
+  const searchPending = useDirectorySearchPending();
   const [mapSearchMode, setMapSearchMode] = useState<'browse' | 'building'>(targetBuilding ? 'building' : 'browse');
   const containerRef = useRef<HTMLDivElement | null>(null);
   const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
@@ -155,7 +159,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
       : null);
 
-  useMapPinsClustering({
+  const { isRenderingActivities } = useMapPinsClustering({
     mapInstance,
     state,
     mode,
@@ -198,6 +202,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       return () => clearTimeout(timer);
     }
   }, [mapInstance.isMapReady]);
+
+  const busy = directoryLoad.pending || searchPending || isRenderingActivities;
+  const [showBusy, setShowBusy] = useState(false);
+  useEffect(() => {
+    if (!busy) { setShowBusy(false); return; }
+    const timer = window.setTimeout(() => setShowBusy(true), 120);
+    return () => window.clearTimeout(timer);
+  }, [busy]);
 
   const filteredBusinessesCount = matchingBusinessesCount;
 
@@ -259,6 +271,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             }}
             categoryFilter={activeCategory}
             onCategoryChange={(cat) => {
+              state.setSelectedBiz(null);
               state.setMapCategoryFilter(cat);
               if (onCategoryChange) onCategoryChange(cat);
             }}
@@ -273,7 +286,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             onSelectBusiness={(biz) => {
               state.setSelectedBiz(biz);
               setSelectedBuildingState(null);
-              if (onSelectBusiness) onSelectBusiness(biz);
             }}
           >
               <ZoneScopedSearchBar
@@ -289,7 +301,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 onSelectBusiness={(biz) => {
                   state.setSelectedBiz(biz);
                   setSelectedBuildingState(null);
-                  if (onSelectBusiness) onSelectBusiness(biz);
                 }}
                 onClearBuilding={() => {
                   setSelectedBuildingState(null);
@@ -305,8 +316,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </MapModernTopBar>
         )}
 
+        {mode === 'view' && ((busy && showBusy) || (!busy && directoryLoad.error)) && (
+          <div className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none" role="status" aria-live="polite" aria-atomic="true">
+            <div className="flex items-center gap-2 rounded-full bg-white/95 border border-slate-200 px-3 py-2 text-xs text-slate-700 shadow-sm" dir="rtl">
+              {busy ? <><Loader2 size={15} className="animate-spin motion-reduce:animate-none"/><span>جارٍ البحث عن الأنشطة…</span></> : <><span>{directoryLoad.error}</span><button type="button" className="pointer-events-auto min-h-11 px-2 text-amber-700" onClick={() => window.dispatchEvent(new Event('directory:retry'))}>إعادة المحاولة</button></>}
+            </div>
+          </div>
+        )}
+
         {/* ⚠️ Empty Category Notice Banner (Non-intrusive lightweight pill) */}
-        {mode === 'view' && activeCategory && activeCategory !== 'all' && matchingBusinessesCount === 0 && (
+        {mode === 'view' && activeCategory && activeCategory !== 'all' && !directoryLoad.pending && !searchPending && !directoryLoad.error && !isRenderingActivities && matchingBusinessesCount === 0 && (
           <div className="absolute bottom-5 left-3 right-16 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
@@ -328,8 +347,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           switchTileLayer={mapInstance.switchTileLayer}
         />
 
-        {/* 🏪 Selected Business Drawer */}
-        {mode === 'view' && !navigationTargetState && !selectedBuildingState && (
+        {/* 🏢 Selected Business Bottom Drawer (Visible ONLY in State 1: when biz is selected but pin card is NOT yet expanded) */}
+        {mode === 'view' && !navigationTargetState && !selectedBuildingState && state.selectedBiz && !state.isSelectedBizExpandedOnMap && (
           <MapSelectedBusinessDrawer
             selectedBiz={state.selectedBiz}
             setSelectedBiz={(biz) => {
@@ -365,7 +384,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             onSelectBusiness={(biz) => {
               state.setSelectedBiz(biz);
               setSelectedBuildingState(null);
-              if (onSelectBusiness) onSelectBusiness(biz);
             }}
             onStartNavigation={(target) => {
               setNavigationTargetState(target);

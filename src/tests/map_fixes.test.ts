@@ -17,11 +17,14 @@ import {
   sanitizePhoneNumber,
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
+  createCompactSelectedActivityCardHtml,
   createCompactActivityPinHtml,
 } from '../components/map/badgeMarkers';
 import {
   planCameraTransitionOnZoneChange,
   planCameraTransitionOnCategoryChange,
+  planCameraTransitionOnBusinessSelect,
+  getVisualViewportPadding,
 } from '../components/map/utils/cameraPlanner';
 import {
   computeMarkerIconKey,
@@ -511,6 +514,32 @@ test('createExpandedActivityCardHtml renders expanded details card with close bu
   assert.equal(iconSize[0], 256, 'Expanded card width is 256px');
 });
 
+test('createCompactSelectedActivityCardHtml renders compact comfortable preview card without map occlusion', () => {
+  const biz = createMockBusiness({
+    id: 'compact1',
+    nameAr: 'لمعة لغسيل السيارات',
+    category: 'مغسلة سيارات',
+    street: 'شارع الدكتور ماجد محمود توفيق',
+    lat: 29.968,
+    lng: 31.100,
+    verificationStatus: 'verified',
+  });
+
+  const { html, iconSize, iconAnchor } = createCompactSelectedActivityCardHtml(biz);
+  assert.ok(!html.includes('onclick='), 'Forbidden to use inline onclick');
+  assert.ok(!html.includes('onerror='), 'Forbidden to use inline onerror');
+  assert.ok(html.includes('card-close-btn'), 'Must have close button with card-close-btn class');
+  assert.ok(html.includes('✕'), 'Must show close symbol');
+  assert.ok(html.includes('biz-card-photo'), 'Must render thumbnail photo with safe class');
+  assert.ok(html.includes('لمعة لغسيل السيارات'), 'Must render business name');
+  assert.ok(html.includes('مغسلة سيارات'), 'Must render category badge');
+  assert.ok(html.includes('compact-selected-card-pin'), 'Must have compact-selected-card-pin root container');
+  assert.equal(iconSize[0], 232, 'Compact card width is 232px');
+  assert.equal(iconSize[1], 72, 'Compact card total height is 72px (unobtrusive to map view)');
+  assert.equal(iconAnchor[0], Math.round(232 / 2), 'Anchor X is centered at bottom');
+  assert.equal(iconAnchor[1], 72, 'Anchor Y points directly to exact ground coordinates');
+});
+
 // ---------------------------------------------------------
 // 4. Central Filter Logic & Address Elimination Tests
 // ---------------------------------------------------------
@@ -637,6 +666,61 @@ test('Zone change triggers exactly ONE camera transition per selection', () => {
     [[29.95, 31.09], [29.96, 31.10], [29.97, 31.11], [29.98, 31.12]],
     'Camera framing must include every polygon ring in a multipart district'
   );
+});
+
+test('Parabolic arc flight is selected when switching zones from zoomed-in altitude (>= 15.0)', () => {
+  const arcDecision = planCameraTransitionOnZoneChange('أ', 'هـ', HADAYEK_OFFICIAL_DISTRICTS, 16.2);
+  assert.equal(arcDecision.shouldMove, true);
+  assert.equal(arcDecision.flightMode, 'parabolic-arc');
+  assert.equal(arcDecision.overviewZoom, 14.0);
+  assert.equal(arcDecision.phase1Duration, 0.45);
+  assert.equal(arcDecision.phase2Duration, 0.75);
+  assert.equal(arcDecision.totalDuration, 1.2);
+});
+
+test('Direct glide flight is selected when selecting zone from city overview (< 15.0)', () => {
+  const directDecision = planCameraTransitionOnZoneChange('', 'ب', HADAYEK_OFFICIAL_DISTRICTS, 13.8);
+  assert.equal(directDecision.shouldMove, true);
+  assert.equal(directDecision.flightMode, 'direct-glide');
+  assert.equal(directDecision.totalDuration, 1.15);
+});
+
+test('Selecting business in city overview (<= 15.0) retains overview scale without deep zoom slam', () => {
+  const overviewDecision = planCameraTransitionOnBusinessSelect(
+    null,
+    'biz_123',
+    { lat: 29.975, lng: 31.105 },
+    14.2,
+    false
+  );
+  assert.equal(overviewDecision.shouldMove, true);
+  assert.equal(overviewDecision.flightMode, 'pan-center');
+  assert.equal(overviewDecision.targetZoom, 14.2, 'Overview zoom level must be preserved (not slammed to 17)');
+  assert.equal(overviewDecision.totalDuration, 0.6);
+});
+
+test('Selecting business with isExpandedOnMap triggers street dive (17.5)', () => {
+  const expandDecision = planCameraTransitionOnBusinessSelect(
+    null,
+    'biz_123',
+    { lat: 29.975, lng: 31.105 },
+    14.2,
+    true
+  );
+  assert.equal(expandDecision.shouldMove, true);
+  assert.equal(expandDecision.flightMode, 'direct-glide');
+  assert.equal(expandDecision.targetZoom, 17.5, 'Expanded card click must dive into street level');
+  assert.equal(expandDecision.totalDuration, 0.65);
+});
+
+test('getVisualViewportPadding accounts for mobile bottom drawer and top search bar', () => {
+  const mobileWithDrawer = getVisualViewportPadding(true, true);
+  assert.equal(mobileWithDrawer.paddingTopLeft[1], 95, 'Top padding for mobile search bar');
+  assert.equal(mobileWithDrawer.paddingBottomRight[0], 165, 'Bottom padding for mobile action drawer');
+
+  const desktopPadding = getVisualViewportPadding(false, false);
+  assert.equal(desktopPadding.paddingTopLeft[1], 90);
+  assert.equal(desktopPadding.paddingBottomRight[0], 50);
 });
 
 test('Marker Registry reconciliation retains identical marker instances across non-affecting renders', () => {

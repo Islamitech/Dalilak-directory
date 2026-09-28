@@ -4,21 +4,24 @@ import { HADAYEK_OFFICIAL_DISTRICTS, HADAYEK_OFFICIAL_GATES } from '../../../dat
 import {
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
+  createCompactSelectedActivityCardHtml,
   createCompactActivityPinHtml,
-  createDistrictClusterHtml,
+  createLightweightClusterHtml,
   createBuildingBadgeHtml,
   createNavigationPinHtml,
   attachCardDomListeners,
 } from '../badgeMarkers';
 import { isBusinessInHadayekZone, filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
-import {
-  disperseCoincidentPins,
-  disperseActivityCardsScreenSpace,
-  getResponsiveCardLimit,
-} from '../utils/pinDispersal';
-import { planCameraTransitionOnZoneChange } from '../utils/cameraPlanner';
+import { scheduleProgressiveWork } from '../utils/progressiveWork';
+import { activityCardScale, groupNearbyActivities } from '../utils/spatialActivityGroups';
 import { computeMarkerIconKey } from '../utils/markerReconciliation';
+import {
+  planCameraTransitionOnZoneChange,
+  planCameraTransitionOnBusinessSelect,
+  getVisualViewportPadding,
+} from '../utils/cameraPlanner';
+import { preloadDistrictTiles } from '../../../utils/hadayekTilePreloader';
 import { useMapInstance } from './useMapInstance';
 import { useMapState } from './useMapState';
 
@@ -74,7 +77,20 @@ export const useMapPinsClustering = ({
   onSelectBuilding,
   activeRoute,
 }: UseMapPinsClusteringProps) => {
-  const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({});
+  const [viewportRevision, setViewportRevision] = useState(0);
+  const [isRenderingActivities, setIsRenderingActivities] = useState(false);
+  const clusterRegistry = useRef(new Map<string, any>());
+  const seenMarkers = useRef(new Set<string>());
+  const groupingCache = useRef<{ items: Business[]; zoom: number; groups: Business[][] } | null>(null);
+  const filterIdentity = `${selectedZoneProp ?? ''}|${categoryFilterProp ?? ''}`;
+  useEffect(() => { seenMarkers.current.clear(); }, [filterIdentity]);
+  const animateNewMarker = (marker: any, id: string) => {
+    if (seenMarkers.current.has(id)) return;
+    seenMarkers.current.add(id);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const content = marker.getElement()?.firstElementChild;
+    content?.animate([{ opacity: 0, translate: '0 5px' }, { opacity: 1, translate: '0 0' }], { duration: 180, easing: 'ease-out' });
+  };
   const {
     leafletMapRef,
     isMapReady,
@@ -96,6 +112,8 @@ export const useMapPinsClustering = ({
     onlyVerifiedFilter,
     selectedBiz,
     setSelectedBiz,
+    isSelectedBizExpandedOnMap,
+    setIsSelectedBizExpandedOnMap,
     setSelectedZone,
     setShowBusinesses,
     showDistrictsOverlay,
@@ -140,6 +158,8 @@ export const useMapPinsClustering = ({
   const lastFlownTargetRef = useRef<string | null>(null);
   const lastSelectedBizIdRef = useRef<string | null>(null);
   const preSelectedStateRef = useRef<{ center: [number, number]; zoom: number } | null>(null);
+  const isCameraFlyingRef = useRef<boolean>(false);
+  const flightSettlingTimerRef = useRef<number | null>(null);
 
   const onSelectBusinessRef = useRef(onSelectBusiness);
   onSelectBusinessRef.current = onSelectBusiness;
@@ -150,10 +170,30 @@ export const useMapPinsClustering = ({
   const selectedBizRef = useRef(selectedBiz);
   selectedBizRef.current = selectedBiz;
 
-  // Reset expanded clusters whenever zone or category changes
-  useEffect(() => {
-    setExpandedZones({});
-  }, [effectiveSelectedZone, effectiveCategoryFilter]);
+  const markCameraFlight = useCallback((map: any) => {
+    try {
+      const container = map?.getContainer?.();
+      if (!container) return;
+      isCameraFlyingRef.current = true;
+      if (flightSettlingTimerRef.current !== null) {
+        window.clearTimeout(flightSettlingTimerRef.current);
+        flightSettlingTimerRef.current = null;
+      }
+      container.classList.remove('is-camera-settling');
+      container.classList.add('is-camera-flying');
+
+      const onFlightEnd = () => {
+        container.classList.remove('is-camera-flying');
+        container.classList.add('is-camera-settling');
+        flightSettlingTimerRef.current = window.setTimeout(() => {
+          isCameraFlyingRef.current = false;
+          container.classList.remove('is-camera-settling');
+          flightSettlingTimerRef.current = null;
+        }, 180);
+      };
+      map.once('moveend', onFlightEnd);
+    } catch {}
+  }, []);
 
   // Handler to select district
   const handleSelectDistrict = useCallback((letter: string) => {
@@ -332,79 +372,121 @@ export const useMapPinsClustering = ({
     const map = leafletMapRef.current;
     if (!map || !isMapReady || !window.L) return;
 
-    const hasActiveZone = Boolean(effectiveSelectedZone && effectiveSelectedZone.trim() !== '');
+    const updateDistrictHighlightStyles = (zoneLetter: string) => {
+      const isTargetActive = Boolean(zoneLetter && zoneLetter.trim() !== '');
+      const shouldHighlight = isTargetActive && !buildingSearchActive && !targetBuilding && (!effectiveCategoryFilter || effectiveCategoryFilter === 'all');
 
-    const highlightZone = hasActiveZone && !buildingSearchActive && !targetBuilding && (!effectiveCategoryFilter || effectiveCategoryFilter === 'all');
-
-    // 1. Update Inverted Spotlight Mask
-    if (maskPolygonRef.current) {
-      if (highlightZone) {
-        const activeDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === effectiveSelectedZone);
-        if (activeDistrict && activeDistrict.polygons && activeDistrict.polygons.length > 0) {
-          const worldRing: [number, number][] = [
-            [35.0, 25.0],
-            [35.0, 37.0],
-            [25.0, 37.0],
-            [25.0, 25.0],
-          ];
-          maskPolygonRef.current.setLatLngs([worldRing, ...activeDistrict.polygons]);
-          maskPolygonRef.current.setStyle({ fillOpacity: 0.12 });
+      // 1. Update Inverted Spotlight Mask
+      if (maskPolygonRef.current) {
+        if (shouldHighlight) {
+          const activeDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === zoneLetter);
+          if (activeDistrict && activeDistrict.polygons && activeDistrict.polygons.length > 0) {
+            const worldRing: [number, number][] = [
+              [35.0, 25.0],
+              [35.0, 37.0],
+              [25.0, 37.0],
+              [25.0, 25.0],
+            ];
+            maskPolygonRef.current.setLatLngs([worldRing, ...activeDistrict.polygons]);
+            maskPolygonRef.current.setStyle({ fillOpacity: 0.04 });
+          } else {
+            maskPolygonRef.current.setStyle({ fillOpacity: 0.0 });
+          }
         } else {
           maskPolygonRef.current.setStyle({ fillOpacity: 0.0 });
         }
-      } else {
-        maskPolygonRef.current.setStyle({ fillOpacity: 0.0 });
       }
-    }
 
-    // 2. Update styles for each district polygon
-    districtPolygonsRef.current.forEach(({ letterAr, polygon, color }) => {
-      const isSelected = hasActiveZone && letterAr === effectiveSelectedZone;
-      if (isSelected) {
-        polygon.setStyle({
-          color: '#d97706',
-          weight: 4,
-          opacity: 1.0,
-          fillColor: '#f59e0b',
-          fillOpacity: highlightZone ? 0.16 : 0,
-          className: 'selected-district-polygon-focus',
-        });
-      } else {
-        polygon.setStyle({
-          color,
-          weight: 0.8,
-          opacity: highlightZone ? 0.12 : 0.3,
-          fillColor: color,
-          fillOpacity: 0,
-          className: 'hadayek-district-polygon',
-        });
-      }
-    });
+      // 2. Update styles for each district polygon
+      districtPolygonsRef.current.forEach(({ letterAr, polygon, color }) => {
+        const isSelected = isTargetActive && letterAr === zoneLetter;
+        const path = (polygon as any)._path as SVGElement | undefined;
+        if (isSelected) {
+          polygon.setStyle({
+            color: '#d97706',
+            weight: 2.5,
+            opacity: 1.0,
+            fillColor: '#f59e0b',
+            fillOpacity: 0.0,
+          });
+          if (path) {
+            path.classList.add('selected-district-polygon-focus');
+          }
+        } else {
+          polygon.setStyle({
+            color,
+            weight: 0.8,
+            opacity: shouldHighlight ? 0.0 : 0.25,
+            fillColor: color,
+            fillOpacity: 0,
+          });
+          if (path) {
+            path.classList.remove('selected-district-polygon-focus');
+          }
+        }
+      });
+    };
 
     // 4. 🚀 Single Owner Camera Transition for District Selection/Clearing
+    const currentZoom = map.getZoom();
     const decision = planCameraTransitionOnZoneChange(
       previousSelectedZoneRef.current,
       effectiveSelectedZone,
-      HADAYEK_OFFICIAL_DISTRICTS
+      HADAYEK_OFFICIAL_DISTRICTS,
+      currentZoom
     );
 
     if (decision.shouldMove) {
       previousSelectedZoneRef.current = effectiveSelectedZone;
-      cameraTransitionTokenRef.current++;
+      ++cameraTransitionTokenRef.current;
+
+      const isMobile = map.getSize().x < 640;
+      const viewportPadding = getVisualViewportPadding(isMobile, false);
 
       if (decision.type === 'zone' && decision.targetBounds) {
         try {
+          preloadDistrictTiles(effectiveSelectedZone, decision.targetBounds);
           map.stop();
           const bounds = window.L.latLngBounds(decision.targetBounds);
-          const mobile = map.getSize().x < 640;
-          map.fitBounds(bounds, { paddingTopLeft: mobile ? [16, 100] : [40, 100], paddingBottomRight: [64, 40], maxZoom: 16.5, animate: true, duration: 0.45 });
+
+          // Update highlight continuously to destination zone (NO 450ms blink-out!)
+          updateDistrictHighlightStyles(effectiveSelectedZone);
+
+          const duration = decision.flightMode === 'parabolic-arc'
+            ? (decision.totalDuration || 1.25)
+            : (decision.totalDuration || 1.15);
+
+          markCameraFlight(map);
+          if (typeof map.flyToBounds === 'function') {
+            map.flyToBounds(bounds, {
+              paddingTopLeft: viewportPadding.paddingTopLeft,
+              paddingBottomRight: viewportPadding.paddingBottomRight,
+              maxZoom: 16.5,
+              duration,
+              easeLinearity: 0.25,
+            });
+          } else {
+            map.fitBounds(bounds, {
+              paddingTopLeft: viewportPadding.paddingTopLeft,
+              paddingBottomRight: viewportPadding.paddingBottomRight,
+              maxZoom: 16.5,
+              animate: true,
+            });
+          }
         } catch {}
       } else if (decision.type === 'overview' && decision.targetCenter) {
         try {
+          updateDistrictHighlightStyles('');
           map.stop();
-          map.flyTo(decision.targetCenter, decision.targetZoom || 14, { duration: 0.45 });
+          markCameraFlight(map);
+          map.flyTo(decision.targetCenter, decision.targetZoom || 14, {
+            duration: decision.totalDuration || 1.1,
+            easeLinearity: 0.25,
+          });
         } catch {}
       }
+    } else {
+      updateDistrictHighlightStyles(effectiveSelectedZone);
     }
   }, [effectiveSelectedZone, effectiveCategoryFilter, buildingSearchActive, targetBuilding, isMapReady]);
 
@@ -449,7 +531,7 @@ export const useMapPinsClustering = ({
       return;
     }
 
-    if (lastSelectedBizIdRef.current === selectedBiz.id) return;
+    if (lastSelectedBizIdRef.current === selectedBiz.id && !isSelectedBizExpandedOnMap) return;
     lastSelectedBizIdRef.current = selectedBiz.id;
 
     // Save map center and zoom BEFORE centering on the selected business
@@ -460,12 +542,41 @@ export const useMapPinsClustering = ({
       };
     }
 
-    try {
-      cameraTransitionTokenRef.current++;
-      map.stop();
-      map.flyTo([selectedBiz.lat, selectedBiz.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
-    } catch {}
-  }, [selectedBiz, isMapReady]);
+    const currentZoom = map.getZoom();
+    const isMobile = map.getSize().x < 640;
+
+    const decision = planCameraTransitionOnBusinessSelect(
+      null, // force evaluation for active selectedBiz
+      selectedBiz.id,
+      { lat: selectedBiz.lat, lng: selectedBiz.lng },
+      currentZoom,
+      isSelectedBizExpandedOnMap
+    );
+
+    if (decision.shouldMove && decision.targetCenter) {
+      try {
+        cameraTransitionTokenRef.current++;
+        map.stop();
+
+        if (decision.flightMode === 'pan-center') {
+          // In State 1 at City Overview: keep overview zoom, pan smoothly with vertical offset
+          const targetLat = isMobile ? selectedBiz.lat - 0.0035 : selectedBiz.lat;
+          map.panTo([targetLat, selectedBiz.lng], {
+            animate: true,
+            duration: decision.totalDuration || 0.6,
+          });
+        } else {
+          // Local zoom / State 2
+          const targetLat = isMobile && !isSelectedBizExpandedOnMap ? selectedBiz.lat - 0.0015 : selectedBiz.lat;
+          markCameraFlight(map);
+          map.flyTo([targetLat, selectedBiz.lng], decision.targetZoom || 17, {
+            duration: decision.totalDuration || 0.65,
+            easeLinearity: 0.25,
+          });
+        }
+      } catch {}
+    }
+  }, [selectedBiz, isSelectedBizExpandedOnMap, isMapReady]);
 
   // 3. 🏢 Precision Target Building Pin
   useEffect(() => {
@@ -765,6 +876,7 @@ export const useMapPinsClustering = ({
 
   // Main Reconciliation Effect
   useEffect(() => {
+    setIsRenderingActivities(false);
     if (mode !== 'view') return;
     const map = leafletMapRef.current;
     if (!map || !isMapReady || !window.L) return;
@@ -778,20 +890,44 @@ export const useMapPinsClustering = ({
     if (selectedBiz) {
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
+      clusterRegistry.current.clear();
       markersRegistryRef.current.clear();
       clusterMarkerRef.current = null;
 
-      const cardData = createExpandedActivityCardHtml(selectedBiz);
+      const isExpanded = isSelectedBizExpandedOnMap;
+      const cardData = isExpanded
+        ? createExpandedActivityCardHtml(selectedBiz)
+        : createCompactSelectedActivityCardHtml(selectedBiz);
+
       const bizIcon = window.L.divIcon({
-        className: 'custom-biz-pin selected-expanded-card animate-scale-in',
+        className: `custom-biz-pin ${isExpanded ? 'selected-expanded-card' : 'selected-compact-card'} animate-scale-in`,
         html: cardData.html,
         iconSize: cardData.iconSize,
         iconAnchor: cardData.iconAnchor,
       });
 
+      const handleCardClick = () => {
+        if (!isExpanded) {
+          // State 1 -> State 2: Smooth camera zoom and transform into expanded card
+          try {
+            cameraTransitionTokenRef.current++;
+            map.stop();
+            map.flyTo([selectedBiz.lat, selectedBiz.lng], 17.5, { duration: 0.65, easeLinearity: 0.25 });
+          } catch {}
+          setIsSelectedBizExpandedOnMap(true);
+        } else {
+          // In State 2, clicking card body opens the comprehensive details modal
+          if (onSelectBusinessRef.current) {
+            onSelectBusinessRef.current(selectedBiz);
+          }
+        }
+      };
+
       if (selectedMarkerRef.current && selectedLayer.hasLayer(selectedMarkerRef.current)) {
         selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
         selectedMarkerRef.current.setIcon(bizIcon);
+        selectedMarkerRef.current.off('click');
+        selectedMarkerRef.current.on('click', handleCardClick);
         attachCardDomListeners(selectedMarkerRef.current, cardData.fallbackCover, () => setSelectedBiz(null));
       } else {
         selectedLayer.clearLayers();
@@ -800,9 +936,7 @@ export const useMapPinsClustering = ({
           pane: 'selectedPinPane',
           zIndexOffset: 1200,
         });
-        marker.on('click', () => {
-          if (onSelectBusinessRef.current) onSelectBusinessRef.current(selectedBiz);
-        });
+        marker.on('click', handleCardClick);
         selectedLayer.addLayer(marker);
         attachCardDomListeners(marker, cardData.fallbackCover, () => setSelectedBiz(null));
         selectedMarkerRef.current = marker;
@@ -821,6 +955,7 @@ export const useMapPinsClustering = ({
     if (!hasCategoryFilter) {
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
+      clusterRegistry.current.clear();
       selectedLayer.clearLayers();
       markersRegistryRef.current.clear();
       selectedMarkerRef.current = null;
@@ -828,236 +963,118 @@ export const useMapPinsClustering = ({
       return;
     }
 
-    const activeZoneKey = effectiveSelectedZone || 'all';
-    const isExpanded = Boolean(expandedZones[activeZoneKey]);
-
-    if (isExpanded) {
-      // Cluster opened: burst open all businesses into compact activity pins
-      clusterLayer.clearLayers();
-      clusterMarkerRef.current = null;
-
-      const dispersed = disperseCoincidentPins(sortedBusinesses, null, 8, { cardMode: false });
-      const currentIds = new Set(dispersed.map((d) => d.biz.id));
-
-      // Remove stale markers
-      markersRegistryRef.current.forEach((entry, id) => {
-        if (!currentIds.has(id)) {
-          try { cardsLayer.removeLayer(entry.marker); } catch {}
-          markersRegistryRef.current.delete(id);
-        }
-      });
-
-      dispersed.forEach(({ biz, pixelOffset }, idx) => {
-        const isTop = idx < 3;
-        const pinData = createCompactActivityPinHtml(
-          biz,
-          false,
-          isTop,
-          isTop ? idx + 1 : undefined,
-          pixelOffset
-        );
-        const iconKey = computeMarkerIconKey(biz, idx, pixelOffset, 'compact');
-        const pinIcon = window.L.divIcon({
-          className: 'custom-biz-pin burst-compact-pin animate-scale-in',
-          html: pinData.html,
-          iconSize: pinData.iconSize,
-          iconAnchor: pinData.iconAnchor,
-        });
-
-        const existing = markersRegistryRef.current.get(biz.id);
-        if (existing) {
-          existing.biz = biz;
-          if (existing.iconKey !== iconKey) {
-            existing.marker.setIcon(pinIcon);
-            existing.iconKey = iconKey;
-          }
-        } else {
-          const marker = window.L.marker([biz.lat, biz.lng], {
-            icon: pinIcon,
-            pane: 'pinsPane',
-            zIndexOffset: 500 - idx * 2,
-          });
-          marker.on('click', () => {
-            const currentBiz = markersRegistryRef.current.get(biz.id)?.biz || biz;
-            setSelectedBiz(currentBiz);
-            if (onSelectBusinessRef.current) onSelectBusinessRef.current(currentBiz);
-          });
-          cardsLayer.addLayer(marker);
-          markersRegistryRef.current.set(biz.id, { marker, biz, iconKey });
-        }
-      });
-    } else {
-      // Responsive Card Limit: Desktop (>=768px): 3 cards; Tablet (480-767px): 2 cards; Mobile (<480px): 1 card
-      const containerWidth = map.getSize()?.x || 800;
-      const cardLimit = getResponsiveCardLimit(containerWidth);
-      const topCards = sortedBusinesses.slice(0, cardLimit);
-      const remaining = sortedBusinesses.slice(cardLimit);
-
-      const offsets = disperseActivityCardsScreenSpace(topCards, map, {
-        cardWidth: 184,
-        cardHeight: 143,
-        minSpacing: 196,
-      });
-
-      const topIds = new Set(topCards.map((b) => b.id));
-
-      // 1. Remove markers not in top cards
-      markersRegistryRef.current.forEach((entry, id) => {
-        if (!topIds.has(id)) {
-          try { cardsLayer.removeLayer(entry.marker); } catch {}
-          markersRegistryRef.current.delete(id);
-        }
-      });
-
-      // 2. Add or update prominent cards
-      topCards.forEach((biz, idx) => {
-        const offset = offsets.get(biz.id) || [0, 0];
-        const cardData = createLightweightBadgeHtml(biz, false, true, idx + 1, offset);
-        const iconKey = computeMarkerIconKey(biz, idx, offset, 'card');
-
-        const cardIcon = window.L.divIcon({
-          className: 'custom-biz-pin top-prominent-card',
-          html: cardData.html,
-          iconSize: cardData.iconSize,
-          iconAnchor: cardData.iconAnchor,
-        });
-
-        const existing = markersRegistryRef.current.get(biz.id);
-        if (existing) {
-          existing.biz = biz;
-          if (existing.iconKey !== iconKey) {
-            existing.marker.setIcon(cardIcon);
-            existing.iconKey = iconKey;
-            attachCardDomListeners(existing.marker, cardData.fallbackCover);
-          }
-        } else {
-          const marker = window.L.marker([biz.lat, biz.lng], {
-            icon: cardIcon,
-            pane: 'pinsPane',
-            zIndexOffset: 600 - idx * 10,
-          });
-          marker.on('click', () => {
-            const currentBiz = markersRegistryRef.current.get(biz.id)?.biz || biz;
-            setSelectedBiz(currentBiz);
-            if (onSelectBusinessRef.current) onSelectBusinessRef.current(currentBiz);
-          });
-          cardsLayer.addLayer(marker);
-          attachCardDomListeners(marker, cardData.fallbackCover);
-          markersRegistryRef.current.set(biz.id, { marker, biz, iconKey });
-        }
-      });
-
-      // 3. Cluster Marker for remaining items
-      if (remaining.length > 0) {
-        const centerLat = remaining.reduce((acc, b) => acc + b.lat, 0) / remaining.length;
-        const centerLng = remaining.reduce((acc, b) => acc + b.lng, 0) / remaining.length;
-        const clusterData = createDistrictClusterHtml(remaining.length, effectiveCategoryFilter);
-
-        const clusterIcon = window.L.divIcon({
-          className: 'custom-district-cluster-pin animate-bounce-subtle',
-          html: clusterData.html,
-          iconSize: clusterData.iconSize,
-          iconAnchor: clusterData.iconAnchor,
-        });
-
-        if (clusterMarkerRef.current && clusterLayer.hasLayer(clusterMarkerRef.current)) {
-          clusterMarkerRef.current.setLatLng([centerLat, centerLng]);
-          clusterMarkerRef.current.setIcon(clusterIcon);
-        } else {
-          clusterLayer.clearLayers();
-          const marker = window.L.marker([centerLat, centerLng], {
-            icon: clusterIcon,
-            pane: 'pinsPane',
-            zIndexOffset: 700,
-          });
-          marker.on('click', () => {
-            const validPts = remaining.map((b) => [b.lat, b.lng] as [number, number]);
-            if (validPts.length > 0) {
-              try {
-                map.stop();
-                const bounds = window.L.latLngBounds(validPts);
-                map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 18, duration: 0.8 });
-              } catch {}
-            }
-            setExpandedZones((prev) => ({ ...prev, [activeZoneKey]: true }));
-          });
-          clusterLayer.addLayer(marker);
-          clusterMarkerRef.current = marker;
-        }
-      } else {
-        clusterLayer.clearLayers();
-        clusterMarkerRef.current = null;
-      }
+    const scale = activityCardScale(map.getZoom());
+    const bounds = map.getBounds().pad(0.2);
+    const zoom = map.getZoom();
+    if (groupingCache.current?.items !== sortedBusinesses || groupingCache.current.zoom !== zoom) {
+      groupingCache.current = { items: sortedBusinesses, zoom, groups: groupNearbyActivities(sortedBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
     }
-  }, [
-    mode,
-    isMapReady,
-    sortedBusinesses,
-    effectiveSelectedZone,
-    effectiveCategoryFilter,
-    selectedBiz,
-    expandedZones,
-    setSelectedBiz,
-  ]);
+    const groups = groupingCache.current.groups;
+    const occupied: Array<{ x: number; y: number }> = [];
+    const visibleGroups = groups.filter(group => group.some(biz => bounds.contains([biz.lat, biz.lng])));
+    // Remove stale results before yielding, so a new filter never shows old pins.
+    const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
+    const clusterKey = (g: Business[]) => g.map(b => `${b.id}:${b.lat}:${b.lng}:${b.nameAr}`).join('|');
+    const nextClusters = new Set(visibleGroups.filter(g => g.length > 1).map(clusterKey));
+    markersRegistryRef.current.forEach((entry, id) => { if (!nextIds.has(id)) { cardsLayer.removeLayer(entry.marker); markersRegistryRef.current.delete(id); } });
+    clusterRegistry.current.forEach((marker, id) => { if (!nextClusters.has(id)) { clusterLayer.removeLayer(marker); clusterRegistry.current.delete(id); } });
+    setIsRenderingActivities(visibleGroups.length > 0);
+    return scheduleProgressiveWork(visibleGroups, group => {
+      const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
+      const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
+      if (!bounds.contains([lat, lng])) return;
+      if (group.length > 1) {
+        const key = clusterKey(group);
+        if (clusterRegistry.current.has(key)) return;
+        const data = createLightweightClusterHtml(group.length);
+        const marker = window.L.marker([lat, lng], { icon: window.L.divIcon({ className: 'custom-district-cluster-pin', ...data }), pane: 'pinsPane', zIndexOffset: 600, title: `${group.length} أنشطة متقاربة` });
+        marker.on('click', () => {
+          const points = group.map(biz => [biz.lat, biz.lng]);
+          if (map.getZoom() < 19 && group.some(biz => map.distance([lat, lng], [biz.lat, biz.lng]) > 3)) {
+            map.flyToBounds(window.L.latLngBounds(points), { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 });
+          } else {
+            const list = document.createElement('div');
+            list.dir = 'rtl'; list.style.cssText = 'max-height:240px;overflow:auto;min-width:190px';
+            const heading = document.createElement('strong'); heading.textContent = `${group.length} أنشطة في هذا المكان`; list.append(heading);
+            group.forEach(biz => {
+              const button = document.createElement('button'); button.type = 'button'; button.textContent = biz.nameAr || biz.name || 'عرض النشاط';
+              button.style.cssText = 'display:block;width:100%;padding:12px;text-align:right;border-bottom:1px solid #eee;cursor:pointer;background:white;color:#0f172a';
+              button.onclick = () => { map.closePopup(); setSelectedBiz(biz); };
+              list.append(button);
+            });
+            marker.bindPopup(list).openPopup();
+          }
+        });
+        clusterLayer.addLayer(marker);
+        clusterRegistry.current.set(key, marker);
+        animateNewMarker(marker, key);
+        return;
+      }
+      const biz = group[0];
+      const point = map.latLngToContainerPoint([biz.lat, biz.lng]);
+      const compact = occupied.some(p => Math.abs(p.x-point.x) < 184*scale+10 && Math.abs(p.y-point.y) < 143*scale+10);
+      if (!compact) occupied.push(point);
+      const cardScale = compact ? 1 : scale;
+      const iconKey = computeMarkerIconKey(biz, 0, [0, 0], compact ? 'compact' : 'card') + `_${cardScale}`;
+      const existing = markersRegistryRef.current.get(biz.id);
+      if (existing && existing.iconKey === iconKey) { existing.biz = biz; existing.marker.setLatLng([biz.lat, biz.lng]); return; }
+      const data = compact ? createCompactActivityPinHtml(biz, false, false) : createLightweightBadgeHtml(biz, false, false);
+      const icon = window.L.divIcon({ className: 'custom-biz-pin', html: `<div style="transform:scale(${cardScale});transform-origin:top left">${data.html}</div>`, iconSize: data.iconSize.map(n => n*cardScale), iconAnchor: data.iconAnchor.map(n => n*cardScale) });
+      if (existing) {
+        existing.biz = biz; existing.marker.setLatLng([biz.lat, biz.lng]);
+        if (existing.iconKey !== iconKey) { existing.marker.setIcon(icon); existing.iconKey = iconKey; if ('fallbackCover' in data && typeof data.fallbackCover === 'string') attachCardDomListeners(existing.marker, data.fallbackCover); }
+      } else {
+        const marker = window.L.marker([biz.lat, biz.lng], { icon, pane: 'pinsPane', title: biz.nameAr || '', zIndexOffset: compact ? 100 : 200 });
+        marker.on('click', () => { const current = markersRegistryRef.current.get(biz.id)?.biz || biz; setSelectedBiz(current); });
+        cardsLayer.addLayer(marker);
+        animateNewMarker(marker, biz.id);
+        if ('fallbackCover' in data && typeof data.fallbackCover === 'string') attachCardDomListeners(marker, data.fallbackCover);
+        markersRegistryRef.current.set(biz.id, { marker, biz, iconKey });
+      }
+    }, () => setIsRenderingActivities(false));
+  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, selectedBiz, setSelectedBiz, isSelectedBizExpandedOnMap, viewportRevision]);
 
-  // 7. 🔄 Recalculate card offsets only when scale or viewport size changes.
-  // Pure panning is a translation: relative screen distances do not change, so
-  // recalculating after moveend only makes cards visibly jump for no benefit.
+  // Refresh only after the viewport settles; never move the stored coordinates.
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map || !isMapReady || mode !== 'view') return;
+    let frame: number | null = null;
+    let timer: number | null = null;
 
-    let frameId: number | null = null;
-    const recalculateOffsets = () => {
-      if (selectedBizRef.current) return;
-      const containerWidth = map.getSize()?.x || 800;
-      const cardLimit = getResponsiveCardLimit(containerWidth);
-      const topCards = sortedBusinesses.slice(0, cardLimit);
-      if (topCards.length <= 1) return;
+    const refresh = () => {
+      if (frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      }
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
 
-      const offsets = disperseActivityCardsScreenSpace(topCards, map, {
-        cardWidth: 184,
-        cardHeight: 143,
-        minSpacing: 196,
-      });
-
-      topCards.forEach((biz, idx) => {
-        const entry = markersRegistryRef.current.get(biz.id);
-        if (!entry) return;
-
-        const offset = offsets.get(biz.id) || [0, 0];
-        const iconKey = computeMarkerIconKey(biz, idx, offset, 'card');
-
-        if (entry.iconKey !== iconKey) {
-          const cardData = createLightweightBadgeHtml(biz, false, true, idx + 1, offset);
-          const newIcon = window.L.divIcon({
-            className: 'custom-biz-pin top-prominent-card',
-            html: cardData.html,
-            iconSize: cardData.iconSize,
-            iconAnchor: cardData.iconAnchor,
+      // If camera is currently flying or settling from flight, defer pin clustering to protect landing frame
+      const flightDelay = isCameraFlyingRef.current ? 120 : 0;
+      if (flightDelay > 0) {
+        timer = window.setTimeout(() => {
+          timer = null;
+          frame = requestAnimationFrame(() => {
+            frame = null;
+            setViewportRevision((value) => value + 1);
           });
-          entry.marker.setIcon(newIcon);
-          entry.iconKey = iconKey;
-          attachCardDomListeners(entry.marker, cardData.fallbackCover);
-        }
-      });
+        }, flightDelay);
+      } else {
+        frame = requestAnimationFrame(() => {
+          frame = null;
+          setViewportRevision((value) => value + 1);
+        });
+      }
     };
 
-    const scheduleRecalculation = () => {
-      if (frameId !== null) cancelAnimationFrame(frameId);
-      frameId = requestAnimationFrame(() => {
-        frameId = null;
-        recalculateOffsets();
-      });
-    };
-
-    map.on('zoomend', scheduleRecalculation);
-    map.on('resize', scheduleRecalculation);
-
+    map.on('moveend zoomend resize', refresh);
     return () => {
-      if (frameId !== null) cancelAnimationFrame(frameId);
-      map.off('zoomend', scheduleRecalculation);
-      map.off('resize', scheduleRecalculation);
+      map.off('moveend zoomend resize', refresh);
+      if (frame !== null) cancelAnimationFrame(frame);
+      if (timer !== null) window.clearTimeout(timer);
     };
-  }, [isMapReady, mode, sortedBusinesses]);
+  }, [isMapReady, mode]);
+  return { isRenderingActivities };
 };

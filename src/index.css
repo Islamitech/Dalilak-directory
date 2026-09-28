@@ -627,7 +627,8 @@ img, picture, video {
   will-change: transform;
 }
 
-.leaflet-tile-container img {
+.leaflet-tile-container img,
+.leaflet-tile {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -640,6 +641,46 @@ img, picture, video {
 path.hadayek-spotlight-focus-mask {
   pointer-events: none;
   fill-rule: evenodd !important;
+  transition: fill-opacity 0.35s ease, opacity 0.35s ease !important;
+}
+
+/* 🧭 District Polygons Clean Vector Focus */
+.hadayek-district-polygon,
+path.hadayek-district-polygon,
+.selected-district-polygon-focus,
+path.selected-district-polygon-focus {
+  transition: stroke 0.35s ease,
+              fill 0.35s ease,
+              fill-opacity 0.35s ease,
+              opacity 0.35s ease !important;
+}
+
+/* 🛡️ Zero-Jitter Transition Shield: Suppress SVG transitions during zoom/pan animations & landing reset */
+.leaflet-zoom-anim .hadayek-spotlight-focus-mask,
+.leaflet-zoom-anim path.hadayek-spotlight-focus-mask,
+.leaflet-zoom-anim .hadayek-district-polygon,
+.leaflet-zoom-anim path.hadayek-district-polygon,
+.leaflet-zoom-anim .selected-district-polygon-focus,
+.leaflet-zoom-anim path.selected-district-polygon-focus,
+.leaflet-pan-anim .hadayek-spotlight-focus-mask,
+.leaflet-pan-anim path.hadayek-spotlight-focus-mask,
+.leaflet-pan-anim .hadayek-district-polygon,
+.leaflet-pan-anim path.hadayek-district-polygon,
+.leaflet-pan-anim .selected-district-polygon-focus,
+.leaflet-pan-anim path.selected-district-polygon-focus,
+.is-camera-flying .hadayek-spotlight-focus-mask,
+.is-camera-flying path.hadayek-spotlight-focus-mask,
+.is-camera-flying .hadayek-district-polygon,
+.is-camera-flying path.hadayek-district-polygon,
+.is-camera-flying .selected-district-polygon-focus,
+.is-camera-flying path.selected-district-polygon-focus,
+.is-camera-settling .hadayek-spotlight-focus-mask,
+.is-camera-settling path.hadayek-spotlight-focus-mask,
+.is-camera-settling .hadayek-district-polygon,
+.is-camera-settling path.hadayek-district-polygon,
+.is-camera-settling .selected-district-polygon-focus,
+.is-camera-settling path.selected-district-polygon-focus {
+  transition: none !important;
 }
 
 /* ============================================
@@ -801,21 +842,6 @@ path.hadayek-spotlight-focus-mask {
   line-height: 1;
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-/* 🗺️ Border On Demand: Selected District Boundary Styling */
-.selected-district-polygon {
-  stroke-dasharray: 6, 6;
-  animation: districtBorderPulse 3s infinite ease-in-out;
-}
-
-@keyframes districtBorderPulse {
-  0%, 100% {
-    stroke-opacity: 0.95;
-  }
-  50% {
-    stroke-opacity: 0.65;
-  }
 }
 
 .selected-district-badge-marker {
@@ -987,3 +1013,10 @@ path.hadayek-spotlight-focus-mask {
   filter: drop-shadow(0 1px 2px white) drop-shadow(0 0 2px white);
 }
 .map-icon-controls > button:hover { background: rgba(245, 158, 11, .15); }
+
+/* Keep map controls touchable without increasing the visual weight of markers. */
+@media (max-width: 640px) {
+  .map-icon-controls button { min-width: 44px; min-height: 44px; }
+  #map-filter-panel button, #map-filter-panel select { min-height: 44px; }
+  .custom-biz-pin .activity-card-pin { text-rendering: optimizeSpeed; }
+}

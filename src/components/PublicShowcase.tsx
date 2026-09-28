@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
+import { DirectorySearchContext } from '../contexts/DirectoryLoadContext';
+import { parseActivitySearchIntent } from '../utils/activitySearchIntent';
 import { Business } from '../types';
 import {
   calculateDistanceKm,
@@ -96,6 +98,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   // 2. Search & Filter State
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>(() => {
@@ -125,7 +128,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     setSubcategoryFilter(selection.subcategoryId);
   }, []);
 
-  const effectiveMapCategoryFilter = subcategoryFilter !== 'all' ? subcategoryFilter : categoryFilter;
+  const activityIntent = useMemo(() => (currentPath === '/' || currentPath.startsWith('/map')) ? parseActivitySearchIntent(deferredSearchQuery) : null, [currentPath, deferredSearchQuery]);
+  const effectiveSearchZone = activityIntent?.zone ?? hadayekZoneFilter;
+  const effectiveMapCategoryFilter = activityIntent?.category ?? (subcategoryFilter !== 'all' ? subcategoryFilter : categoryFilter);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -371,22 +376,22 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       if (!b) return false;
 
       // 1. Text Search across name, category, city, landmark, etc.
-      if (searchQuery.trim()) {
-        if (!matchesBusinessSearch(b, searchQuery)) {
+      if (!activityIntent && deferredSearchQuery.trim()) {
+        if (!matchesBusinessSearch(b, deferredSearchQuery)) {
           return false;
         }
       }
 
       // 2. Category Filter (Enhanced with Canonical Aliases, Root Synonyms, and Groups)
-      if (categoryFilter !== 'all') {
-        if (!matchesCategorySelection(b, categoryFilter, subcategoryFilter)) {
+      if (activityIntent || categoryFilter !== 'all') {
+        if (!matchesCategorySelection(b, activityIntent?.mainCategoryId ?? categoryFilter, activityIntent?.subcategoryId ?? subcategoryFilter)) {
           return false;
         }
       }
 
       // 3. Hadayek Zone Filter (Strict Zone Boundary Protection)
-      if (hadayekZoneFilter && hadayekZoneFilter !== 'all') {
-        if (!isBusinessInHadayekZone(b, hadayekZoneFilter)) {
+      if (effectiveSearchZone && effectiveSearchZone !== 'all') {
+        if (!isBusinessInHadayekZone(b, effectiveSearchZone)) {
           return false;
         }
       }
@@ -413,8 +418,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
           // lists while disappearing from the selected district on the map.
           if (!isBusinessInHadayekZone(b, 'all')) return false;
 
-          if (hadayekZoneFilter !== 'all') {
-            if (!isBusinessInHadayekZone(b, hadayekZoneFilter)) {
+          if (effectiveSearchZone !== 'all') {
+            if (!isBusinessInHadayekZone(b, effectiveSearchZone)) {
               return false;
             }
           }
@@ -503,10 +508,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
     // 1. If user has NOT applied any filter: Unbiased, dynamic per-load random shuffle (breaks static patterns)
     const hasUserFilters =
-      searchQuery.trim() !== '' ||
+      deferredSearchQuery.trim() !== '' ||
       govFilter !== 'all' ||
       cityFilter !== 'all' ||
-      hadayekZoneFilter !== 'all' ||
+      effectiveSearchZone !== 'all' ||
       categoryFilter !== 'all' ||
       subcategoryFilter !== 'all' ||
       openNowOnly ||
@@ -535,10 +540,11 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     });
   }, [
     publicBusinesses,
-    searchQuery,
+    activityIntent,
+    deferredSearchQuery,
     govFilter,
     cityFilter,
-    hadayekZoneFilter,
+    effectiveSearchZone,
     categoryFilter,
     subcategoryFilter,
     openNowOnly,
@@ -565,7 +571,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             filteredBusinesses={filteredBusinesses}
             categoryFilter={effectiveMapCategoryFilter}
             onCategoryChange={handleCategoryChange}
-            selectedZone={hadayekZoneFilter}
+            selectedZone={effectiveSearchZone}
             onZoneChange={setHadayekZoneFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
@@ -756,7 +762,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             <span className="text-xs font-bold text-slate-400">جاري التحميل...</span>
           </div>
         }>
-          {renderActiveView()}
+          <DirectorySearchContext.Provider value={searchQuery !== deferredSearchQuery}>{renderActiveView()}</DirectorySearchContext.Provider>
         </React.Suspense>
       </main>
 

@@ -88,9 +88,9 @@ export const useMapInstance = ({
   const getTileLayerConfig = useCallback((type: MapTileLayerType) => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
     const commonOptions = {
-      keepBuffer: isMobile ? 2 : 3,
-      updateWhenIdle: true,
-      updateWhenZooming: false,
+      keepBuffer: isMobile ? 8 : 12,
+      updateWhenIdle: false,
+      updateWhenZooming: true,
       bounds: HADAYEK_TILE_BOUNDS,
       crossOrigin: true,
     };
@@ -289,9 +289,16 @@ export const useMapInstance = ({
       });
 
       // Update zoom and center state on user navigation
+      let zoomUpdateFrame: number | null = null;
       map.on('zoomend', () => {
         if (!isSubscribed) return;
-        setZoomLevel(map.getZoom());
+        if (zoomUpdateFrame !== null) cancelAnimationFrame(zoomUpdateFrame);
+        zoomUpdateFrame = requestAnimationFrame(() => {
+          zoomUpdateFrame = null;
+          if (!isSubscribed) return;
+          const currentZ = map.getZoom();
+          setZoomLevel((prev) => (Math.abs(prev - currentZ) > 0.05 ? currentZ : prev));
+        });
         try {
           const c = map.getCenter();
           const z = map.getZoom();

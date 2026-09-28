@@ -267,7 +267,7 @@ export function filterBusinessesForMap(
 
   return businesses.filter((b) => {
     // 1. Valid coordinates required for map
-    if (typeof b.lat !== 'number' || typeof b.lng !== 'number' || isNaN(b.lat) || isNaN(b.lng)) {
+    if (!hasUsableCoordinates(b)) {
       return false;
     }
 

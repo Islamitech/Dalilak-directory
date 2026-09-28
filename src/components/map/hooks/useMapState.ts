@@ -16,6 +16,7 @@ export const useMapState = ({
   const [showBusinesses, setShowBusinesses] = useState<boolean>(initialShowBusinesses);
   const [selectedZone, setSelectedZone] = useState<string>(initialSelectedZone);
   const [mapCategoryFilter, setMapCategoryFilter] = useState<string>('all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
   const [onlyVerifiedFilter, setOnlyVerifiedFilter] = useState<boolean>(false);
   const [isMapFilterOpen, setIsMapFilterOpen] = useState<boolean>(false);
   const [showGatesLayer, setShowGatesLayer] = useState<boolean>(false);
@@ -23,8 +24,14 @@ export const useMapState = ({
   const [showTargetPin] = useState<boolean>(true);
   const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
   const [copied, setCopied] = useState<boolean>(false);
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('حدائق الأهرام');
-  const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
+  const [selectedBiz, _setSelectedBiz] = useState<Business | null>(null);
+  const [isSelectedBizExpandedOnMap, setIsSelectedBizExpandedOnMap] = useState<boolean>(false);
+
+  const setSelectedBiz = (biz: Business | null) => {
+    _setSelectedBiz(biz);
+    setIsSelectedBizExpandedOnMap(false);
+  };
+
   const [centerReticleActive, setCenterReticleActive] = useState<boolean>(false);
   const [isInHadayekScope, setIsInHadayekScope] = useState<boolean>(true);
 
@@ -69,6 +76,8 @@ export const useMapState = ({
     setSelectedZone,
     selectedBiz,
     setSelectedBiz,
+    isSelectedBizExpandedOnMap,
+    setIsSelectedBizExpandedOnMap,
     centerReticleActive,
     setCenterReticleActive,
     isInHadayekScope,

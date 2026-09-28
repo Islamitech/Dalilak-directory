@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { scheduleProgressiveWork } from '../components/map/utils/progressiveWork';
+const frames = new Map<number, FrameRequestCallback>(); let seq = 0, time = 0;
+const scheduler = { request: (cb: FrameRequestCallback) => { frames.set(++seq,cb); return seq; }, cancel: (id: number) => {frames.delete(id);}, now: () => time };
+const tick = () => { const jobs = [...frames.values()]; frames.clear(); jobs.forEach(cb => cb(time)); };
+const results: number[] = []; let completed = 0;
+const cancel = scheduleProgressiveWork(Array.from({length:20},(_,i)=>i), n => results.push(n), () => completed++, scheduler);
+assert.equal(results.length,0);tick();assert.equal(results.length,6);assert.equal(completed,0);
+cancel();tick();assert.equal(results.length,6);assert.equal(completed,0);
+scheduleProgressiveWork([40,41,42], n => {results.push(n);time+=6;},()=>completed++,scheduler);
+tick();assert.equal(results.at(-1),40);assert.equal(completed,0);tick();tick();assert.equal(completed,1);assert.deepEqual(results.slice(-3),[40,41,42]);
+scheduleProgressiveWork([],()=>assert.fail(),()=>completed++,scheduler);tick();assert.equal(completed,2);
+console.log('PASS: per-frame cap, time budget, cancelled stale batches, completion and empty results');

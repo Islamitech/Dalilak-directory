@@ -241,3 +241,44 @@ export async function preloadHadayekTiles(
     idleHandle = setTimeout(runPreloadQueue, 500);
   }
 }
+
+/**
+ * Instantly pre-warms destination district tiles for high-speed camera flights (zero blank squares)
+ */
+export function preloadDistrictTiles(
+  districtLetter: string,
+  boundsCoords?: [number, number][],
+  tileType: MapTileLayerType = 'dalelak-clean'
+): void {
+  if (typeof window === 'undefined' || !districtLetter || districtLetter.trim() === '') return;
+  if (!boundsCoords || boundsCoords.length === 0) return;
+
+  try {
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    boundsCoords.forEach(([lat, lng]) => {
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+    });
+
+    const sw: [number, number] = [minLat, minLng];
+    const ne: [number, number] = [maxLat, maxLng];
+
+    // Pre-fetch tiles for target zoom levels (15 & 16)
+    const targetTiles = [
+      ...getTileCoordinatesInBounds(sw, ne, 15),
+      ...getTileCoordinatesInBounds(sw, ne, 16),
+    ];
+
+    targetTiles.slice(0, 16).forEach((tile, index) => {
+      const url = buildTileUrl(tileType, tile.x, tile.y, tile.z, index);
+      if (!preloadedTileUrls.has(url)) {
+        preloadedTileUrls.add(url);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+      }
+    });
+  } catch {}
+}

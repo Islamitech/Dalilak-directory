@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
+import { DirectoryLoadContext } from './contexts/DirectoryLoadContext';
 import { Business } from './types';
 import { PublicShowcase } from './components/PublicShowcase';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -60,6 +61,7 @@ export default function App() {
     } catch {}
     return true; // Always true if no verified cached data exists, until Supabase responds
   });
+  const [directoryLoad, setDirectoryLoad] = useState({ pending: true, error: '' });
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,8 +142,8 @@ export default function App() {
     }
     const rawVideos = Array.isArray(r.videos) && r.videos.length > 0 ? r.videos : metaVideos;
 
-    const lat = typeof r.lat === 'number' ? r.lat : 30.0444;
-    const lng = typeof r.lng === 'number' ? r.lng : 31.2357;
+    const lat = Number.isFinite(Number(r.lat)) ? Number(r.lat) : 0;
+    const lng = Number.isFinite(Number(r.lng)) ? Number(r.lng) : 0;
 
     // 1. Rep unverified field location
     const repLocationUrl = metaRepLocationUrl || r.rep_location_url || r.repLocationUrl || (lat && lng ? `https://www.google.com/maps?q=${lat},${lng}` : undefined);
@@ -256,7 +258,8 @@ export default function App() {
       activeLoadController?.abort();
       const controller = new AbortController();
       activeLoadController = controller;
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      if (isMounted) setDirectoryLoad({ pending: true, error: '' });
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
         // ⚡ TIER 1: Blazing-fast initial batch (first 60 verified businesses) for instant sub-second FCP/LCP
@@ -271,11 +274,12 @@ export default function App() {
             Prefer: 'count=exact',
           },
         });
-        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(`Directory HTTP ${res.status}`);
 
         if (res.ok) {
           let raw = await res.json();
-          if (Array.isArray(raw) && isMounted && raw.length > 0) {
+          if (!Array.isArray(raw)) throw new Error('Invalid directory response');
+          if (Array.isArray(raw) && isMounted && !controller.signal.aborted) {
             const contentRange = res.headers.get('content-range') || '';
             const totalCount = parseInt(contentRange.split('/')[1], 10);
 
@@ -285,6 +289,7 @@ export default function App() {
               .filter((b) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
 
             setBusinesses((prev) => {
+              if (controller.signal.aborted || activeLoadController !== controller) return prev;
               if (prev.length >= initialMapped.length) return prev;
               return initialMapped.sort(
                 (a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime()
@@ -296,7 +301,7 @@ export default function App() {
             // Avoiding Promise.all prevents a burst of large responses competing
             // with map tiles, fonts and the first interactive paint.
             if (!isNaN(totalCount) && totalCount > FAST_BATCH_SIZE) {
-              const BATCH_SIZE = 500;
+              const BATCH_SIZE = 200;
               for (let from = FAST_BATCH_SIZE; from < totalCount; from += BATCH_SIZE) {
                 if (!isMounted || controller.signal.aborted) break;
                 const to = Math.min(from + BATCH_SIZE - 1, totalCount - 1);
@@ -310,15 +315,22 @@ export default function App() {
                       'Range-Unit': 'items',
                     },
                   });
+                  if (!batchResponse.ok) throw new Error(`Directory page HTTP ${batchResponse.status}`);
                   if (batchResponse.ok) {
                     const batch = await batchResponse.json();
-                    if (Array.isArray(batch)) raw.push(...batch);
+                    if (!Array.isArray(batch)) throw new Error('Invalid directory page');
+                    if (Array.isArray(batch)) {
+                      raw.push(...batch);
+                      if (!isMounted || controller.signal.aborted) return;
+                      const partial = raw.map(mapRawToBusiness).filter((b: Business) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
+                      startTransition(() => setBusinesses(prev => !controller.signal.aborted && activeLoadController === controller && prev.length < partial.length ? partial : prev));
+                    }
                   }
                 } catch (error: any) {
                   if (error?.name !== 'AbortError') {
                     console.warn('Failed to stream a directory batch:', error);
                   }
-                  break;
+                  throw error;
                 }
 
                 // Yield to rendering/input between catalog pages.
@@ -326,11 +338,13 @@ export default function App() {
               }
             }
 
+            if (!isMounted || controller.signal.aborted) return;
             const mapped: Business[] = raw
               .map((r) => mapRawToBusiness(r))
               .filter((b) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
 
             setBusinesses((prev) => {
+              if (controller.signal.aborted || activeLoadController !== controller) return prev;
               const updated = mapped.sort(
                 (a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime()
               );
@@ -351,7 +365,9 @@ export default function App() {
                     (b.photos?.length || 0) === (u?.photos?.length || 0) &&
                     b.verificationStatus === u?.verificationStatus &&
                     b.governorate === u?.governorate &&
-                    b.city === u?.city
+                    b.city === u?.city &&
+                    b.lat === u?.lat && b.lng === u?.lng &&
+                    b.mainCategoryId === u?.mainCategoryId && b.subcategoryId === u?.subcategoryId
                   );
                 })
               ) {
@@ -369,6 +385,8 @@ export default function App() {
           }
         }
       } catch (e: any) {
+        controller.abort();
+        if (isMounted && activeLoadController === controller) setDirectoryLoad({ pending: false, error: 'تعذّر تحديث الأنشطة. تحقق من الاتصال.' });
         if (e?.name !== 'AbortError') {
           console.warn('Failed to fetch from live Supabase DB:', e);
         }
@@ -377,13 +395,14 @@ export default function App() {
         try {
           localStorage.setItem('dalelak_portal_initialized', 'true');
         } catch {}
-        if (isMounted) setLoading(false);
+        if (isMounted && activeLoadController === controller) { setLoading(false); setDirectoryLoad(prev => ({ ...prev, pending: false })); }
       }
+      if (!isMounted || controller.signal.aborted || activeLoadController !== controller) return;
 
       // Background photo hydration after initial paint is settled (idle delay to save network contention)
       if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
       photoHydrationTimer = window.setTimeout(async () => {
-        if (!isMounted) return;
+        if (!isMounted || controller.signal.aborted || activeLoadController !== controller) return;
         try {
           const pRes = await fetch(SUPABASE_PHOTOS_URL, {
             signal: controller.signal,
@@ -394,7 +413,7 @@ export default function App() {
           });
           if (pRes.ok) {
             const pData = await pRes.json();
-            if (Array.isArray(pData) && pData.length > 0 && isMounted) {
+            if (Array.isArray(pData) && pData.length > 0 && isMounted && !controller.signal.aborted && activeLoadController === controller) {
               const photoMap = new Map<string, string[]>();
               pData.forEach((item: any) => {
                 if (item.id && Array.isArray(item.photos) && item.photos.length > 0) {
@@ -403,6 +422,7 @@ export default function App() {
               });
               if (photoMap.size > 0) {
                 setBusinesses((prev) => {
+              if (controller.signal.aborted || activeLoadController !== controller) return prev;
                   let hasChanges = false;
                   const next = prev.map((b) => {
                     const p = photoMap.get(b.id);
@@ -426,6 +446,9 @@ export default function App() {
         } catch {}
       }, 1800);
     }
+
+    const retryLoad = () => { void loadBusinesses(true); };
+    window.addEventListener('directory:retry', retryLoad);
 
     // 1. Initial Load
     loadBusinesses(true);
@@ -562,6 +585,8 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      window.removeEventListener('directory:retry', retryLoad);
+      window.removeEventListener('storage', handleStorageChange);
       activeLoadController?.abort();
       if (photoHydrationTimer !== null) window.clearTimeout(photoHydrationTimer);
       clearInterval(intervalId);
@@ -586,6 +611,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      <DirectoryLoadContext.Provider value={directoryLoad}>
       {syncToastMessage && (
         <div
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600/90 text-white border border-emerald-400/40 backdrop-blur-xl text-xs font-black shadow-2xl animate-fade-in transition-all"
@@ -602,6 +628,7 @@ export default function App() {
         referralCode={refCode}
         loading={loading}
       />
+      </DirectoryLoadContext.Provider>
     </ThemeProvider>
   );
 }
