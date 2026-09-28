@@ -83,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const template = getBaseTemplate();
       if (template) {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
         return res.status(200).send(template.replace(/(src|href)="\.\//g, '$1="/'));
       }
       return res.redirect(302, '/');

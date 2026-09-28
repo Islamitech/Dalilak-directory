@@ -89,22 +89,36 @@ export const useMapPinsClustering = ({
     if (seenMarkers.current.has(id)) return;
     seenMarkers.current.add(id);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const content = marker.getElement()?.firstElementChild;
-    if (!content) return;
     const delay = Math.min(staggerIndex * 36, 680);
-    content.animate(
-      [
-        { opacity: 0, transform: 'scale(0.25) translateY(14px)' },
-        { opacity: 1, transform: 'scale(1.06) translateY(-2px)', offset: 0.65 },
-        { opacity: 1, transform: 'scale(1) translateY(0)' },
-      ],
-      {
-        duration: 380,
-        delay,
-        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-        fill: 'backwards',
+    const triggerPop = () => {
+      const el = marker.getElement?.() || (marker as any)._icon;
+      if (!el) return;
+      const target = (el.querySelector?.('.activity-card-pin, .activity-pin-wrapper, .district-cluster-pin') || el.firstElementChild || el) as HTMLElement;
+      if (!target) return;
+      if (typeof target.animate === 'function') {
+        target.animate(
+          [
+            { opacity: 0, transform: 'scale(0.25) translateY(14px)' },
+            { opacity: 1, transform: 'scale(1.06) translateY(-2px)', offset: 0.65 },
+            { opacity: 1, transform: 'scale(1) translateY(0)' },
+          ],
+          {
+            duration: 380,
+            delay,
+            easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+            fill: 'backwards',
+          }
+        );
+      } else {
+        target.classList.add('animate-marker-spring');
       }
-    );
+    };
+    const immediateEl = marker.getElement?.() || (marker as any)._icon;
+    if (immediateEl) {
+      triggerPop();
+    } else {
+      requestAnimationFrame(triggerPop);
+    }
   };
   const {
     leafletMapRef,

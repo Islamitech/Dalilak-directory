@@ -3,7 +3,7 @@
  * Strategy: Network-First with Institutional Offline Shell Fallback
  */
 
-const CACHE_NAME = 'dalilak-portal-shell-v2';
+const CACHE_NAME = 'dalilak-portal-shell-v3';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_PRECACHE = [
@@ -34,6 +34,12 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
