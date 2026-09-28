@@ -58,6 +58,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
     } catch {}
 
+    // When navigating to map directly (without explicit zone param), reset zone to 'all' to show all city
+    const cleanPath = newPath.split('?')[0].toLowerCase();
+    if ((cleanPath === '/' || cleanPath === '/map') && !newPath.includes('zone=')) {
+      setHadayekZoneFilter('all');
+    }
+
     // Parse category query if present in newPath (e.g. /search?cat=مطاعم)
     if (newPath.includes('?')) {
       const url = new URL(newPath, window.location.origin);
@@ -224,8 +230,17 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
   const [selectedVideoBiz, setSelectedVideoBiz] = useState<Business | null>(null);
   const [pinnedDirectBizId, setPinnedDirectBizId] = useState<string | null>(null);
+  const [focusedMapBiz, setFocusedMapBiz] = useState<Business | null>(null);
   const isDirectLinkOpenRef = React.useRef<boolean>(Boolean(initialBizId));
   const previousPathBeforeModalRef = React.useRef<string>(currentPath);
+
+  const handleShowBusinessOnMap = useCallback((biz: Business) => {
+    isDirectLinkOpenRef.current = false;
+    setSelectedBiz(null);
+    setHadayekZoneFilter('all');
+    setFocusedMapBiz(biz);
+    handleNavigate('/map');
+  }, [handleNavigate]);
 
   const handleOpenBusiness = (biz: Business) => {
     previousPathBeforeModalRef.current = currentPath;
@@ -563,6 +578,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             onNavigate={handleNavigate}
             lat={mapCenter.lat}
             lng={mapCenter.lng}
+            focusedBusiness={focusedMapBiz}
+            onClearFocusedBusiness={() => setFocusedMapBiz(null)}
           />
         );
 
@@ -761,6 +778,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               handleCloseBusiness();
               handleNavigate('/for-business');
             }}
+            onShowOnMap={handleShowBusinessOnMap}
           />
         </React.Suspense>
       )}

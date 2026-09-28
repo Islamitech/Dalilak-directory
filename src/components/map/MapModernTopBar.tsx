@@ -33,6 +33,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   categoryFilter = 'all',
   onCategoryChange,
   quickCategories,
+  filteredBusinessesCount,
   searchMode,
   onSearchModeChange,
   children,
@@ -94,6 +95,13 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
       .slice(0, 5);
   }, [searchQuery, businesses, buildingMatch]);
 
+  // 3b. Candidate categories matching search query (City-wide scope)
+  const matchingCategories = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || q.length < 2 || buildingMatch) return [];
+    return categories.filter((c) => c.id !== 'all' && (c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)));
+  }, [searchQuery, categories, buildingMatch]);
+
   // 4. Candidate zone matching
   const matchingZone = useMemo(() => {
     const q = searchQuery.trim();
@@ -148,6 +156,15 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
       return;
     }
 
+    if (matchingCategories.length > 0) {
+      const matchedCat = matchingCategories[0];
+      onCategoryChange?.(matchedCat.id);
+      onSearchModeChange('browse');
+      onSearchQueryChange?.('');
+      setShowSuggestions(false);
+      return;
+    }
+
     if (matchingBusinesses.length > 0) {
       handleSelectBusinessItem(matchingBusinesses[0]);
       return;
@@ -193,7 +210,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 onChange={(e) => onSelectZone?.(e.target.value)}
                 className="min-w-0 w-[27%] max-w-32 shrink-0 h-10 rounded-xl border border-slate-200 bg-white px-1 text-xs text-slate-800"
               >
-                <option value="">المنطقة</option>
+                <option value="">كل المدينة</option>
                 {HADAYEK_OFFICIAL_DISTRICTS.map((d) => (
                   <option key={d.id} value={d.letterAr}>
                     منطقة {d.letterAr}
@@ -210,7 +227,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 }}
                 className="min-w-0 w-[23%] max-w-36 shrink-0 h-10 rounded-xl border border-slate-200 bg-white px-1 text-xs text-slate-800"
               >
-                <option value="all">نوع البحث</option>
+                <option value="all">كل الأنشطة</option>
                 <option value="building" disabled={!selectedZone || selectedZone === 'all'}>
                   مبنى
                 </option>
@@ -226,8 +243,10 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 {searchMode === 'building' && selectedZone ? (
                   children
                 ) : (
-                  <span className="block truncate px-1 text-xs text-slate-500">
-                    {categoryFilter !== 'all' ? 'أنشطة المنطقة' : 'اختر ما تبحث عنه'}
+                  <span className="block truncate px-1 text-xs text-slate-600 font-bold">
+                    {categoryFilter !== 'all'
+                      ? (selectedZone && selectedZone !== 'all' ? `أنشطة منطقة ${selectedZone}` : 'نطاق المدينة كاملة')
+                      : (selectedZone && selectedZone !== 'all' ? `منطقة ${selectedZone}` : 'المدينة كاملة')}
                   </span>
                 )}
               </div>
@@ -405,8 +424,44 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
               </button>
             )}
 
+            {/* 1b. Matching Categories (City-Wide Discovery) */}
+            {matchingCategories.map((mc) => (
+              <button
+                key={mc.id}
+                type="button"
+                onClick={() => {
+                  onCategoryChange?.(mc.id);
+                  onSearchModeChange('browse');
+                  onSearchQueryChange?.('');
+                  setShowSuggestions(false);
+                }}
+                className="w-full text-right p-3 hover:bg-amber-50/90 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">
+                    {mc.icon || '📍'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-slate-900 flex items-center gap-2">
+                      <span>عرض جميع {mc.name}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">
+                        {selectedZone && selectedZone !== 'all' ? `منطقة ${selectedZone}` : 'المدينة كاملة'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 truncate mt-0.5">
+                      استكشاف كافة أنشطة {mc.name} على خريطة حدائق الأهرام
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs font-bold text-amber-600 group-hover:translate-x-[-4px] transition-transform flex items-center gap-1 shrink-0">
+                  <span>تطبيق الفلتر</span>
+                  <ChevronLeft size={16} />
+                </div>
+              </button>
+            ))}
+
             {/* 5. Fallback if no direct match */}
-            {!buildingMatch && digitOnlyMatches.length === 0 && matchingBusinesses.length === 0 && !matchingZone && (
+            {!buildingMatch && digitOnlyMatches.length === 0 && matchingCategories.length === 0 && matchingBusinesses.length === 0 && !matchingZone && (
               <div className="p-4 text-center text-xs text-slate-500">
                 لم نجد نتائج مطابقة لـ &quot;{searchQuery}&quot;
                 <div className="text-[11px] text-slate-400 mt-1 font-semibold">
@@ -414,6 +469,70 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* 🚀 Active Filter Indicator Pill */}
+        {((selectedZone && selectedZone !== 'all') || (categoryFilter && categoryFilter !== 'all')) && !expanded && (
+          <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-900/90 text-white rounded-full text-xs font-bold shadow-lg backdrop-blur-md border border-slate-700 max-w-fit mx-auto animate-fade-in">
+            <div className="flex items-center gap-1.5">
+              <span className="text-amber-400">📍</span>
+              <span>
+                {categoryFilter !== 'all' ? categoryFilter : 'كافة الأنشطة'}
+                {' • '}
+                {selectedZone && selectedZone !== 'all' ? `منطقة ${selectedZone}` : 'نطاق المدينة كاملة'}
+              </span>
+              {typeof filteredBusinessesCount === 'number' && (
+                <span className="text-[10px] bg-amber-500/25 text-amber-300 px-2 py-0.5 rounded-full mr-1 font-mono">
+                  {filteredBusinessesCount} نشاط
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onSelectZone?.('');
+                onCategoryChange?.('all');
+                onSearchModeChange('browse');
+              }}
+              className="w-4 h-4 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer mr-1"
+              title="إلغاء الفلتر وعرض الخريطة كاملة"
+              aria-label="إلغاء الفلتر"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        )}
+
+        {/* 🏷️ Quick Category Horizontal Scrollable Chips (Instant City-Wide / Zone Discovery) */}
+        {!expanded && !showSuggestions && !buildingNumber && (
+          <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-0.5 max-w-full">
+            {categories.slice(0, 8).map((cat) => {
+              const isActive = (cat.id === 'all' && (!categoryFilter || categoryFilter === 'all')) || categoryFilter === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    onCategoryChange?.(cat.id === categoryFilter ? 'all' : cat.id);
+                    onSearchModeChange('browse');
+                  }}
+                  className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95 ${
+                    isActive
+                      ? 'bg-amber-500 text-slate-950 border border-amber-400 shadow-amber-500/20'
+                      : 'bg-white/95 backdrop-blur-md text-slate-700 hover:bg-white hover:text-slate-950 border border-slate-200'
+                  }`}
+                >
+                  <span className="text-xs">{cat.icon || '📍'}</span>
+                  <span>{cat.name.split(' ')[0]}</span>
+                  {typeof (cat as any).count === 'number' && (cat as any).count > 0 && (
+                    <span className={`text-[10px] px-1 rounded-full ${isActive ? 'bg-slate-950/15 text-slate-950' : 'bg-slate-100 text-slate-500'}`}>
+                      {(cat as any).count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
 

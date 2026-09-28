@@ -47,4 +47,6 @@ export interface InteractiveMapProps {
   onStartNavigation?: (target: { title: string; lat: number; lng: number; type: 'building' | 'business'; details?: string }) => void;
   onClearBuilding?: () => void;
   onOpenRadar?: () => void;
+  focusedBusiness?: Business | null;
+  onClearFocusedBusiness?: () => void;
 }

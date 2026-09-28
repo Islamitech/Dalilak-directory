@@ -449,14 +449,18 @@ export function createExpandedActivityCardHtml(
         hasOffset
           ? `
             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: -1;">
-              <path d="M ${cardWidth / 2} ${estimatedTotalHeight - 8} Q ${cardWidth / 2} ${(estimatedTotalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#f59e0b" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 6px rgba(245,158,11,0.9))" />
+              <path d="M ${cardWidth / 2} ${estimatedTotalHeight - 12} Q ${cardWidth / 2} ${(estimatedTotalHeight - 12 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="7" fill="rgba(245,158,11,0.3)" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="4.5" fill="#f59e0b" stroke="#ffffff" stroke-width="2" filter="drop-shadow(0 0 8px rgba(245,158,11,1))" />
             </svg>
-            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
+            <div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 10px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));"></div>
           `
           : `
-            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; border: 2px solid #ffffff; margin-top: -2px; box-shadow: 0 0 10px rgba(245,158,11,0.9);"></div>
+            <div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 10px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));"></div>
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; margin-top: -2px;">
+              <div style="position: absolute; width: 22px; height: 22px; border-radius: 50%; background: rgba(245, 158, 11, 0.35); animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; pointer-events: none;"></div>
+              <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; border: 2.5px solid #ffffff; box-shadow: 0 0 12px rgba(245,158,11,1), 0 2px 6px rgba(0,0,0,0.35); z-index: 2;"></div>
+            </div>
           `
       }
     </div>

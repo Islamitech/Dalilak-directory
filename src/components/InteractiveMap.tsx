@@ -52,6 +52,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onStartNavigation: externalOnStartNavigation,
   onClearBuilding,
   onOpenRadar,
+  focusedBusiness,
+  onClearFocusedBusiness,
 }) => {
   const [mapSearchMode, setMapSearchMode] = useState<'browse' | 'building'>(targetBuilding ? 'building' : 'browse');
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -121,6 +123,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       state.setMapCategoryFilter(categoryFilter);
     }
   }, [categoryFilter]);
+
+  // Sync state if focusedBusiness prop changes from parent
+  useEffect(() => {
+    if (focusedBusiness) {
+      state.setSelectedBiz(focusedBusiness);
+      state.setShowBusinesses(true);
+      setSelectedBuildingState(null);
+      setNavigationTargetState(null);
+    }
+  }, [focusedBusiness]);
 
   const mapInstance = useMapInstance({
     containerRef,
@@ -320,7 +332,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {mode === 'view' && !navigationTargetState && !selectedBuildingState && (
           <MapSelectedBusinessDrawer
             selectedBiz={state.selectedBiz}
-            setSelectedBiz={state.setSelectedBiz}
+            setSelectedBiz={(biz) => {
+              state.setSelectedBiz(biz);
+              if (!biz && onClearFocusedBusiness) {
+                onClearFocusedBusiness();
+              }
+            }}
             onSelectBusiness={onSelectBusiness}
             onStartNavigation={(biz) => {
               const target = {

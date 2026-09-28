@@ -774,19 +774,7 @@ export const useMapPinsClustering = ({
     const selectedLayer = selectedLayerGroupRef.current;
     if (!cardsLayer || !clusterLayer || !selectedLayer) return;
 
-    // Rule 1: Activities MUST ONLY appear if an activity type/category is selected from filters!
-    const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
-    if (!hasCategoryFilter) {
-      cardsLayer.clearLayers();
-      clusterLayer.clearLayers();
-      selectedLayer.clearLayers();
-      markersRegistryRef.current.clear();
-      selectedMarkerRef.current = null;
-      clusterMarkerRef.current = null;
-      return;
-    }
-
-    // 🎯 CASE A: An Activity IS Selected -> Render ONLY the Expanded Details Card
+    // 🎯 CASE A: An Activity IS Selected -> Render ONLY the Expanded Details Card & Pin (regardless of category filter)
     if (selectedBiz) {
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
@@ -822,10 +810,22 @@ export const useMapPinsClustering = ({
       return;
     }
 
-    // 🎯 CASE B: No Activity Selected -> Clear Selected Layer & Show Top Cards + Cluster
+    // 🎯 CASE B: No Activity Selected -> Clear Selected Layer
     if (selectedMarkerRef.current) {
       selectedLayer.clearLayers();
       selectedMarkerRef.current = null;
+    }
+
+    // Rule 1: Activities MUST ONLY appear if an activity type/category is selected from filters!
+    const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
+    if (!hasCategoryFilter) {
+      cardsLayer.clearLayers();
+      clusterLayer.clearLayers();
+      selectedLayer.clearLayers();
+      markersRegistryRef.current.clear();
+      selectedMarkerRef.current = null;
+      clusterMarkerRef.current = null;
+      return;
     }
 
     const activeZoneKey = effectiveSelectedZone || 'all';

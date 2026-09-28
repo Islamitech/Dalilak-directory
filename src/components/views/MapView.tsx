@@ -34,6 +34,8 @@ export interface MapViewProps {
   onNavigate: (path: string) => void;
   lat?: number;
   lng?: number;
+  focusedBusiness?: Business | null;
+  onClearFocusedBusiness?: () => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -56,6 +58,8 @@ export const MapView: React.FC<MapViewProps> = ({
   onNavigate,
   lat = 29.9683,
   lng = 31.1002,
+  focusedBusiness,
+  onClearFocusedBusiness,
 }) => {
   const [isGatesModalOpen, setIsGatesModalOpen] = useState<boolean>(false);
   const [isRadarOpen, setIsRadarOpen] = useState<boolean>(false);
@@ -84,6 +88,15 @@ export const MapView: React.FC<MapViewProps> = ({
     if (z !== activeZoneLetter) setActiveZoneLetter(z);
     if (b !== activeBuildingNumber) setActiveBuildingNumber(b);
   }, []);
+
+  // When a focused business is passed (e.g. from modal "الموقع على الخريطة"), clear any building search state
+  useEffect(() => {
+    if (focusedBusiness) {
+      setActiveBuildingNumber('');
+      setExactBuildingCoords(null);
+      setIsRadarOpen(false);
+    }
+  }, [focusedBusiness]);
 
   // Whenever activeZoneLetter and activeBuildingNumber change, resolve exact cadastral coordinates
   useEffect(() => {
@@ -234,6 +247,8 @@ export const MapView: React.FC<MapViewProps> = ({
           onExploreDirectory={() => onNavigate('/search')}
           onOpenGatesGuide={() => setIsGatesModalOpen(true)}
           quickCategories={quickCategories}
+          focusedBusiness={focusedBusiness}
+          onClearFocusedBusiness={onClearFocusedBusiness}
         />
 
         {/* 📡 Proximity Radar Floating Drawer */}
