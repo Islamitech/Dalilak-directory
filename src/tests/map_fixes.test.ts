@@ -18,6 +18,7 @@ import {
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
   createCompactSelectedActivityCardHtml,
+  createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
 } from '../components/map/badgeMarkers';
 import {
@@ -538,6 +539,30 @@ test('createCompactSelectedActivityCardHtml renders compact comfortable preview 
   assert.equal(iconSize[1], 72, 'Compact card total height is 72px (unobtrusive to map view)');
   assert.equal(iconAnchor[0], Math.round(232 / 2), 'Anchor X is centered at bottom');
   assert.equal(iconAnchor[1], 72, 'Anchor Y points directly to exact ground coordinates');
+});
+
+test('createCompactOverviewBadgeHtml renders sleek horizontal overview card without close button', () => {
+  const biz = createMockBusiness({
+    id: 'ov1',
+    nameAr: 'صيدلية النور المعتمدة',
+    category: 'صيدليات',
+    lat: 29.968,
+    lng: 31.100,
+    googleRating: 4.8,
+    verificationStatus: 'verified',
+  });
+
+  const { html, iconSize, iconAnchor } = createCompactOverviewBadgeHtml(biz);
+  assert.ok(!html.includes('onclick='), 'Forbidden to use inline onclick');
+  assert.ok(!html.includes('onerror='), 'Forbidden to use inline onerror');
+  assert.ok(!html.includes('card-close-btn'), 'Overview card must NOT have close button');
+  assert.ok(!html.includes('✕'), 'Must NOT show close symbol');
+  assert.ok(html.includes('biz-card-photo'), 'Must render thumbnail photo with safe class');
+  assert.ok(html.includes('صيدلية النور المعتمدة'), 'Must render business name');
+  assert.ok(html.includes('صيدليات'), 'Must render category badge');
+  assert.ok(html.includes('compact-overview-card-pin'), 'Must have compact-overview-card-pin root container');
+  assert.equal(iconSize[0], 224, 'Overview card width is 224px');
+  assert.equal(iconSize[1], 68, 'Overview card total height is 68px (low profile)');
 });
 
 // ---------------------------------------------------------

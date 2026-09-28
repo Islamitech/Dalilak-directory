@@ -290,12 +290,21 @@ export function createCompactActivityPinHtml(
  * - Smooth click affordance that zooms in the camera and opens the full details modal
  * - Safe close button (✕) to deselect
  */
-export function createCompactSelectedActivityCardHtml(
+/**
+ * Unified Generator for Modern Horizontal Compact Cards (DNA of Image 3).
+ * Used for both:
+ * 1. Multi-activity city overview (isSelected: false, no ✕ button, hover lift, clean borders)
+ * 2. Focused single activity state 1 (isSelected: true, ✕ button, glowing amber border)
+ */
+export function renderUnifiedCompactCardHtml(
   biz: Business,
+  isSelected: boolean,
+  isTopProminent: boolean = false,
+  prominenceRank?: number,
   pixelOffset: [number, number] = [0, 0]
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number]; fallbackCover: string } {
-  const cardWidth = 232;
-  const cardHeight = 62;
+  const cardWidth = isSelected ? 232 : 224;
+  const cardHeight = isSelected ? 62 : 58;
   const pointerHeight = 10;
   const totalHeight = cardHeight + pointerHeight;
 
@@ -318,64 +327,105 @@ export function createCompactSelectedActivityCardHtml(
   const anchorY = totalHeight - dy;
   const hasOffset = dx !== 0 || dy !== 0;
 
-  const html = `
-    <div class="compact-selected-card-pin" style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: ${cardWidth}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-      <!-- Compact Horizontal Card Container -->
-      <div style="background: #ffffff; border: 2px solid #f59e0b; box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 14px rgba(245, 158, 11, 0.35); border-radius: 14px; width: 100%; height: ${cardHeight}px; box-sizing: border-box; display: flex; align-items: center; padding: 6px; gap: 8px; position: relative;">
-        
-        <!-- Close Button (✕) -->
-        <button
-          type="button"
-          class="card-close-btn"
-          style="position: absolute; top: -7px; left: -7px; z-index: 20; width: 20px; height: 20px; border-radius: 50%; background: #0f172a; color: #ffffff; border: 1.5px solid #ffffff; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.35); transition: background 0.15s ease;"
-          title="إغلاق والعودة للخريطة"
-        >✕</button>
+  const { ratingText } = formatDisplayRating(biz);
 
-        <!-- 1. Thumbnail Photo (صورة مصغرة) -->
-        <div style="position: relative; width: 50px; height: 50px; min-width: 50px; border-radius: 10px; overflow: hidden; background: #0f172a; border: 1px solid rgba(245, 158, 11, 0.3);">
+  const containerBorder = isSelected
+    ? 'border: 2px solid #f59e0b; box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 14px rgba(245, 158, 11, 0.35);'
+    : isTopProminent
+    ? 'border: 1.5px solid #f59e0b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25), 0 1px 4px rgba(0,0,0,0.06);'
+    : 'border: 1.5px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.10), 0 1px 3px rgba(0,0,0,0.05);';
+
+  const closeButtonHtml = isSelected
+    ? `<button
+        type="button"
+        class="card-close-btn"
+        style="position: absolute; top: -7px; left: -7px; z-index: 20; width: 20px; height: 20px; border-radius: 50%; background: #0f172a; color: #ffffff; border: 1.5px solid #ffffff; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.35); transition: background 0.15s ease;"
+        title="إغلاق والعودة للخريطة"
+      >✕</button>`
+    : '';
+
+  const rankBadgeHtml = isTopProminent && prominenceRank
+    ? `<span style="position: absolute; top: 2px; left: 2px; z-index: 3; font-size: 8px; font-weight: 900; padding: 1px 4px; border-radius: 4px; background: #f59e0b; color: #020617;">#${prominenceRank}</span>`
+    : '';
+
+  // Bottom action cue / rating text
+  let bottomActionHtml = '';
+  if (isSelected) {
+    bottomActionHtml = `
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 1px;">
+        <span style="font-size: 8.5px; font-weight: 800; color: #d97706; display: inline-flex; align-items: center; gap: 2px;">
+          <span>انقر لعرض كامل التفاصيل</span>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </span>
+      </div>`;
+  } else {
+    bottomActionHtml = `
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 1px;">
+        ${ratingText ? `
+          <span style="display: inline-flex; align-items: center; gap: 2px; font-family: monospace; font-size: 9px; font-weight: 900; color: #d97706; background: rgba(245, 158, 11, 0.1); padding: 0.5px 4.5px; border-radius: 4px;">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>${ratingText}</span>
+          </span>
+        ` : `
+          <span style="font-size: 8.5px; font-weight: 800; color: #059669; background: rgba(5, 150, 105, 0.08); padding: 0.5px 5px; border-radius: 4px;">
+            ${isVerified ? 'معتمد رسمي' : 'مسجل'}
+          </span>
+        `}
+        <span style="font-size: 8px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 1px;">
+          <span>التفاصيل</span>
+          <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        </span>
+      </div>`;
+  }
+
+  const thumbSize = isSelected ? 50 : 46;
+
+  const html = `
+    <div class="${isSelected ? 'compact-selected-card-pin' : 'compact-overview-card-pin activity-card-pin'}" style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: ${cardWidth}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl; transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);">
+      <!-- Compact Horizontal Card Container -->
+      <div style="background: #ffffff; ${containerBorder} border-radius: 12px; width: 100%; height: ${cardHeight}px; box-sizing: border-box; display: flex; align-items: center; padding: 5px 6px; gap: 7px; position: relative;">
+        ${closeButtonHtml}
+
+        <!-- 1. Thumbnail Photo -->
+        <div style="position: relative; width: ${thumbSize}px; height: ${thumbSize}px; min-width: ${thumbSize}px; border-radius: 8px; overflow: hidden; background: #0f172a; border: 1px solid ${isSelected ? 'rgba(245, 158, 11, 0.3)' : 'rgba(226, 232, 240, 0.8)'};">
           <img
             class="biz-card-photo"
             src="${escapeHtml(photoUrl)}"
             alt="${safeName}"
-            width="50"
-            height="50"
+            width="${thumbSize}"
+            height="${thumbSize}"
             style="width: 100%; height: 100%; object-fit: cover; display: block;"
-            loading="eager"
+            loading="lazy"
           />
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.4) 0%, transparent 60%); pointer-events: none;"></div>
+          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.35) 0%, transparent 60%); pointer-events: none;"></div>
+          ${rankBadgeHtml}
           ${isVerified ? `
-            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 14px; height: 14px; border-radius: 50%; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 13px; height: 13px; border-radius: 50%; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
+              <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
           ` : ''}
         </div>
 
-        <!-- 2. Business Details (اسم النشاط + الفئة + المنطقة) -->
-        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; text-align: right;">
+        <!-- 2. Business Details -->
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.5px; text-align: right;">
           <!-- Category & Zone Tags -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; line-height: 1;">
-            <span style="color: #b45309; font-weight: 800; font-size: 9.5px; background: #fef3c7; padding: 1.5px 6px; border-radius: 5px; max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 3px; line-height: 1;">
+            <span style="color: #b45309; font-weight: 800; font-size: 9px; background: #fef3c7; padding: 1px 5px; border-radius: 4px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               ${safeCategory}
             </span>
-            <span style="color: #64748b; font-size: 9px; font-weight: 700; white-space: nowrap;">
+            <span style="color: #64748b; font-size: 8.5px; font-weight: 700; white-space: nowrap;">
               ${safeLocation}
             </span>
           </div>
 
           <!-- Business Name -->
-          <div style="font-size: 12.5px; font-weight: 900; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;" title="${safeName}">
+          <div style="font-size: 11.5px; font-weight: 900; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${safeName}">
             ${safeName}
           </div>
 
-          <!-- Hint to open full details -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 1px;">
-            <span style="font-size: 8.5px; font-weight: 800; color: #d97706; display: inline-flex; align-items: center; gap: 2px;">
-              <span>انقر لعرض كامل التفاصيل</span>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </span>
-          </div>
+          <!-- Action / Rating Bar -->
+          ${bottomActionHtml}
         </div>
-
       </div>
 
       <!-- Precision Ground Pointer / Leader Line -->
@@ -383,14 +433,14 @@ export function createCompactSelectedActivityCardHtml(
         hasOffset
           ? `
             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: -1;">
-              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#f59e0b" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 6px rgba(245,158,11,0.9))" />
+              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="${isSelected ? '#f59e0b' : '#94a3b8'}" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="${isSelected ? '#f59e0b' : '#64748b'}" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 4px rgba(0,0,0,0.3))" />
             </svg>
-            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #f59e0b; margin-top: -1px;"></div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${isSelected ? '#f59e0b' : '#94a3b8'}; margin-top: -1px;"></div>
           `
           : `
-            <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; border: 2px solid #ffffff; margin-top: -3px; box-shadow: 0 0 10px rgba(245,158,11,1);"></div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12));"></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: ${isSelected ? '#f59e0b' : '#0284c7'}; border: 1.5px solid #ffffff; margin-top: -3px; box-shadow: 0 0 6px rgba(0,0,0,0.25);"></div>
           `
       }
     </div>
@@ -402,6 +452,29 @@ export function createCompactSelectedActivityCardHtml(
     iconAnchor: [anchorX, anchorY],
     fallbackCover,
   };
+}
+
+/**
+ * Creates the modern, low-profile Horizontal Compact Card for unselected activities
+ * at City Overview level (Image 3 DNA adapted for multi-entity discovery).
+ */
+export function createCompactOverviewBadgeHtml(
+  biz: Business,
+  isTopProminent: boolean = false,
+  prominenceRank?: number,
+  pixelOffset: [number, number] = [0, 0]
+) {
+  return renderUnifiedCompactCardHtml(biz, false, isTopProminent, prominenceRank, pixelOffset);
+}
+
+/**
+ * Creates the focused Compact Selected Activity Card (Image 3 focused state).
+ */
+export function createCompactSelectedActivityCardHtml(
+  biz: Business,
+  pixelOffset: [number, number] = [0, 0]
+): { html: string; iconSize: [number, number]; iconAnchor: [number, number]; fallbackCover: string } {
+  return renderUnifiedCompactCardHtml(biz, true, false, undefined, pixelOffset);
 }
 
 /**

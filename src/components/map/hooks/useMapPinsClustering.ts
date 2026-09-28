@@ -5,6 +5,7 @@ import {
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
   createCompactSelectedActivityCardHtml,
+  createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
   createLightweightClusterHtml,
   createBuildingBadgeHtml,
@@ -189,7 +190,8 @@ export const useMapPinsClustering = ({
           isCameraFlyingRef.current = false;
           container.classList.remove('is-camera-settling');
           flightSettlingTimerRef.current = null;
-        }, 180);
+          setViewportRevision((v) => v + 1);
+        }, 160);
       };
       map.once('moveend', onFlightEnd);
     } catch {}
@@ -966,11 +968,29 @@ export const useMapPinsClustering = ({
     const scale = activityCardScale(map.getZoom());
     const bounds = map.getBounds().pad(0.2);
     const zoom = map.getZoom();
+
+    // 🎯 Adaptive Level of Detail (LOD):
+    // 1. District View: when an individual zone filter is active OR zoomed in to local scale (>= 15.5) -> Rich Vertical Cards
+    // 2. City Overview: when observing the entire city (< 15.5, no specific zone selected) -> Sleek Horizontal Compact Cards (Image 3 DNA)
+    const isDistrictView = Boolean(
+      (effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim() !== '') ||
+      zoom >= 15.5
+    );
+
     if (groupingCache.current?.items !== sortedBusinesses || groupingCache.current.zoom !== zoom) {
       groupingCache.current = { items: sortedBusinesses, zoom, groups: groupNearbyActivities(sortedBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
     }
     const groups = groupingCache.current.groups;
-    const occupied: Array<{ x: number; y: number }> = [];
+
+    interface OccupiedSpatialSlot {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      isCluster: boolean;
+    }
+    const occupied: OccupiedSpatialSlot[] = [];
+
     const visibleGroups = groups.filter(group => group.some(biz => bounds.contains([biz.lat, biz.lng])));
     // Remove stale results before yielding, so a new filter never shows old pins.
     const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
@@ -979,25 +999,47 @@ export const useMapPinsClustering = ({
     markersRegistryRef.current.forEach((entry, id) => { if (!nextIds.has(id)) { cardsLayer.removeLayer(entry.marker); markersRegistryRef.current.delete(id); } });
     clusterRegistry.current.forEach((marker, id) => { if (!nextClusters.has(id)) { clusterLayer.removeLayer(marker); clusterRegistry.current.delete(id); } });
     setIsRenderingActivities(visibleGroups.length > 0);
+
     return scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
       const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
       if (!bounds.contains([lat, lng])) return;
+
       if (group.length > 1) {
+        const clusterPoint = map.latLngToContainerPoint([lat, lng]);
+        // 🛡️ Cluster Shield: Register cluster's physical footprint into occupied grid to protect from cards overlapping!
+        occupied.push({
+          x: clusterPoint.x,
+          y: clusterPoint.y,
+          width: 48,
+          height: 48,
+          isCluster: true,
+        });
+
         const key = clusterKey(group);
         if (clusterRegistry.current.has(key)) return;
         const data = createLightweightClusterHtml(group.length);
-        const marker = window.L.marker([lat, lng], { icon: window.L.divIcon({ className: 'custom-district-cluster-pin', ...data }), pane: 'pinsPane', zIndexOffset: 600, title: `${group.length} أنشطة متقاربة` });
+        const marker = window.L.marker([lat, lng], {
+          icon: window.L.divIcon({ className: 'custom-district-cluster-pin', ...data }),
+          pane: 'pinsPane',
+          zIndexOffset: 600,
+          title: `${group.length} أنشطة متقاربة`,
+        });
         marker.on('click', () => {
           const points = group.map(biz => [biz.lat, biz.lng]);
           if (map.getZoom() < 19 && group.some(biz => map.distance([lat, lng], [biz.lat, biz.lng]) > 3)) {
             map.flyToBounds(window.L.latLngBounds(points), { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 });
           } else {
             const list = document.createElement('div');
-            list.dir = 'rtl'; list.style.cssText = 'max-height:240px;overflow:auto;min-width:190px';
-            const heading = document.createElement('strong'); heading.textContent = `${group.length} أنشطة في هذا المكان`; list.append(heading);
+            list.dir = 'rtl';
+            list.style.cssText = 'max-height:240px;overflow:auto;min-width:190px';
+            const heading = document.createElement('strong');
+            heading.textContent = `${group.length} أنشطة في هذا المكان`;
+            list.append(heading);
             group.forEach(biz => {
-              const button = document.createElement('button'); button.type = 'button'; button.textContent = biz.nameAr || biz.name || 'عرض النشاط';
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.textContent = biz.nameAr || biz.name || 'عرض النشاط';
               button.style.cssText = 'display:block;width:100%;padding:12px;text-align:right;border-bottom:1px solid #eee;cursor:pointer;background:white;color:#0f172a';
               button.onclick = () => { map.closePopup(); setSelectedBiz(biz); };
               list.append(button);
@@ -1010,25 +1052,94 @@ export const useMapPinsClustering = ({
         animateNewMarker(marker, key);
         return;
       }
+
       const biz = group[0];
       const point = map.latLngToContainerPoint([biz.lat, biz.lng]);
-      const compact = occupied.some(p => Math.abs(p.x-point.x) < 184*scale+10 && Math.abs(p.y-point.y) < 143*scale+10);
-      if (!compact) occupied.push(point);
-      const cardScale = compact ? 1 : scale;
-      const iconKey = computeMarkerIconKey(biz, 0, [0, 0], compact ? 'compact' : 'card') + `_${cardScale}`;
+
+      // Calculate candidate card dimensions
+      const cardWidth = isDistrictView ? 184 : 224;
+      const cardHeight = isDistrictView ? 134 : 60;
+      const cardW = cardWidth * scale;
+      const cardH = cardHeight * scale;
+
+      // 🛡️ Collision Engine: Check overlap against both existing cards AND cluster badges
+      const collides = occupied.some(occ => {
+        if (occ.isCluster) {
+          const cardCenterX = point.x;
+          const cardCenterY = point.y - cardH / 2;
+          return Math.abs(occ.x - cardCenterX) < (cardW / 2 + 28) &&
+                 Math.abs(occ.y - cardCenterY) < (cardH / 2 + 28);
+        }
+        const cardCenterX = point.x;
+        const cardCenterY = point.y - cardH / 2;
+        const occCenterX = occ.x;
+        const occCenterY = occ.y - occ.height / 2;
+        return Math.abs(occCenterX - cardCenterX) < (occ.width + cardW) / 2 + 10 &&
+               Math.abs(occCenterY - cardCenterY) < (occ.height + cardH) / 2 + 10;
+      });
+
+      // If no collision: render full card (Compact Overview in city mode, Rich Badge in district mode).
+      // If collides: collapse gracefully to compact pin dot so it doesn't overlap or occlude anything.
+      const usePinDot = collides;
+      if (!usePinDot) {
+        occupied.push({
+          x: point.x,
+          y: point.y,
+          width: cardW,
+          height: cardH,
+          isCluster: false,
+        });
+      }
+
+      const cardScale = usePinDot ? 1 : scale;
+      const markerType = usePinDot ? 'pindot' : (isDistrictView ? 'district' : 'overview');
+      const iconKey = computeMarkerIconKey(biz, 0, [0, 0], markerType) + `_${cardScale}`;
       const existing = markersRegistryRef.current.get(biz.id);
-      if (existing && existing.iconKey === iconKey) { existing.biz = biz; existing.marker.setLatLng([biz.lat, biz.lng]); return; }
-      const data = compact ? createCompactActivityPinHtml(biz, false, false) : createLightweightBadgeHtml(biz, false, false);
-      const icon = window.L.divIcon({ className: 'custom-biz-pin', html: `<div style="transform:scale(${cardScale});transform-origin:top left">${data.html}</div>`, iconSize: data.iconSize.map(n => n*cardScale), iconAnchor: data.iconAnchor.map(n => n*cardScale) });
+      if (existing && existing.iconKey === iconKey) {
+        existing.biz = biz;
+        existing.marker.setLatLng([biz.lat, biz.lng]);
+        return;
+      }
+
+      const data = usePinDot
+        ? createCompactActivityPinHtml(biz, false, false)
+        : isDistrictView
+        ? createLightweightBadgeHtml(biz, false, false)
+        : createCompactOverviewBadgeHtml(biz, false);
+
+      const icon = window.L.divIcon({
+        className: 'custom-biz-pin',
+        html: `<div style="transform:scale(${cardScale});transform-origin:top left">${data.html}</div>`,
+        iconSize: data.iconSize.map((n: number) => n * cardScale),
+        iconAnchor: data.iconAnchor.map((n: number) => n * cardScale),
+      });
+
       if (existing) {
-        existing.biz = biz; existing.marker.setLatLng([biz.lat, biz.lng]);
-        if (existing.iconKey !== iconKey) { existing.marker.setIcon(icon); existing.iconKey = iconKey; if ('fallbackCover' in data && typeof data.fallbackCover === 'string') attachCardDomListeners(existing.marker, data.fallbackCover); }
+        existing.biz = biz;
+        existing.marker.setLatLng([biz.lat, biz.lng]);
+        if (existing.iconKey !== iconKey) {
+          existing.marker.setIcon(icon);
+          existing.iconKey = iconKey;
+          if ('fallbackCover' in data && typeof data.fallbackCover === 'string') {
+            attachCardDomListeners(existing.marker, data.fallbackCover);
+          }
+        }
       } else {
-        const marker = window.L.marker([biz.lat, biz.lng], { icon, pane: 'pinsPane', title: biz.nameAr || '', zIndexOffset: compact ? 100 : 200 });
-        marker.on('click', () => { const current = markersRegistryRef.current.get(biz.id)?.biz || biz; setSelectedBiz(current); });
+        const marker = window.L.marker([biz.lat, biz.lng], {
+          icon,
+          pane: 'pinsPane',
+          title: biz.nameAr || '',
+          zIndexOffset: usePinDot ? 100 : 300,
+        });
+        marker.on('click', () => {
+          const current = markersRegistryRef.current.get(biz.id)?.biz || biz;
+          setSelectedBiz(current);
+        });
         cardsLayer.addLayer(marker);
         animateNewMarker(marker, biz.id);
-        if ('fallbackCover' in data && typeof data.fallbackCover === 'string') attachCardDomListeners(marker, data.fallbackCover);
+        if ('fallbackCover' in data && typeof data.fallbackCover === 'string') {
+          attachCardDomListeners(marker, data.fallbackCover);
+        }
         markersRegistryRef.current.set(biz.id, { marker, biz, iconKey });
       }
     }, () => setIsRenderingActivities(false));
@@ -1042,6 +1153,11 @@ export const useMapPinsClustering = ({
     let timer: number | null = null;
 
     const refresh = () => {
+      if (isCameraFlyingRef.current) {
+        // While camera is in flight, skip intermediate revisions;
+        // onFlightEnd will trigger a clean, single update once camera lands.
+        return;
+      }
       if (frame !== null) {
         cancelAnimationFrame(frame);
         frame = null;
@@ -1050,23 +1166,10 @@ export const useMapPinsClustering = ({
         window.clearTimeout(timer);
         timer = null;
       }
-
-      // If camera is currently flying or settling from flight, defer pin clustering to protect landing frame
-      const flightDelay = isCameraFlyingRef.current ? 120 : 0;
-      if (flightDelay > 0) {
-        timer = window.setTimeout(() => {
-          timer = null;
-          frame = requestAnimationFrame(() => {
-            frame = null;
-            setViewportRevision((value) => value + 1);
-          });
-        }, flightDelay);
-      } else {
-        frame = requestAnimationFrame(() => {
-          frame = null;
-          setViewportRevision((value) => value + 1);
-        });
-      }
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        setViewportRevision((value) => value + 1);
+      });
     };
 
     map.on('moveend zoomend resize', refresh);

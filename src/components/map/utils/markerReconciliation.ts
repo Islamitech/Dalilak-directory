@@ -20,7 +20,7 @@ export function computeMarkerIconKey(
   biz: Business,
   idx: number,
   offset: [number, number],
-  mode: 'card' | 'compact' | 'selected' = 'card'
+  mode: 'card' | 'compact' | 'selected' | 'overview' | 'pindot' | 'district' = 'card'
 ): string {
   const photo = biz.coverPhoto || biz.photos?.[0] || '';
   const rating = biz.googleRating ?? biz.rating ?? '';
