@@ -5,9 +5,9 @@ const scheduler = { request: (cb: FrameRequestCallback) => { frames.set(++seq,cb
 const tick = () => { const jobs = [...frames.values()]; frames.clear(); jobs.forEach(cb => cb(time)); };
 const results: number[] = []; let completed = 0;
 const cancel = scheduleProgressiveWork(Array.from({length:20},(_,i)=>i), n => results.push(n), () => completed++, scheduler);
-assert.equal(results.length,0);tick();assert.equal(results.length,6);assert.equal(completed,0);
-cancel();tick();assert.equal(results.length,6);assert.equal(completed,0);
-scheduleProgressiveWork([40,41,42], n => {results.push(n);time+=6;},()=>completed++,scheduler);
+assert.equal(results.length,0);tick();assert.equal(results.length,4);assert.equal(completed,0);
+cancel();tick();assert.equal(results.length,4);assert.equal(completed,0);
+scheduleProgressiveWork([40,41,42], n => {results.push(n);time+=4;},()=>completed++,scheduler);
 tick();assert.equal(results.at(-1),40);assert.equal(completed,0);tick();tick();assert.equal(completed,1);assert.deepEqual(results.slice(-3),[40,41,42]);
 scheduleProgressiveWork([],()=>assert.fail(),()=>completed++,scheduler);tick();assert.equal(completed,2);
 console.log('PASS: per-frame cap, time budget, cancelled stale batches, completion and empty results');

@@ -288,6 +288,8 @@ export default function App() {
               .map((r) => mapRawToBusiness(r))
               .filter((b) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
 
+            let accumulatedMapped: Business[] = [...initialMapped];
+
             setBusinesses((prev) => {
               if (controller.signal.aborted || activeLoadController !== controller) return prev;
               if (prev.length >= initialMapped.length) return prev;
@@ -320,10 +322,22 @@ export default function App() {
                     const batch = await batchResponse.json();
                     if (!Array.isArray(batch)) throw new Error('Invalid directory page');
                     if (Array.isArray(batch)) {
-                      raw.push(...batch);
                       if (!isMounted || controller.signal.aborted) return;
-                      const partial = raw.map(mapRawToBusiness).filter((b: Business) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
-                      startTransition(() => setBusinesses(prev => !controller.signal.aborted && activeLoadController === controller && prev.length < partial.length ? partial : prev));
+                      // ⚡ Pure Incremental Batch Ingestion: map ONLY the newly arrived batch (Zero redundant JSON.parse)
+                      const mappedBatch = batch
+                        .map(mapRawToBusiness)
+                        .filter((b: Business) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
+
+                      accumulatedMapped = accumulatedMapped.concat(mappedBatch);
+                      const currentAccumulated = [...accumulatedMapped];
+
+                      startTransition(() => {
+                        setBusinesses((prev) =>
+                          !controller.signal.aborted && activeLoadController === controller && prev.length < currentAccumulated.length
+                            ? currentAccumulated
+                            : prev
+                        );
+                      });
                     }
                   }
                 } catch (error: any) {
@@ -339,9 +353,8 @@ export default function App() {
             }
 
             if (!isMounted || controller.signal.aborted) return;
-            const mapped: Business[] = raw
-              .map((r) => mapRawToBusiness(r))
-              .filter((b) => b.verificationStatus === 'verified' && b.publishedStatus !== 'draft' && b.publishedStatus !== 'unlisted');
+            // ⚡ Zero Redundant Full Map Pass: Use already mapped businesses directly
+            const mapped: Business[] = accumulatedMapped;
 
             setBusinesses((prev) => {
               if (controller.signal.aborted || activeLoadController !== controller) return prev;

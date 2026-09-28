@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Business } from '../../../types';
 import { GOVERNORATE_COORDS } from '../constants/mapConstants';
 
@@ -27,15 +27,15 @@ export const useMapState = ({
   const [selectedBiz, _setSelectedBiz] = useState<Business | null>(null);
   const [isSelectedBizExpandedOnMap, setIsSelectedBizExpandedOnMap] = useState<boolean>(false);
 
-  const setSelectedBiz = (biz: Business | null) => {
+  const setSelectedBiz = useCallback((biz: Business | null) => {
     _setSelectedBiz(biz);
     setIsSelectedBizExpandedOnMap(false);
-  };
+  }, []);
 
   const [centerReticleActive, setCenterReticleActive] = useState<boolean>(false);
   const [isInHadayekScope, setIsInHadayekScope] = useState<boolean>(true);
 
-  const handleGovChange = (
+  const handleGovChange = useCallback((
     govName: string,
     updateSelectedPosition: (lat: number, lng: number, flyTo?: boolean, customZoom?: number) => void
   ) => {
@@ -44,14 +44,14 @@ export const useMapState = ({
       const coords = GOVERNORATE_COORDS[govName];
       updateSelectedPosition(coords.lat, coords.lng, true, 14);
     }
-  };
+  }, []);
 
-  const handleCopyCoords = (currentLat: number, currentLng: number) => {
+  const handleCopyCoords = useCallback((currentLat: number, currentLng: number) => {
     const coordsStr = `${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}`;
     navigator.clipboard.writeText(coordsStr);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, []);
 
   return {
     showBusinesses,

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import {
   InteractiveMapProps,
   MapTileLayerType,
@@ -159,7 +159,19 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
       : null);
 
-  const { isRenderingActivities } = useMapPinsClustering({
+  const handleClusteringSelectBusiness = useCallback((biz: any) => {
+    setSelectedBuildingState(null);
+    state.setSelectedBiz(biz);
+    if (onSelectBusiness) onSelectBusiness(biz);
+  }, [state.setSelectedBiz, onSelectBusiness]);
+
+  const handleClusteringSelectBuilding = useCallback((bldg: any) => {
+    setSelectedBuildingState(bldg);
+    state.setSelectedBiz(null);
+    if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
+  }, [state.setSelectedBiz, externalOnSelectBuilding]);
+
+  useMapPinsClustering({
     mapInstance,
     state,
     mode,
@@ -169,17 +181,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     categoryFilter: activeCategory,
     targetBuilding: effectiveTargetBuilding,
     buildingSearchActive: mapSearchMode === 'building',
-    onSelectBusiness: (biz) => {
-      setSelectedBuildingState(null);
-      state.setSelectedBiz(biz);
-      if (onSelectBusiness) onSelectBusiness(biz);
-    },
+    onSelectBusiness: handleClusteringSelectBusiness,
     onSelectZone,
-    onSelectBuilding: (bldg) => {
-      setSelectedBuildingState(bldg);
-      state.setSelectedBiz(null);
-      if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
-    },
+    onSelectBuilding: handleClusteringSelectBuilding,
     activeRoute,
   });
 
@@ -203,7 +207,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [mapInstance.isMapReady]);
 
-  const busy = directoryLoad.pending || searchPending || isRenderingActivities;
+  const busy = directoryLoad.pending || searchPending;
   const [showBusy, setShowBusy] = useState(false);
   useEffect(() => {
     if (!busy) { setShowBusy(false); return; }
@@ -325,7 +329,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         )}
 
         {/* ⚠️ Empty Category Notice Banner (Non-intrusive lightweight pill) */}
-        {mode === 'view' && activeCategory && activeCategory !== 'all' && !directoryLoad.pending && !searchPending && !directoryLoad.error && !isRenderingActivities && matchingBusinessesCount === 0 && (
+        {mode === 'view' && activeCategory && activeCategory !== 'all' && !directoryLoad.pending && !searchPending && !directoryLoad.error && matchingBusinessesCount === 0 && (
           <div className="absolute bottom-5 left-3 right-16 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>

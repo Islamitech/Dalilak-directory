@@ -79,7 +79,7 @@ export const useMapPinsClustering = ({
   activeRoute,
 }: UseMapPinsClusteringProps) => {
   const [viewportRevision, setViewportRevision] = useState(0);
-  const [isRenderingActivities, setIsRenderingActivities] = useState(false);
+  const isRenderingActivitiesRef = useRef(false);
   const clusterRegistry = useRef(new Map<string, any>());
   const seenMarkers = useRef(new Set<string>());
   const groupingCache = useRef<{ items: Business[]; zoom: number; groups: Business[][] } | null>(null);
@@ -165,11 +165,23 @@ export const useMapPinsClustering = ({
   const onSelectBusinessRef = useRef(onSelectBusiness);
   onSelectBusinessRef.current = onSelectBusiness;
 
+  const onSelectBuildingRef = useRef(onSelectBuilding);
+  onSelectBuildingRef.current = onSelectBuilding;
+
   const onSelectZoneRef = useRef(onSelectZone);
   onSelectZoneRef.current = onSelectZone;
 
   const selectedBizRef = useRef(selectedBiz);
   selectedBizRef.current = selectedBiz;
+
+  const setSelectedBizRef = useRef(setSelectedBiz);
+  setSelectedBizRef.current = setSelectedBiz;
+
+  const activeWorkCleanupRef = useRef<(() => void) | null>(null);
+  const lastRenderedFilterRef = useRef<{ category?: string; zone?: string }>({
+    category: effectiveCategoryFilter,
+    zone: effectiveSelectedZone,
+  });
 
   const markCameraFlight = useCallback((map: any) => {
     try {
@@ -220,15 +232,15 @@ export const useMapPinsClustering = ({
     const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
     if (hasCategoryFilter) {
       if (!matchesCategoryFilter(selectedBiz, effectiveCategoryFilter)) {
-        setSelectedBiz(null);
+        setSelectedBizRef.current(null);
         return;
       }
     }
     const hasActiveZone = Boolean(effectiveSelectedZone && effectiveSelectedZone.trim() !== '');
     if (hasActiveZone && !isBusinessInHadayekZone(selectedBiz, effectiveSelectedZone)) {
-      setSelectedBiz(null);
+      setSelectedBizRef.current(null);
     }
-  }, [effectiveSelectedZone, effectiveCategoryFilter, businesses, selectedBiz, setSelectedBiz]);
+  }, [effectiveSelectedZone, effectiveCategoryFilter, selectedBiz]);
 
   // 1. 🛡️ Initialize Dedicated Leaflet Panes and LayerGroups ONCE on map ready
   useEffect(() => {
@@ -500,7 +512,7 @@ export const useMapPinsClustering = ({
     const handleMapClick = () => {
       if (mode !== 'view') return;
       if (selectedBizRef.current) {
-        setSelectedBiz(null);
+        setSelectedBizRef.current(null);
       }
     };
 
@@ -508,7 +520,7 @@ export const useMapPinsClustering = ({
     return () => {
       map.off('click', handleMapClick);
     };
-  }, [isMapReady, mode, setSelectedBiz]);
+  }, [isMapReady, mode]);
 
   // 2d. 📍 Selected Activity Camera Centering & Pre-State Restoration
   useEffect(() => {
@@ -623,8 +635,8 @@ export const useMapPinsClustering = ({
     });
 
     marker.on('click', () => {
-      if (onSelectBuilding) {
-        onSelectBuilding({
+      if (onSelectBuildingRef.current) {
+        onSelectBuildingRef.current({
           buildingNumber: bldgNum,
           zoneLetter: zoneLet,
           lat: targetBuilding.lat!,
@@ -643,7 +655,7 @@ export const useMapPinsClustering = ({
         map.flyTo([targetBuilding.lat, targetBuilding.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
       } catch {}
     }
-  }, [isMapReady, targetBuilding, showTargetPin, onSelectBuilding]);
+  }, [isMapReady, targetBuilding, showTargetPin]);
 
   // 4. 🧭 In-App Route Polyline & Pins Effect
   useEffect(() => {
@@ -876,81 +888,82 @@ export const useMapPinsClustering = ({
     });
   }, [visibleBusinesses]);
 
-  // Main Reconciliation Effect
+  // 5b. 🏢 Dedicated Selected Activity Marker Effect (Strictly isolated on selectedPinPane)
   useEffect(() => {
-    setIsRenderingActivities(false);
+    if (mode !== 'view') return;
+    const map = leafletMapRef.current;
+    if (!map || !isMapReady || !window.L) return;
+
+    const selectedLayer = selectedLayerGroupRef.current;
+    if (!selectedLayer) return;
+
+    if (!selectedBiz) {
+      if (selectedMarkerRef.current) {
+        selectedLayer.clearLayers();
+        selectedMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const isExpanded = isSelectedBizExpandedOnMap;
+    const cardData = isExpanded
+      ? createExpandedActivityCardHtml(selectedBiz)
+      : createCompactSelectedActivityCardHtml(selectedBiz);
+
+    const bizIcon = window.L.divIcon({
+      className: `custom-biz-pin ${isExpanded ? 'selected-expanded-card' : 'selected-compact-card'} animate-scale-in`,
+      html: cardData.html,
+      iconSize: cardData.iconSize,
+      iconAnchor: cardData.iconAnchor,
+    });
+
+    const handleCardClick = () => {
+      if (!isExpanded) {
+        // State 1 -> State 2: Smooth camera zoom and transform into expanded card
+        try {
+          cameraTransitionTokenRef.current++;
+          map.stop();
+          map.flyTo([selectedBiz.lat, selectedBiz.lng], 17.5, { duration: 0.65, easeLinearity: 0.25 });
+        } catch {}
+        setIsSelectedBizExpandedOnMap(true);
+      } else {
+        // In State 2, clicking card body opens the comprehensive details modal
+        if (onSelectBusinessRef.current) {
+          onSelectBusinessRef.current(selectedBiz);
+        }
+      }
+    };
+
+    if (selectedMarkerRef.current && selectedLayer.hasLayer(selectedMarkerRef.current)) {
+      selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
+      selectedMarkerRef.current.setIcon(bizIcon);
+      selectedMarkerRef.current.off('click');
+      selectedMarkerRef.current.on('click', handleCardClick);
+      attachCardDomListeners(selectedMarkerRef.current, cardData.fallbackCover, () => setSelectedBizRef.current(null));
+    } else {
+      selectedLayer.clearLayers();
+      const marker = window.L.marker([selectedBiz.lat, selectedBiz.lng], {
+        icon: bizIcon,
+        pane: 'selectedPinPane',
+        zIndexOffset: 1200,
+      });
+      marker.on('click', handleCardClick);
+      selectedLayer.addLayer(marker);
+      attachCardDomListeners(marker, cardData.fallbackCover, () => setSelectedBizRef.current(null));
+      selectedMarkerRef.current = marker;
+    }
+  }, [mode, isMapReady, selectedBiz, isSelectedBizExpandedOnMap]);
+
+  // 6. 📍 Main Activity Pins Clustering & Progressive Dropping Effect
+  useEffect(() => {
+    isRenderingActivitiesRef.current = false;
     if (mode !== 'view') return;
     const map = leafletMapRef.current;
     if (!map || !isMapReady || !window.L) return;
 
     const cardsLayer = cardsLayerGroupRef.current;
     const clusterLayer = clusterLayerGroupRef.current;
-    const selectedLayer = selectedLayerGroupRef.current;
-    if (!cardsLayer || !clusterLayer || !selectedLayer) return;
-
-    // 🎯 CASE A: An Activity IS Selected -> Render ONLY the Expanded Details Card & Pin (regardless of category filter)
-    if (selectedBiz) {
-      cardsLayer.clearLayers();
-      clusterLayer.clearLayers();
-      clusterRegistry.current.clear();
-      markersRegistryRef.current.clear();
-      clusterMarkerRef.current = null;
-
-      const isExpanded = isSelectedBizExpandedOnMap;
-      const cardData = isExpanded
-        ? createExpandedActivityCardHtml(selectedBiz)
-        : createCompactSelectedActivityCardHtml(selectedBiz);
-
-      const bizIcon = window.L.divIcon({
-        className: `custom-biz-pin ${isExpanded ? 'selected-expanded-card' : 'selected-compact-card'} animate-scale-in`,
-        html: cardData.html,
-        iconSize: cardData.iconSize,
-        iconAnchor: cardData.iconAnchor,
-      });
-
-      const handleCardClick = () => {
-        if (!isExpanded) {
-          // State 1 -> State 2: Smooth camera zoom and transform into expanded card
-          try {
-            cameraTransitionTokenRef.current++;
-            map.stop();
-            map.flyTo([selectedBiz.lat, selectedBiz.lng], 17.5, { duration: 0.65, easeLinearity: 0.25 });
-          } catch {}
-          setIsSelectedBizExpandedOnMap(true);
-        } else {
-          // In State 2, clicking card body opens the comprehensive details modal
-          if (onSelectBusinessRef.current) {
-            onSelectBusinessRef.current(selectedBiz);
-          }
-        }
-      };
-
-      if (selectedMarkerRef.current && selectedLayer.hasLayer(selectedMarkerRef.current)) {
-        selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
-        selectedMarkerRef.current.setIcon(bizIcon);
-        selectedMarkerRef.current.off('click');
-        selectedMarkerRef.current.on('click', handleCardClick);
-        attachCardDomListeners(selectedMarkerRef.current, cardData.fallbackCover, () => setSelectedBiz(null));
-      } else {
-        selectedLayer.clearLayers();
-        const marker = window.L.marker([selectedBiz.lat, selectedBiz.lng], {
-          icon: bizIcon,
-          pane: 'selectedPinPane',
-          zIndexOffset: 1200,
-        });
-        marker.on('click', handleCardClick);
-        selectedLayer.addLayer(marker);
-        attachCardDomListeners(marker, cardData.fallbackCover, () => setSelectedBiz(null));
-        selectedMarkerRef.current = marker;
-      }
-      return;
-    }
-
-    // 🎯 CASE B: No Activity Selected -> Clear Selected Layer
-    if (selectedMarkerRef.current) {
-      selectedLayer.clearLayers();
-      selectedMarkerRef.current = null;
-    }
+    if (!cardsLayer || !clusterLayer) return;
 
     // Rule 1: Activities MUST ONLY appear if an activity type/category is selected from filters!
     const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
@@ -958,9 +971,7 @@ export const useMapPinsClustering = ({
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
       clusterRegistry.current.clear();
-      selectedLayer.clearLayers();
       markersRegistryRef.current.clear();
-      selectedMarkerRef.current = null;
       clusterMarkerRef.current = null;
       return;
     }
@@ -996,11 +1007,36 @@ export const useMapPinsClustering = ({
     const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
     const clusterKey = (g: Business[]) => g.map(b => `${b.id}:${b.lat}:${b.lng}:${b.nameAr}`).join('|');
     const nextClusters = new Set(visibleGroups.filter(g => g.length > 1).map(clusterKey));
-    markersRegistryRef.current.forEach((entry, id) => { if (!nextIds.has(id)) { cardsLayer.removeLayer(entry.marker); markersRegistryRef.current.delete(id); } });
-    clusterRegistry.current.forEach((marker, id) => { if (!nextClusters.has(id)) { clusterLayer.removeLayer(marker); clusterRegistry.current.delete(id); } });
-    setIsRenderingActivities(visibleGroups.length > 0);
 
-    return scheduleProgressiveWork(visibleGroups, group => {
+    const filterChanged =
+      lastRenderedFilterRef.current.category !== effectiveCategoryFilter ||
+      lastRenderedFilterRef.current.zone !== effectiveSelectedZone;
+    lastRenderedFilterRef.current = { category: effectiveCategoryFilter, zone: effectiveSelectedZone };
+
+    if (filterChanged) {
+      // ⚡ Atomic Fast Path: Full category/zone change clears all previous layers in 0.1ms without synchronous loop reflows
+      cardsLayer.clearLayers();
+      clusterLayer.clearLayers();
+      markersRegistryRef.current.clear();
+      clusterRegistry.current.clear();
+    } else {
+      // 🛡️ Incremental Viewport Path: Panning/zooming within same filter prunes only out-of-bounds pins
+      markersRegistryRef.current.forEach((entry, id) => {
+        if (!nextIds.has(id)) {
+          cardsLayer.removeLayer(entry.marker);
+          markersRegistryRef.current.delete(id);
+        }
+      });
+      clusterRegistry.current.forEach((marker, id) => {
+        if (!nextClusters.has(id)) {
+          clusterLayer.removeLayer(marker);
+          clusterRegistry.current.delete(id);
+        }
+      });
+    }
+    isRenderingActivitiesRef.current = visibleGroups.length > 0;
+
+    const cancelWork = scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
       const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
       if (!bounds.contains([lat, lng])) return;
@@ -1041,7 +1077,7 @@ export const useMapPinsClustering = ({
               button.type = 'button';
               button.textContent = biz.nameAr || biz.name || 'عرض النشاط';
               button.style.cssText = 'display:block;width:100%;padding:12px;text-align:right;border-bottom:1px solid #eee;cursor:pointer;background:white;color:#0f172a';
-              button.onclick = () => { map.closePopup(); setSelectedBiz(biz); };
+              button.onclick = () => { map.closePopup(); setSelectedBizRef.current(biz); };
               list.append(button);
             });
             marker.bindPopup(list).openPopup();
@@ -1133,7 +1169,7 @@ export const useMapPinsClustering = ({
         });
         marker.on('click', () => {
           const current = markersRegistryRef.current.get(biz.id)?.biz || biz;
-          setSelectedBiz(current);
+          setSelectedBizRef.current(current);
         });
         cardsLayer.addLayer(marker);
         animateNewMarker(marker, biz.id);
@@ -1142,8 +1178,19 @@ export const useMapPinsClustering = ({
         }
         markersRegistryRef.current.set(biz.id, { marker, biz, iconKey });
       }
-    }, () => setIsRenderingActivities(false));
-  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, selectedBiz, setSelectedBiz, isSelectedBizExpandedOnMap, viewportRevision]);
+    }, () => {
+      isRenderingActivitiesRef.current = false;
+      activeWorkCleanupRef.current = null;
+    });
+
+    activeWorkCleanupRef.current = cancelWork;
+    return () => {
+      if (activeWorkCleanupRef.current) {
+        activeWorkCleanupRef.current();
+        activeWorkCleanupRef.current = null;
+      }
+    };
+  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, viewportRevision]);
 
   // Refresh only after the viewport settles; never move the stored coordinates.
   useEffect(() => {
@@ -1151,6 +1198,14 @@ export const useMapPinsClustering = ({
     if (!map || !isMapReady || mode !== 'view') return;
     let frame: number | null = null;
     let timer: number | null = null;
+
+    const onGestureStart = () => {
+      // 🛑 Gesture Supremacy: Freeze active progressive pin drops immediately when user touches/drags/zooms
+      if (activeWorkCleanupRef.current) {
+        activeWorkCleanupRef.current();
+        activeWorkCleanupRef.current = null;
+      }
+    };
 
     const refresh = () => {
       if (isCameraFlyingRef.current) {
@@ -1172,12 +1227,14 @@ export const useMapPinsClustering = ({
       });
     };
 
+    map.on('movestart zoomstart dragstart', onGestureStart);
     map.on('moveend zoomend resize', refresh);
     return () => {
+      map.off('movestart zoomstart dragstart', onGestureStart);
       map.off('moveend zoomend resize', refresh);
       if (frame !== null) cancelAnimationFrame(frame);
       if (timer !== null) window.clearTimeout(timer);
     };
   }, [isMapReady, mode]);
-  return { isRenderingActivities };
+  return { isRenderingActivities: isRenderingActivitiesRef.current };
 };
