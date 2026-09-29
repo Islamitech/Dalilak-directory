@@ -1,0 +1,33 @@
+{
+  "name": "dalelak-public-directory",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "vercel-build": "vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "test:map": "tsx src/tests/map_fixes.test.ts"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@supabase/supabase-js": "^2.112.3",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vercel/og": "^1.0.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "lucide-react": "^0.546.0",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vercel/node": "^12.0.0",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.2"
+  }
+}

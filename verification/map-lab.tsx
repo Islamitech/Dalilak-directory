@@ -1,0 +1,2 @@
+import React,{useState}from'react';import{createRoot}from'react-dom/client';import{InteractiveMap}from'../src/components/InteractiveMap';import'../src/index.css';function Lab(){const[n,setN]=useState(0);return <><button id="independent" onClick={()=>setN(n+1)}>Independent {n}</button><div style={{height:650}}><InteractiveMap mode="picker"/></div></>}createRoot(document.getElementById('root')!).render(<Lab/>);
+

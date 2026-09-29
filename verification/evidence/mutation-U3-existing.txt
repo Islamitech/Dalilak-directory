@@ -1,0 +1,6 @@
+PASS: public eligibility, draft rejection, server pagination and upstream errors
+PASS: Hadayek filters, Arabic minutes, midday, overnight and unknown hours
+PASS: realtime upsert/delete, live override of stale snapshot, all-field equality, favorite validation
+PASS: malformed and semantic links
+PASS: Stage 5 - Egyptian phone validation, dialog accessibility hook
+PASS: Stage 6 - SSRF/Google Maps URL guard, map/geo hooks

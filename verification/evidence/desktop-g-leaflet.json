@@ -1,0 +1,442 @@
+{
+  "id": "g-leaflet",
+  "tag": "desktop",
+  "result": {
+    "error": "page.goto: net::ERR_ABORTED at http://127.0.0.1:5291/map\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:5291/map\", waiting until \"load\"\u001b[22m\n"
+  },
+  "evidence": {
+    "errors": [],
+    "console": [
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    ],
+    "network": [
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "http://127.0.0.1:5291/map",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      }
+    ]
+  }
+}

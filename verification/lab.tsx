@@ -1,0 +1,7 @@
+import React,{useState} from 'react';import{createRoot}from'react-dom/client';
+import {ShowcasePhotoLightbox} from '../src/components/activity/PhotoLightbox';
+import {VideoPlayerModal} from '../src/components/VideoPlayerModal';
+import {useMapGeolocation} from '../src/components/map/hooks/useMapGeolocation';
+const business:any={id:'biz_alpha',nameAr:'ألفا',category:'صيدلية',governorate:'الجيزة',city:'حدائق الأهرام',verificationStatus:'verified',videos:['https://fixture.test/video.mp4'],phone:'01012345678',workingHours:'24 ساعة'};
+function Lab(){const[photo,setPhoto]=useState<number|null>(null);const[video,setVideo]=useState(false);const[n,setN]=useState(0);const gps=useMapGeolocation({updateSelectedPosition:async()=>{},setGpsAccuracy:()=>{}});return <><button id="photo" onClick={()=>setPhoto(0)}>Open photo</button><button id="video" onClick={()=>setVideo(true)}>Open video</button><button id="gps" onClick={gps.handleGetLocation}>GPS</button><button id="independent" onClick={()=>setN(n+1)}>Independent {n}</button><output id="gps-status">{JSON.stringify({pending:gps.isLocating,error:gps.geoError})}</output><ShowcasePhotoLightbox photos={['https://fixture.test/a.svg']} previewPhotoIndex={photo} setPreviewPhotoIndex={setPhoto} handlePrevPhoto={()=>{}} handleNextPhoto={()=>{}}/>{video&&<VideoPlayerModal business={business} onClose={()=>setVideo(false)}/>}</>}
+createRoot(document.getElementById('root')!).render(<Lab/>);

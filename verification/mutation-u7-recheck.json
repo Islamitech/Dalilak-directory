@@ -1,0 +1,14 @@
+[
+  {
+    "mutant": false,
+    "before": "https://fixture.test/a.svg",
+    "after": "/api/biz-og?biz=biz_beta",
+    "pass": true
+  },
+  {
+    "mutant": true,
+    "before": "https://fixture.test/a.svg",
+    "after": "https://fixture.test/a.svg",
+    "pass": false
+  }
+]

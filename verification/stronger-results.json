@@ -1,0 +1,58 @@
+[
+  {
+    "id": "U1-normalization",
+    "result": {
+      "normalized": "حدائق الاهرام",
+      "earlyReturnCondition": false,
+      "aliasMatches": true
+    }
+  },
+  {
+    "id": "B7-true-server-cap-unique",
+    "result": {
+      "pass": true,
+      "requests": 5,
+      "ranges": [
+        "0-499",
+        "17-516",
+        "34-533",
+        "51-550",
+        "68-567"
+      ],
+      "unique": 73
+    }
+  },
+  {
+    "id": "B1-select-projection",
+    "result": {
+      "cases": [
+        {
+          "flags": {
+            "is_deleted": true
+          },
+          "selectedGuardColumn": false,
+          "status": 200,
+          "namePublished": true
+        },
+        {
+          "flags": {
+            "published_status": "draft"
+          },
+          "selectedGuardColumn": false,
+          "status": 200,
+          "namePublished": true
+        }
+      ],
+      "limitation": "Schema-dependent: DB was not inspected. If row-level guard columns exist, selecting without them defeats the guard. Original mocks returned unselected fields."
+    }
+  },
+  {
+    "id": "B10-image-body-stall",
+    "result": {
+      "photoFetched": true,
+      "completedBy5700ms": false,
+      "signalAborted": false,
+      "advertisedFetchTimeoutMs": 5000
+    }
+  }
+]

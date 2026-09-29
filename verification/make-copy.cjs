@@ -1,0 +1,1 @@
+const fs=require('fs'),path=require('path');const dst=path.resolve('verification/mutation-copy');fs.mkdirSync(dst,{recursive:true});for(const p of ['src','api','public','index.html','directory-preview.html','package.json','tsconfig.json'])fs.cpSync(p,path.join(dst,p),{recursive:true});console.log('Created isolated verification/mutation-copy');

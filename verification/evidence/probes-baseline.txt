@@ -1,0 +1,82 @@
+
+================ VERIFICATION PROBES :: target=baseline ================
+root=C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\baseline
+
+FAIL  BE-01  [B1,U13]  api/share.ts must not publish draft/deleted/unlisted/interested/pending/missing records
+        draft record must return 404, got 200
+        
+        200 !== 404
+        
+FAIL  BE-02  [B1,U13]  api/biz-og.ts must 404 on non-public/missing records instead of falling back silently
+        draft must 404, got 200 redirect=undefined
+        
+        200 !== 404
+        
+FAIL  BE-03  [B6]  api/sitemap.ts must return 503 (not 200) when the upstream directory fails
+        upstream failure must surface as 503, got 200
+        
+        200 !== 503
+        
+FAIL  BE-03b  [B6]  api/sitemap.ts upstream-503 status must be 503 and must carry no-store
+        expected 503 on upstream failure, got 200
+        
+        200 !== 503
+        
+FAIL  BE-04  [B7]  api/sitemap.ts must emit every record when the upstream caps page size below the total
+        sitemap dropped records: emitted 500 of 750 across 1 upstream page fetches
+        
+        500 !== 750
+        
+FAIL  BE-04b  [B7]  api/sitemap.ts paginated fetch must cover all 750 records across capped pages
+        expected 750 business URLs in sitemap, got 500
+        
+        500 !== 750
+        
+FAIL  BE-05  [B11]  api/biz-og.ts must not buffer an oversized image that omits Content-Length
+        handler drained the whole 8388608-byte upstream body (read 8388608 bytes) despite the 5242880-byte ceiling
+PASS  BE-05b  [B11]  api/biz-og.ts must reject an oversized image from Content-Length before streaming any bytes
+        INFO status=200 bytesFromUpstream=0 (declared 8388608, ceiling 5242880)
+FAIL  BE-06  [B9]  google-place-resolver must not follow a redirect chain to an internal host (SSRF)
+        a blocked redirect chain must produce a 4xx, got 200
+PASS  BE-06b  [B9]  google-place-resolver must never issue a request to an internal/metadata host
+FAIL  BE-07  [B9]  isValidGoogleMapsUrl must reject lookalike hosts, userinfo tricks and internal targets
+        isValidGoogleMapsUrl is not exported
+        + actual - expected
+        
+        + 'undefined'
+        - 'function'
+        
+FAIL  BE-08  [U2]  getBusinessOpenStatus must not report unknown/closed hours as open
+        hours "" must not be reported open
+        
+        true !== false
+        
+FAIL  BE-08b  [U2]  getBusinessOpenStatus handles Arabic-Indic digits, minutes, noon and overnight spans
+        09:29 must be closed
+        
+        true !== false
+        
+FAIL  BE-09  [U2,DST]  getBusinessOpenStatus must evaluate Cairo local time (incl. Egypt summer UTC+3) regardless of the host timezone
+        TZ=UTC: open-now is wrong for these Cairo instants (DST not honoured): [{"iso":"2026-07-06T11:30:00Z","expected":false,"actual":true},{"iso":"2026-01-05T06:30:00Z","expected":false,"actual":true},{"iso":"2026-01-05T12:30:00Z","expected":false,"actual":true}]
+        + actual - expected
+        
+        + [
+        +   '2026-07-06T11:30:00Z expected=false actual=true',
+        +   '2026-01-05T06:30:00Z expected=false actual=true',
+        +   '2026-01-05T12:30:00Z expected=false actual=true'
+        + ]
+        - []
+        
+PASS  BE-09b  [U2,DST]  open-now must be timezone-correct across the Egypt DST boundary
+FAIL  BE-10  [B2,B3,B12]  catalog merge/equality/favorites primitives behave correctly
+        Cannot find module 'C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\baseline\src\services\catalogState.ts' imported from C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\lib\harness.ts
+FAIL  BE-11  [B1,A1]  a single shared public-eligibility rule exists and rejects every non-public state
+        Cannot find module 'C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\baseline\src\shared\publicBusiness.ts' imported from C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\lib\harness.ts
+FAIL  BE-12  [U1,A5]  a single shared filtering predicate exists and honours openNow/rating/video inside the Hadayek scope
+        Cannot find module 'C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\baseline\src\utils\directoryFiltering.ts' imported from C:\Users\Ahmed\Desktop\AGENT_SYSTEM\projects\Dalilak_Production_Ecosystem\Dalilak-directory_Production_Clean\verification\lib\harness.ts
+FAIL  BE-13  [U13,B8]  slug/ID extraction survives malformed encoding and old-ID links
+        URI malformed
+
+---- target=baseline: 3/19 probes passed ----
+FAILED: BE-01, BE-02, BE-03, BE-03b, BE-04, BE-04b, BE-05, BE-06, BE-07, BE-08, BE-08b, BE-09, BE-10, BE-11, BE-12, BE-13
+

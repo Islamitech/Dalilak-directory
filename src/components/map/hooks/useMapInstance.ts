@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { LocationAddressData, fetchLocationAddress } from '../../../utils/geocoding';
 import { MapTileLayerType } from '../constants/mapConstants';
 import { preloadHadayekTiles, cancelHadayekTilePreload, HADAYEK_BOUNDS_COORDS } from '../../../utils/hadayekTilePreloader';
+import { loadLeafletScript } from '../utils/leafletLoader';
 
 export const HADAYEK_BOUNDS: [[number, number], [number, number]] = [
   HADAYEK_BOUNDS_COORDS.sw,
@@ -46,6 +47,13 @@ export const useMapInstance = ({
   const [tileLayer, setTileLayer] = useState<MapTileLayerType>('dalelak-clean');
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
+  const [mapScriptError, setMapScriptError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState<number>(0);
+
+  const retryLoadMap = useCallback(() => {
+    setMapScriptError(null);
+    setReloadKey((k) => k + 1);
+  }, []);
 
   const leafletMapRef = useRef<any>(null);
   const tileLayerRef = useRef<any>(null);
@@ -326,38 +334,23 @@ export const useMapInstance = ({
       });
     };
 
-    // Ensure Leaflet CSS is injected dynamically on demand (Zero-Head Leaflet)
-    if (!document.querySelector('link[href*="leaflet.css"]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-      link.crossOrigin = '';
-      document.head.appendChild(link);
-    }
-
-    if (window.L) {
-      initMap();
-    } else {
-      const existingScript = document.querySelector('script[src*="leaflet.js"]');
-      if (existingScript) {
-        existingScript.addEventListener('load', () => {
-          if (isSubscribed) initMap();
-        });
-      } else {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-        script.crossOrigin = '';
-        script.onload = () => {
-          if (isSubscribed) initMap();
-        };
-        document.head.appendChild(script);
-      }
-    }
+    const cleanupLoader = loadLeafletScript({
+      onSuccess: () => {
+        if (isSubscribed) {
+          setMapScriptError(null);
+          initMap();
+        }
+      },
+      onError: () => {
+        if (isSubscribed) {
+          setMapScriptError('تعذر تحميل محرك الخريطة من المصدر. يرجى التحقق من الاتصال بالإنترنت.');
+        }
+      },
+    });
 
     return () => {
       isSubscribed = false;
+      cleanupLoader();
       cancelHadayekTilePreload();
       setIsMapReady(false);
       if (leafletMapRef.current) {
@@ -370,7 +363,7 @@ export const useMapInstance = ({
         } catch {}
       }
     };
-  }, [mode]);
+  }, [mode, reloadKey]);
 
   // Handle container expansion/collapse without destroying Leaflet instance
   useEffect(() => {
@@ -451,6 +444,8 @@ export const useMapInstance = ({
   return {
     leafletMapRef,
     isMapReady,
+    mapScriptError,
+    retryLoadMap,
     markersGroupRef,
     pickerMarkerRef,
     accuracyCircleRef,

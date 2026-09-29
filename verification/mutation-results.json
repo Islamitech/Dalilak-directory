@@ -1,0 +1,134 @@
+{
+  "controlExistingExit": 0,
+  "results": [
+    {
+      "id": "U1",
+      "control": {
+        "pass": true,
+        "exit": 0,
+        "output": "PASS U1\n"
+      },
+      "mutant": {
+        "pass": false,
+        "exit": 1,
+        "output": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: alias early return must not skip filter\r\n\r\n1 !== 0\r\n\r\n    at <anonymous> (C:\\Users\\Ahmed\\Desktop\\AGENT_SYSTEM\\projects\\Dalilak_Production_Ecosystem\\Dalilak-directory_Production_Clean\\verification\\mutation-probe.ts:4:395) {\r\n  generatedMessage: false,\r\n  code: 'ERR_ASSERTION',\r\n  actual: 1,\r\n  expected: 0,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+      },
+      "existingSuitePassesWithoutFix": true,
+      "existingExit": 0
+    },
+    {
+      "id": "U2",
+      "control": {
+        "pass": true,
+        "exit": 0,
+        "output": "PASS U2\n"
+      },
+      "mutant": {
+        "pass": false,
+        "exit": 1,
+        "output": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r\n\r\ntrue !== false\r\n\r\n    at <anonymous> (C:\\Users\\Ahmed\\Desktop\\AGENT_SYSTEM\\projects\\Dalilak_Production_Ecosystem\\Dalilak-directory_Production_Clean\\verification\\mutation-probe.ts:5:78) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: true,\r\n  expected: false,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+      },
+      "existingSuitePassesWithoutFix": false,
+      "existingExit": 1
+    },
+    {
+      "id": "U3",
+      "control": {
+        "pass": true,
+        "pageErrors": []
+      },
+      "mutant": {
+        "pass": false,
+        "pageErrors": []
+      },
+      "existingSuitePassesWithoutFix": true,
+      "existingExit": 0
+    },
+    {
+      "id": "U4",
+      "control": {
+        "pass": true,
+        "pageErrors": []
+      },
+      "mutant": {
+        "pass": false,
+        "pageErrors": []
+      },
+      "existingSuitePassesWithoutFix": true,
+      "existingExit": 0
+    },
+    {
+      "id": "U7",
+      "control": {
+        "pass": null,
+        "harnessError": "locator.click: Timeout 3500ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('صيدلية بيتا', { exact: true }).last()\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"hover:underline focus:outline-hidden\" href=\"/biz/صيدليه-بيتا-حدائق-الاهرام-biz_beta\">صيدلية بيتا</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+      },
+      "mutant": {
+        "pass": null,
+        "harnessError": "locator.click: Timeout 3500ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('صيدلية بيتا', { exact: true }).last()\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"hover:underline focus:outline-hidden\" href=\"/biz/صيدليه-بيتا-حدائق-الاهرام-biz_beta\">صيدلية بيتا</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5\">…</div> from <div class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+      },
+      "existingSuitePassesWithoutFix": true,
+      "existingExit": 0
+    },
+    {
+      "id": "B1",
+      "control": {
+        "pass": true,
+        "exit": 0,
+        "output": "PASS B1\n"
+      },
+      "mutant": {
+        "pass": false,
+        "exit": 1,
+        "output": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r\n\r\ntrue !== false\r\n\r\n    at <anonymous> (C:\\Users\\Ahmed\\Desktop\\AGENT_SYSTEM\\projects\\Dalilak_Production_Ecosystem\\Dalilak-directory_Production_Clean\\verification\\mutation-probe.ts:6:115) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: true,\r\n  expected: false,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+      },
+      "existingSuitePassesWithoutFix": false,
+      "existingExit": 1
+    },
+    {
+      "id": "B2",
+      "control": {
+        "pass": true,
+        "exit": 0,
+        "output": "PASS B2\n"
+      },
+      "mutant": {
+        "pass": false,
+        "exit": 1,
+        "output": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r\n\r\n0 !== 1\r\n\r\n    at <anonymous> (C:\\Users\\Ahmed\\Desktop\\AGENT_SYSTEM\\projects\\Dalilak_Production_Ecosystem\\Dalilak-directory_Production_Clean\\verification\\mutation-probe.ts:7:72) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: 0,\r\n  expected: 1,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+      },
+      "existingSuitePassesWithoutFix": false,
+      "existingExit": 1
+    },
+    {
+      "id": "B3",
+      "control": {
+        "pass": true,
+        "exit": 0,
+        "output": "PASS B3\n"
+      },
+      "mutant": {
+        "pass": false,
+        "exit": 1,
+        "output": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r\n\r\ntrue !== false\r\n\r\n    at <anonymous> (C:\\Users\\Ahmed\\Desktop\\AGENT_SYSTEM\\projects\\Dalilak_Production_Ecosystem\\Dalilak-directory_Production_Clean\\verification\\mutation-probe.ts:8:72) {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: true,\r\n  expected: false,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+      },
+      "existingSuitePassesWithoutFix": false,
+      "existingExit": 1
+    },
+    {
+      "id": "B4",
+      "control": {
+        "pass": true,
+        "liveBefore": true,
+        "pageErrors": []
+      },
+      "mutant": {
+        "pass": false,
+        "liveBefore": true,
+        "pageErrors": []
+      },
+      "existingSuitePassesWithoutFix": true,
+      "existingExit": 0
+    }
+  ]
+}

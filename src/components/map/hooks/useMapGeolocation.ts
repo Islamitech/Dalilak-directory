@@ -10,10 +10,15 @@ export const useMapGeolocation = ({
   setGpsAccuracy,
 }: UseMapGeolocationProps) => {
   const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const timeoutIdRef = useRef<any>(null);
   const updateSelectedPositionRef = useRef(updateSelectedPosition);
   const setGpsAccuracyRef = useRef(setGpsAccuracy);
+
+  const clearGeoError = useCallback(() => {
+    setGeoError(null);
+  }, []);
 
   useEffect(() => {
     updateSelectedPositionRef.current = updateSelectedPosition;
@@ -41,12 +46,13 @@ export const useMapGeolocation = ({
   // 🎯 Ultra-Precision Satellite GPS Locator (Multi-Sample Convergence)
   const handleGetLocation = useCallback(() => {
     clearPending();
+    setGeoError(null);
     setIsLocating(true);
     setGpsAccuracyRef.current(null);
 
     if (!('geolocation' in navigator)) {
       setIsLocating(false);
-      alert('خدمة تحديد الموقع GPS غير مدعومة على هذا المتصفح.');
+      setGeoError('خدمة تحديد الموقع GPS غير مدعومة على هذا المتصفح.');
       return;
     }
 
@@ -59,6 +65,7 @@ export const useMapGeolocation = ({
       isFinalized = true;
       clearPending();
       setIsLocating(false);
+      setGeoError(null);
 
       const uLat = Number(pos.coords.latitude.toFixed(6));
       const uLng = Number(pos.coords.longitude.toFixed(6));
@@ -81,6 +88,14 @@ export const useMapGeolocation = ({
           // If satellite lock achieved high precision (<= 8 meters) or sampled enough
           if (position.coords.accuracy <= 8 || sampleCount >= 4) {
             finalizePosition(bestPosition || position);
+          } else if (sampleCount === 1) {
+            // Start a 4.5s convergence timer only after the first position arrives
+            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+            timeoutIdRef.current = setTimeout(() => {
+              if (!isFinalized && bestPosition) {
+                finalizePosition(bestPosition);
+              }
+            }, 4500);
           }
         },
         (error) => {
@@ -97,7 +112,7 @@ export const useMapGeolocation = ({
                 isFinalized = true;
                 clearPending();
                 setIsLocating(false);
-                alert('تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.');
+                setGeoError('تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.');
               },
               { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
             );
@@ -111,9 +126,10 @@ export const useMapGeolocation = ({
       );
     } catch {
       setIsLocating(false);
+      setGeoError('حدث خطأ أثناء محاولة تشغيل خدمة الموقع.');
     }
 
-    // Timeout safety to lock the best reading obtained within 4.5 seconds
+    // Safety timeout to abort if geolocation never resolves (longer than 12s watchPosition timeout)
     timeoutIdRef.current = setTimeout(() => {
       if (!isFinalized) {
         if (bestPosition) {
@@ -122,13 +138,16 @@ export const useMapGeolocation = ({
           isFinalized = true;
           clearPending();
           setIsLocating(false);
+          setGeoError('انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.');
         }
       }
-    }, 4500);
+    }, 14000);
   }, [clearPending]);
 
   return {
     isLocating,
+    geoError,
+    clearGeoError,
     handleGetLocation,
   };
 };

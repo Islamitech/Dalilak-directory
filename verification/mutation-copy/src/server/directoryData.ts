@@ -1,0 +1,30 @@
+import {isPublicBusiness, businessMetadata} from '../shared/publicBusiness.js';
+import {getBusinessSlug} from '../utils/directoryUrl.js';
+export const SUPABASE_URL=(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://xdqpbajymacpdccorjcj.supabase.co').trim().replace(/\/+$/,'');
+export const SUPABASE_ANON_KEY=(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_VJ8y1c53by7_sEn90hy8Pw_vO_K_b2x').trim();
+const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at';
+export function publicBusinessSlug(row:any):string {return getBusinessSlug({id:row.id,nameAr:row.name_ar,nameEn:row.name_en,city:row.city,customDirectoryUrl:businessMetadata(row).customDirectoryUrl});}
+export async function fetchDirectoryRows(query:URLSearchParams,range?:string):Promise<{rows:any[];total:number}> {
+ const response=await fetch(SUPABASE_URL+'/rest/v1/businesses?'+query,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY,Accept:'application/json',...(range?{Range:range,'Range-Unit':'items',Prefer:'count=exact'}:{})},signal:AbortSignal.timeout(8000)});
+ if(!response.ok)throw new Error('Directory upstream '+response.status);
+ const rows=await response.json();if(!Array.isArray(rows))throw new Error('Invalid directory response');
+ return {rows,total:Number(response.headers.get('content-range')?.split('/')[1]||NaN)};
+}
+export async function loadPublicDirectory():Promise<any[]> {
+ const result:any[]=[];let offset=0;
+ while(offset<100000){
+  const {rows,total}=await fetchDirectoryRows(new URLSearchParams({select:fields,verification_status:'eq.verified',package_id:'neq.pkg_interested_lead',order:'created_at.desc,id.asc'}),offset+'-'+(offset+499));
+  result.push(...rows.filter(isPublicBusiness));offset+=rows.length;
+  if(!rows.length||(Number.isFinite(total)?offset>=total:rows.length<500))return [...new Map(result.map(row=>[row.id,row])).values()];
+ }
+ throw new Error('Directory pagination limit exceeded');
+}
+export async function findPublicBusiness(raw:string):Promise<any|null>{
+ let decoded:string;try{decoded=decodeURIComponent(raw).trim();}catch{return null;}
+ const match=decoded.match(/(biz_[a-zA-Z0-9_-]+)/i);const id=match?match[1]:decoded;
+ const {rows}=await fetchDirectoryRows(new URLSearchParams({select:fields,id:'eq.'+id,limit:'1'}));
+ if(rows.length)return isPublicBusiness(rows[0])?rows[0]:null;
+ if(match)return null;
+ const catalog=await loadPublicDirectory();
+ return catalog.find(row=>publicBusinessSlug(row)===decoded||businessMetadata(row).customDirectoryUrl===decoded)||null;
+}

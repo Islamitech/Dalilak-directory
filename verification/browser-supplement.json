@@ -1,0 +1,108 @@
+[
+  {
+    "tag": "mobile",
+    "kind": "photo",
+    "initialFocusInside": false,
+    "tabEscaped": true,
+    "closed": true,
+    "focusReturned": false
+  },
+  {
+    "tag": "mobile",
+    "kind": "video",
+    "initialFocusInside": false,
+    "tabEscaped": true,
+    "closed": true,
+    "focusReturned": false
+  },
+  {
+    "tag": "mobile",
+    "kind": "gps-slow",
+    "status": "{\"pending\":false,\"error\":\"انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.\"}",
+    "independent": "Independent 1",
+    "alerts": [],
+    "watchCleared": true
+  },
+  {
+    "tag": "mobile",
+    "kind": "gps-denied",
+    "status": "{\"pending\":false,\"error\":\"تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.\"}",
+    "independent": "Independent 1",
+    "alerts": [],
+    "watchCleared": true
+  },
+  {
+    "tag": "mobile",
+    "kind": "video-app-recheck",
+    "dialogs": 1,
+    "url": "http://127.0.0.1:5291/search"
+  },
+  {
+    "tag": "mobile",
+    "kind": "activity-keyboard",
+    "ariaModal": "true",
+    "escapeClosed": true,
+    "focusReturned": true
+  },
+  {
+    "tag": "mobile",
+    "kind": "offline",
+    "fallback": true,
+    "retry": true,
+    "favoritesVisibleOffline": false,
+    "recovered": true
+  },
+  {
+    "tag": "desktop",
+    "kind": "photo",
+    "initialFocusInside": false,
+    "tabEscaped": true,
+    "closed": true,
+    "focusReturned": false
+  },
+  {
+    "tag": "desktop",
+    "kind": "video",
+    "initialFocusInside": false,
+    "tabEscaped": true,
+    "closed": true,
+    "focusReturned": false
+  },
+  {
+    "tag": "desktop",
+    "kind": "gps-slow",
+    "status": "{\"pending\":false,\"error\":\"انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.\"}",
+    "independent": "Independent 1",
+    "alerts": [],
+    "watchCleared": true
+  },
+  {
+    "tag": "desktop",
+    "kind": "gps-denied",
+    "status": "{\"pending\":false,\"error\":\"تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.\"}",
+    "independent": "Independent 1",
+    "alerts": [],
+    "watchCleared": true
+  },
+  {
+    "tag": "desktop",
+    "kind": "video-app-recheck",
+    "dialogs": 1,
+    "url": "http://127.0.0.1:5291/search"
+  },
+  {
+    "tag": "desktop",
+    "kind": "activity-keyboard",
+    "ariaModal": "true",
+    "escapeClosed": true,
+    "focusReturned": true
+  },
+  {
+    "tag": "desktop",
+    "kind": "offline",
+    "fallback": true,
+    "retry": true,
+    "favoritesVisibleOffline": false,
+    "recovered": true
+  }
+]

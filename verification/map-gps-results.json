@@ -1,0 +1,50 @@
+[
+  {
+    "tag": "mobile",
+    "mode": "slow",
+    "initialLeafletAttempts": 1,
+    "retryNewAttempts": 0,
+    "visibleAlerts": [
+      "📍انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.إغلاق"
+    ],
+    "blockingAlerts": [],
+    "uiResponsive": "Independent 1",
+    "pageErrors": []
+  },
+  {
+    "tag": "mobile",
+    "mode": "denied",
+    "initialLeafletAttempts": 1,
+    "retryNewAttempts": 0,
+    "visibleAlerts": [
+      "📍تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.إغلاق"
+    ],
+    "blockingAlerts": [],
+    "uiResponsive": "Independent 1",
+    "pageErrors": []
+  },
+  {
+    "tag": "desktop",
+    "mode": "slow",
+    "initialLeafletAttempts": 1,
+    "retryNewAttempts": 0,
+    "visibleAlerts": [
+      "📍انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.إغلاق"
+    ],
+    "blockingAlerts": [],
+    "uiResponsive": "Independent 1",
+    "pageErrors": []
+  },
+  {
+    "tag": "desktop",
+    "mode": "denied",
+    "initialLeafletAttempts": 1,
+    "retryNewAttempts": 0,
+    "visibleAlerts": [
+      "📍تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.إغلاق"
+    ],
+    "blockingAlerts": [],
+    "uiResponsive": "Independent 1",
+    "pageErrors": []
+  }
+]

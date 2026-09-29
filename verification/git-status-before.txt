@@ -1,0 +1,37 @@
+ M api/biz-og.ts
+ M api/google-place-resolver.ts
+ M api/share.ts
+ M api/sitemap.ts
+ M dist/index.html
+ M package.json
+ M src/App.tsx
+ M src/components/InteractiveMap.tsx
+ M src/components/PublicShowcase.tsx
+ M src/components/VideoPlayerModal.tsx
+ M src/components/activity/ActivityDetailModal.tsx
+ M src/components/activity/PhotoLightbox.tsx
+ M src/components/cards/BusinessCardGrid.tsx
+ M src/components/map/hooks/useMapGeolocation.ts
+ M src/components/map/hooks/useMapInstance.ts
+ M src/components/search/FilterDrawer.tsx
+ M src/components/search/SmartSearchBar.tsx
+ M src/components/views/FavoritesView.tsx
+ M src/components/views/ForBusinessView.tsx
+ M src/directory-experience/details/ActionPreview.tsx
+ M src/directory-experience/details/PlaceDetails.tsx
+ M src/directory-experience/discovery/PlaceCard.tsx
+ M src/directory-experience/map/MapActivityCards.tsx
+ M src/directory-experience/map/MapScreen.tsx
+ M src/utils/directoryEnhancements.ts
+ M src/utils/directoryUrl.ts
+?? docs/REPAIR_EXECUTION_REFERENCE.md
+?? scripts/verify-browser.cjs
+?? scripts/verify-repair.mjs
+?? src/components/DirectoryStatus.tsx
+?? src/hooks/
+?? src/server/
+?? src/services/catalogState.ts
+?? src/shared/
+?? src/tests/repair.test.ts
+?? src/utils/directoryFiltering.ts
+?? verification/

@@ -1,0 +1,20 @@
+{
+  "errors": [],
+  "console": [
+    "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "network": [
+    {
+      "blocked": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    },
+    {
+      "failed": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "failed": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+      "error": "net::ERR_FAILED"
+    }
+  ]
+}

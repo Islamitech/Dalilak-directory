@@ -1,0 +1,160 @@
+{
+  "id": "b-gallery",
+  "tag": "desktop",
+  "result": {
+    "before": "https://fixture.test/a.svg",
+    "after": "/api/biz-og?biz=biz_beta",
+    "staleMainPhoto": false,
+    "url": "http://127.0.0.1:5291/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A8%D9%8A%D8%AA%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_beta"
+  },
+  "evidence": {
+    "errors": [],
+    "console": [
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    ],
+    "network": [
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.googletagmanager.com/gtag/js"
+      },
+      {
+        "blocked": "https://fonts.googleapis.com/css2"
+      },
+      {
+        "failed": "https://fonts.googleapis.com/css2",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://www.googletagmanager.com/gtag/js",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
+      },
+      {
+        "failed": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "blocked": "https://www.openstreetmap.org/export/embed.html"
+      },
+      {
+        "failed": "https://www.openstreetmap.org/export/embed.html",
+        "error": "net::ERR_BLOCKED_BY_CLIENT"
+      },
+      {
+        "failed": "https://xdqpbajymacpdccorjcj.supabase.co/rest/v1/businesses",
+        "error": "net::ERR_ABORTED"
+      }
+    ]
+  }
+}

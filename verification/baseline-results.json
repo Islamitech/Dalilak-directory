@@ -1,0 +1,190 @@
+[
+  {
+    "target": "baseline-mobile",
+    "id": "U1",
+    "matchingA": 1,
+    "nonMatchingB": 0
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "U3",
+    "opened": "http://127.0.0.1:5292/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha",
+    "backClosed": true,
+    "backUrl": "http://127.0.0.1:5292/search",
+    "forwardReopened": false,
+    "forwardUrl": "http://127.0.0.1:5292/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha"
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "U4",
+    "closedBefore": true,
+    "reopenedAfterRefresh": true,
+    "catalogRequests": 3,
+    "url": "http://127.0.0.1:5292/biz/biz_alpha"
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "U7",
+    "before": "https://fixture.test/a.svg",
+    "after": "https://fixture.test/a.svg",
+    "stale": true
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "B2",
+    "upsertAppeared": false
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "B3",
+    "newDescriptionVisible": false,
+    "cacheDescription": "وصف الاختبار"
+  },
+  {
+    "target": "baseline-mobile",
+    "id": "B4",
+    "liveFirst": true,
+    "liveSurvivesStaleREST": false
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "U1",
+    "matchingA": 1,
+    "nonMatchingB": 0
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "U3",
+    "opened": "http://127.0.0.1:5292/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha",
+    "backClosed": true,
+    "backUrl": "http://127.0.0.1:5292/search",
+    "forwardReopened": false,
+    "forwardUrl": "http://127.0.0.1:5292/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha"
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "U4",
+    "closedBefore": true,
+    "reopenedAfterRefresh": true,
+    "catalogRequests": 3,
+    "url": "http://127.0.0.1:5292/biz/biz_alpha"
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "U7",
+    "before": "https://fixture.test/a.svg",
+    "after": "https://fixture.test/a.svg",
+    "stale": true
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "B2",
+    "upsertAppeared": false
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "B3",
+    "newDescriptionVisible": false,
+    "cacheDescription": "وصف الاختبار"
+  },
+  {
+    "target": "baseline-desktop",
+    "id": "B4",
+    "liveFirst": true,
+    "liveSurvivesStaleREST": false
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "U1",
+    "matchingA": 1,
+    "nonMatchingB": 0
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "U3",
+    "opened": "http://127.0.0.1:5291/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha",
+    "backClosed": true,
+    "backUrl": "http://127.0.0.1:5291/search",
+    "forwardReopened": true,
+    "forwardUrl": "http://127.0.0.1:5291/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha"
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "U4",
+    "closedBefore": true,
+    "reopenedAfterRefresh": false,
+    "catalogRequests": 1,
+    "url": "http://127.0.0.1:5291/search"
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "U7",
+    "before": "https://fixture.test/a.svg",
+    "after": "/api/biz-og?biz=biz_beta",
+    "stale": false
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "B2",
+    "upsertAppeared": true
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "B3",
+    "newDescriptionVisible": false,
+    "cacheDescription": "DESCRIPTION_CHANGED_ONLY"
+  },
+  {
+    "target": "worktree-mobile",
+    "id": "B4",
+    "liveFirst": true,
+    "liveSurvivesStaleREST": true
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "U1",
+    "matchingA": 1,
+    "nonMatchingB": 0
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "U3",
+    "opened": "http://127.0.0.1:5291/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha",
+    "backClosed": true,
+    "backUrl": "http://127.0.0.1:5291/search",
+    "forwardReopened": true,
+    "forwardUrl": "http://127.0.0.1:5291/biz/%D8%B5%D9%8A%D8%AF%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%81%D8%A7-%D8%AD%D8%AF%D8%A7%D8%A6%D9%82-%D8%A7%D9%84%D8%A7%D9%87%D8%B1%D8%A7%D9%85-biz_alpha"
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "U4",
+    "closedBefore": true,
+    "reopenedAfterRefresh": false,
+    "catalogRequests": 1,
+    "url": "http://127.0.0.1:5291/search"
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "U7",
+    "before": "https://fixture.test/a.svg",
+    "after": "/api/biz-og?biz=biz_beta",
+    "stale": false
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "B2",
+    "upsertAppeared": true
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "B3",
+    "newDescriptionVisible": false,
+    "cacheDescription": "DESCRIPTION_CHANGED_ONLY"
+  },
+  {
+    "target": "worktree-desktop",
+    "id": "B4",
+    "liveFirst": true,
+    "liveSurvivesStaleREST": true
+  }
+]
