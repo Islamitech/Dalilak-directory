@@ -293,8 +293,17 @@ export default function App() {
       }catch(error){if(mounted&&controller===request){setDirectoryLoad({pending:false,error:'تعذّر تحديث الأنشطة. البيانات المتاحة قد تكون غير مكتملة.'});}}
       finally{clearTimeout(timeout);if(mounted&&controller===request)setLoading(false);}
     }
-    const retry=()=>{void loadBusinesses();};
-    const visibility=()=>{if(!document.hidden)retry();};
+    let lastFetchTime = 0;
+    const retry = (force = false) => {
+      if (!force && Date.now() - lastFetchTime < 300000) return;
+      lastFetchTime = Date.now();
+      void loadBusinesses();
+    };
+    const visibility = () => {
+      if (!document.hidden && Date.now() - lastFetchTime >= 300000) {
+        retry(true);
+      }
+    };
     const channel=supabase.channel('dalelak-public-directory-realtime').on('postgres_changes',{event:'*',schema:'public',table:'businesses'},(payload:any)=>{
       if(!mounted)return;
       const id=payload.eventType==='DELETE'?payload.old?.id:payload.new?.id;if(!id)return;
@@ -305,10 +314,10 @@ export default function App() {
       if(value)triggerSyncToast('تم تحديث بيانات الدليل');
     }).subscribe();
     const sync=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('dalelak_data_sync_channel'):null;
-    if(sync)sync.onmessage=(event)=>{if(event.data?.type==='SYNC_DATA')retry();};
-    window.addEventListener('directory:retry',retry);document.addEventListener('visibilitychange',visibility);
-    const interval=window.setInterval(()=>{if(!document.hidden)retry();},300000);retry();
-    return()=>{mounted=false;controller?.abort();clearInterval(interval);window.removeEventListener('directory:retry',retry);document.removeEventListener('visibilitychange',visibility);void supabase.removeChannel(channel);sync?.close();};
+    if(sync)sync.onmessage=(event)=>{if(event.data?.type==='SYNC_DATA')retry(true);};
+    window.addEventListener('directory:retry',()=>retry(true));document.addEventListener('visibilitychange',visibility);
+    const interval=window.setInterval(()=>{if(!document.hidden)retry(true);},300000);retry(true);
+    return()=>{mounted=false;controller?.abort();clearInterval(interval);window.removeEventListener('directory:retry',()=>retry(true));document.removeEventListener('visibilitychange',visibility);void supabase.removeChannel(channel);sync?.close();};
   }, []);
 
   useEffect(()=>{

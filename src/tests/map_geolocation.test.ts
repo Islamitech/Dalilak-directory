@@ -173,7 +173,7 @@ try {
 
     assert.equal(harness.get().isLocating, false, 'isLocating should be false after position finalized');
     assert.equal(harness.get().geoError, null, 'geoError should remain null on success');
-    assert.deepEqual(selectedPos, { lat: 29.979184, lng: 31.106863, flyTo: true, zoom: 18 });
+    assert.deepEqual(selectedPos, { lat: 29.979184, lng: 31.106863, flyTo: true, zoom: 17 });
     assert.equal(recordedAcc, 6);
     console.log('✓ Test 1 passed: 6s delayed fix succeeded without 4.5s premature timeout');
   }
@@ -325,7 +325,7 @@ try {
 
     assert.equal(harness.get().isLocating, false, 'isLocating must be false after fallback succeeds');
     assert.equal(harness.get().geoError, null, 'geoError must be null after fallback succeeds');
-    assert.deepEqual(selectedPos, { lat: 29.979184, lng: 31.106863, flyTo: true, zoom: 18 });
+    assert.deepEqual(selectedPos, { lat: 29.979184, lng: 31.106863, flyTo: true, zoom: 17 });
     console.log('✓ Test 4 passed: Fallback successfully resolved at 17s without being cut off at 14s');
   }
 } finally {

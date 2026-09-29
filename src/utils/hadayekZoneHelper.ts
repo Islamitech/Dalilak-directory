@@ -261,9 +261,12 @@ export function filterBusinessesForMap(
   businesses: Business[],
   zoneFilter?: string,
   categoryFilter?: string,
-  onlyVerified: boolean = false
+  onlyVerified: boolean = false,
+  zoomLevel?: number
 ): Business[] {
   if (!businesses || businesses.length === 0) return [];
+
+  const isCityOverview = typeof zoomLevel === 'number' && zoomLevel < 15.0;
 
   return businesses.filter((b) => {
     // 1. Valid coordinates required for map
@@ -281,8 +284,9 @@ export function filterBusinessesForMap(
       if (!matchesCategoryFilter(b, categoryFilter)) return false;
     }
 
-    // 4. Zone filter
-    if (zoneFilter && zoneFilter !== 'all' && zoneFilter.trim() !== '') {
+    // 4. Zone filter (Adaptive City Overview LOD: when viewing from city overview altitude (< 15.0),
+    // retain city-wide activities so the overview remains alive and populated)
+    if (!isCityOverview && zoneFilter && zoneFilter !== 'all' && zoneFilter.trim() !== '') {
       return isBusinessInHadayekZone(b, zoneFilter);
     }
 

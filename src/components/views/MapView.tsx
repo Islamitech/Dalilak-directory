@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Radar } from 'lucide-react';
 import { Business } from '../../types';
 import { InteractiveMap, MAP_QUICK_CATEGORIES } from '../InteractiveMap';
@@ -98,6 +98,8 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [focusedBusiness]);
 
+  const buildingSearchReqIdRef = useRef(0);
+
   // Whenever activeZoneLetter and activeBuildingNumber change, resolve exact cadastral coordinates
   useEffect(() => {
     if (!activeZoneLetter || !activeBuildingNumber) {
@@ -105,15 +107,15 @@ export const MapView: React.FC<MapViewProps> = ({
       return;
     }
 
-    let isMounted = true;
+    const currentReqId = ++buildingSearchReqIdRef.current;
     searchBuildingCoordinatesExact(activeZoneLetter, activeBuildingNumber).then((coords) => {
-      if (isMounted && coords) {
+      if (buildingSearchReqIdRef.current === currentReqId && coords) {
         setExactBuildingCoords(coords);
       }
     });
 
     return () => {
-      isMounted = false;
+      // Invalidate currentReqId
     };
   }, [activeZoneLetter, activeBuildingNumber]);
 

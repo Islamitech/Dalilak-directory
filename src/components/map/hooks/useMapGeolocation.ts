@@ -72,7 +72,7 @@ export const useMapGeolocation = ({
       const acc = Math.round(pos.coords.accuracy);
 
       setGpsAccuracyRef.current(acc);
-      updateSelectedPositionRef.current(uLat, uLng, true, 18);
+      updateSelectedPositionRef.current(uLat, uLng, true, 17);
     };
 
     // Watch Position convergence over up to 3.5 seconds
