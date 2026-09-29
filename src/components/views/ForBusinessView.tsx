@@ -12,7 +12,10 @@ import {
   ArrowLeft,
   BadgeDollarSign,
   ShieldCheck,
+  Copy,
+  Check,
 } from 'lucide-react';
+import { isValidEgyptianPhone, normalizePhone } from '../../utils/phone';
 
 export interface ForBusinessViewProps {
   onNavigate: (path: string) => void;
@@ -39,6 +42,8 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
   const [subcategoryId, setSubcategoryId] = useState(draft?.subcategoryId || 'all');
   const [submitted, setSubmitted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [popupBlocked, setPopupBlocked] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const selectedCategoryGroup = getCategoryGroupById(mainCategoryId);
 
   React.useEffect(() => {
@@ -50,19 +55,8 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
     } catch {}
   }, [bizName, ownerName, phone, gov, mainCategoryId, subcategoryId]);
 
-  const normalizePhone = (num: string) =>
-    num
-      .replace(/[٠-٩]/g, (c) => String(c.charCodeAt(0) - 1632))
-      .replace(/[۰-۹]/g, (c) => String(c.charCodeAt(0) - 1776))
-      .replace(/[\s\-_()]/g, '');
-
-  const isValidEgyptianPhone = (num: string) => {
-    const clean = normalizePhone(num);
-    return /^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(clean);
-  };
-
-  const getWhatsAppUrl = () => {
-    const text = `مرحباً دليلك 👋 أود إدراج نشاطي في المنصة:
+  const getWhatsAppMessageText = () => {
+    return `مرحباً دليلك 👋 أود إدراج نشاطي في المنصة:
 - اسم النشاط: ${bizName.trim()}
 - اسم المسؤول: ${ownerName.trim() || 'صاحب النشاط'}
 - رقم الهاتف: ${phone.trim()}
@@ -70,7 +64,53 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
 - الفئة الرئيسية: ${selectedCategoryGroup?.label || 'غير محددة'}
 - النوع الفرعي: ${getSubcategoryById(subcategoryId)?.label || 'غير محدد'}
 - الخدمة المطلوبة: إدراج مجاني (0 ج) بموقع Google Maps`;
-    return `https://wa.me/201556221141?text=${encodeURIComponent(text)}`;
+  };
+
+  const getWhatsAppUrl = () => {
+    return `https://wa.me/201556221141?text=${encodeURIComponent(getWhatsAppMessageText())}`;
+  };
+
+  const openWhatsApp = () => {
+    let popup: Window | null = null;
+    try {
+      popup = window.open(getWhatsAppUrl(), '_blank');
+    } catch {
+      popup = null;
+    }
+
+    if (!popup || popup.closed) {
+      setPopupBlocked(true);
+      setSubmitted(false);
+      return false;
+    }
+
+    setPopupBlocked(false);
+    setSubmitted(true);
+    return true;
+  };
+
+  const handleCopyMessage = async () => {
+    try {
+      const text = getWhatsAppMessageText();
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopyStatus('copied');
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (!success) throw new Error('execCommand copy failed');
+        setCopyStatus('copied');
+      }
+    } catch {
+      setCopyStatus('error');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,8 +123,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
     }
     setPhoneError('');
 
-    window.open(getWhatsAppUrl(), '_blank', 'noopener,noreferrer');
-    setSubmitted(true);
+    openWhatsApp();
   };
 
   return (
@@ -135,6 +174,59 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {popupBlocked && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5 text-right space-y-3 animate-fade-in"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-slate-900">
+                      تعذر فتح واتساب تلقائياً (تم حظر النوافذ المنبثقة)
+                    </h4>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      يبدو أن المتصفح قد حظر فتح نافذة جديدة تلقائياً. مسودة بياناتك محفوظة؛ يمكنك إعادة المحاولة بالزر أدناه أو نسخ نص الرسالة وإرسالها يدوياً.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => openWhatsApp()}
+                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>افتح واتساب مرة أخرى</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyMessage}
+                    className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>انسخ الرسالة</span>
+                  </button>
+                </div>
+
+                {copyStatus === 'copied' && (
+                  <p role="status" className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 pt-1">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>تم نسخ الرسالة بنجاح إلى الحافظة! يمكنك الآن لصقها في محادثة واتساب.</span>
+                  </p>
+                )}
+                {copyStatus === 'error' && (
+                  <p role="alert" className="text-xs font-bold text-rose-600 flex items-center gap-1.5 pt-1">
+                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    <span>تعذر النسخ التلقائي إلى الحافظة. يرجى المحاولة مرة أخرى أو فتح واتساب مباشرة.</span>
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-slate-700 block">اسم المنشأة أو المحل التجاري *</label>

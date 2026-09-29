@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PhotoWatermarkBadge } from '../PhotoWatermarkBadge';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
 
 export interface ShowcasePhotoLightboxProps {
   photos: string[];
@@ -19,14 +20,17 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
   handleNextPhoto,
 }) => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const isOpen = previewPhotoIndex !== null && photos.length > 0;
+
+  const { containerRef } = useAccessibleDialog({
+    isOpen,
+    onClose: () => setPreviewPhotoIndex(null),
+  });
 
   useEffect(() => {
-    if (previewPhotoIndex === null) return;
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setPreviewPhotoIndex(null);
-      } else if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft') {
         e.preventDefault();
         handlePrevPhoto();
       } else if (e.key === 'ArrowRight') {
@@ -36,16 +40,18 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewPhotoIndex, handlePrevPhoto, handleNextPhoto, setPreviewPhotoIndex]);
+  }, [isOpen, handlePrevPhoto, handleNextPhoto]);
 
-  if (previewPhotoIndex === null || photos.length === 0) return null;
+  if (!isOpen) return null;
 
   return (
     <div
+      ref={containerRef}
       role="dialog"
       aria-modal="true"
       aria-label="معرض صور النشاط"
-      className="fixed inset-0 z-[99999] bg-slate-950/97 backdrop-blur-md flex items-center justify-center animate-fade-in"
+      tabIndex={-1}
+      className="fixed inset-0 z-[99999] bg-slate-950/97 backdrop-blur-md flex items-center justify-center animate-fade-in outline-none"
       onClick={() => setPreviewPhotoIndex(null)}
       onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
       onTouchEnd={(e) => {

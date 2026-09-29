@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "test:map": "tsx src/tests/map_fixes.test.ts",
-    "test:repair": "node scripts/verify-repair.mjs"
+    "test:repair": "node scripts/verify-repair.mjs",
+    "test:repair:browser": "node src/tests/mutation_browser.playwright.cjs"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

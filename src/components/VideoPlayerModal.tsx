@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Business } from '../types';
 import { VideoWatermarkBadge } from './VideoWatermarkBadge';
+import { useAccessibleDialog } from '../hooks/useAccessibleDialog';
 import { 
   X, 
   MapPin, 
@@ -25,18 +26,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   videoUrl,
   onClose,
 }) => {
+  const { containerRef } = useAccessibleDialog({
+    isOpen: !!business,
+    onClose,
+  });
+
   useEffect(() => {
     if (!business) return;
     document.body.style.overflow = 'hidden';
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [business, onClose]);
+  }, [business]);
 
   if (!business) return null;
 
@@ -68,10 +69,12 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onClick={onClose}
     >
       <div 
+        ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="video-modal-title"
-        className="relative w-full max-w-lg bg-slate-900 border border-amber-500/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col text-slate-100 my-auto animate-fade-in-up"
+        tabIndex={-1}
+        className="relative w-full max-w-lg bg-slate-900 border border-amber-500/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col text-slate-100 my-auto animate-fade-in-up outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Bar */}

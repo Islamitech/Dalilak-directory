@@ -17,6 +17,8 @@ console.log('PASS: public eligibility, draft rejection, server pagination and up
 import {getBusinessOpenStatus} from '../utils/directoryEnhancements';
 import {filterDirectoryBusinesses} from '../utils/directoryFiltering';
 for(const value of ['', 'مغلق','نص غير معروف'])assert.equal(getBusinessOpenStatus(value).isOpen,false);
+assert.equal(getBusinessOpenStatus('24 ساعة').isOpen, true, '24 ساعة must be open');
+assert.equal(getBusinessOpenStatus('مغلق').isOpen, false, 'مغلق must be closed');
 const cairo=(time:string)=>new Date('2026-01-05T'+time+':00+02:00');
 assert.equal(getBusinessOpenStatus('٩:٣٠ ص إلى ٥:١٥ م',cairo('09:29')).isOpen,false);
 assert.equal(getBusinessOpenStatus('٩:٣٠ ص إلى ٥:١٥ م',cairo('09:30')).isOpen,true);
@@ -27,7 +29,14 @@ const options={activityIntent:null,deferredSearchQuery:'',categoryFilter:'all',s
 const fixture:any={id:'biz_filter',nameAr:'اختبار',verificationStatus:'verified',city:'حدائق الأهرام',governorate:'الجيزة',lat:29.979184,lng:31.106863,workingHours:'مغلق',videos:[]};
 assert.equal(filterDirectoryBusinesses([fixture],options).length,1);
 for(const key of ['openNowOnly','hasRatingOnly','hasVideoOnly'])assert.equal(filterDirectoryBusinesses([fixture],{...options,[key]:true}).length,0,key);
-console.log('PASS: Hadayek filters, Arabic minutes, midday, overnight and unknown hours');
+
+// U1: Geographic alias "هضبة الأهرام" positive control & filter preservation
+const aliasOptions = {...options, cityFilter: 'هضبة الأهرام'};
+const aliasFixture: any = {...fixture, id: 'biz_alias', nameAr: 'نشاط الهضبة'};
+assert.equal(filterDirectoryBusinesses([aliasFixture], aliasOptions).length, 1, 'positive geographic control with alias هضبة الأهرام');
+assert.equal(filterDirectoryBusinesses([aliasFixture], {...aliasOptions, hasVideoOnly: true}).length, 0, 'alias early return must not skip hasVideoOnly filter');
+assert.equal(filterDirectoryBusinesses([aliasFixture], {...aliasOptions, openNowOnly: true}).length, 0, 'alias early return must not skip openNowOnly filter');
+console.log('PASS: Hadayek filters, Arabic minutes, midday, overnight, unknown hours and alias هضبة الأهرام');
 
 import {mergeCatalog,catalogsEqual,parseFavorites} from '../services/catalogState';
 const active:any={...fixture,createdDate:'2026-09-01',description:'old'};
@@ -42,11 +51,8 @@ import {extractBusinessIdFromSlug,getBusinessSlug} from '../utils/directoryUrl';
 assert.equal(extractBusinessIdFromSlug('%broken'),'');assert.equal(extractBusinessIdFromSlug('اسم-biz_123'),'biz_123');assert.equal(getBusinessSlug({id:'biz_1',nameAr:'اختبار',customDirectoryUrl:'my-shop'}),'my-shop');
 console.log('PASS: malformed and semantic links');
 
-// Stage 5 assertions: Phone normalization, Egyptian format validation, and accessible dialog hook
-import {useAccessibleDialog} from '../hooks/useAccessibleDialog';
-assert.equal(typeof useAccessibleDialog, 'function');
-const normalizePhone = (num: string) => num.replace(/[٠-٩]/g, (c) => String(c.charCodeAt(0) - 1632)).replace(/[۰-۹]/g, (c) => String(c.charCodeAt(0) - 1776)).replace(/[\s\-_()]/g, '');
-const isValidEgyptianPhone = (num: string) => /^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(normalizePhone(num));
+// Stage 5 assertions: Phone normalization and Egyptian format validation
+import {isValidEgyptianPhone, normalizePhone} from '../utils/phone';
 assert.equal(isValidEgyptianPhone('01012345678'), true);
 assert.equal(isValidEgyptianPhone('٠١١١٢٣٤٥٦٧٨'), true);
 assert.equal(isValidEgyptianPhone('+201212345678'), true);
@@ -54,9 +60,9 @@ assert.equal(isValidEgyptianPhone('00201512345678'), true);
 assert.equal(isValidEgyptianPhone('01312345678'), false); // invalid operator prefix (not 0, 1, 2, 5)
 assert.equal(isValidEgyptianPhone('12345'), false);
 assert.equal(isValidEgyptianPhone('0101234567'), false); // too short
-console.log('PASS: Stage 5 - Egyptian phone validation, dialog accessibility hook');
+console.log('PASS: Stage 5 - Egyptian phone validation');
 
-// Stage 6 assertions: External request safety, Google Maps redirect/SSRF validation, map hooks
+// Stage 6 assertions: External request safety, Google Maps redirect/SSRF validation
 import {isValidGoogleMapsUrl} from '../../api/google-place-resolver';
 assert.equal(isValidGoogleMapsUrl('https://maps.app.goo.gl/AbCdEf123'), true);
 assert.equal(isValidGoogleMapsUrl('https://goo.gl/maps/AbCdEf123'), true);
@@ -67,11 +73,21 @@ assert.equal(isValidGoogleMapsUrl('http://127.0.0.1:8080'), false);
 assert.equal(isValidGoogleMapsUrl('http://169.254.169.254/latest/meta-data'), false);
 assert.equal(isValidGoogleMapsUrl('https://attacker-google.com/phish'), false);
 assert.equal(isValidGoogleMapsUrl('javascript:alert(1)'), false);
+console.log('PASS: Stage 6 - SSRF/Google Maps URL guard');
 
-import {useMapInstance} from '../components/map/hooks/useMapInstance';
-import {useMapGeolocation} from '../components/map/hooks/useMapGeolocation';
-assert.equal(typeof useMapInstance, 'function');
-assert.equal(typeof useMapGeolocation, 'function');
-console.log('PASS: Stage 6 - SSRF/Google Maps URL guard, map/geo hooks');
+// Verified mutation browser scenarios (U3, U4, U7, B4)
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const browserScript = path.resolve(__dirname, 'mutation_browser.playwright.cjs');
+const browserRun = spawnSync(process.execPath, [browserScript], {
+  stdio: 'inherit',
+  env: process.env,
+});
+assert.equal(browserRun.status, 0, 'Verified mutation browser scenarios (U3, U4, U7, B4) must pass');
+console.log('PASS: Verified mutation browser scenarios (U3, U4, U7, B4)');
 
 

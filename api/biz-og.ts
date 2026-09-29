@@ -188,36 +188,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             console.warn('[biz-og] Blocked untrusted photo host for SSRF prevention:', host);
           } else {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000);
-            const imgRes = await fetch(photo, { signal: controller.signal });
-            clearTimeout(timeout);
-            if (imgRes.ok && imgRes.body) {
-              const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-              const contentLength = Number(imgRes.headers.get('content-length') || 0);
-              const MAX_SIZE = 5 * 1024 * 1024;
-              if (contentLength > MAX_SIZE) {
-                throw new Error('Image too large');
+            let reader: any = null;
+            const timeout = setTimeout(() => {
+              controller.abort();
+              if (reader) {
+                try {
+                  reader.cancel().catch(() => {});
+                } catch {}
               }
-              const reader = (imgRes.body as any).getReader();
-              const chunks: Uint8Array[] = [];
-              let received = 0;
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                if (value) {
-                  received += value.length;
-                  if (received > MAX_SIZE) {
-                    await reader.cancel();
-                    throw new Error('Image stream exceeded 5MB ceiling');
-                  }
-                  chunks.push(value);
+            }, 5000);
+            try {
+              const imgRes = await fetch(photo, { signal: controller.signal });
+              if (imgRes.ok && imgRes.body) {
+                const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+                const contentLength = Number(imgRes.headers.get('content-length') || 0);
+                const MAX_SIZE = 5 * 1024 * 1024;
+                if (contentLength > MAX_SIZE) {
+                  throw new Error('Image too large');
                 }
+                reader = (imgRes.body as any).getReader();
+                const chunks: Uint8Array[] = [];
+                let received = 0;
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  if (value) {
+                    received += value.length;
+                    if (received > MAX_SIZE) {
+                      await reader.cancel();
+                      throw new Error('Image stream exceeded 5MB ceiling');
+                    }
+                    chunks.push(value);
+                  }
+                }
+                if (controller.signal.aborted) {
+                  throw new Error('Image fetch timeout');
+                }
+                const buffer = Buffer.concat(chunks);
+                res.setHeader('Content-Type', contentType);
+                res.setHeader('Content-Length', buffer.length);
+                res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
+                return res.status(200).send(buffer);
               }
-              const buffer = Buffer.concat(chunks);
-              res.setHeader('Content-Type', contentType);
-              res.setHeader('Content-Length', buffer.length);
-              res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
-              return res.status(200).send(buffer);
+            } finally {
+              clearTimeout(timeout);
             }
           }
         } catch (fetchErr) {

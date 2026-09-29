@@ -284,34 +284,60 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         <div className="p-4 sm:p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 text-xs">
           {/* Main Visual Photo & Gallery */}
           <div className="space-y-3">
-            <div
-              onClick={() => {
-                if (photos.length > 0) setPreviewPhotoIndex(0);
-              }}
-              onContextMenu={(e) => e.preventDefault()}
-              className="relative h-56 sm:h-64 rounded-2xl overflow-hidden bg-slate-950 shadow-md group cursor-pointer select-none protected-asset-shield"
-            >
-              <img
-                src={photos[0] || `/api/biz-og?biz=${business.id}`}
-                alt=""
-                role="presentation"
-                aria-hidden="true"
-                data-reader-skip="true"
-                data-readability-ignore="true"
-                draggable={false}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
-              />
-              {/* Anti-Extraction Transparent Protection Shield */}
-              <div 
-                className="absolute inset-0 z-[5] select-none pointer-events-auto"
+            <div className="relative h-56 sm:h-64 rounded-2xl overflow-hidden bg-slate-950 shadow-md group select-none">
+              <button
+                type="button"
+                aria-label={`معاينة صور ${business.nameAr}`}
+                onClick={() => {
+                  if (photos.length > 0) setPreviewPhotoIndex(0);
+                }}
                 onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                className="w-full h-full text-right cursor-pointer select-none protected-asset-shield focus:outline-none focus:ring-2 focus:ring-amber-500 block relative"
+              >
+                <img
+                  src={photos[0] || `/api/biz-og?biz=${business.id}`}
+                  alt=""
+                  role="presentation"
+                  aria-hidden="true"
+                  data-reader-skip="true"
+                  data-readability-ignore="true"
+                  draggable={false}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
+                />
+                {/* Anti-Extraction Transparent Protection Shield */}
+                <div 
+                  className="absolute inset-0 z-[5] select-none pointer-events-none"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
 
-              <div className="absolute top-3 right-3 left-3 flex items-center justify-between gap-2 z-10">
+                <div className="absolute bottom-3.5 right-4 left-4 text-white space-y-1 z-10 pointer-events-none">
+                  <h1 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
+                    {business.nameAr}
+                  </h1>
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300 font-bold">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{[business.city, business.governorate].filter(Boolean).join('، ')}</span>
+                    </span>
+
+                    {business.googleRatingEnabled && business.googleRating && (
+                      <span className="inline-flex items-center gap-1 bg-slate-900/60 px-2 py-0.5 rounded-lg border border-amber-400/40 text-amber-300 font-mono font-black">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{business.googleRating.toFixed(1)}</span>
+                        {business.googleReviewsCount !== undefined && (
+                          <span className="text-[10px] text-slate-300 font-normal">({business.googleReviewsCount} تقييم)</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+
+              <div className="absolute top-3 right-3 left-3 flex items-center justify-between gap-2 z-10 pointer-events-none">
                 {/* Right (RTL Start): Clean Category Pill Only */}
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0 pointer-events-auto">
                   <span className="bg-slate-950/80 backdrop-blur-md text-amber-300 text-[11px] font-black px-3 py-1 rounded-xl border border-amber-400/30 shadow-xs whitespace-nowrap truncate max-w-[220px] sm:max-w-xs">
                     {business.category}
                   </span>
@@ -325,34 +351,12 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       e.stopPropagation();
                       onOpenVideoModal(business);
                     }}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-md transition-transform active:scale-95 cursor-pointer whitespace-nowrap"
+                    className="pointer-events-auto bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-md transition-transform active:scale-95 cursor-pointer whitespace-nowrap"
                   >
                     <Play className="w-3.5 h-3.5 fill-slate-950" />
                     <span>فيديو</span>
                   </button>
                 )}
-              </div>
-
-              <div className="absolute bottom-3.5 right-4 left-4 text-white space-y-1 z-10">
-                <h1 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
-                  {business.nameAr}
-                </h1>
-                <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300 font-bold">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{[business.city, business.governorate].filter(Boolean).join('، ')}</span>
-                  </span>
-
-                  {business.googleRatingEnabled && business.googleRating && (
-                    <span className="inline-flex items-center gap-1 bg-slate-900/60 px-2 py-0.5 rounded-lg border border-amber-400/40 text-amber-300 font-mono font-black">
-                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      <span>{business.googleRating.toFixed(1)}</span>
-                      {business.googleReviewsCount !== undefined && (
-                        <span className="text-[10px] text-slate-300 font-normal">({business.googleReviewsCount} تقييم)</span>
-                      )}
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
 
