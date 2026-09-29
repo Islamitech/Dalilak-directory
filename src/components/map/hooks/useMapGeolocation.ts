@@ -129,7 +129,7 @@ export const useMapGeolocation = ({
       setGeoError('حدث خطأ أثناء محاولة تشغيل خدمة الموقع.');
     }
 
-    // Safety timeout to abort if geolocation never resolves (longer than 12s watchPosition timeout)
+    // Safety timeout to abort if geolocation never resolves (longer than 12s watchPosition + 8s fallback = 20s)
     timeoutIdRef.current = setTimeout(() => {
       if (!isFinalized) {
         if (bestPosition) {
@@ -141,7 +141,7 @@ export const useMapGeolocation = ({
           setGeoError('انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.');
         }
       }
-    }, 14000);
+    }, 21000);
   }, [clearPending]);
 
   return {

@@ -206,8 +206,9 @@ try {
 
     // Up to 12s (watchPosition timeout), still locating
     clock.tick(12000);
-    // Safety timer should fire after watchPosition timeout (final timeout >= 12s)
-    clock.tick(3000); // 15s total
+    assert.equal(harness.get().isLocating, true, 'Still locating at 12s');
+    // Safety timer fires after final combined timeout (12s watch + 8s fallback = 20s)
+    clock.tick(9500); // 21.5s total
 
     assert.equal(harness.get().isLocating, false, 'isLocating must be false after final timeout');
     assert.ok(
@@ -258,6 +259,74 @@ try {
       'geoError message must be shown when geolocation fails'
     );
     console.log('✓ Test 3 passed: Error message shown and alert() was not called');
+  }
+
+  // Test 4: Fallback getCurrentPosition (8s) starts after 12s watch timeout, resolves at 17s (5s in)
+  // Expected: 14s safety timer must NOT cut it off at 14s.
+  {
+    console.log('Test 4: Fallback getCurrentPosition (8s) started at 12s, resolving at 17s...');
+    let watchError: Function | null = null;
+    let fallbackSuccess: Function | null = null;
+    let selectedPos: any = null;
+
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        geolocation: {
+          watchPosition(success: Function, error: Function, options: any) {
+            watchError = error;
+            return 104;
+          },
+          getCurrentPosition(success: Function, error: Function, options: any) {
+            fallbackSuccess = success;
+          },
+          clearWatch(id: number) {},
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+
+    const harness = createHookHarness({
+      updateSelectedPosition: async (lat, lng, flyTo, zoom) => {
+        selectedPos = { lat, lng, flyTo, zoom };
+      },
+      setGpsAccuracy: () => {},
+    });
+
+    harness.get().handleGetLocation();
+    assert.equal(harness.get().isLocating, true);
+
+    // At 12s, watchPosition times out / errors
+    clock.tick(12000);
+    assert.ok(watchError, 'watchPosition error callback registered');
+    watchError!({ code: 3, message: 'Timeout' });
+
+    assert.ok(fallbackSuccess, 'getCurrentPosition fallback must be invoked after watchPosition failure');
+    assert.equal(harness.get().isLocating, true, 'Hook must still be locating during fallback');
+
+    // Advance to 14.5s (past the old 14s cutoff)
+    clock.tick(2500);
+    assert.equal(
+      harness.get().geoError,
+      null,
+      'Fallback getCurrentPosition must NOT be cut off at 14s by premature safety timer'
+    );
+    assert.equal(harness.get().isLocating, true, 'Hook should still be locating at 14.5s');
+
+    // Advance to 17s (5s into 8s fallback) and resolve position
+    clock.tick(2500);
+    fallbackSuccess!({
+      coords: {
+        latitude: 29.979184,
+        longitude: 31.106863,
+        accuracy: 9,
+      },
+    });
+
+    assert.equal(harness.get().isLocating, false, 'isLocating must be false after fallback succeeds');
+    assert.equal(harness.get().geoError, null, 'geoError must be null after fallback succeeds');
+    assert.deepEqual(selectedPos, { lat: 29.979184, lng: 31.106863, flyTo: true, zoom: 18 });
+    console.log('✓ Test 4 passed: Fallback successfully resolved at 17s without being cut off at 14s');
   }
 } finally {
   clock.uninstall();
