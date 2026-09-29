@@ -34,6 +34,7 @@ export interface UseMapPinsClusteringProps {
   showHadayekGates?: boolean;
   selectedZone?: string;
   categoryFilter?: string;
+  searchQuery?: string;
   buildingSearchActive?: boolean;
   targetBuilding?: {
     zoneLetter?: string;
@@ -71,6 +72,7 @@ export const useMapPinsClustering = ({
   showHadayekGates = true,
   selectedZone: selectedZoneProp,
   categoryFilter: categoryFilterProp,
+  searchQuery,
   targetBuilding,
   buildingSearchActive = false,
   onSelectBusiness,
@@ -557,19 +559,9 @@ export const useMapPinsClustering = ({
 
     if (!selectedBiz) {
       lastSelectedBizIdRef.current = null;
-      // If we previously saved map center and zoom before selecting the card, restore it!
-      if (preSelectedStateRef.current) {
-        try {
-          cameraTransitionTokenRef.current++;
-          map.stop();
-          map.flyTo(
-            preSelectedStateRef.current.center,
-            preSelectedStateRef.current.zoom,
-            { duration: 0.6 }
-          );
-        } catch {}
-        preSelectedStateRef.current = null;
-      }
+      // Camera Autonomy on Deselect (BEH-02 / SAFETY-06):
+      // Keep camera stable at current position where user panned; do not snap backward.
+      preSelectedStateRef.current = null;
       return;
     }
 
@@ -877,15 +869,18 @@ export const useMapPinsClustering = ({
   const visibleBusinesses = useMemo(() => {
     if (mode !== 'view') return [];
     const hasCategory = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
-    if (!hasCategory) return [];
+    const hasSearch = Boolean(searchQuery && searchQuery.trim() !== '');
+    if (!hasCategory && !hasSearch) return [];
 
+    const map = leafletMapRef.current;
     return filterBusinessesForMap(
       businesses,
       effectiveSelectedZone || 'all',
-      effectiveCategoryFilter,
-      onlyVerifiedFilter
+      hasCategory ? effectiveCategoryFilter : 'all',
+      onlyVerifiedFilter,
+      map ? map.getZoom() : undefined
     );
-  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter]);
+  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter, searchQuery, isMapReady]);
 
   const sortedBusinesses = useMemo(() => {
     return [...visibleBusinesses].sort((a, b) => {
@@ -993,9 +988,10 @@ export const useMapPinsClustering = ({
     const clusterLayer = clusterLayerGroupRef.current;
     if (!cardsLayer || !clusterLayer) return;
 
-    // Rule 1: Activities MUST ONLY appear if an activity type/category is selected from filters!
+    // Rule 1: Activities appear if category filter is active OR explicit search query returned results!
     const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
-    if (!hasCategoryFilter) {
+    const hasSearchOverride = Boolean(searchQuery && searchQuery.trim() !== '' && visibleBusinesses.length > 0);
+    if (!hasCategoryFilter && !hasSearchOverride) {
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
       clusterRegistry.current.clear();
@@ -1016,8 +1012,14 @@ export const useMapPinsClustering = ({
       zoom >= 15.5
     );
 
+    // 🛡️ Selected Entity Isolation (BEH-05 / SAFETY-03):
+    // Exclude selectedBiz from background pins and cluster groups so it never doubles or alters counts.
+    const businessesForClustering = selectedBiz
+      ? sortedBusinesses.filter(biz => biz.id !== selectedBiz.id)
+      : sortedBusinesses;
+
     // 🚀 Performance Optimization: Pre-filter by visible viewport bounds before running spatial clustering
-    const inViewBusinesses = sortedBusinesses.filter(biz => bounds.contains([biz.lat, biz.lng]));
+    const inViewBusinesses = businessesForClustering.filter(biz => bounds.contains([biz.lat, biz.lng]));
     if (groupingCache.current?.items !== inViewBusinesses || groupingCache.current.zoom !== zoom) {
       groupingCache.current = { items: inViewBusinesses, zoom, groups: groupNearbyActivities(inViewBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
     }
@@ -1043,6 +1045,11 @@ export const useMapPinsClustering = ({
 
     if (filterChanged) {
       // ⚡ Atomic Fast Path: Full category/zone change clears all previous layers in 0.1ms without synchronous loop reflows
+      try {
+        if (typeof map.closePopup === 'function') {
+          map.closePopup();
+        }
+      } catch {}
       cardsLayer.clearLayers();
       clusterLayer.clearLayers();
       markersRegistryRef.current.clear();
@@ -1066,6 +1073,15 @@ export const useMapPinsClustering = ({
 
     let staggerIndex = 0;
     let overviewCardsCount = 0;
+
+    // 🌟 Deterministic Prominence Stability (BEH-07 / SAFETY-05):
+    // Pre-calculate top 3 scored businesses in view so cards are assigned deterministically across pans
+    const topProminentIdsInView = new Set(
+      businessesForClustering
+        .filter(b => bounds.contains([b.lat, b.lng]))
+        .slice(0, 3)
+        .map(b => b.id)
+    );
 
     const cancelWork = scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
@@ -1145,9 +1161,9 @@ export const useMapPinsClustering = ({
                Math.abs(occCenterY - cardCenterY) < (occ.height + cardH) / 2 + 10;
       });
 
-      // 🌟 Visual Hierarchy: In City Overview, reserve rich horizontal cards for the top 3 prominent/highest rated activities;
-      // render remaining unselected activities as clean compact pins to eliminate visual chaos and sensory shock.
-      const allowFullCard = isDistrictView || overviewCardsCount < 3;
+      // 🌟 Visual Hierarchy: In City Overview, reserve rich horizontal cards for the top 3 prominent activities in view;
+      // render remaining unselected activities as clean compact pins to eliminate visual chaos.
+      const allowFullCard = isDistrictView || topProminentIdsInView.has(biz.id);
       const usePinDot = collides || !allowFullCard;
       if (!usePinDot) {
         overviewCardsCount++;

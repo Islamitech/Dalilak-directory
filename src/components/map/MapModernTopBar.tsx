@@ -220,7 +220,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 onFocus={() => { setShowSuggestions(true); setExpanded(false); }}
                 placeholder="على ماذا تبحث ..."
                 aria-label="البحث عن نشاط أو مبنى"
-                className="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-800 placeholder-slate-400 h-11"
+                className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-bold text-slate-800 placeholder-slate-400 h-11"
                 enterKeyHint="search"
                 autoComplete="off"
               />

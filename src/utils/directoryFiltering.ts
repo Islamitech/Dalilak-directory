@@ -10,15 +10,20 @@ export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,
       if (!b) return false;
 
       // 1. Text Search across name, category, city, landmark, etc.
-      if (!activityIntent && deferredSearchQuery.trim()) {
-        if (!matchesBusinessSearch(b, deferredSearchQuery)) {
-          return false;
-        }
+      const hasSearchText = Boolean(!activityIntent && deferredSearchQuery.trim());
+      const matchesSearch = hasSearchText ? matchesBusinessSearch(b, deferredSearchQuery) : false;
+      if (hasSearchText && !matchesSearch) {
+        return false;
       }
 
       // 2. Category Filter (Enhanced with Canonical Aliases, Root Synonyms, and Groups)
-      if (activityIntent || categoryFilter !== 'all') {
-        if (!matchesCategorySelection(b, activityIntent?.mainCategoryId ?? categoryFilter, activityIntent?.subcategoryId ?? subcategoryFilter)) {
+      // Search Primacy (BEH-01 / BEH-03 / SAFETY-02): Direct text search overrides residual category filter
+      if (activityIntent) {
+        if (!matchesCategorySelection(b, activityIntent.mainCategoryId, activityIntent.subcategoryId)) {
+          return false;
+        }
+      } else if (categoryFilter !== 'all') {
+        if (!matchesSearch && !matchesCategorySelection(b, categoryFilter, subcategoryFilter)) {
           return false;
         }
       }

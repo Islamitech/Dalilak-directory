@@ -107,7 +107,12 @@ export function planCameraTransitionOnBusinessSelect(
     };
   }
 
-  if (bizCoords && typeof bizCoords.lat === 'number' && typeof bizCoords.lng === 'number') {
+  if (
+    bizCoords &&
+    Number.isFinite(bizCoords.lat) &&
+    Number.isFinite(bizCoords.lng) &&
+    (Math.abs(bizCoords.lat) > 0.0001 || Math.abs(bizCoords.lng) > 0.0001)
+  ) {
     // If card is already expanded on map (State 2), perform deep street zoom
     if (isExpandedOnMap) {
       return {
@@ -156,8 +161,8 @@ export function getVisualViewportPadding(
 ): { paddingTopLeft: [number, number]; paddingBottomRight: [number, number] } {
   if (isMobile) {
     return {
-      paddingTopLeft: [20, 95], // Room for floating search bar
-      paddingBottomRight: [hasBottomDrawer ? 165 : 45, 20], // Room for bottom drawer
+      paddingTopLeft: [20, 95], // Room for floating search bar [x, y]
+      paddingBottomRight: [20, hasBottomDrawer ? 165 : 45], // Room for bottom drawer [x, y]
     };
   }
   return {

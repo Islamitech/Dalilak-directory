@@ -741,7 +741,7 @@ test('Selecting business with isExpandedOnMap triggers street dive (17.5)', () =
 test('getVisualViewportPadding accounts for mobile bottom drawer and top search bar', () => {
   const mobileWithDrawer = getVisualViewportPadding(true, true);
   assert.equal(mobileWithDrawer.paddingTopLeft[1], 95, 'Top padding for mobile search bar');
-  assert.equal(mobileWithDrawer.paddingBottomRight[0], 165, 'Bottom padding for mobile action drawer');
+  assert.equal(mobileWithDrawer.paddingBottomRight[1], 165, 'Bottom padding for mobile action drawer');
 
   const desktopPadding = getVisualViewportPadding(false, false);
   assert.equal(desktopPadding.paddingTopLeft[1], 90);

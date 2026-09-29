@@ -179,6 +179,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     showHadayekGates,
     selectedZone: activeZone,
     categoryFilter: activeCategory,
+    searchQuery,
     targetBuilding: effectiveTargetBuilding,
     buildingSearchActive: mapSearchMode === 'building',
     onSelectBusiness: handleClusteringSelectBusiness,
@@ -373,6 +374,25 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   <button type="button" className="pointer-events-auto min-h-11 px-2 text-amber-700 font-bold" onClick={() => window.dispatchEvent(new Event('directory:retry'))}>إعادة المحاولة</button>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ⚠️ Network / Connection Error Toast Banner (QW-05 / UX-09) */}
+        {directoryLoad.error && (
+          <div className="absolute top-20 left-4 right-4 sm:left-auto sm:right-4 z-[950] pointer-events-auto transition-all animate-bounce-in">
+            <div className="bg-red-950/90 backdrop-blur-md text-red-200 border border-red-500/50 rounded-xl px-4 py-2.5 text-xs font-bold shadow-2xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-red-400 text-sm">⚠️</span>
+                <span>{directoryLoad.error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('directory:retry'))}
+                className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-400/40 rounded-lg px-2.5 py-1 text-[11px] font-black cursor-pointer transition-colors"
+              >
+                إعادة المحاولة
+              </button>
             </div>
           </div>
         )}

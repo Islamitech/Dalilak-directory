@@ -577,7 +577,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         onLocationChange={handleLocationChange}
       />
 
-      {!isMapRoute && <DirectoryStatus />}
+      <DirectoryStatus />
       {/* 2. Main Dispatched View */}
       <main
         className={

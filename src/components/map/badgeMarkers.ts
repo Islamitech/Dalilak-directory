@@ -339,9 +339,9 @@ export function renderUnifiedCompactCardHtml(
     ? `<button
         type="button"
         class="card-close-btn"
-        style="position: absolute; top: -7px; left: -7px; z-index: 20; width: 20px; height: 20px; border-radius: 50%; background: #0f172a; color: #ffffff; border: 1.5px solid #ffffff; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.35); transition: background 0.15s ease;"
+        style="position: absolute; top: -12px; left: -12px; z-index: 20; min-width: 44px; min-height: 44px; padding: 12px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; touch-action: manipulation;"
         title="إغلاق والعودة للخريطة"
-      >✕</button>`
+      ><span style="width: 20px; height: 20px; border-radius: 50%; background: #0f172a; color: #ffffff; border: 1.5px solid #ffffff; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); pointer-events: none;">✕</span></button>`
     : '';
 
   const rankBadgeHtml = isTopProminent && prominenceRank
@@ -557,9 +557,9 @@ export function createExpandedActivityCardHtml(
           <button
             type="button"
             class="card-close-btn"
-            style="position: absolute; top: 6px; left: 6px; z-index: 10; width: 24px; height: 24px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"
+            style="position: absolute; top: 0px; left: 0px; z-index: 10; min-width: 44px; min-height: 44px; padding: 10px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; touch-action: manipulation;"
             title="إغلاق والعودة للخريطة"
-          >✕</button>
+          ><span style="width: 24px; height: 24px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.4); pointer-events: none;">✕</span></button>
 
           ${verifiedBadgeHtml}
           ${rankBadgeHtml}

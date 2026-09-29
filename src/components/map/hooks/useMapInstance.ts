@@ -183,6 +183,11 @@ export const useMapInstance = ({
   // Move marker and trigger callback safely without shaking viewport
   const updateSelectedPosition = useCallback(
     async (newLat: number, newLng: number, flyTo: boolean = false, customZoom?: number) => {
+      if (!Number.isFinite(newLat) || !Number.isFinite(newLng) || (Math.abs(newLat) < 0.0001 && Math.abs(newLng) < 0.0001)) {
+        console.warn('Map navigation rejected Null Island / invalid coordinates:', { newLat, newLng });
+        return;
+      }
+
       const precisionLat = Number(newLat.toFixed(6));
       const precisionLng = Number(newLng.toFixed(6));
 
