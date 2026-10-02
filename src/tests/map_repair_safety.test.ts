@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Business } from '../types';
 import { filterBusinessesForMap } from '../utils/hadayekZoneHelper';
-import { parseHadayekBuildingAddress } from '../utils/hadayekBuildingSearch';
+import { isBusinessAssociatedWithBuilding, parseHadayekBuildingAddress } from '../utils/hadayekBuildingSearch';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
 import { HADAYEK_GATES } from '../data/hadayekAtlasData';
 import { MAP_ZOOM_POLICY, isLocalPinPresentationZoom } from '../utils/mapZoomPolicy';
 import { getVisualViewportPadding, planCameraTransitionOnZoneChange } from '../components/map/utils/cameraPlanner';
+import { getMapBusinessSearchMatches, isSearchSelectedBusiness } from '../utils/mapSearch';
 
 function business(partial: Partial<Business> & Pick<Business, 'id' | 'nameAr' | 'category' | 'lat' | 'lng'>): Business {
   return {
@@ -35,9 +36,22 @@ describe('map repair safety contracts', () => {
     expect(getVisualViewportPadding(true, true).paddingBottomRight[1]).toBeGreaterThanOrEqual(165);
   });
 
-  it.fails('matches an activity to a building by an address token, not a digit substring in its name', () => {
-    const component = require('node:fs').readFileSync('src/components/map/BuildingDetailDrawer.tsx', 'utf8');
-    expect(component).not.toMatch(/b\.nameAr\?\.includes\(building\.buildingNumber\)/);
+  it('associates a building by exact address number and zone, never digits in the business name', () => {
+    const namedOne = business({ id: 'one', nameAr: 'صيدلية عمارة 1', category: 'صيدليات', lat: 29.979184, lng: 31.106863, street: 'عمارة 11 منطقة ب' });
+    const exactOne = business({ id: 'exact', nameAr: 'صيدلية أخرى', category: 'صيدليات', lat: 29.979184, lng: 31.106863, street: 'عمارة 1 منطقة ب' });
+    expect(isBusinessAssociatedWithBuilding(namedOne, '1', 'ب')).toBe(false);
+    expect(isBusinessAssociatedWithBuilding(exactOne, '1', 'ب')).toBe(true);
+    const nearby = business({ id: 'nearby', nameAr: 'نشاط قريب', category: 'خدمات', lat: 29.9795, lng: 31.106863, street: 'شارع الجيش' });
+    const distant = { ...nearby, id: 'distant', lat: 29.982, lng: 31.106863 };
+    expect(isBusinessAssociatedWithBuilding(nearby, '1', 'ب', { lat: 29.979184, lng: 31.106863 })).toBe(true);
+    expect(isBusinessAssociatedWithBuilding(distant, '1', 'ب', { lat: 29.979184, lng: 31.106863 })).toBe(false);
+  });
+
+  it('lets explicit map text search find Hadayek businesses despite a residual category filter and retains a selected match', () => {
+    const pharmacy = business({ id: 'pharmacy', nameAr: 'صيدلية ألفا', category: 'صيدليات', lat: 29.979184, lng: 31.106863 });
+    const restaurant = business({ id: 'restaurant', nameAr: 'مطعم بيتا', category: 'مطاعم', lat: 29.979184, lng: 31.106863 });
+    expect(getMapBusinessSearchMatches([pharmacy, restaurant], 'صيدلية')).toEqual([pharmacy]);
+    expect(isSearchSelectedBusiness(pharmacy, 'صيدلية ألفا')).toBe(true);
   });
 
   it('keeps gate served-zone policy consistent across both catalogs', () => {

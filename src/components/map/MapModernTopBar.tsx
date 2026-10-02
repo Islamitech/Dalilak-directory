@@ -1,6 +1,8 @@
 import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { matchesCategoryFilter, resolveCategorySelection } from '../../utils/categoryMatcher';
+import { resolveCategorySelection } from '../../utils/categoryMatcher';
+import { getBusinessHadayekZoneLetter, isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
+import { getMapBusinessSearchMatches } from '../../utils/mapSearch';
 import { Search, SlidersHorizontal, X, Loader2, Building2, Store, ChevronLeft, MapPin } from 'lucide-react';
 import { HADAYEK_OFFICIAL_DISTRICTS, getDistrictByLetter } from '../../data/hadayekDistrictsGeoData';
 import { MAP_QUICK_CATEGORIES } from './constants/mapConstants';
@@ -22,6 +24,7 @@ export interface MapModernTopBarProps {
   children?: React.ReactNode;
   buildingNumber?: string;
   businesses?: Business[];
+  searchableBusinesses?: Business[];
   onSelectBuilding?: (building: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => void;
   onSelectBusiness?: (business: Business) => void;
 }
@@ -40,6 +43,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   children,
   buildingNumber,
   businesses = [],
+  searchableBusinesses,
   onSelectBuilding,
   onSelectBusiness,
 }) => {
@@ -80,18 +84,14 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
 
   // 3. Candidate businesses matching search
   const matchingBusinesses = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || !businesses || buildingMatch) return [];
-    return businesses
-      .filter((b) => {
-        if (!matchesCategoryFilter(b, categoryFilter)) return false;
-        const name = (b.nameAr || '').toLowerCase();
-        const cat = (b.category || '').toLowerCase();
-        const street = (b.street || '').toLowerCase();
-        return name.includes(q) || cat.includes(q) || street.includes(q);
-      })
-      .slice(0, 5);
-  }, [searchQuery, businesses, buildingMatch, categoryFilter]);
+    if (!searchQuery.trim() || buildingMatch) return [];
+    return getMapBusinessSearchMatches(searchableBusinesses || businesses, searchQuery, 5);
+  }, [searchQuery, businesses, searchableBusinesses, buildingMatch]);
+
+  const outsideSelectedZoneBusinesses = useMemo(() => {
+    if (!selectedZone || selectedZone === 'all') return [];
+    return matchingBusinesses.filter((biz) => !isBusinessInHadayekZone(biz, selectedZone));
+  }, [matchingBusinesses, selectedZone]);
 
   const activityIntent = useMemo(() => parseActivitySearchIntent(searchQuery), [searchQuery]);
 
@@ -135,7 +135,6 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   // Execute selecting a business
   const handleSelectBusinessItem = (biz: Business) => {
     setShowSuggestions(false);
-    onSearchQueryChange?.('');
     if (onSelectBusiness) {
       onSelectBusiness(biz);
     }
@@ -358,6 +357,24 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 </div>
               </button>
             ))}
+
+            {outsideSelectedZoneBusinesses.map((biz) => {
+              const zoneLetter = getBusinessHadayekZoneLetter(biz);
+              return (
+                <button
+                  key={`all-zones-${biz.id}`}
+                  type="button"
+                  onClick={() => {
+                    onSelectZone?.('');
+                    onSelectBusiness?.(biz);
+                    setShowSuggestions(false);
+                  }}
+                  className="w-full text-right px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold"
+                >
+                  عرض {biz.nameAr} في كل المناطق{zoneLetter ? ` (منطقة ${zoneLetter})` : ''}
+                </button>
+              );
+            })}
 
             {/* 4. Matching Zone */}
             {matchingZone && (

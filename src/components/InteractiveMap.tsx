@@ -33,6 +33,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   lng = 31.1002,
   onLocationSelect,
   businesses = [],
+  searchableBusinesses,
   onSelectBusiness,
   onEditBusiness,
   heightClass = 'h-[380px]',
@@ -322,6 +323,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             quickCategories={quickCategories}
             filteredBusinessesCount={filteredBusinessesCount}
             businesses={businesses}
+            searchableBusinesses={searchableBusinesses}
             onSelectBuilding={(bldg) => {
               setSelectedBuildingState(bldg);
               state.setSelectedBiz(null);

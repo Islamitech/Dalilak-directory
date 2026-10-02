@@ -13,6 +13,7 @@ import {
   attachCardDomListeners,
 } from '../badgeMarkers';
 import { isBusinessInHadayekZone, filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
+import { isSearchSelectedBusiness } from '../../../utils/mapSearch';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { scheduleProgressiveWork } from '../utils/progressiveWork';
 import { activityCardScale, groupNearbyActivities } from '../utils/spatialActivityGroups';
@@ -265,6 +266,8 @@ export const useMapPinsClustering = ({
   // Cleanup selected business if it no longer matches the current zone or category filters
   useEffect(() => {
     if (!selectedBiz) return;
+    const isExplicitSearchSelection = isSearchSelectedBusiness(selectedBiz, searchQuery || '');
+    if (isExplicitSearchSelection) return;
     const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
     if (hasCategoryFilter) {
       if (!matchesCategoryFilter(selectedBiz, effectiveCategoryFilter)) {
@@ -276,7 +279,7 @@ export const useMapPinsClustering = ({
     if (hasActiveZone && !isBusinessInHadayekZone(selectedBiz, effectiveSelectedZone)) {
       setSelectedBizRef.current(null);
     }
-  }, [effectiveSelectedZone, effectiveCategoryFilter, selectedBiz]);
+  }, [effectiveSelectedZone, effectiveCategoryFilter, selectedBiz, searchQuery]);
 
   // 1. 🛡️ Initialize Dedicated Leaflet Panes and LayerGroups ONCE on map ready
   useEffect(() => {
