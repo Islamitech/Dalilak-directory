@@ -1,9 +1,9 @@
 /**
- * Dalilak Directory Portal PWA Service Worker (Update 37)
+ * Dalilak Directory Portal PWA Service Worker (Update 38 - Map Repair & Single Source State)
  * Strategy: Network-First with Institutional Offline Shell Fallback
  */
 
-const CACHE_NAME = 'dalilak-portal-shell-v3';
+const CACHE_NAME = 'dalilak-portal-shell-v4';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_PRECACHE = [
