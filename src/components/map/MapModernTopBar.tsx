@@ -1,6 +1,8 @@
 import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { matchesCategoryFilter, resolveCategorySelection } from '../../utils/categoryMatcher';
+import { resolveCategorySelection } from '../../utils/categoryMatcher';
+import { getBusinessHadayekZoneLetter, isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
+import { getMapBusinessSearchMatches } from '../../utils/mapSearch';
 import { Search, SlidersHorizontal, X, Loader2, Building2, Store, ChevronLeft, MapPin } from 'lucide-react';
 import { HADAYEK_OFFICIAL_DISTRICTS, getDistrictByLetter } from '../../data/hadayekDistrictsGeoData';
 import { MAP_QUICK_CATEGORIES } from './constants/mapConstants';
@@ -22,6 +24,7 @@ export interface MapModernTopBarProps {
   children?: React.ReactNode;
   buildingNumber?: string;
   businesses?: Business[];
+  searchableBusinesses?: Business[];
   onSelectBuilding?: (building: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => void;
   onSelectBusiness?: (business: Business) => void;
 }
@@ -40,6 +43,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   children,
   buildingNumber,
   businesses = [],
+  searchableBusinesses,
   onSelectBuilding,
   onSelectBusiness,
 }) => {
@@ -80,18 +84,14 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
 
   // 3. Candidate businesses matching search
   const matchingBusinesses = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || !businesses || buildingMatch) return [];
-    return businesses
-      .filter((b) => {
-        if (!matchesCategoryFilter(b, categoryFilter)) return false;
-        const name = (b.nameAr || '').toLowerCase();
-        const cat = (b.category || '').toLowerCase();
-        const street = (b.street || '').toLowerCase();
-        return name.includes(q) || cat.includes(q) || street.includes(q);
-      })
-      .slice(0, 5);
-  }, [searchQuery, businesses, buildingMatch, categoryFilter]);
+    if (!searchQuery.trim() || buildingMatch) return [];
+    return getMapBusinessSearchMatches(searchableBusinesses || businesses, searchQuery, 5);
+  }, [searchQuery, businesses, searchableBusinesses, buildingMatch]);
+
+  const outsideSelectedZoneBusinesses = useMemo(() => {
+    if (!selectedZone || selectedZone === 'all') return [];
+    return matchingBusinesses.filter((biz) => !isBusinessInHadayekZone(biz, selectedZone));
+  }, [matchingBusinesses, selectedZone]);
 
   const activityIntent = useMemo(() => parseActivitySearchIntent(searchQuery), [searchQuery]);
 
@@ -135,7 +135,6 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   // Execute selecting a business
   const handleSelectBusinessItem = (biz: Business) => {
     setShowSuggestions(false);
-    onSearchQueryChange?.('');
     if (onSelectBusiness) {
       onSelectBusiness(biz);
     }
@@ -192,8 +191,24 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, []);
 
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport || !barContainerRef.current) return;
+    const updateKeyboardInset = () => {
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      barContainerRef.current?.style.setProperty('--map-keyboard-height', `${inset}px`);
+    };
+    updateKeyboardInset();
+    viewport.addEventListener('resize', updateKeyboardInset);
+    viewport.addEventListener('scroll', updateKeyboardInset);
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardInset);
+      viewport.removeEventListener('scroll', updateKeyboardInset);
+    };
+  }, []);
+
   return (
-    <div dir="rtl" className="absolute top-3 inset-x-3 sm:inset-x-5 z-[1000] pointer-events-none">
+    <div dir="rtl" className="absolute top-3 inset-x-3 sm:inset-x-5 z-[1000] pointer-events-none map-top-safe-area">
       <div onKeyDown={(e) => { if (e.key === 'Escape') { setExpanded(false); setShowSuggestions(false); } }} ref={barContainerRef} className="relative max-w-2xl mx-auto pointer-events-auto">
         <div className="flex items-center gap-1 min-h-12 px-1.5 bg-white/95 border border-slate-200 rounded-full shadow-sm">
           <button
@@ -202,7 +217,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             aria-controls="map-filter-panel"
             aria-label={expanded ? 'إغلاق أدوات البحث' : 'فتح البحث والفلاتر'}
             onClick={() => (expanded ? setExpanded(false) : open())}
-            className="relative shrink-0 w-9 h-11 flex items-center justify-center text-amber-600 cursor-pointer"
+            className="relative shrink-0 min-w-11 min-h-11 flex items-center justify-center text-amber-600 cursor-pointer"
           >
             <SlidersHorizontal size={20} />
             {hasFilters && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500" />}
@@ -231,7 +246,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                     onSearchQueryChange?.('');
                     setShowSuggestions(false);
                   }}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer shrink-0"
+                  className="min-w-11 min-h-11 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer shrink-0"
                   title="مسح"
                 >
                   <X size={15} />
@@ -240,7 +255,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
               <button
                 type="submit"
                 disabled={isExecutingSearch || !searchQuery.trim()}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shrink-0 shadow-xs cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="min-w-11 min-h-11 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shrink-0 shadow-xs cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="بحث وتحديد"
                 aria-label="تنفيذ البحث"
               >
@@ -251,6 +266,18 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 )}
               </button>
             </form>
+        </div>
+
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none" role="group" aria-label="فلاتر سريعة لنوع النشاط">
+          {categories.filter(c => c.id !== 'all').slice(0, 8).map(cat => (
+            <button
+              key={cat.id}
+              type="button"
+              aria-pressed={categoryFilter === cat.id}
+              onClick={() => { onCategoryChange?.(categoryFilter === cat.id ? 'all' : cat.id); onSearchModeChange('browse'); }}
+              className={`min-h-11 shrink-0 rounded-full border px-3 text-xs font-bold shadow-sm ${categoryFilter === cat.id ? 'border-amber-500 bg-amber-500 text-slate-950' : 'border-slate-200 bg-white/95 text-slate-700'}`}
+            >{cat.icon} {cat.name}</button>
+          ))}
         </div>
 
         {expanded && (
@@ -277,7 +304,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
 
         {/* 📋 Live Search Results Dropdown */}
         {showSuggestions && searchQuery.trim() && !expanded && (
-          <div className="absolute top-full inset-x-0 mt-2 bg-white/98 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-[1000] max-h-80 overflow-y-auto divide-y divide-slate-100 font-['Cairo',sans-serif]">
+          <div className="absolute top-full inset-x-0 mt-2 bg-white/98 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-[1000] max-h-[calc(100dvh-var(--map-keyboard-height,0px)-6rem)] overflow-y-auto divide-y divide-slate-100 font-['Cairo',sans-serif]">
             {/* 1. Exact Building Match (e.g. 222 ح) */}
             {buildingMatch && (
               <button
@@ -358,6 +385,24 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                 </div>
               </button>
             ))}
+
+            {outsideSelectedZoneBusinesses.map((biz) => {
+              const zoneLetter = getBusinessHadayekZoneLetter(biz);
+              return (
+                <button
+                  key={`all-zones-${biz.id}`}
+                  type="button"
+                  onClick={() => {
+                    onSelectZone?.('');
+                    onSelectBusiness?.(biz);
+                    setShowSuggestions(false);
+                  }}
+                  className="w-full text-right px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold"
+                >
+                  عرض {biz.nameAr} في كل المناطق{zoneLetter ? ` (منطقة ${zoneLetter})` : ''}
+                </button>
+              );
+            })}
 
             {/* 4. Matching Zone */}
             {matchingZone && (

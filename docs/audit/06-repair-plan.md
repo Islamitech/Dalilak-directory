@@ -1,223 +1,843 @@
-# 06 — خطة إصلاح معمارية الخريطة
+# خطة الإصلاح المعماري والهندسي الشامل لمنظومة الخريطة
+# Comprehensive Architectural Repair & Engineering Implementation Plan
 
-**التاريخ:** 2026-10-02  
-**النوع:** خطة مبنية على تقارير التدقيق 01–05 ومراجعة المصدر المحددة أدناه.  
-**النطاق:** خريطة Leaflet العامة في `/` و`/map`؛ واجهة البحث والفلاتر والاختيار والكاميرا والرسم على الهاتف.  
-**حالة التنفيذ:** لم يتغير أي كود تطبيق. هذا التقرير هو الملف الوحيد الجديد. لا تبدأ دفعات الإصلاح حتى اعتماد الخطة والقرارات المفتوحة.
+**التاريخ:** 29 سبتمبر 2026  
+**المشروع:** Dalilak Production Ecosystem (`Dalilak-directory_Production_Clean`)  
+**الملف المستهدف:** `docs/audit/06-repair-plan.md`  
+**المراجع السابقة المعتمدة:**
+- `docs/audit/01-map-inventory.md` (جرد مكونات وتشابكات الخريطة)
+- `docs/audit/02-map-behavior.md` (تدقيق سلوك ومنطق التفاعل — المعرفات BEH-01 إلى BEH-10)
+- `docs/audit/03-ux-mobile.md` (تدقيق تجربة المستخدم والموبايل — المعرفات UX-01 إلى UX-14)
+- `docs/audit/04-data-backend.md` (تدقيق البنية التحتية والبيانات — المعرفات DATA-01 إلى DATA-15)
+- `docs/audit/05-benchmark.md` (المقارنة المعيارية وأفضل الممارسات الصناعية)
+- `CORE_DIRECTIVE.md` و `DEFINITION.md` و `TECH_LOG.md` (توجيهات النظام وسجل التحديثات)
 
-## 1. خلاصة توجيهية
+**طبيعة الوثيقة:** المرجع الهندسي الشامل والنهائي لتنفيذ الإصلاح المعماري؛ يتضمن كافة التفاصيل الفنية الدقيقة لعناصر العمل (المشكلة، الدليل، السبب الجذري، الحل، الملفات، المخاطر، الفحص، والجهد) دون أي اختصار أو تفريغ، مدمجاً كافة المكاسب السريعة الستة، والترقيع التكتيكي، وهيكلة شبكة الأمان المزدوجة، وتفكيك الحزمة 4، وحل إمكانية الوصول، وتوثيق القرارات المعتمدة.
 
-المشكلة الجذرية هي أن الحالة والسياسات موزعة بين `PublicShowcase` و`MapView` و`InteractiveMap` وhooks العرض، بينما حساب الأهلية والعدد والتجميع وتحريك الكاميرا لا تمر جميعها من عقد واحد. الإصلاح يبدأ بعقد سلوك واختبارات فعلية لمسارات الإنتاج، ثم يوحد الحالة والسياسات، وبعدها يعالج تفاصيل تجربة الهاتف. لا توصي الخطة باستبدال Leaflet أو حذف عرض البطاقات أو clustering.
+---
 
-## 2. المعمارية المستهدفة
+## ديباجة التدقيق والمنهجية ومستويات التحقق
+
+1. **الالتزام بمبدأ القراءة فقط (Read-Only Compliance):** لم يتم تعديل أي سطر في كود التطبيق إطلاقاً؛ هذا التقرير هو المخرج الوحيد المصرح به في مسار `docs/audit/`.
+2. **التوثيق القائم على الأدلة ومستويات التحقق (Verification Levels):**
+   - **`[Confirmed - Browser]`:** أعطال وسلوكيات تم إثباتها عملياً وإعادة إنتاجها مخبرياً داخل متصفح حقيقي (Chromium) ببيئة محاكاة الموبايل (مثل BEH-01, BEH-02, BEH-03, BEH-05, UX-01, UX-06).
+   - **`[Code Audit - Suspected]`:** أعطال مستندة إلى فحص وقراءة الشفرة المصدرية سطراً بسطر وسلاسل الاستدعاء، وتعتبر مثبتة كودياً بانتظار تأكيدها عبر اختبارات المتصفح المؤتمتة في الحزمة 0.
+3. **الحفاظ على السلوك المقصود للمنتج (Preserving Intended Behavior):** كافة الميزات والقدرات الموثقة في `DEFINITION.md` (طيران الكاميرا البارابولي، الاستكشاف المتدرج ثنائي المراحل للأنشطة، إبراز حدود المناطق ببريق ذهبي، مسارات الطرق الحقيقية OSRM، ورادار الخدمات) محفوظة ومحمية بنسبة 100%.
+4. **التصنيف الهندسي المعتمد:**
+   - **(a) خلل برمجي (Bug)**
+   - **(b) عيب في تجربة المستخدم (UX Flaw)**
+   - **(c) دين تقني ومعماري (Architectural Debt)**
+   - **(d) حالة مفقودة (Missing State)**
+
+---
+
+## بيان التغطية وفحص الملفات (Coverage Statement)
+
+### أولاً: الوحدات والملفات التي تم فحص كودها وتضمينها بالخطة (Fully Read & Covered):
+1. `src/components/InteractiveMap.tsx` (المكون الرئيسي الوسيط وحاوية الـ Canvas).
+2. `src/components/views/MapView.tsx` (غلاف شاشة الخريطة ومزامنة الـ URL).
+3. `src/components/PublicShowcase.tsx` (محرك تصفية الدليل والتوجيه العام).
+4. `src/App.tsx` (شبكة التغذية وجلب البيانات والـ Realtime).
+5. `src/components/map/hooks/useMapPinsClustering.ts` (محرك الدبابيس والتجميع والتصيير الحالي).
+6. `src/components/map/hooks/useMapInstance.ts` (دورة حياة Leaflet ومحركات الحركة والبلاطات).
+7. `src/components/map/hooks/useMapState.ts` (الحالة المحلية للخريطة).
+8. `src/components/map/hooks/useMapGeolocation.ts` (التقاط الـ GPS).
+9. `src/components/map/hooks/useMapSearch.ts` (بحث وضع المنقي).
+10. `src/components/map/utils/cameraPlanner.ts` (منسق رحلات الكاميرا والهوامش).
+11. `src/components/map/utils/spatialActivityGroups.ts` (خوارزمية التجميع المكاني والتحجيم).
+12. `src/components/map/utils/progressiveWork.ts` (مجدول فريمات الـ 60fps).
+13. `src/components/map/utils/markerReconciliation.ts` (محرك مطابقة العلامات).
+14. `src/components/map/utils/pinDispersal.ts` (محرك التشتيت Spiderfy المهجور).
+15. `src/components/map/utils/districtLabelPosition.ts` (حساب مراكز العناوين المهجور).
+16. `src/components/map/badgeMarkers.ts` (مصانع قوالب الـ HTML الستة للدبابيس والكروت والتجمعات).
+17. `src/components/map/MapModernTopBar.tsx` (شريط البحث والفلاتر العلوي الحديث).
+18. `src/components/map/MapFloatingControls.tsx` (أزرار التحكم الطافية).
+19. `src/components/map/MapSelectedBusinessDrawer.tsx` (درج النشاط في State 1).
+20. `src/components/map/BuildingDetailDrawer.tsx` (درج تفاصيل العمارة).
+21. `src/components/map/InAppNavigationDrawer.tsx` (درج الملاحة والتوجيه).
+22. `src/components/atlas/ProximityRadarDrawer.tsx` (درج رادار الخدمات).
+23. `src/components/atlas/HadayekGatesModal.tsx` (دليل البوابات).
+24. `src/components/map/ZoneScopedSearchBar.tsx` (بحث العمارات داخل الفلاتر).
+25. `src/components/map/MapHeaderBar.tsx` (الهيدر القديم لوضع المنقي).
+26. `src/components/map/MapFooterBar.tsx` (شريط الإحداثيات المهجور).
+27. `src/utils/hadayekZoneHelper.ts` (الفحص المكاني وتصفية الخريطة).
+28. `src/utils/directoryFiltering.ts` (محرك فلترة الدليل).
+29. `src/utils/hadayekBuildingSearch.ts` (فك رموز العمارات).
+30. `src/utils/activitySearchIntent.ts` (محلل النوايا الدلالية للبحث).
+31. `src/data/hadayekDistrictsGeoData.ts` (مضلعات وبوابات المناطق GeoJSON).
+32. `src/data/hadayekAtlasData.ts` (أطلس البوابات وإحداثيات العمارات).
+33. `src/data/hadayekBuildingsCoords.json` (قاعدة بيانات العمارات المساحية).
+34. `src/index.css` (أنماط الخريطة والدبابيس والأزرار).
+35. `src/tests/map_fixes.test.ts` و `scripts/verify-repair.mjs` (منظومة الاختبارات الحالية).
+
+### ثانياً: الوحدات خارج نطاق خطة إصلاح الخريطة (Out of Scope):
+- مكونات إدارة باقات المنشآت واشتراكات المندوبين (`ForBusinessView.tsx`, `BusinessPricingView.tsx`).
+- روبوتات الذكاء الاصطناعي وخدمات التراسل عبر واتساب (`Dalilak_WhatsApp_Service`).
+- مكونات الوسائط والفيديو المستقلة (`VideoPlayerModal.tsx`).
+
+---
+
+# الجزء الأول: الهندسة المعمارية المستهدفة لمنظومة الخريطة
+# Part 1: Target Architecture
+
+## 1.1 تحول النموذج المعماري (Architectural Paradigm Shift)
+
+```mermaid
+flowchart TB
+    subgraph CURRENT_ARCHITECTURE["الوضع الحالي المتشظي (Current Architecture)"]
+        direction TB
+        C_State["3 طبقات حالة متنافسة<br/>(PublicShowcase / InteractiveMap / useMapPinsClustering)"]
+        C_Pipe["سلسلة فلترة مزدوجة متضاربة<br/>(filterDirectoryBusinesses ثم filterBusinessesForMap)"]
+        C_Cam["17 محرك حركة كاميرا مستقل<br/>(قفزة ارتدادية قسرية preSelectedStateRef)"]
+        C_Zoom["عتبات زووم متناقضة<br/>(15.0 في الكاميرا مقابل 15.5 في الدبابيس)"]
+        C_Render["تصيير DOM كامل لكافة الدبابيس<br/>+ شبكة تجميع بكسلية تهتز مع السحب"]
+        
+        C_State --> C_Pipe --> C_Render
+        C_Cam -.-> C_Render
+        C_Zoom -.-> C_Cam
+    end
+
+    subgraph TARGET_ARCHITECTURE["الهندسة المعمارية المستهدفة الموحدة (Target Architecture)"]
+        direction TB
+        T_Store["1. مصدر الحقيقة الموحد (Unified Map Store)<br/>(فلاتر + بحث + اختيار + منظور + مزامنة URL قطعية)"]
+        T_Policy["2. وحدة سياسة الزووم المركزية (ZOOM_POLICY)<br/>(كافة العتبات والمسميات الدلالية في موضع واحد)"]
+        T_Cam["3. منسق الكاميرا السيادي الأوحد (Unified Camera Controller)<br/>(الجهة الوحيدة المصرح لها بتحريك الخريطة + هوامش رأسية صحيحة)"]
+        T_Pipe["4. خط أنابيب المعالجة المفرد (Single Data Pipeline)<br/>(Catalog -> Bounds Culling -> Semantic Resolver -> Supercluster)"]
+        T_Render["5. استراتيجية الريندر المستقر والشامل لإمكانية الوصول<br/>(Supercluster K-D Tree + DOM Panes للكارت المحدد + قائمة ARIA المخفية)"]
+        
+        T_Store --> T_Pipe
+        T_Policy --> T_Cam
+        T_Policy --> T_Pipe
+        T_Store --> T_Cam
+        T_Pipe --> T_Render
+    end
+
+    CURRENT_ARCHITECTURE ==>|خطة الإصلاح والتحول الهيكلي| TARGET_ARCHITECTURE
+```
+
+---
+
+## 1.2 مصدر الحقيقة الموحد (Single Source of Truth: Unified Map Store)
+
+يتم استبدال الحالات الموزعة عبر `PublicShowcase`, `MapView`, `InteractiveMap`, و `useMapPinsClustering` بمخزن حالة مركزي موحد ومحكم (`useUnifiedMapController` أو آلة حالة منسقة)، يمثل الحقيقة الأوحد لكافة عناصر الواجهة:
+
+```ts
+export interface UnifiedMapState {
+  // 1. الفلاتر النشطة (Active Filters)
+  filters: {
+    selectedZone: string | null;           // الحرف الرسمي للمنطقة ('أ' إلى 'ص')
+    categoryFilter: string | null;         // التصنيف المعتمد ('pharmacy', 'restaurant'...)
+    quickChipId: string | null;            // الكبسولة السريعة النشطة
+    verifiedOnly: boolean;                 // حصر النتائج على الموثق فقط
+  };
+
+  // 2. البحث والنية الدلالية وإطار البحث (Search & Bounds Context)
+  search: {
+    query: string;                         // النص الخام المدخل
+    resolvedIntent: SearchIntent | null;   // النية الدلالية (اسم محل / تصنيف / عمارة / بوابة)
+    isSearching: boolean;                  // حالة التنشيط للبحث
+    suggestionsOpen: boolean;              // فتح/إغلاق قائمة الاقتراحات
+    searchCenter: [number, number] | null; // مركز البحث المعتمد لتفعيل كبسولة "إعادة البحث هنا"
+    showSearchThisAreaPill: boolean;       // ظهور كبسولة إعادة البحث عند تجاوز إزاحة 400 متر
+  };
+
+  // 3. العنصر المختار (Selection Entity — First-Class Citizen)
+  selection: {
+    type: 'business' | 'building' | 'none';
+    biz: string | null;                    // المعرف الموحد للنشاط المختار (مطابق لاسم معلمة الرابط biz)
+    businessMode: 1 | 2;                   // State 1: كارت مدمج + درج | State 2: كارت موسع بالشارع
+    building: {
+      zoneLetter: string;
+      buildingNumber: string;
+      coords: [number, number];
+    } | null;
+  };
+
+  // 4. الملاحة والمسارات (Active Navigation)
+  navigation: {
+    activeRoute: NavigationRoute | null;
+    isNavigating: boolean;
+  };
+
+  // 5. منظور الكاميرا وهوامش الرؤية (Viewport & Insets)
+  viewport: {
+    center: [number, number];              // الإحداثيات الحالية المعتمدة
+    zoom: number;                          // مستوى التقريب المعتمد
+    bounds: L.LatLngBounds | null;         // إطار الرؤية الجغرافي النشط
+    visualInsets: {                        // مساحات الأمان وهوامش الأدراج
+      top: number;                         // حشو شريط البحث العلوي (بالبكسل)
+      bottom: number;                      // حشو الدرج السفلي المفتوح (بالبكسل)
+      left: number;
+      right: number;
+    };
+    isCameraFlying: boolean;               // علم طيران الكاميرا لكتم الريندر اللحظي
+  };
+}
+```
+
+### التسميات القياسية لمعلمات الـ URL ثنائية الاتجاه (Canonical URL Param Mapping):
+- `biz`: المعرف الفريد للنشاط التجاري المحدد (مثل: `?biz=123`).
+- `bldg`: رقم العمارة المحددة (مثل: `?bldg=15`).
+- `zone`: الحرف الرسمي للمنطقة السكنية (مثل: `?zone=h` أو `?zone=ح`).
+- `cat`: رمز التصنيف التجاري المطبق (مثل: `?cat=pharmacy`).
+- `q`: نص استعلام البحث الصريح (مثل: `?q=كرم+الشام`).
+- `mode`: نمط عمل الخريطة (`view` أو `picker`).
+
+---
+
+## 1.3 خط أنابيب المعالجة والتصيير الموحد (One Pipeline: State -> Visible Pins -> Rendering)
+
+إلغاء مسار التصفية المتسلسل المزدوج (`filterDirectoryBusinesses` ثم `filterBusinessesForMap`) الذي سبب الخلل **BEH-01** و **DATA-01**، واستبداله بخط أنابيب مفرد ذي مراحل متتالية وواضحة:
 
 ```mermaid
 flowchart LR
-  U[تفاعل المستخدم / URL / parent data] --> S[MapState: مصدر الحقيقة]
-  S --> Q[selectors: بحث وفلاتر واختيار]
-  V[ViewportSnapshot: bounds + zoom + size + settled revision] --> Q
-  D[دليل الأنشطة] --> Q
-  Q --> P[VisiblePins pipeline]
-  P --> E[الأهلية: verification + category + zone + query]
-  E --> C[قائمة viewport]
-  C --> G[استراتيجية واحدة: grouping + culling + collision]
-  G --> R[مخطط LOD وHTML markers]
-  R --> L[Leaflet layers + marker registry]
-  S --> K[CameraController: command arbitration]
-  K --> L
-  Z[ZoomPolicy: thresholds, LOD, cluster behavior] --> E
-  Z --> G
-  Z --> R
+    Catalog["الكتالوج الوطني المعتمد<br/>(publicBusinesses)"] --> S1["1. فلترة الصلاحية المكانية<br/>(Hadayek Bounds & Valid GPS)"]
+    S1 --> S2["2. معالج السيادة والبحث الدلالي<br/>(Search Primacy & Intent Resolver)"]
+    S2 --> S3["3. الاستبعاد المكاني خارج الكاميرا<br/>(Viewport Spatial Bounds Culling)"]
+    S3 --> S4["4. عزل النشاط المختار<br/>(Selected Entity Extraction)"]
+    S4 --> S5["5. محرك التجميع المكاني المستقر<br/>(Supercluster Engine K-D Tree)"]
+    
+    S5 --> R_Pins["تصيير الدبابيس والتجمعات المستقرة<br/>(L.divIcon مع حماية الأداء أو Canvas)"]
+    S4 --> R_DOM["مسطح الـ DOM النشط (selectedPinPane)<br/>(كارت النشاط المحدد State 1 / State 2)"]
+    S5 -.-> R_ARIA["شجرة إمكانية الوصول المخفية لقارئ الشاشة<br/>(Accessible Live Region & Results List)"]
 ```
 
-### عقود الملكية
+### مبادئ خط الأنابيب الموحد:
+1. **سيادة البحث (Search Primacy):** إذا تضمن الإدخال اسم محل صريح (مثل "كرم الشام") أو رقم عمارة ("15 ح")، يتجاوز خط الأنابيب فلتر التصنيف تلقائياً (`overrideCategoryFilter`) ويُظهر النشاط المطلوب فوراً مع تمركز الكاميرا عليه.
+2. **عزل النشاط المختار (Selection Isolation):** النشاط المختار في `selection.biz` يُستخرج من المصفوفة **قبل** دخولها إلى خوارزمية التجميع؛ فلا يمكن أبداً أن يُبتلع داخل تجمع رقمي (حل الخلل **BEH-05**).
+3. **تثبيت الترتيب القطعي للكروت البارزة:** اختيار الأنشطة المميزة لا يعتمد على الصدفة العابرة لمصفوفة الرؤية المتغيرة أثناء السحب، بل على ترتيب قطعي ثابت للمدينة (حل الخلل **BEH-07**).
 
-1. **MapState مصدر حقيقة واحد** في سياق/مخفض مركزي قرب `InteractiveMap`: `query` ونطاق البحث، `category` و`zone` وقيود التحقق، النشاط/المبنى/المجموعة المحددة، حالة السطح المختار، route/building target، و`ViewportSnapshot` المستقر. يظل URL مصدر تهيئة/مزامنة صريحًا لا مخزن حالة منافسًا. تزال مزامنة prop→local state ذات الإطار المتأخر بعد نقل الكتابات إلى actions واضحة.
-2. **مسار بيانات واحد:** `MapState + directory + ViewportSnapshot → selectors → eligibleBusinesses → inViewport → groups/markerModels → Leaflet renderer`. العدد والحالة الفارغة والنتائج في واجهة الهاتف تُشتق من نفس selector؛ حدد بوضوح إن كان العدد «مطابقات مرشح» أم «داخل الشاشة».
-3. **ZoomPolicy واحدة:** وحدة مركزية تحمل حدود overview/local/zone eligibility، مقياس البطاقة، تكبير cluster، أقصى zoom للتفجير، وحدود الخريطة. تحفظ السلوك الحالي المقصود مبدئيًا (منطقة overview عند أقل من 15، بداية local عند 15.5، max map 19.5، chooser عند أقصى cluster 19) إلى أن يحسم قرار النطاق؛ لا تبقى أرقام zoom موزعة في hook/helper/planner.
-4. **CameraController مالك وحيد لتحريك Leaflet:** يقبل أوامر ذات مصدر وأولوية وإلغاء (`initial`, `zone`, `selection`, `cluster`, `building/route`, `locate`, `reset`, `user gesture`). فقط هذا المتحكم يستدعي `flyTo`, `panTo`, `flyToBounds`, `fitBounds`, `stop`. يحدد سياسة طلب GPS المتأخر وهل gesture المستخدم يلغي intent معلقًا.
-5. **استراتيجية واحدة للتجميع والإقصاء:** تنفذ `viewport culling → deterministic screen grouping مع حد المسافة الحالي → selected/exception placement → collision handling`. مصدر إزاحة واحد ونموذج footprint واحد متوافقان مع موضع marker المرئي والمرساة الجغرافية. يحتفظ بعزل العنصر المختار، عدّاد المجموعات واختيار عضو المجموعة؛ يُقاس cache بعد تثبيت صحة المفاتيح.
-6. **Renderer لا يقرر العمل:** يبني Leaflet layers/markers من marker models، يحدّث سجل العلامات عند تغير المفتاح فقط، ويستهلك سياسة LOD. يحتفظ بالتدرج الحالي: overview cards/dots، local cards، selected surface، gates/districts والـcluster chooser.
-7. **واجهة الجوال مستهلك للحالة نفسها:** البحث والفلاتر والعدد والاقتراحات والسطح السفلي تقرأ/تكتب MapState عبر actions/selectors. إعادة التصميم لا تغير اختيار البحث أو إجراءات النشاط من دون عقد سلوك معتمد.
+---
 
-## 3. سجل الأدلة والجذور
+## 1.4 وحدة سياسة الزووم المركزية (`ZOOM_POLICY`)
 
-كل مراجع `01`–`05` أدناه إلى تقارير ضمن المجلد نفسه؛ مراجع المصدر أولية لتسهيل تحقق التنفيذ. «مثبت بالمصدر» لا يعني أن كل عرض شوهد في تشغيل حي. السلوك الموسوم suspected يجب إثباته قبل تغيير سياسة المنتج.
+إنهاء فوضى الأرقام السحرية والتعارضات، وتجميع كافة العتبات في ملف ثوابت مركزي واحد `src/components/map/constants/zoomPolicy.ts`:
 
-| ID / التصنيف | الدليل: الملف والأسطر والدالة | العرض المرئي المحدد | قرار الإصلاح |
-|---|---|---|---|
-| BHV-01 (a) bug | `src/components/map/hooks/useMapPinsClustering.ts:869-883,1003-1013,1242-1243` (`visibleBusinesses` وrefresh effect)؛ `src/utils/hadayekZoneHelper.ts:260-294` (`filterBusinessesForMap`) | بعد اختيار منطقة والتكبير/التصغير عبر حد 15، قد تبقى دبابيس من مناطق أخرى أو تختفي دبابيس مؤهلة لأن zoom ليس ضمن memo بينما renderer يقرأ zoom الحي. | مرشح eligibility يأخذ viewport/zoom snapshot ويعاد تشغيله عند settle؛ حدوده من ZoomPolicy. |
-| BHV-04 / DATA-03 (b,c) | `src/components/InteractiveMap.tsx:69-76` (`matchingBusinessesCount`) مقابل `useMapPinsClustering.ts:869-883`؛ zone helper أعلاه | عدد الشريط/رسالة الفراغ قد لا يصف مجموعة الدبابيس، لأن مسار العدد لا يمرر zoom. | selector واحد للنتائج والعدد، مع تسمية صريحة لمجال العدد. |
-| state split (c,d) | `src/components/InteractiveMap.tsx:66-76,124-129,317-320`؛ `src/components/map/hooks/useMapState.ts:16-33` | category/zone قد يحملان قيمتين (prop وhook) ثم تنعكس مزامنة category بعد render؛ اختيار الفئة يكتب محليًا ثم عبر parent. | توحيد الحالة وactions، ثم إزالة mirror state والكتابة المزدوجة. |
-| BHV-02 (a) / UXM-03 (b,d) | `src/components/map/MapModernTopBar.tsx:135-142` (`handleSelectBusinessItem`)؛ `src/components/InteractiveMap.tsx:330-333`؛ hook `991-1001,915-978` | اختيار اقتراح نشاط يمسح query؛ عند «الكل» تختفي دبابيس السياق المحيطة ويبقى النشاط المختار وحده على الخريطة مع سطح الاختيار. | فصل نص الاقتراح النشط عن submitted query/context؛ الحفاظ على السياق أو عرضه بوضوح حسب القرار المفتوح. |
-| BHV-03 / DATA-04 (a,b,d) | `MapModernTopBar.tsx:81-94,135-142` (`matchingBusinesses`, handler)؛ `InteractiveMap.tsx:324,330-333`؛ `useMapPinsClustering.ts:259-273` | مع منطقة A، يمكن اقتراح نشاط من B ثم يمسح تحقق التحديد ذلك النشاط مباشرة؛ يبدو أن النتيجة لم تُقبل. | predicate بحث موحد وscope ظاهر: داخل المنطقة أو إجراء صريح للبحث في كل المناطق. |
-| UXM-06 / BUG-VISUAL-01 (a,b,c) | `src/components/map/hooks/useMapState.ts:27-33` (`setSelectedBiz`)؛ `useMapPinsClustering.ts:931-978`؛ `src/components/InteractiveMap.tsx:423-445` | بعد اختيار اقتراح، يظهر marker card عائم وdrawer سفلي معًا؛ الاسم/الأفعال مكررة والمساحة تضيق على شاشة 360×640. مذكور أنه مثبت بالصور في 01 ومرصود في 03. | تعريف سطوح الاختيار كحالات mutually exclusive أو hierarchy واحدة مع الاحتفاظ بالmarker anchored وبالتفاصيل والإجراءات. |
-| BHV-05/07 suspected (a,d) | `useMapPinsClustering.ts:991-1001,1036-1071,1111-1131` | قد يبقى chooser قديم بعد تصفية آخر نتيجة أو تضييق query، فوق خريطة تغيرت. | اختبار سلوك Leaflet؛ اربط صلاحية chooser بهوية المجموعة/أعضائها وأغلقه عبر controller عند invalidation إن ثبت. |
-| BHV-06 / I14 suspected (b,d) | `src/components/map/hooks/useMapGeolocation.ts:46-99,132-145`؛ `useMapInstance.ts:183-199,299-302` | بعد ضغط تحديد موقعي ثم تحريك الخريطة قبل وصول GPS، قد يعيد callback الكاميرا لموقع GPS دون مراعاة gesture الأحدث. | intent cancellation/priority في CameraController؛ اختبار callback مؤخر قابل للتحكم. |
-| BHV-08/10 / P6 (c، والأول قد يكون a) | `useMapPinsClustering.ts:474-535,555-613,651-750,1111-1115`؛ `cameraPlanner.ts:1-14`؛ `InteractiveMap.tsx:227-255` | عند تزامن تحديد منطقة/نشاط/مبنى/route/cluster قد يلغي flight لاحق سابقًا وتختلف الوجهة بحسب ترتيب effects. لم يثبت كعرض حي. | كل الحركة من controller واحد واختبارات أولوية/إلغاء؛ احتفظ بأفعال تحديد المبنى والمسار والـcluster. |
-| BHV-11 suspected (a,d) | `src/components/map/MapModernTopBar.tsx:113-132,145-159` (`handleSelectBuildingItem`)؛ `MapView.tsx:101-120` | بحثا مبنى A ثم B مع استجابتين معكوستين قد ينتهيان بتحديد A القديم أو إخفاء مؤشر التحميل مبكرًا. | request generation واحدة لكل مسار البحث، واختبار out-of-order؛ حافظ على بحث رقم المبنى. |
-| BHV-09 / UXM-01 (b) | `useMapPinsClustering.ts:487-519`؛ `cameraPlanner.ts:158-171`؛ `MapModernTopBar.tsx:256-274`؛ `PublicShowcase.tsx:566-588` | district flight لا يحجز مساحة drawer في الهاتف؛ كما تغطى أزرار الفلتر الأخيرة بالـbottom nav عند 360×640 (مرصود في 03). | camera padding من overlay geometry؛ أزرار/شريط ثابت آمن ضمن مرأى الشاشة. |
-| UXM-05 / DATA-03 (b,d) | `MapModernTopBar.tsx:59,199-209,256-274`؛ `InteractiveMap.tsx:308-323` | dot صغير فقط يدل على وجود filter؛ لا يرى المستخدم اسم الفئة/المنطقة أو العدد بشكل ثابت. | chips/summary/count من selectors، مع إزالة واضحة؛ persistence عبر reload ليست مفترضة قبل قرار. |
-| UXM-07 / P4 (a,b,c) | `src/components/map/badgeMarkers.ts:188-205,279-309,451-454,686-701,818-821,880-895`؛ `useMapPinsClustering.ts:1003-1025,1142-1199` | أبعاد الأهداف تختلف بين LOD وبعضها أقل من 44px؛ قد تتداخل البطاقات؛ P4 يحدد اختلاف CSS scale وiconAnchor ما قد يجعل سن الدبوس لا يقع على الإحداثية في scale كسري. هذا الأخير يحتاج تحقق بصري. | footprint/hit area وعلاقة anchor/scale موحدة؛ لا نغير الشكل إلا بعد لقطة اختبار للـanchor وtouch. |
-| UXM-13 / BHV-13 (b,c) | `useMapPinsClustering.ts:1036-1087,1235-1243`؛ `src/components/map/utils/progressiveWork.ts:1-27` | تغيير الفلتر يمسح طبقات النتائج ثم يضيف بحد أقصى أربع علامات/إطار؛ قد يرى المستخدم خريطة فارغة/ناقصة مؤقتًا (الأثر لم يقس). | بعد صحة pipeline، اعتماد staging/double buffer أو تحسين الإضافة بحسب trace؛ لا نضحي بإلغاء عمل gesture. |
-| P2/P3/P5/P10/P12 (c) | `useMapPinsClustering.ts:57-65`؛ `src/components/map/utils/pinDispersal.ts`؛ `useMapInstance.ts:226-228,293`؛ `cameraPlanner.ts:78`؛ `InteractiveMap.tsx` import `MapFooterBar` بلا render | تكرار escapeHtml وcentroid وحقن خصائص Leaflet خاصة غير مقروءة، وملف dispersal غير مستخدم في مسار الإنتاج، وFooterBar مستورد ولا يعرض. لا عرض عميل مثبت لهذه النقاط. | حذف التكرار/الخصائص أو dead code فقط بعد تحقق المراجع؛ لا حذف ميزة واجهة/قدرة محتملة بناء على اسم أو import فقط. |
-| DATA-01/02/05/06/07 (c، وبعضها b/a محتمل) | `src/App.tsx:13-14,93-159,197-249,261-325`؛ `src/components/PublicShowcase.tsx:319-320,431-447`؛ `src/utils/directoryFiltering.ts:12-29` | الكتالوج العالمي يحمّل قبل التصفية المحلية، وبيانات map ليست projection خفيفة؛ السجل بإحداثيات مفقودة يختفي، وقد تبقى بيانات جزئية بعد فشل صفحة. زيادة زمن/تكلفة أو تكرار/فساد بيانات لم تقاس ولم تثبت. | تبقى في مسار مستقل/بعد نتائج profiling؛ لا تضف API أو تغيّر semantics قبل قرار نطاق backend. |
-| UXM-15/BHV-14 (c) | `src/directory-experience/map/MapScreen.tsx:13-46,79-117`؛ `GeographicCanvas.tsx:20-47`؛ `useMapViewport.ts:7-18` | إذا أصبح مسار preview متاحًا للمستخدم، exact category/selection rules قد تختلف عن Leaflet. التعرض للمستخدم غير مثبت. | إما تحويله إلى consumer لنفس state/selectors أو تحديده preview فقط؛ تحقق من route activation قبل إدراجه في rollout. |
+```ts
+export const ZOOM_POLICY = {
+  BOUNDS: {
+    MIN_MOBILE: 12.8,
+    MIN_DESKTOP: 13.2,
+    MAX: 19.5,
+  },
 
-## 4. Batch 0 — شبكة الأمان قبل أي refactor
+  LEVELS: {
+    CITY_OVERVIEW: 14.0,           // نظرة عامة على كامل حدائق الأهرام
+    INITIAL_FIT_MAX: 14.5,         // أقصى حد للتكبير عند أول فتح للخريطة
+    DISTRICT_THRESHOLD: 15.0,      // العتبة الفاصلة الموحدة بين المدينة والحي (15.0 أو 15.5 وفق القرار 7)
+    DISTRICT_MAX_FIT: 16.5,        // أقصى حد لتأطير مضلع المنطقة السكنية
+    BUILDING_FOCUS: 17.0,          // التكبير عند اختيار عمارة سكنية بدقة
+    ACTIVITY_STREET: 17.2,         // زووم الشارع للنشاط الموسع State 2
+    GPS_USER_LOCATION: 17.0,       // زووم التقاط موقع المستخدم المعتمد بالقرار 5 (بدلاً من 18.0)
+    CLUSTER_MAX_EXPAND: 18.0,      // زووم فك التجمعات الكثيفة (بدلاً من 19.0 الضبابي)
+  },
 
-**بوابة البدء:** لا يبدأ Batch 1 حتى تنجح الاختبارات المرتبطة بمسارات الإنتاج أو تُسجل إخفاقاتها الحالية صراحة كـbaseline defects. الاختبارات الموجودة لا تكفي وحدها: `safety_net_batch0.test.ts` فيه نماذج سلوكية مكتوبة داخل الاختبار (مثل إغلاق popup وserialization) لا تنادي الكود الفعلي، واختبار grouping موجود، لكن لا توجد تغطية شاملة لتفاعل المتصفح في مصفوفة 02.
+  // دوال التحقق الدلالي (Semantic Helpers)
+  isCityOverview: (zoom: number) => zoom < ZOOM_POLICY.LEVELS.DISTRICT_THRESHOLD,
+  isDistrictView: (zoom: number) => zoom >= ZOOM_POLICY.LEVELS.DISTRICT_THRESHOLD && zoom < ZOOM_POLICY.LEVELS.BUILDING_FOCUS,
+  isStreetFocus: (zoom: number) => zoom >= ZOOM_POLICY.LEVELS.BUILDING_FOCUS,
+} as const;
+```
 
-### 4.1 ما يُكتب/يستكمل قبل إعادة الهيكلة
+---
 
-1. **اختبار E2E/متصفح لعقد الخريطة (I01–I36):** استعمل fixture أنشطة موزعًا على منطقتين، متطابق الفئات، مواقع متقاربة/متطابقة وبعيدة، مع تأخير GPS وبحث المباني قابل للتحكم. نفّذ كل أزواج المصفوفة؛ ضع assertions مفصلة للتعارضات أدناه، وسجل الباقي كـsmoke contracts للـsettled state وعدم انهيار الواجهة.
-2. **حدود zoom/pipeline (I02, I05, I09, I18, I20, I21, I32, I33):** منطقتان مختارتان وتغيير zoom إلى 14.99 ثم 15.0 ثم 15.49 ثم 15.5 ثم 19 ثم 19.5؛ بعد كل `moveend` قارن المرشحين والعدد والـzone والـLOD والـclusters. تأكد أن كل نشاط مؤهل مرة واحدة، وأن selection مستثنى من المجموعات.
-3. **بحث/فلترة/تحديد (I03, I10, I16, I17, I22–I24, I26–I28):** category alias، query عربية مُطبّعة، اقتراح خارج zone، اختيار اقتراح مع category=all، مسح query/آخر filter، no-results؛ أثبت scope المرئي، pins المحيطة، استمرار selection وحدود إزالته. تحقق من count/empty state.
-4. **popup/chooser (I06, I13, I19, I23, I31, I34):** افتح مجموعة متعددة، ثم zoom/pan/clear filter/narrow search/locate. تحقق من chooser أو إغلاقه إذا اختفى anchor/الأعضاء. هذه اختبارات إثبات للمشتبه BHV-05/07 قبل تقرير fix.
-5. **حالات الاختيار والأسطح (I04, I11, I17, I27–I30):** اختيار marker/اقتراح/عضو chooser، اختيار نشاط ثان، فتح التفاصيل، إغلاق، pan بعيد، resize؛ assertions أن هناك تمثيلًا واحدًا واضحًا للسطح المختار، وmarker/ drawer لا يتكرران، مع حفظ الوظائف الحالية.
-6. **تحكيم الكاميرا (I07, I14, I20, I25, I29, I32, I34, I36):** سجل مركز/zoom وأوامر الحركة؛ تأخير GPS ثم pan؛ locate مع selection/filter/popup؛ تداخل zone/business/building/route/cluster؛ تأكد من completion/gesture ومصدر الوجهة. للمشتبه، الاختبار الحالي يوثق السلوك قبل تثبيت قرار الأولوية.
-7. **بحث المباني غير المتزامن (I16 جزئيًا، إضافة BHV-11):** ابحث رقمين، أعد الاستجابتين بترتيب عكسي، امسح/بدل المنطقة أثناء الطلب؛ الأخير المرسل وحده يحدد target ويظل loading صحيحًا.
-8. **الهاتف/RTL (UXM-01/02/04/05/06/07/09/10/14؛ I08/15/21/26/30/35/36):** صور/assertions عند 360×640 و390×844 و1024×768؛ لوحة الفلاتر لا تغطي apply/reset، اقتراحات keyboard في محاكاة visual viewport مع وسم limitation عدم وجود جهاز حقيقي، أهداف اللمس، drawer/ safe area، rotate/resize، بقاء bounds/selection. يعاد سيناريو UXM-01 المرصود.
-9. **الوصول (UXM-12):** keyboard-only وaccessibility tree للـordinary/selected/cluster markers؛ labels فريدة وEnter/Space وقابلية focus. تؤجل دعوى قارئ شاشة فعلي إلى تحقق يدوي مستقل إذا لم يتوفر في CI.
-10. **الرسم والأداء الوصفي (I01, I12, I18, I21, I33؛ UXM-13؛ P4):** fixture كثيف، تسجيل filter switch/pan/zoom وإلغاء progressive job؛ عدد markers النهائي صحيح ولا تتراكم القديمة، وقياس مدة ظهور المجموعة من غير فرض حد أداء عشوائي؛ pixel check لموضع anchor مع card scales كسرية. لا ترقية Canvas/WebGL في هذه المرحلة.
+## 1.5 منسق الكاميرا السيادي الأوحد (Unified Camera Controller)
 
-### 4.2 الموجود الذي يجب الحفاظ عليه/تحويله إلى اختبار إنتاج
+**القاعدة الذهبية:** لا يحق لأي مكون أو خطاف أو معالج أحداث استدعاء `map.flyTo`, `map.flyToBounds`, أو `map.panTo` بشكل مباشر!  
+يتم إنشاء **منسق كاميرا أوحد** (`CameraController`) يمتلك الصلاحية الحصرية للتحكم بمحرك Leaflet:
 
-- `src/tests/safety_net_batch0.test.ts`: يغطي baseline و10 سلوكيات مستهدفة لكنه يعلن بعض العبارات أنها «verified» بينما assertion يحاكي منطقًا محليًا، لا يستدعي مسار التطبيق. احتفظ بعقود baseline المفيدة، واستبدل mocks الوهمية باختبارات وحدات للـpure functions أو E2E للـeffects.
-- `src/tests/spatial_activity_groups.test.ts`: يحتفظ بعقود grouping الحالية: عدم تكوين مجموعة بعيدة، عدم transitive chain، الثبات مع ترتيب الإدخال، conservation، card scale. وسّع لاختبارات حدود radius وzoom/viewport وسياسة العقد الموحدة.
-- `src/tests/map_fixes.test.ts`: اقرأ/شغّل بمرحلة التنفيذ لتحديد العقود الفعلية لـmarker reconciliation وcameraPlanner؛ لا تفترض أنها تغطي تكامل Leaflet.
-- `src/tests/map_geolocation.test.ts`, `src/tests/progressive_work.test.ts`, `src/tests/activity_search_intent.test.ts`, `src/tests/map_leaflet_retry.playwright.cjs`: اختبارات مساندة تستبقي سلوك GPS، cancellation/debounce، intent، وLeaflet loading.
-- أضف E2E إلى runner موجود/معتمد؛ المشروع يحتوي Playwright browser scripts في `src/tests/`، لكن لا يوجد ضمن `package.json` أمر E2E map عام. تحديد الاستراتيجية النهائية مدرج ضمن القرارات.
+```ts
+export type CameraIntent =
+  | { type: 'INIT_BOUNDS'; bounds: L.LatLngBounds }
+  | { type: 'SELECT_ZONE'; zoneLetter: string; bounds: L.LatLngBounds }
+  | { type: 'RESET_CITY_OVERVIEW' }
+  | { type: 'FOCUS_BUSINESS'; lat: number; lng: number; isExpanded: boolean }
+  | { type: 'FOCUS_BUILDING'; lat: number; lng: number }
+  | { type: 'LOCATE_USER'; lat: number; lng: number }
+  | { type: 'FRAME_ROUTE'; bounds: L.LatLngBounds }
+  | { type: 'MANUAL_PAN'; direction: 'up' | 'down' | 'left' | 'right' }
+  | { type: 'STEP_ZOOM'; delta: number };
+```
 
-**تصنيف هذه الحزمة:** تحسين اختبار (d missing state في الحماية السلوكية)، لا يغير سلوك المنتج.  
-**التراجع:** حذف ملفات الاختبار الجديدة/الـfixture فقط؛ لا تغيير تطبيق.  
-**مخاطر:** تثبيت سلوك خاطئ أو غير مقصود. للتخفيف، اختبار النتيجة الحالية منفصل عن assertions «المطلوب بعد الإصلاح»؛ سجل الاستثناءات المرفوضة كـtests معلّمة TODO/known failure، وبعد قرار المنتج لا تجعل الفشل الحالي يمنع commit الاختبارات.  
-**بوابة الاختبار:** كل السيناريوهات المؤكدة تحافظ على السلوك المقصود؛ السيناريوهات المشبوهة تملك إعادة إنتاج حاسمة؛ لا تبدأ refactor بتغطية قائمة على source-text assertions.
+### معالجة عيوب الكاميرا التاريخية في المنسق الجديد:
+1. **إلغاء فخ الارتداد العكسي نهائياً (Kill `preSelectedStateRef`):** إلغاء التحديد يكتفي بإغلاق الكارت والدرج، وتظل الكاميرا ثابتة تماماً في موضعها الحالي الذي اختاره المستخدم (حل **BEH-02**).
+2. **تصحيح محاور هوامش الرؤية (Inverted Padding Fix):** وضع إزاحة الدرج السفلي (165px) في المحور الرأسي `y` وليس الأفقي `x` (حل **BEH-04**).
+3. **حماية السيادة اللمسية (Gesture Supremacy):** أي لمس للخريطة (`touchstart`, `dragstart`) يوقف فوراً أي حركة مبرمجة ويلغي مؤقت الاستقرار (160ms) دون أي تعارض زمني.
 
-## 5. الدفعات بترتيب الاعتماد
+---
 
-كل دفعة commit مستقل، بميزة/مرحلة قابلة للإطلاق، وتملك rollback محدد. تنفذ بالتتابع بعد Batch 0. «مستقلة الشحن» تعني أن المنتج يبني ويعمل بعد كل دفعة، لا أن ترتيب الاعتماد يمكن تجاوزه.
+## 1.6 استراتيجية الريندر وإمكانية الوصول (Rendering & Accessibility Architecture)
 
-### Batch 1 — ZoomPolicy ومدخلات viewport مستقرة + pipeline eligibility/count
+### حل معضلة إمكانية الوصول مع الكانفاس (Resolving the Canvas vs. ARIA Dilemma):
+نظراً لأن عناصر `<canvas>` لا توجد كعقد في شجرة الـ DOM، فإنه يستحيل تزويدها بخصائص `role="button"` أو `tabindex="0"` مباشرة. تم حل هذه المعضلة عبر تطبيق **المعيار الصناعي المعتمد في خرائط W3C و Google Maps**:
 
-- **المشكلة:** BHV-01/BHV-04 وP2: thresholds متضاربة، memo stale عبر zoom، count له predicate/zoom مختلف.
-- **السبب:** ثلاثة مستهلكين لحساب الأهلية؛ `visibleBusinesses` لا يعتمد على zoom، والعدد لا يمرر zoom؛ renderer يقرأ `map.getZoom()` مباشرة مع حد `15.5` بينما helper حدّه `15`.
-- **الإصلاح:** إنشاء `src/components/map/policies/zoomPolicy.ts` و`src/components/map/state/mapViewport.ts` أو equivalent typed `ViewportSnapshot`؛ pure selector واحد يستقبل zone/category/verification/query/viewport؛ اشتقاق count/empty state والدبابيس منه. settle snapshot واحد بعد `moveend/zoomend/resize`. في هذا الـcommit ثبّت semantics الموجودة ما عدا إعادة الحساب الصحيحة؛ أي تغيير للـ15–15.5 ينتظر قرارًا.
-- **الملفات:** `src/components/map/hooks/useMapPinsClustering.ts`, `src/components/InteractiveMap.tsx`, `src/utils/hadayekZoneHelper.ts`, `src/components/map/utils/spatialActivityGroups.ts`، وحدات جديدة policy/selectors، واختبارات Batch 0.
-- **Regression risk:** عالٍ؛ تغيير الأهلية قد يكشف/يخفي نشاطًا، ويؤثر المجموعة والـempty-state قرب الحد.
-- **اختبار:** I02/I05/I09/I18/I20/I21/I32/I33، حدوده الخمس في 4.1، ومقارنة count/visible IDs على نفس fixture.
-- **الجهد:** L (3–5 أيام هندسية).
-- **قابلية الشحن/التراجع:** API داخلي جديد مع إبقاء helper adapter أثناء الانتقال؛ revert واحد يعيد selectors القديمة.
-- **تصنيف:** (a) bug، (b) UX flaw، (c) architectural debt، (d) state dependency missing.
+1. **الطبقة البصرية (Visual Presentation Layer):**
+   - تُدار عبر خوارزمية **Supercluster** لضمان ثبات مراكز التجمعات جغرافياً وعدم اهتزازها أثناء السحب.
+   - إذا استمر الريندر عبر عناصر الـ DOM خفيفاً وسريعاً (بمعدل 30-50 نقطة)، يتم حقن سمات ARIA مباشرة في قوالب HTML الخاصة بـ Leaflet `divIcon`.
+   - وإذا تطلبت قياسات الهواتف الاقتصادية تفعيل طبقة الكانفاس ثنائية الأبعاد `L.canvas()` في الحزمة 4ج، يتم إنشاء **طبقة إمكانية وصول دلالية متزامنة** (Semantic Accessibility Layer).
+2. **شجرة إمكانية الوصول المتزامنة (Accessible Off-Screen DOM Region):**
+   - عنصر غير مرئي بصرياً ومخصص لقارئات الشاشة:
+     `<ul class="sr-only" aria-label="الأنشطة المعروضة حالياً على الخريطة" aria-live="polite">`
+   - يحتوي على عناصر `<li><button>` تمثل الدبابيس المعروضة، تدعم التنقل عبر زر `Tab`، وعند التركيز عليها أو نقرها يتم تفعيل النشاط وفتح درج التفاصيل فوراً.
+3. **عزل النشاط المختار في الـ DOM النشط (`selectedPinPane`):**
+   - النشاط المحدد يظل دائماً عنصراً تفاعلياً حقيقياً في الـ DOM يتمتع بأعلى `zIndex` وبكافة سمات الوصول والتفاعل باللمس.
 
-### Batch 2 — MapState موحد للبحث والمرشحات والتحديد + نتيجة بحث ذات scope
+---
 
-- **المشكلة:** BHV-02/03، DATA-04، state split category/zone، selected double display؛ UXM-05/06.
-- **السبب:** query للاقتراحات وgate pins في آن، بحث topbar predicate مستقل بلا zone/Arabic normalization، category/zone في parent وlocal state، selection surface قائم على boolean setter يعيد حالة expanded.
-- **الإصلاح:** MapState reducer/actions وselectors، واجهة `SearchState` تفصل `draftQuery`, `submittedQuery`, `searchScope`, و`selection`; توحيد predicate مع `matchesBusinessSearch`/`matchesCategoryFilter`، مع zone scope. لا تمسح السياق عند اختيار suggestion. اجعل selection presentation state واحدًا بعقد حالات بدل زر يعيد false تلقائيًا؛ أبق marker anchor، drawer/actions وفتح تفاصيل العمل. count/report مأخوذ من Batch 1.
-- **الملفات:** `src/components/map/hooks/useMapState.ts`, `src/components/InteractiveMap.tsx`, `src/components/map/MapModernTopBar.tsx`, `src/components/views/MapView.tsx`, `src/components/PublicShowcase.tsx`, `src/utils/arabicSearch.ts`, `src/utils/directoryFiltering.ts`, `src/utils/categoryMatcher.ts`، selectors/state modules جديدة.
-- **Regression risk:** عالٍ؛ قد يتغير ترتيب/نطاق نتائج البحث، إزالة selection مع الفلتر، وURL/category behavior. اعتمد قرارات §6 قبل ربط scope.
-- **اختبار:** I03/I10/I16/I17/I22–I24/I26–I28، alias وعربي، query context، outside-zone affordance، استبعاد/احتفاظ selection، count.
-- **الجهد:** L (4–6 أيام).
-- **قابلية الشحن/التراجع:** feature flags داخلية أو compatibility adapter من props القديمة إلى reducer أولًا؛ revert مستقل لا يمس Batch 1.
-- **تصنيف:** (a) bug، (b) UX flaw، (c) architectural debt، (d) missing state.
+# الجزء الثاني: المكاسب السريعة، الحذف، والتوحيد
+# Part 2: Quick Wins, Deletions & Unifications
 
-### Batch 3 — CameraController الوحيد لجميع أوامر الحركة
+## 2.1 جدول المكاسب السريعة الشامل (All Quick Wins Scheduled in Batch 1)
 
-- **المشكلة:** BHV-08/10، BHV-06، I25 وP10؛ حشو mobile framing BHV-09.
-- **السبب:** effects وhandlers متعددة تنادي Leaflet مباشرة؛ planner موجود لكنه ليس المنفذ الوحيد. callback GPS المؤخر لا يمثل intent قابلًا للإلغاء.
-- **الإصلاح:** `src/components/map/controllers/CameraController.ts` كواجهة وحيدة؛ planner ينتج أوامر، controller ينفذ/يسجل/يلغي ويوفر settled event. مرر zone/business/building/route/cluster/locate/reset/initial كلها. أزل استدعاءات `map.flyTo*` من باقي الوحدات. استخدم overlay insets محسوبة للـdrawer/toolbar. خذ centroid من constants واحد. لا تغير أولوية gesture/GPS إلا وفق القرار.
-- **الملفات:** `src/components/map/hooks/useMapPinsClustering.ts`, `useMapInstance.ts`, `useMapGeolocation.ts`, `src/components/map/utils/cameraPlanner.ts`, `src/components/InteractiveMap.tsx`, `src/components/map/constants/mapConstants.ts`، controller جديد.
-- **Regression risk:** عالٍ؛ الإحساس بالحركة والتوقيت/المركز قد يتغير، خاصة zone animation والـmobile offsets.
-- **اختبار:** I01/I04/I07/I08/I11/I14/I15/I20/I25/I29/I30/I32/I34/I35/I36، وأوامر متداخلة مع assertions نهائية للمركز والـzoom.
-- **الجهد:** L (3–5 أيام).
-- **قابلية الشحن/التراجع:** إدخال controller كadapter أولًا مع telemetry test؛ كل command source ينقل على حدة ضمن الدفعة، commit واحد يمكن التراجع عنه.
-- **تصنيف:** (a) possible bug، (b) UX flaw، (c) architectural debt، (d) missing intent state.
+تمت جدولة كافة هذه الإصلاحات الستة بالإضافة للترقيع التكتيكي في **الحزمة 1** مباشرة:
 
-### Batch 4 — استراتيجية grouping/culling/collision وسجل marker واحد
+| المعرف | العطل المعالج والرمز | سبب الخلل البرمجي والدليل | الإصلاح المباشر (The Fix) | الملف والأسطر المستهدفة | أثر الإصلاح على المستخدم |
+|---|---|---|---|---|---|
+| **QW-01** | **أزرار التحكم الطافية الشفافة بنسبة 100%**<br>(UX-06) [Confirmed] | قاعدة CSS عامة في `src/index.css:1021` ألغت خلفية وظل أزرار `.map-icon-controls > button` قسراً. | حذف قاعدة التجريد وإعادة الخلفية البيضاء النقية `bg-white/95 backdrop-blur-md shadow-lg border border-slate-200/90`. | `src/index.css:1021-1028` | استعادة وضوح وتباين أزرار التكبير والتصغير فوراً فوق الشوارع والقمر الصناعي. |
+| **QW-02** | **انقلاب محاور هوامش الرؤية وحجب الدبوس خلف الدرج**<br>(BEH-04) [Code Audit] | وضع 165px في محور X بدلاً من محور Y في دالة هوامش الكاميرا. | تصحيح المصفوفة لتصبح:<br>`paddingBottomRight: [20, hasBottomDrawer ? 165 : 45]`. | `src/components/map/utils/cameraPlanner.ts:160` | ظهور كارت النشاط والدبوس المختار أعلى حافة الدرج السفلي بوضوح. |
+| **QW-03** | **ارتداد الكاميرا العكسي القسري عند إلغاء النشاط**<br>(BEH-02) [Confirmed] | استدعاء `map.flyTo(preSelectedStateRef)` عند النقر على خلفية الخريطة لإغلاق الكارت. | حذف استدعاء حركة الكاميرا عند الإلغاء؛ يقتصر الإجراء على تصفير `selectedBizRef` وتثبيت الكاميرا في مكانها. | `src/components/map/hooks/useMapPinsClustering.ts:561-574` | إبقاء الكاميرا مستقرة في الموضع الذي وصل إليه المستخدم دون إلغاء استكشافه. |
+| **QW-04** | **تعليق نافذة تجمع المحلات المنبثقة عند مسح الفلتر**<br>(BEH-06) [Code Audit] | عدم استدعاء إغلاق النوافذ المنبثقة في المسار السريع لتغير الفلتر. | إضافة `map.closePopup()` فوراً عند تغير الفلتر في السطر 1045. | `src/components/map/hooks/useMapPinsClustering.ts:1044-1050` | إغلاق أي نافذة منبثقة معلقة فوراً عند مسح الفلاتر دون ترك بقايا عائمة في الـ DOM. |
+| **QW-05** | **كتم وإخفاء رسائل أخطاء الاتصال بالخريطة**<br>(DATA-02) [Confirmed] | حجب مكون التنبيهات والأخطاء عن شاشة الخريطة بـ `{!isMapRoute && <DirectoryStatus />}`. | إتاحة إظهار التنبيه الحرج على الخريطة كشريط إشعار طافٍ أنيق أعلى الشاشة. | `src/components/PublicShowcase.tsx:580` | تنبيه المستخدم فوراً في حال انقطاع الإنترنت أو تعطل السيرفر بدلاً من ترك الخريطة صامتة. |
+| **QW-06** | **انحجاب أزرار الملاحة والعمارة في الوضع الأفقي**<br>(UX-09, UX-10) [Code Audit] | غياب `overflow-y-auto` و `max-h-[...]` عن حاويات أدراج المباني والملاحة. | إضافة `max-h-[85dvh] overflow-y-auto` للحاويات الرئيسية للأدراج. | `BuildingDetailDrawer.tsx:64`<br>`InAppNavigationDrawer.tsx:198` | إمكانية تمرير الأدراج وظهور أزرار التوجيه والملاحة حتى عند قلب شاشة الهاتف بالعرض. |
+| **QW-07** | **الترقيع التكتيكي الفوري لعطل البحث الذي يفرغ الخريطة**<br>(BEH-01) [Confirmed] | اشتراط `useMapPinsClustering:997` وجود تصنيف نشط لعرض أي دبابيس حتى عند البحث بالاسم. | تعديل الشرط مؤقتاً في الحزمة 1: السماح بعرض النتائج إذا كان هناك استعلام بحث نشط (`searchQuery && visibleBusinesses.length > 0`). | `src/components/map/hooks/useMapPinsClustering.ts:996-1002` | إنقاذ تجربة البحث فوراً للمستخدمين بالاسم الصريح دون انتظار اكتمال إعادة الهيكلة الكبرى. |
 
-- **المشكلة:** قواعد clustering/culling/collision متشابكة؛ P4 anchor، grouping cache miss محتمل، utility reconciliation لا يطبق فعليًا بالكامل، chooser validity suspected؛ P2/P3 dead/duplicate.
-- **السبب:** `useMapPinsClustering` ينفذ group ثم occupied collision slots ثم marker reconciliation inline؛ `pinDispersal.ts` dead؛ reconciliation utility موجود ومسار inline يستخدم جزءًا فقط.
-- **الإصلاح:** pure `computeVisiblePinModels` تستهلك ناتج Batch 1 وZoomPolicy؛ grouping strategy واحدة مع viewport/camera projection، explicit `marker footprint` للـcard والدوت والـcluster والـselection؛ deterministic collision/displacement واحد؛ renderer/reconciler واحد. صلاحية popup مشتقة من cluster ID/member IDs. حافظ على حد 58px و100m/chooser/selected exclusion مبدئيًا حتى benchmark UX؛ أزل dead duplicate بعد بحث imports واختبارات.
-- **الملفات:** `src/components/map/hooks/useMapPinsClustering.ts`, `src/components/map/utils/spatialActivityGroups.ts`, `markerReconciliation.ts`, `pinDispersal.ts`, `src/components/map/badgeMarkers.ts`، وحدات grouping/marker model جديدة.
-- **Regression risk:** عالٍ؛ أعضاء المجموعة، touch ambiguity، الأسماء البارزة، anchor، وإعادة استخدام عناصر DOM قد تتغير.
-- **اختبار:** I05/I06/I12/I18/I23/I27/I31/I32/I33/I34، spatial tests، P4 pixel anchor، marker identity/click أحدث data، عدم duplication/conservation.
-- **الجهد:** L (4–6 أيام).
-- **قابلية الشحن/التراجع:** واجهة marker models تبقى Leaflet divIcons، feature flag للاستراتيجية الجديدة خلال قياس المقارنة؛ rollback يعيد grouping القديم.
-- **تصنيف:** (a) bug محتمل، (b) UX flaw، (c) architectural debt، (d) popup validity missing state.
+---
 
-### Batch 5 — علاج overlay/search/filter على الجوال وسهولة الوصول
+## 2.2 قائمة الحذف النهائي للأكواد والملفات المهجورة (To Delete)
 
-- **المشكلة:** UXM-01/02/04/05/07/08/09/10/12/14؛ BHV-09 وBHV-12؛ UXM-13.
-- **السبب:** dropdown وfilter absolute ضمن map canvas، footer/nav بلا inset كافٍ، selection surfaces منفصلة، search suggestions لا تراعي visualViewport، أحجام أهداف وlabels غير متسقة.
-- **الإصلاح:** بعد توحيد MapState استخدم filter sheet أو لوحة ثابتة ذات footer مرئي، context chips/summary وعدد؛ أدخل `visualViewport` وsafe-area geometry؛ keyboard-reachable labels/targets؛ وحّد selected drawer/card hierarchy، drawer padding camera. أضف tray اختياريًا متزامنًا للنتائج فقط بعد قرار. لا تحذف bottom nav أو وظائف layer/GPS قبل اعتماد intent؛ اكشف capabilities الحالية بوضوح أو اترك decision مفتوحًا.
-- **الملفات:** `src/components/map/MapModernTopBar.tsx`, `MapSelectedBusinessDrawer.tsx`, `MapFloatingControls.tsx`, `badgeMarkers.ts`, `src/components/InteractiveMap.tsx`, `src/components/PublicShowcase.tsx`, `src/index.css`، components/overlay tests جديدة عند الحاجة.
-- **Regression risk:** متوسط/عالٍ؛ تغيير المساحة المرئية، gesture/tab order، وRTL layout قد يحجب الخريطة أو إجراء رئيسيًا.
-- **اختبار:** I13/I26/I30/I35؛ 360×640 و390×844، keyboard/visual viewport، RTL، safe-area/rotate؛ UXM-01 screenshot مقارنة؛ keyboard-only/accessibility tree.
-- **الجهد:** M–L (3–5 أيام).
-- **قابلية الشحن/التراجع:** تغييرات UI component-scoped وقابلة للـrevert دون رجوع pipeline؛ احتفظ بالـactions القديمة.
-- **تصنيف:** (b) UX flaw، (c) architectural debt، (d) missing visible/search/accessibility state؛ (a) للأزرار المحجوبة فعليًا.
+1. **الملف المهجور `src/components/map/MapFooterBar.tsx` (35 سطراً):** مستورد في `InteractiveMap.tsx:19` ومصدر في `index.ts:17` ولكنه غير موجود في شجرة الـ JSX إطلاقاً -> **حذف تام**.
+2. **الملف المهجور `src/components/map/utils/pinDispersal.ts` (316 سطراً - 10.5KB):** كود ميت لم يعد مستدعياً في أي شاشة إنتاجية (محصور فقط في تيست قديم)، وتم استبداله بـ `spatialActivityGroups.ts` -> **حذف تام**.
+3. **الملف المهجور `src/components/map/utils/districtLabelPosition.ts` (45 سطراً):** لا يتم استدعاؤه في أي واجهة إنتاجية -> **حذف تام**.
+4. **الملف المكرر `src/components/map/utils/markerReconciliation.ts` (90 سطراً):** مكرر مع منطق الخطاف الداخلي -> **حذف تام**.
+5. **كتلة الكود الميت داخل `MapHeaderBar.tsx` (الأسطر 243-390):** مشروطة بـ `{mode === 'view' && ...}` ولا يمكن الوصول إليها -> **حذف وتنظيف**.
+6. **الدالة المهجورة `createDistrictClusterHtml` في `badgeMarkers.ts:901-970`:** قالب قديم مهجور -> **حذف تام**.
+7. **المتغير الوهمي `cameraTransitionTokenRef` في `useMapPinsClustering.ts:185`:** مرجع غير مقروء -> **حذف تام**.
 
-### Batch 6 — حذف التكرار وقرار الخريطة الموازية والسرعة
+---
 
-- **المشكلة:** P1/P2/P3/P5/P6/P8/P10/P12 وUXM-15/BHV-14؛ DATA-01/02/05/06/07 وcache/grouping risks.
-- **السبب:** duplicate helper/centroid/zone list، خصائص Leaflet خاصة، global onclick، dead import/file؛ مسار preview بمنطق مستقل؛ كتالوج عالمي بلا viewport API والبيانات غير projection-specific.
-- **الإصلاح:** بعد انتقال الاستهلاك وتثبيت tests: احذف escapeHtml الخاص واستخدم المصدر المشترك؛ خذ centroid/zones من data source؛ أزل _leaflet_id/_leaflet_map عند إثبات عدم الحاجة عبر lifecycle test؛ استبدل global callback بevent handlers مدعومة ثم أزله؛ احذف `pinDispersal.ts` فقط بعد تأكيد عدم الاستيراد، و`MapFooterBar` import غير المستخدم فقط (لا تحذف footer feature دون product decision). حدد هل directory-experience preview سيبقى؛ إن بقي كممر مستخدم فليستهلك selectors وعقد الحالة. قِس catalog payload وrender frame أولًا؛ مشروع viewport backend/compact map projection قرار مستقل لا يتسلل لهذا الإصلاح.
-- **الملفات:** `src/components/map/hooks/useMapPinsClustering.ts`, `src/components/map/hooks/useMapInstance.ts`, `src/components/map/constants/mapConstants.ts`, `src/data/hadayekAtlasData.ts`, `src/data/hadayekDistrictsGeoData.ts`, `src/components/map/MapFooterBar.tsx` (import/reference فقط), `src/directory-experience/map/MapScreen.tsx`, `src/components/InteractiveMap.tsx`, واختبارات lifecycle/performance/data.
-- **Regression risk:** متوسط للـlifecycle/dead-code deletions، عالٍ لتوحيد parallel map أو تغيير catalog/endpoint. لا تخلط تغيير backend في نفس commit.
-- **اختبار:** I08/15/21/26/30/35، Leaflet unmount/remount، route exposure smoke، build/typecheck، profiling/payload baseline. يتطلب إثبات import graph قبل حذف كل عنصر.
-- **الجهد:** M (2–4 أيام) للتكرار، وXL منفصلة (تقدير discovery) لأي backend viewport API.
-- **قابلية الشحن/التراجع:** مجموعة تنظيف مستقلة بعد كل نقل؛ endpoint/API يظل RFC/مرحلة منفصلة قابلة للإطلاق التدريجي.
-- **تصنيف:** (c) architectural debt وdead code؛ (a) فقط إذا أثبت اختبار lifecycle عطلًا؛ (d) إذا قرر المنتج إتاحة الحالة الموازية.
+## 2.3 قائمة التوحيد للمنطق المزدوج ومصادر الحقيقة المتنافسة (To Unify)
 
-## 6. Quick wins وترتيب الشحن
+1. **كتالوج البوابات الرسمية:** دمج `hadayekAtlasData.ts:56-147` و `hadayekDistrictsGeoData.ts:31-125` في ملف موحد `src/data/hadayekOfficialGates.ts` وتصحيح نطاق البوابة الثالثة.
+2. **محرك البحث عن العمارات المساحية:** دمج 4 دوال في دالة مساحية موحدة `resolveHadayekBuildingLocation(zone, number)`.
+3. **طلب الموقع الجغرافي (GPS):** توحيد طلب الـ GPS في خطاف مشترك `useSharedGeolocation()`.
+4. **تصفية أنشطة الخريطة:** توحيد المعايير في خط الأنابيب المفرد `filterVisibleMapCatalog()`.
+5. **عتبة زووم نظرة المدينة:** حسم العتبة في ملف `zoomPolicy.ts` وفق القرار 7.
 
-1. **أول ما يمكن شحنه بعد Batch 0، قبل تغيير architecture:** إصلاح mobile filter footer على 360×640، ورسائل/ملخص filter ظاهر، وhit targets الخاصة بشريط البحث؛ تغييرات محدودة في `MapModernTopBar.tsx` وstyles، لكن يفضل انتظار test fixture حتى لا تتعارض مع بناء sheet لاحقًا.
-2. **Quick win بياناتي ضمن Batch 1:** تمرير viewport revision/zoom الصحيح إلى حساب الأهلية والعدد عبر selector مشترك؛ يمنع divergence بدون إعادة بناء Leaflet.
-3. **Quick win عرض محدد ضمن Batch 2:** إيقاف ظهور drawer وcard معًا وفق state model مع اختبار UXM-06، مع إبقاء كل action متاحة.
-4. **Quick win تنظيف بعد فصل المصدر المشترك:** حذف نسخة escapeHtml المحلية وcentroid المكرر. جهد S (أقل من يوم لكل منهما) ومخاطر منخفضة بعد الاختبار.
-5. **لا يُشحن quick fix مستقلاً يغيّر حد 15 أو 15.5، query persistence، selection خارج filter، أولوية GPS، أو bottom navigation** قبل إقرار القرار ذي الصلة.
+---
 
-## 7. ما يُحذف، يوحّد، ويحافظ عليه
+# الجزء الثالث: شبكة الأمان — مصفوفة الاختبارات القبلية
+# Part 3: Batch 0 — Safety Net Test Suite Architecture
 
-| الإجراء | العناصر | شرط التنفيذ |
-|---|---|---|
-| **يوحّد** | filter/category/search predicate بين parent/topbar/map/count؛ state category/zone/query/selection؛ zoom thresholds؛ viewport snapshot؛ camera calls؛ grouping/collision/marker registry؛ anchor geometry | بالدفعات 1–5 وباختبارات Batch 0؛ لا تغيّر UX semantics ضمن توحيد داخلي إلا بقرار واضح. |
-| **يُحذف بعد إثبات** | local duplicate `escapeHtml` (`useMapPinsClustering.ts:57-65`)؛ centroid literal في camera planner؛ `pinDispersal.ts` إذا بقي غير مستورد؛ `_leaflet_id` hack و`_leaflet_map` property إذا نجح remount test؛ global district callback بعد توفير بديل؛ imports dead كـ`MapFooterBar` | بحث استيراد كامل + اختبار/بناء + review لكل حذف. الملف الميت/الخاص بالـimplementation ليس حجة لحذف سلوك المستخدم. |
-| **يُحفظ ويُعاد تنظيمه** | overview/local card LOD، compact dots، cluster count/fly-to/member chooser، selected pin/details/drawer actions، gates/district overlays، zone/building/route navigation، geolocation accuracy/locate، verified filter، category/zone filtering، progressive cancellation، basemap capability | هذه ميزات قائمة؛ اختبرها قبل/بعد. تحسين hierarchy لا يحذف إجراءات. |
-| **قرار قبل الإزالة/النقل** | FooterBar: import لا يظهر حاليًا؛ layer props في MapFloatingControls لكن لا زر ظاهر؛ locate في picker فقط؛ map-list tray/parallel SVG route؛ offline/partial-catalog status | تحقق من نية المنتج وتعريض route قبل إزالة أو إظهار capability؛ لا تُفترض ميزة غير ظاهرة requirement. |
+لمنع أي تناقض منطقي، يتم تقسيم الحزمة 0 إلى **مجموعتين منفصلتين تماماً من الاختبارات**:
 
-## 8. القرارات المطلوبة من صاحب المنتج
+```mermaid
+flowchart TD
+    subgraph BATCH_0["حزمة الأمان 0 (Batch 0: Pre-Refactor Test Architecture)"]
+        direction TB
+        subgraph SUITE_0A["المجموعة 0-أ: اختبارات توثيق السلوك الحالي (Current Baseline - تنجح الآن 100%)"]
+            A1["اختبار طيران الكاميرا البارابولي عند تبديل المناطق"]
+            A2["اختبار نمط الاستكشاف ثنائي المراحل State 1 و State 2"]
+            A3["اختبار مطابقة حروف المناطق وعناوين العمارات الصحيحة"]
+            A4["اختبار مسارات الملاحة OSRM وتأطير المسار"]
+            A5["اختبار استبعاد الإحداثيات الخارجة عن نطاق حدائق الأهرام"]
+        end
+        
+        subgraph SUITE_0B["المجموعة 0-ب: اختبارات السلوك المستهدف (Target Behavior - متوقع فشلها xfail)"]
+            B1["SAFETY-01: التصغير تحت عتبة المنطقة بعد فلترة منطقة (xfail)"]
+            B2["SAFETY-02: سيادة البحث النصي وتجاوز الفلتر النشط (xfail)"]
+            B3["SAFETY-03: عزل النشاط المختار ومنع ابتلاعه بالتجمع (xfail)"]
+            B4["SAFETY-04: تنظيف النوافذ المنبثقة المعلقة عند مسح الفلتر (xfail)"]
+            B5["SAFETY-05: ثبات الكروت البارزة أثناء سحب الخريطة (xfail)"]
+            B6["SAFETY-06: ثبات الكاميرا عند إلغاء تحديد النشاط (xfail)"]
+            B7["SAFETY-07: سباق التزامن عند النقر السريع على العمارات (xfail)"]
+            B8["SAFETY-08: كفاية هوامش الرؤية الرأسية وعدم حجب الدبوس بالدرج (xfail)"]
+            B9["SAFETY-09: كتم عاصفة طلبات الشبكة عند تبديل التبويبات (xfail)"]
+            B10["SAFETY-10: حماية الكاميرا من الطيران لخليج غينيا 0,0 (xfail)"]
+        end
+    end
 
-1. **نطاق zone عبر zoom:** عند اختيار zone والـzoom أقل من 15، هل المقصود عرض أنشطة المدينة كلها (السلوك الحالي في helper) أم zone فقط؟ وهل تُوحّد عتبة local LOD مع 15 أم تبقى 15.5؟ اقتراحي تثبيت السلوك الحالي أولًا في Batch 1 وإزالة stale memo، وتأجيل تعديل المعنى.
-2. **معنى البحث بعد اختيار اقتراح:** هل تبقى كل الدبابيس المطابقة للسياق حول المختار حتى إغلاقه، أم تعرض فقط النشاط المختار مع شارة query/scope محفوظة؟ وهل البحث النصي يعلو على category كما في اختبار safety-net الحالي أم يطبق الاثنان معًا؟
-3. **اقتراح خارج zone:** هل تقيد الاقتراحات بالمنطقة، أم تظهر action صريحة «ابحث في كل المناطق» وتبدل scope عند الاختيار؟ التوصية: لا تعرض نتيجة ستُمحى بصمت.
-4. **selection لا يطابق filter/zone:** هل يمسح فورًا، يبقى كـcontext card منفصل مع بيان أنه خارج الفلتر، أم ينتقل إلى سجل نشاط؟ يجب حسم count: هل يحسبه أم يستثنيه.
-5. **سطح النشاط المختار:** نوصي بحالة compact واحدة على الخريطة مع drawer سفلي غير مكرر وفتح التفاصيل بفعل صريح؛ هل يطابق هذا مقصود State 1/State 2 القائم؟
-6. **الكاميرا:** إذا تحرك المستخدم أثناء GPS pending، هل gesture يلغي locate؟ عند تداخل أوامر مختلفة، ما الأولوية بين اختيار المستخدم الصريح، zone، route/building وcluster؟ وهل إزالة zone تعيد centroid/zoom14 دائمًا حتى بعد pan، كما الآن؟
-7. **النتائج على الهاتف:** هل تريد زرًا/لوحة نتائج list-map متزامنة ضمن نطاق الإصلاح، أم نحافظ على خريطة أساسية ونكتفي بتحسين drawer/search/filter؟
-8. **ميزات التحكم:** هل layer switch وlocate مطلوبان في browse mode العامة؟ وهل الـbottom nav يبقى ظاهرًا أثناء filter/details sheet؟ لا نحذف أو نظهر capability دون تأكيد النية.
-9. **directory-experience:** هل هو preview داخلي أم route سيصل للمستخدمين؟ إذا كان مستخدمًا، ينبغي أن يشارك state/selectors؛ إذا بقي preview، يمكن خطة مستقلة لتقاعده بعد التحقق من الروابط.
-10. **اختبارات CI:** هل Playwright متاح/مقبول كـdev dependency وE2E في CI، أم نستخدم browser harness الموجود فقط؟ المطلوب في Batch 0 لا يتحقق بunit tests وحدها للحالات التي تعتمد على Leaflet/DOM/mobile geometry.
-11. **catalog/backend:** هل يدخل تنزيل كل الكتالوج وإعداد map projection/viewport endpoint في مشروع إصلاح الخريطة الحالي، أم يبقى مشروع scale مستقلًا بعد profiling؟ تقارير 04 لم تقيس latency أو الحجم ولم تراجع DB indexes، فلا تقترح هذه الخطة endpoint عاجلًا.
+    SUITE_0A -->|تنجح الآن لتأمين عدم الانتكاس| PASS_GATE["بوابة المرور"]
+    SUITE_0B -->|تسجل فشلاً نظيفاً يثبت وجود الأعطال| PASS_GATE
+    PASS_GATE ==>|إطلاق الإصلاح المنظم| BATCH_1["بدء تنفيذ الحزمة 1"]
+```
 
-## 9. نطاق ما تمت قراءته وما لم يُقرأ
+### معيار دخول الحزمة 1:
+- نجاح 100% من اختبارات **المجموعة 0-أ** (مما يضمن عدم كسر أي ميزة تعمل حالياً).
+- تشغيل اختبارات **المجموعة 0-ب** وتسجيل فشلها المتوقع (`xfail`) دون أخطاء غير معالجة في بيئة التشغيل، مما يثبت وجود الأعطال الموثقة ويشكل معياراً دقيقاً لنجاح كل حزمة قادمة تتحول اختباراتها للون الأخضر.
 
-### التقارير
+---
 
-- تمت قراءة الملفات الخمسة كاملة: `docs/audit/01-map-inventory.md`, `02-map-behavior.md`, `03-ux-mobile.md`, `04-data-backend.md`, `05-benchmark.md`. احتجت لقراءات مقسمة بسبب إخراج الطرفية المقتطع؛ راجعت الجداول والعناوين وcoverage والـrecommendations، ومصفوفة I01–I36 وسجلات BHV/UXM/DATA/P/BUG ذات الصلة.
+### تفصيل سيناريوهات الاختبارات العشرة في المجموعة 0-ب:
 
-### مصدر التطبيق الذي تمت قراءته في هذه الجولة
+#### الاختبار 1 (SAFETY-01): التصغير تحت عتبة المنطقة بعد اختيار منطقة
+- **الهدف:** التأكد من أن التصغير لما دون عتبة المنطقة (15.0) بعد اختيار منطقة لا يترك باقي حدائق الأهرام خالية من المعالم ولا يسبب تجمداً.
+- **التنفيذ:** محاكاة اختيار منطقة "ح"، ثم خفض الزووم إلى 13.5؛ التحقق من استقرار مؤشر الخريطة وحالة الرؤية.
+- **الحالة الحالية:** متوقع فشله (`xfail`) لأن الكود الحالي يحجب أنشطة باقي المناطق تماماً.
 
-- قراءة موجهة لمسارات الحالة/العدد/الفلتر في `src/components/InteractiveMap.tsx`، setter selection في `src/components/map/hooks/useMapState.ts`، أجزاء البحث والتنفيذ في `src/components/map/MapModernTopBar.tsx`، helper eligibility في `src/utils/hadayekZoneHelper.ts`، وملفي `cameraPlanner.ts`, `spatialActivityGroups.ts`, `markerReconciliation.ts`.
-- بحث مرجعي موجّه بالرموز/الأسطر ضمن `src/components/map/hooks/useMapPinsClustering.ts`, `useMapInstance.ts`, `src/components/views/MapView.tsx`, `src/components/PublicShowcase.tsx`, `src/components/map/badgeMarkers.ts`, `src/utils/categoryMatcher.ts`, `src/utils/arabicSearch.ts`, `src/utils/directoryFiltering.ts`, `src/components/map/utils/pinDispersal.ts`, والـparallel map. أُخذت بعض المقاطع المصدرية المذكورة مباشرة؛ لم أقرأ كل أسطر كل ملف طويل في هذه الجولة.
-- تمت قراءة `package.json` للتحقق من scripts، وقراءة `src/tests/safety_net_batch0.test.ts` كاملًا، `src/tests/spatial_activity_groups.test.ts` كاملًا، بدايات/نطاق registry من `src/tests/map_fixes.test.ts`، وجزء من `scripts/verify-repair.mjs` وقائمة ملفات الاختبار.
+#### الاختبار 2 (SAFETY-02): سيادة البحث النصي وتجاوز الفلتر النشط (BEH-01 / BEH-03)
+- **الهدف:** التأكد من أن البحث عن "كرم الشام" أثناء تنشيط فلتر "صيدليات" لا يفرغ الخريطة ولا يعيد صفر نتائج.
+- **التنفيذ:** تفعيل فلتر التصنيف `pharmacy`، إرسال استعلام `كرم الشام`؛ التحقق من ظهور دبوس المطعم في مصفوفة النتائج وكسر قيد الصيدلية تلقائياً.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
 
-### ما لم يُقرأ كاملًا/لم يُتحقق منه
+#### الاختبار 3 (SAFETY-03): حماية النشاط المختار من الابتلاع المزدوج (BEH-05)
+- **الهدف:** التأكد من أن النشاط المختار لا يُرسم منه نسختان ولا يدخل ضمن حسابات التجمع الرقمي أسفله.
+- **التنفيذ:** تحديد نشاط يقع داخل كتلة كثيفة؛ التحقق من أن مسطح `selectedPinPane` يحوي كارت النشاط فقط، ومسطح `pinsPane` لا يحوي علامة مكررة له في نفس الإحداثيات، والتجمع المجاور لا يحسبه ضمن عدده.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
 
-- لم أعد قراءة `src/App.tsx` أو `PublicShowcase.tsx` أو `MapView.tsx` أو كامل `useMapPinsClustering.ts` سطرًا بسطر؛ اعتمدت على الأدلة الدقيقة في التقارير وفتشت المقاطع المتصلة بالخطة. لم أقرأ كامل الاختبارات `map_fixes.test.ts`, `map_geolocation.test.ts`, `progressive_work.test.ts`, ولا اختبارات Playwright.
-- لم أعد قراءة كل marker factory/CSS/route registration أو modules `useMapSearch.ts`, `useMapGeolocation.ts`, `MapFloatingControls.tsx`, `MapSelectedBusinessDrawer.tsx`, loaders وبيانات التصنيف/المناطق. ربط الإصلاحات بها مستند إلى تقارير 01–05، لا إلى مراجعة كاملة جديدة.
-- لم أشغل build/tests أو المتصفح في هذه الجولة؛ تقارير 03 تسجل ملاحظات runtime السابقة، وتقارير 01/02/04 تحدد حدودها. لا أدعي إثباتًا جديدًا لأي popup/camera timing أو أداء.
-- لم أراجع قاعدة البيانات الحية أو schema/query plan أو أجهزة حقيقية، ولم أقم بفحص جودة catalog. DATA-01/02/05/06/07 تبقى حدودًا/مخاطر ما لم تقاس.
+#### الاختبار 4 (SAFETY-04): تنظيف النوافذ المنبثقة المعلقة عند مسح الفلاتر (BEH-06)
+- **الهدف:** منع بقاء بوب آب التجمع يتيماً على الخريطة عند تعديل الفلتر.
+- **التنفيذ:** فتح بوب آب تجمع، إطلاق حدث مسح الفلاتر؛ التحقق من أن `map.hasLayer(popup)` يعيد `false`.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
 
-**النقطة التالية:** انتظار اعتماد الخطة وإجابات القرارات المناسبة قبل أي تغيير في التطبيق. يظل النطاق read-only؛ التقرير وحده أُنشئ.
+#### الاختبار 5 (SAFETY-05): ثبات الكروت البارزة أثناء السحب (BEH-07)
+- **الهدف:** منع تبدل الكروت الأفقية الثلاثة عشوائياً بين كارت ونقطة صغيرة أثناء سحب الخريطة في المستوى العام.
+- **التنفيذ:** تحريك إطار الخريطة أفقياً بمقدار 200 بكسل عند زووم 14؛ التحقق من أن معرّفات الأنشطة الثلاثة البارزة تظل متطابقة قبل وبعد السحب.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+#### الاختبار 6 (SAFETY-06): ثبات الكاميرا عند إلغاء تحديد النشاط (BEH-02)
+- **الهدف:** التأكد من أن النقر على خلفية الخريطة لإغلاق كارت النشاط لا يعيد الكاميرا قسراً للخلف.
+- **التنفيذ:** اختيار نشاط (تحرك الكاميرا نحوه)، سحب الخريطة مسافة 500 متر بعيداً، إطلاق نقر إلغاء التحديد؛ التحقق من أن مركز الكاميرا `map.getCenter()` لم يتغير بعد الإلغاء.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+#### الاختبار 7 (SAFETY-07): منع سباق التزامن عند طلب العمارات السريع (BEH-08 / DATA-07)
+- **الهدف:** التأكد من أن الاستجابة البطيئة للطلب الأول لا تكتب فوق الطلب الأخير الأحدث.
+- **التنفيذ:** إطلاق دالة البحث عن عمارة 10 (مع تأخير مصطنع 300ms)، ثم إطلاق عمارة 20 (مع تأخير 50ms)؛ التحقق من أن الحالة النهائية تستقر على إحداثيات عمارة 20 حصراً.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+#### الاختبار 8 (SAFETY-08): كفاية هوامش الرؤية الرأسية للأدراج (BEH-04 / UX-08)
+- **الهدف:** التأكد من أن فتح درج النشاط لا يغطي الدبوس المختار على شاشات الموبايل الرأسية.
+- **التنفيذ:** حساب نقطة الإسقاط للشاشة عند فتح الدرج بارتفاع 165px؛ التحقق من أن موضع الدبوس يحقق الشرط القياسي الموحد: `point.y <= viewportHeight - drawerHeight - 20px`.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+#### الاختبار 9 (SAFETY-09): كتم عاصفة إعادة الجلب عند التنقل بين التبويبات (DATA-04)
+- **الهدف:** التأكد من أن إطلاق حدث `visibilitychange` المتكرر لا يطلق استدعاءات شبكة غير مبررة للكتالوج.
+- **التنفيذ:** إطلاق 5 أحداث `visibilitychange` متتالية خلال ثانيتين؛ التحقق من تنفيذ طلب شبكة واحد فقط مع كتم باقي الطلبات عبر Throttle زمني (سقف 5 دقائق).
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+#### الاختبار 10 (SAFETY-10): حماية الكاميرا من الطيران نحو خليج غينيا (DATA-10)
+- **الهدف:** التأكد من أن طلب عرض نشاط بدون إحداثيات (`lat: 0, lng: 0`) لا يقذف الكاميرا خارج مصر.
+- **التنفيذ:** تمرير نشاط بإحداثيات `0, 0` لأمر التحريك؛ التحقق من رفض التحريك وإظهار تنبيه ملائم مع بقاء الكاميرا داخل حدود حدائق الأهرام.
+- **الحالة الحالية:** متوقع فشله (`xfail`).
+
+---
+
+# الجزء الرابع: حزم التنفيذ المرتبة بالتفصيل الكامل
+# Part 4: Dependency-Ordered Batches (Detailed Work Items)
+
+---
+
+## الحزمة 1: المكاسب السريعة الستة وترقيع عطل البحث الحرج
+## Batch 1: Quick Wins & Tactical Search Patch
+
+- **معيار الدخول:** نجاح اختبارات المجموعة 0-أ بنسبة 100%، وتشغيل اختبارات 0-ب وتسجيل الفشل المتوقع (`xfail`).
+- **معيار الخروج:** تحول الاختبارات SAFETY-04 و SAFETY-06 و SAFETY-08 إلى اللون الأخضر (Pass)، واستعادة وضوح الأزرار وتمرير الأدراج وتجاوز عطل البحث بالاسم فوراً.
+- **خطة التراجع (Rollback):** التراجع عن الالتزام المنفرد الخاص بالحزمة 1 عبر Git دون المساس بالبنية الأساسية.
+
+### عناصر العمل التفصيلية (Work Items):
+
+#### 1.1 إصلاح شفافية أزرار التحكم بالخريطة (Fix Transparent Floating Controls)
+- **المشكلة:** أزرار التكبير والتصغير وإعادة الضبط شفافة بنسبة 100% ومنعدمة التباين البصري وتختفي تماماً فوق شوارع الخريطة والقمر الصناعي (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي & (b) عيب في تجربة المستخدم (UX-06).
+- **السبب الجذري:** وجود قاعدة CSS عامة في `src/index.css:1021-1028` قامت بتجريد أزرار `.map-icon-controls > button` قسراً من خلفيتها وظلالها وحدودها.
+- **الإصلاح:** حذف قاعدة الإلغاء الشفافة من `src/index.css`، وإعادة تفعيل فئات Tailwind الأصلية المصممة في `MapFloatingControls.tsx`:
+  `bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-lg`.
+- **الملفات المستهدفة:** `src/index.css`, `src/components/map/MapFloatingControls.tsx`.
+- **مخاطر الارتداد:** شبه معدومة.
+- **طريقة الاختبار:** فحص بصري بالمتصفح وقياس القيمة المحسوبة `window.getComputedStyle(button).backgroundColor` للتأكد من عدم كونها شفافة.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 1.2 تصحيح محاور هوامش الكاميرا للدرج السفلي (Fix Inverted Viewport Padding)
+- **المشكلة:** كارت النشاط المحدد يختفي جزئياً أو كلياً خلف الدرج السفلي على شاشات الموبايل الرأسية (`[Code Audit - Suspected]`).
+- **التصنيف:** (a) خلل برمجي & (b) عيب في تجربة المستخدم (BEH-04).
+- **السبب الجذري:** السطر 160 في `cameraPlanner.ts` وضع قيمة 165px المخصصة للدرج في محور X الأفقي للشاشة بدلاً من المحور الرأسي Y.
+- **الإصلاح:** تعديل مصفوفة الحشو لتكون: `paddingBottomRight: [20, hasBottomDrawer ? 165 : 45]`.
+- **الملفات المستهدفة:** `src/components/map/utils/cameraPlanner.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-08 والتحقق من أن الدبوس يستقر في المساحة المكشوفة أعلى حافة الدرج.
+- **الجهد التقديري:** صغير (Small — 30 دقيقة / نقطة واحدة).
+
+#### 1.3 إلغاء فخ الارتداد العكسي للكاميرا (Eliminate Deselect Snapping Trap)
+- **المشكلة:** الكاميرا ترتد قسراً للخلف بسرعة نحو موضع قديم ملغية حركة واستكشاف المستخدم اليدوي عند النقر لإغلاق كارت النشاط (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي حاد & (b) عيب في تجربة المستخدم (BEH-02).
+- **السبب الجذري:** الأسطر 561-574 في `useMapPinsClustering.ts` تستدعي `map.flyTo(preSelectedStateRef)` فور النقر على خلفية الخريطة.
+- **الإصلاح:** حذف استدعاء حركة الكاميرا تماماً عند إلغاء التحديد، وحذف المرجع `preSelectedStateRef`، ليقتصر الإلغاء على تصفير المعرف وإغلاق الكارت مع ثبات الكاميرا في موضعها الحالي.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-06، واختيار نشاط ثم سحب الخريطة بعيداً والنقر في الفراغ والتأكد من بقاء الكاميرا في مكانها.
+- **الجهد التقديري:** صغير (Small — 30 دقيقة / نقطة واحدة).
+
+#### 1.4 تنظيف النوافذ المنبثقة المعلقة عند مسح الفلتر (Close Cluster Popups on Filter Clear)
+- **المشكلة:** بقاء نافذة بوب آب التجمع المنبثقة معلقة كيان يتيم على الشاشة بعد مسح الفلاتر (`[Code Audit - Suspected]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم (BEH-06).
+- **السبب الجذري:** دالة تفريغ الطبقات في المسار السريع لتغير الفلتر تمسح دبابيس التجمع ولكنها لا تستدعي إغلاق الـ Popup المفتوح في Leaflet.
+- **الإصلاح:** إضافة استدعاء صريح لـ `map.closePopup()` عند رصد تغير الفلتر في السطر 1045 من `useMapPinsClustering.ts`.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-04 والتأكد من إغلاق النافذة المنبثقة فوراً عند نقر مسح الفلاتر.
+- **الجهد التقديري:** صغير (Small — 30 دقيقة / نقطة واحدة).
+
+#### 1.5 فك حجب رسائل خطأ الاتصال على الخريطة (Unsuppress Map Error Banner)
+- **المشكلة:** الخريطة تظل فارغة وصامتة تماماً دون أي إشعار أو تنبيه عند انقطاع الإنترنت أو تعطل السيرفر (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي حاد (DATA-02).
+- **السبب الجذري:** السطر 580 في `PublicShowcase.tsx` يعزل شاشة الخريطة صراحة من إظهار شريط الحالة: `{!isMapRoute && <DirectoryStatus />}`.
+- **الإصلاح:** إزالة الاستثناء والسماح لمكون الحالة بالظهور كشريط إشعار طافٍ أنيق أعلى الخريطة في حال وجود خطأ في جلب البيانات.
+- **الملفات المستهدفة:** `src/components/PublicShowcase.tsx`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** محاكاة انقطاع الاتصال (Offline mode) في المتصفح والتحقق من ظهور رسالة الخطأ للمستخدم.
+- **الجهد التقديري:** صغير (Small — 30 دقيقة / نقطة واحدة).
+
+#### 1.6 تمكين التمرير لأدراج المباني والملاحة في الوضع الأفقي (Landscape Drawer Scrolling)
+- **المشكلة:** اختفاء أزرار التوجيه والملاحة وخرائط Google كلياً تحت أسفل الشاشة في الوضع الأفقي (Landscape) لعدم إمكانية التمرير (`[Code Audit - Suspected]`).
+- **التصنيف:** (a) خلل برمجي & (b) عيب في تجربة المستخدم (UX-09, UX-10).
+- **السبب الجذري:** غياب `max-h-[...]` و `overflow-y-auto` عن الحاويات الرئيسية لأدراج المباني والملاحة مع تجاوز المحتوى لـ 380px.
+- **الإصلاح:** إضافة `max-h-[85dvh] overflow-y-auto` للحاويات الرئيسية في `BuildingDetailDrawer.tsx` و `InAppNavigationDrawer.tsx`.
+- **الملفات المستهدفة:** `src/components/map/BuildingDetailDrawer.tsx`, `src/components/map/InAppNavigationDrawer.tsx`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** فحص الأدراج في بيئة محاكاة الشاشة الأفقية (Landscape: 844x390) والتأكد من إمكانية التمرير والوصول للأزرار.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 1.7 الترقيع التكتيكي الفوري لعطل البحث الذي يفرغ الخريطة (Tactical Patch for BEH-01)
+- **المشكلة:** اختفاء كافة دبابيس الخريطة فوراً وتصبح بيضاء تماماً عند كتابة اسم محل محدد في البحث العام (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي حاد (BEH-01 / DATA-01).
+- **السبب الجذري:** اشتراط `useMapPinsClustering.ts:997` وجود تصنيف نشط (`effectiveCategoryFilter !== 'all'`) لعرض أي دبابيس، متجاهلاً أن البيانات الواصلة هي نتيجة بحث صريح.
+- **الإصلاح:** تعديل الشرط مؤقتاً في الحزمة 1:
+  السماح بتجاوز شرط التصنيف إذا كانت مصفوفة البيانات ناتجة عن بحث نشط:
+  `const hasSearchOverride = Boolean(searchQuery && searchQuery.trim() !== '' && visibleBusinesses.length > 0);`
+  `if (!hasCategoryFilter && !hasSearchOverride) { cardsLayer.clearLayers(); ... return; }`
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`.
+- **مخاطر الارتداد:** منخفضة جداً؛ مؤمنة باختبار SAFETY-02.
+- **طريقة الاختبار:** كتابة اسم محل في الخريطة؛ التأكد الفوري من ظهور دبابيس النشاط على الخريطة بدلاً من إفراغها.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 1.8 ضبط زووم الموقع الجغرافي (Adjust GPS Location Zoom)
+- **المشكلة:** القفز العنيف للكاميرا نحو زووم 18.0 المفرط مما يسبب ضبابية البلاطات وفقدان الاتجاه العام للمستخدم (`[Code Audit - Suspected]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم (02-map:169).
+- **السبب الجذري:** تضمين الرقم السحري 18.0 في السطر 75 من `useMapGeolocation.ts`.
+- **الإصلاح:** تعديل زووم التقاط الموقع الجغرافي إلى 17.0 (وفق القرار 5 المعتمد من المستخدم).
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapGeolocation.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** النقر على زر طلب الموقع والتحقق من استقرار زووم الكاميرا عند 17.0 بدلاً من 18.0.
+- **الجهد التقديري:** صغير (Small — 15 دقيقة).
+
+#### 1.9 توحيد كتالوج البوابات الرسمية وعتبات الزووم المركزية (Unify Gates & Zoom Constants)
+- **المشكلة:** تضارب نطاق البوابة الثالثة بين ملفين جغرافيين (DATA-11)، وغياب ملف مركزي لسياسة الزووم.
+- **التصنيف:** (a) خلل برمجي & (c) دين معماري.
+- **السبب الجذري:** تعدد مصادر الحقيقة لبيانات البوابات.
+- **الإصلاح:**
+  1. إنشاء `src/data/hadayekOfficialGates.ts` كمصدر وحيد للحقيقة وتصحيح نطاق البوابة الثالثة لخدمة المناطق المعتمدة رسمياً.
+  2. إنشاء `src/components/map/constants/zoomPolicy.ts` بـ `ZOOM_POLICY` المركزي وحسم العتبات.
+- **الملفات المستهدفة:** `src/data/hadayekOfficialGates.ts`, `src/components/map/constants/zoomPolicy.ts`, `src/data/hadayekAtlasData.ts`, `src/data/hadayekDistrictsGeoData.ts`.
+- **مخاطر الارتداد:** منخفضة؛ تتطلب تحديث مسارات الاستيراد.
+- **طريقة الاختبار:** فحص تطابق استيرادات البوابات في النوافذ والتأكد من خلو المشروع من أخطاء TypeScript (`npm run lint`).
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+---
+
+## الحزمة 2: مخزن الحالة الموحد ومزامنة الرابط القطعية
+## Batch 2: Unified Map Store & Deterministic URL Sync
+
+- **معيار الدخول:** اكتمال شحن الحزمة 1 وتمرير كافة اختبارات التراجع.
+- **معيار الخروج:** استقرار كافة معلمات الخريطة في الـ URL، وتزامن الحالة بنسبة 100% دون أي سباقات غير متزامنة عند الرجوع بالمتصفح.
+- **خطة التراجع:** استرجاع التزام الحزمة 2 والعودة لحالة الحزمة 1 المستقرة.
+
+### عناصر العمل التفصيلية:
+
+#### 2.1 إنشاء مخزن حالة الخريطة الموحد (Unified Map Store)
+- **المشكلة:** تشظي وتنافس الحالة بين `PublicShowcase`, `MapView`, `InteractiveMap`, و `useMapPinsClustering` مسبباً تفاوتات زمنية عند التصفية (`[Code Audit - Suspected]`).
+- **التصنيف:** (c) دين معماري & (d) حالة مفقودة (01-map:235).
+- **السبب الجذري:** إدارة حالة محلية متعددة ونسخ الـ Props عبر تأثيرات `useEffect` متتالية.
+- **الإصلاح:** بناء خطاف مركزي موحد `useUnifiedMapController` يدير كائن `UnifiedMapState` المفصل في القسم 1.2، ويوفر كولباكات ذرية لتعديل الفلاتر، البحث، والكيان المختار.
+- **الملفات المستهدفة:** إنشاء `src/components/map/hooks/useUnifiedMapController.ts`, وتعديل `src/components/InteractiveMap.tsx`.
+- **مخاطر الارتداد:** متوسطة؛ تتطلب ربط المكونات القديمة بالواجهة الجديدة بحذر.
+- **طريقة الاختبار:** مراقبة تزامن الفلاتر والاختيار عبر أدوات React DevTools وتأكيد انعدام التحديثات المكررة.
+- **الجهد التقديري:** كبير (Large — 4-5 ساعات / 5 نقاط).
+
+#### 2.2 مزامنة الـ URL القطعية وحفظ فلتر التصنيف (Deterministic URL Sync)
+- **المشكلة:** ضياع فلتر التصنيف عند النقر على زر الرجوع بالمتصفح أو تحديث الصفحة (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي & (d) حالة مفقودة (UX-05).
+- **السبب الجذري:** حصر المزامنة في `MapView.tsx:167-184` على `zone` و `bldg` وإسقاط `cat` و `q`.
+- **الإصلاح:** بناء مزامنة ثنائية الاتجاه قطعية عبر `URLSearchParams` تشمل التسميات القياسية: `biz`, `bldg`, `zone`, `cat`, `q`، مع استخدام `history.replaceState` لمنع تلوث سجل المتصفح بدورات ريندر دائرية.
+- **الملفات المستهدفة:** `src/components/views/MapView.tsx`, `src/components/PublicShowcase.tsx`.
+- **مخاطر الارتداد:** منخفضة؛ يتم التحقق من تغير القيمة الفعلي قبل كتابة الرابط.
+- **طريقة الاختبار:** تطبيق فلتر تصنيف ومنطقة، اختيار نشاط، الضغط على زر الرجوع في المتصفح والتأكد من استعادة الحالة بدقة.
+- **الجهد التقديري:** متوسط (Medium — 2-3 ساعات / 3 نقاط).
+
+#### 2.3 دمج حالة كبسولة "إعادة البحث في هذا النطاق" (Search-This-Area State Integration)
+- **المشكلة:** سحب الخريطة يغير نتائج الدبابيس والكروت البارزة بشكل مفاجئ وصامت دون تحكم المستخدم (`[Confirmed - Browser]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم (BEH-07 / UX Benchmark).
+- **السبب الجذري:** إعادة التصفية اللحظية مع كل بكسل سحب لعدم وجود مفهوم مركز بحث ثابت.
+- **الإصلاح:** دمج حالة `searchCenter` في مخزن الحالة الموحد (وفق القرار 2 المعتمد)، وتفعيل علم `showSearchThisAreaPill` فقط عندما تتجاوز إزاحة الكاميرا 400 متر عن المركز المعتمد، مع تثبيت النتائج السابقة حتى ينقر المستخدم على الكبسولة.
+- **الملفات المستهدفة:** `src/components/map/hooks/useUnifiedMapController.ts`, `src/components/map/MapModernTopBar.tsx`.
+- **مخاطر الارتداد:** منخفضة.
+- **طريقة الاختبار:** سحب الخريطة مسافة بسيطة (100 متر) والتأكد من ثبات النتائج، ثم سحبها لمسافة بعيدة (500 متر) والتحقق من ظهور الكبسولة الطافية.
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+---
+
+## الحزمة 3: خط أنابيب البيانات المفرد والإصلاح الجذري لأعطال التصفية
+## Batch 3: Single Data Pipeline & Root Search/Filter Fixes
+
+- **معيار الدخول:** استقرار مخزن الحالة ومزامنة الـ URL في الحزمة 2.
+- **معيار الخروج:** تحول الاختبارات SAFETY-02 و SAFETY-07 و SAFETY-09 و SAFETY-10 للون الأخضر (Pass).
+- **خطة التراجع:** استرجاع التزام الحزمة 3 والعودة للحزمة 2.
+
+### عناصر العمل التفصيلية:
+
+#### 3.1 استبدال سلسلة الفلترة المزدوجة بخط الأنابيب الموحد (Unified Data Pipeline)
+- **المشكلة:** تضارب شروط الفلترة بين `filterDirectoryBusinesses` و `filterBusinessesForMap` مما يتسبب في حجب الأنشطة (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي & (c) دين معماري (DATA-01).
+- **السبب الجذري:** تطبيق الفلترة المتسلسلة المزدوجة بقواعد مختلفة لنفس البيانات.
+- **الإصلاح:** بناء خط الأنابيب الموحد `filterVisibleMapCatalog` الذي ينفذ المراحل المتتالية: الصلاحية المكانية، سيادة البحث، الاستبعاد المكاني خارج الكاميرا، وعزل النشاط المختار.
+- **الملفات المستهدفة:** `src/utils/hadayekZoneHelper.ts`, `src/utils/directoryFiltering.ts`, `src/components/map/hooks/useMapPinsClustering.ts`.
+- **مخاطر الارتداد:** متوسطة؛ مؤمنة باختبارات Batch 0.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-02 والتحقق من تطابق مخرجات الفلترة بين الدليل والخريطة.
+- **الجهد التقديري:** كبير (Large — 4-5 ساعات / 4 نقاط).
+
+#### 3.2 إصلاح فحص الأنشطة داخل العمارات السكنية (Fix BEH-09 & DATA-08)
+- **المشكلة:** ظهور كافة محلات حدائق الأهرام داخل عمارة 1 في منطقة أ عند فتح درج تفاصيل العمارة (`[Confirmed - Code]`).
+- **التصنيف:** (a) خلل برمجي حاد (BEH-09 / DATA-08).
+- **السبب الجذري:** اعتماد `BuildingDetailDrawer.tsx:39-43` على فحص نصي ساذج `.includes('أ')` و `.includes('1')`.
+- **الإصلاح:** استبدال الفحص النصي بالمطابقة المكانية الصارمة: مطابقة الحرف الجغرافي المعتمد عبر `getBusinessHadayekZoneLetter(b) === building.zoneLetter`، ومطابقة رقم المبنى المفكك عبر `parseHadayekBuildingAddress`.
+- **الملفات المستهدفة:** `src/components/map/BuildingDetailDrawer.tsx`, `src/utils/hadayekBuildingSearch.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** فتح عمارة 1 أ؛ التحقق من اقتصار القائمة على الأنشطة القائمة فعلياً في هذا العنوان المساحي.
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+#### 3.3 حماية الكاميرا من الطيران لخليج غينيا (Fix Null Island Trap - DATA-10)
+- **المشكلة:** طيران الكاميرا قسراً نحو المحيط الأطلسي عند النقطة `0,0` عند النقر على "عرض على الخريطة" لنشاط بلا إحداثيات صالحة (`[Confirmed - Code]`).
+- **التصنيف:** (a) خلل برمجي حاد (DATA-10).
+- **السبب الجذري:** تحويل الإحداثيات الفارغة إلى `0, 0` مع السماح بتمريرها لأمر الطيران.
+- **الإصلاح:** فحص صلاحية الإحداثيات قبل أي حركة للكاميرا عبر `hasUsableCoordinates`؛ فإذا كانت غير صالحة يتم منع الطيران وإظهار إشعار خفيف للمستخدم مع بقاء الكاميرا في مكانها.
+- **الملفات المستهدفة:** `src/components/PublicShowcase.tsx`, `src/components/views/MapView.tsx`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-10 وتمرير نشاط بإحداثيات صفرية والتحقق من بقاء الكاميرا داخل حدائق الأهرام.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 3.4 كتم عاصفة إعادة الجلب عند تبديل التبويبات (Fix Tab-Switch Fetch Storm - DATA-04)
+- **المشكلة:** إطلاق عمليات جلب متكررة وشاملة لقاعدة البيانات في كل مرة يبدل فيها المستخدم تبويب المتصفح (`[Confirmed - Code]`).
+- **التصنيف:** (a) خلل برمجي & (c) دين تقني (DATA-04).
+- **السبب الجذري:** استدعاء `loadBusinesses` قسراً عند حدث `visibilitychange` دون فحص حداثة البيانات.
+- **الإصلاح:** إضافة ختم زمني لآخر جلب ناجح وتطبيق حد زمني أدنى (Throttle مدته 5 دقائق)؛ فإذا كان الفارق أقل من 5 دقائق يُكتم الطلب وتُعتمد بيانات الذاكرة الحية.
+- **الملفات المستهدفة:** `src/App.tsx`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-09 وإطلاق أحداث تبديل متتالية والتحقق من عدم إطلاق طلبات HTTP مكررة.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 3.5 منع سباقات التزامن عند النقر السريع على العمارات (Fix Building Async Race - BEH-08)
+- **المشكلة:** استقرار الخريطة على إحداثيات عمارة خاطئة عند النقر السريع المتتالي على أرقام العمارات (`[Code Audit - Suspected]`).
+- **التصنيف:** (a) خلل برمجي (سباق تزامن) (BEH-08 / DATA-07).
+- **السبب الجذري:** فحص `isMounted` لا يحمي عند تغير المدخلات السريعة، مما يسمح للوعد الأبطأ بالكتابة فوق الأحدث.
+- **الإصلاح:** إضافة معرّف تسلسلي للطلب (`requestIdRef`) وتجاهل أي استجابة لا تطابق المعرف الأخير النشط.
+- **الملفات المستهدفة:** `src/components/views/MapView.tsx`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-07 والنقر السريع على عمارة 10 ثم 20 والتأكد من استقرار الخريطة على 20.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 3.6 تطبيق خيار كثافة دبابيس العرض العام (Apply Overview Density Preference)
+- **الإجراء:** تطبيق خيار المستخدم المعتمد بالقرار 1 لعرض أهم 20-30 نشاطاً موثقاً كنقاط استكشافية ملونة ملهمة في المستوى العام، وإلغاء سياسة إفراغ الخريطة الصامتة.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`.
+- **الجهد التقديري:** متوسط (Medium — 1.5 ساعة / نقطتان).
+
+---
+
+## الحزمة 4أ: منسق الكاميرا السيادي الأوحد
+## Batch 4A: Unified Camera Controller
+
+- **معيار الدخول:** استقرار خط أنابيب البيانات في الحزمة 3.
+- **معيار الخروج:** توحيد كافة حركات الخريطة الـ 17 تحت المنسق المركزي، وانعدام تام لأي وميض أو تنازع حركي.
+- **الجهد التقديري:** 4 - 5 ساعات (Medium — 4 نقاط).
+
+### عناصر العمل التفصيلية:
+
+#### 4أ.1 بناء منسق الكاميرا السيادي (Unified Camera Controller Core)
+- **المشكلة:** وجود 17 محرك حركة كاميرا مستقل يتنافسون على تحريك Leaflet ويسببون وميضاً وتنازعاً (02-map:150).
+- **التصنيف:** (c) دين معماري حاد & (b) عيب في تجربة المستخدم.
+- **السبب الجذري:** غياب كيان موحد مسؤول عن حركات الكاميرا وتشتت أوامر `flyTo` عبر 5 ملفات.
+- **الإصلاح:** إنشاء `UnifiedCameraController` ليكون الكيان الحصري المرخص له بتحريك Leaflet. تحويل كافة حركات الكاميرا إلى أوامر إعلانية (`CameraIntent`) تضمن إدارة حركة واحدة متصلة وإلغاء الحركات السابقة بسلاسة.
+- **الملفات المستهدفة:** إنشاء `src/components/map/utils/unifiedCameraController.ts`, وتعديل `useMapInstance.ts`.
+- **مخاطر الارتداد:** متوسطة؛ تتطلب الحفاظ على فيزياء الطيران البارابولي المعتمدة في `DEFINITION.md`.
+- **طريقة الاختبار:** اختبار الانتقال بين المناطق، وعرض الأنشطة، والتأكد من انعدام القفزات المزدوجة.
+
+#### 4أ.2 فرض السيادة اللمسية للمستخدم (Touch Gesture Supremacy)
+- **المشكلة:** تداخل مؤقت استقرار الطيران (160ms) مع لمس وسحب المستخدم للخريطة مسبباً وميضاً في الفريمات (02-map:258).
+- **التصنيف:** (b) عيب في تجربة المستخدم & (c) دين معماري.
+- **السبب الجذري:** انفجار مؤقت الاستقرار بعد بدء حركة المستخدم اليدوية.
+- **الإصلاح:** ربط أحداث `touchstart` و `dragstart` بإلغاء فوري وصريح لكافة مؤقتات الطيران والاستقرار الحالية وتجميد مجدول الريندر أثناء حركة الإصبع.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`, `src/components/map/utils/unifiedCameraController.ts`.
+- **مخاطر الارتداد:** معدومة.
+- **طريقة الاختبار:** بدء لمس الخريطة فور هبوط الكاميرا ومراقبة استجابة الخريطة الفورية بـ 60fps دون أي تذبذب.
+
+---
+
+## الحزمة 4ب: استقرار التجميع المكاني بـ Supercluster
+## Batch 4B: Stable Spatial Clustering with Supercluster
+
+- **معيار الدخول:** اكتمال منسق الكاميرا في الحزمة 4أ.
+- **معيار الخروج:** تحول الاختبارين SAFETY-03 و SAFETY-05 للون الأخضر، وانعدام اهتزاز التجمعات أثناء السحب.
+- **الجهد التقديري:** 4 - 5 ساعات (Medium — 4 نقاط).
+
+### عناصر العمل التفصيلية:
+
+#### 4ب.1 دمج محرك Supercluster المكاني المستقر (Deterministic Supercluster Integration)
+- **المشكلة:** اهتزاز وتذبذب التجمعات العددية بصورة ارتجاجية مستمرة أثناء تحريك الخريطة باليد بكسل تلو الآخر (`[Confirmed - Browser]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم & (c) دين معماري (BEH-07 / UX-11).
+- **السبب الجذري:** اعتماد خوارزمية شبكة بكسل الشاشة `Math.floor(x / 58)` التي تغير خلايا الأنشطة مع كل لمسة إصبع.
+- **الإصلاح:** دمج مكتبة `supercluster` المحلية لمعالجة الإحداثيات الجغرافية المسقطة (Mercator K-D Tree)، مما يضمن ثبات مراكز التجمعات جغرافياً أثناء سحب الكاميرا.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`, `src/components/map/utils/spatialActivityGroups.ts`.
+- **مخاطر الارتداد:** منخفضة؛ الحفاظ على نفس تصميم الشارات الدائرية الخفيفة.
+- **طريقة الاختبار:** تشغيل الاختبار SAFETY-05، وسحب الخريطة ببطء شديد بالمتصفح والتأكد من انعدام قفزات التجمعات.
+
+#### 4ب.2 عزل النشاط المختار ومنع الابتلاع والازدواجية (Selected Pin Complete Isolation)
+- **المشكلة:** النشاط المختار يُرسم مكرراً في مسطحين متنافسين، أو يبتلع داخل تجمع رقمي عند التصغير (`[Confirmed - Browser]`).
+- **التصنيف:** (a) خلل برمجي & (c) دين معماري (BEH-05).
+- **السبب الجذري:** عدم ترشيح النشاط المختار واستثناؤه من مصفوفة التجميع قبل تمريرها للخوارزمية.
+- **الإصلاح:** تصفية مصفوفة التجميع صراحة: `const clusterable = businesses.filter(b => b.id !== selectedBizId)`، وتثبيت تمثيله ككيان سيادي على مسطح `selectedPinPane`.
+- **الملفات المستهدفة:** `src/components/map/hooks/useMapPinsClustering.ts`.
+- **مخاطر الارتداد:** معدومة؛ مؤمنة باختبار SAFETY-03.
+- **طريقة الاختبار:** اختيار نشاط في منطقة مزدحمة والتصغير والتكبير والتأكد من بقاء الكارت بارزاً بمفرده دون علامة تجمع تبتلعه.
+
+---
+
+## الحزمة 4ج (مشروطة بالقياس الميداني): طبقة الكانفاس الرسومية
+## Batch 4C (Conditional Upon Profiling): 2D Canvas Layer
+
+- **معيار الدخول الحاكم:** قياس أداء الخريطة بعد الحزمة 4ب على بيئة محاكاة هاتف اقتصادي (4x CPU Throttling في Chrome DevTools).  
+  **الشرط الصارم:** تُنفذ هذه الحزمة **فقط وحصرياً إذا أثبت القياس الميداني هبوط معدل الإطارات دون 55fps أثناء سحب وتكبير الخريطة**. وإذا أثبتت الحزمة 4ب ثبات معدل 60fps مع مجدول `progressiveWork.ts`، يتم تجاوز هذه الحزمة وتوفير جهدها.
+- **الجهد التقديري:** 3 - 4 ساعات (Small/Medium — 3 نقاط).
+
+### عناصر العمل التفصيلية (حال استيفاء شرط التنفيذ):
+1. **تفعيل طبقة `L.canvas()` ثنائية الأبعاد:** رسم كافة نقاط Pindots والتجمعات العددية البعيدة داخل كانفاس 2D موحد لتخفيف حمل المتصفح.
+2. **شجرة إمكانية الوصول المخفية (`Accessible Off-Screen Region`):** إنشاء عنصر دلالي غير مرئي `<ul class="sr-only" aria-live="polite">` يمثل الدبابيس المعروضة لتمكين قارئات الشاشة ومستخدمي لوحة المفاتيح من التفاعل معها بنسبة 100%.
+
+---
+
+## الحزمة 5: تطوير تجربة الموبايل والأدراج وإمكانية الوصول
+## Batch 5: UX, Mobile Fitting & Accessibility Overhaul
+
+- **معيار الدخول:** اكتمال استقرار الكاميرا والتجميع في الحزمة 4.
+- **معيار الخروج:** مطابقة تامة لمعايير WCAG 2.2، وتجربة استخدام بيد واحدة طبيعية ومريحة على شاشات الموبايل.
+- **الجهد التقديري:** 9 - 11 ساعة (Large — 8 نقاط).
+
+### عناصر العمل التفصيلية:
+
+#### 5.1 توسيع مساحات اللمس وحماية المنطقة الآمنة (Touch Targets & Safe Area Inset Top)
+- **المشكلة:** صغر مساحات اللمس لزر الفلتر (36px) وزر المسح (28px) وزر البحث (36px) بالمخالفة لمعيار 44px (`[Confirmed - Browser]`)، وتداخل الشريط مع النوتش (UX-01, UX-03).
+- **التصنيف:** (b) عيب في تجربة المستخدم حاد.
+- **السبب الجذري:** تحديد أبعاد ثابتة صغيرة وغياب `env(safe-area-inset-top)`.
+- **الإصلاح:**
+  1. ترقية كافة الأزرار لتملك حاوية لمس موسعة لا تقل عن `min-w-[44px] min-h-[44px]` (WCAG 2.5.5).
+  2. إضافة `padding-top: max(0.75rem, env(safe-area-inset-top))` للشريط العلوي.
+- **الملفات المستهدفة:** `src/components/map/MapModernTopBar.tsx`, `src/index.css`.
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+#### 5.2 بناء شريط كبسولات الفلاتر الأفقية السريعة (Horizontal Quick Filter Chips)
+- **المشكلة:** احتكار الفلترة داخل لوحة منبثقة معتمة تتطلب 3 نقرات وتغطي 54% من الشاشة، والاكتفاء بنقطة برتقالية 8px كإشعار للفلتر (`[Confirmed - Browser]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم & (d) حالة مفقودة (UX-04).
+- **السبب الجذري:** غياب شريط كبسولات سريع على الخريطة.
+- **الإصلاح:** بناء شريط كبسولات أفقي قابل للتمرير أسفل البحث (`HorizontalQuickFilterChips`) يعرض التصنيفات الرئيسية بنقرة واحدة، ويُبرز الفلتر المطبق بكبسولة ملونة مع زر مسح سريع `✕` بلمسة واحدة.
+- **الملفات المستهدفة:** `src/components/map/MapModernTopBar.tsx`.
+- **الجهد التقديري:** متوسط (Medium — 2.5 ساعة / نقطتان).
+
+#### 5.3 ترقية الأدراج السفلية بإيماءات السحب والارتكاز الثلاثي (Native Bottom Sheet)
+- **المشكلة:** بطاقة النشاط ثابتة وجامدة تفتقر لإيماءات السحب، وتتداخل مع خط إيماءات الآيفون (Home Indicator) لغياب Safe Area (`[Confirmed - Browser]`).
+- **التصنيف:** (b) عيب في تجربة المستخدم حاد (UX-08).
+- **السبب الجذري:** استخدام `bottom-2.5` الثابت وغياب دعم الإيماءات.
+- **الإصلاح:** ترقية أدراج الخريطة لدعم إيماءات السحب والارتكاز الثلاثي (Peek 110px / Half 45dvh / Full 85dvh) عبر مكتبة `@use-gesture/react` المعتمدة بالقرار 3، مع حشو سفلي `padding-bottom: max(1rem, env(safe-area-inset-bottom))`.
+- **الملفات المستهدفة:** `src/components/map/MapSelectedBusinessDrawer.tsx`, `src/components/map/BuildingDetailDrawer.tsx`.
+- **الجهد التقديري:** كبير (Large — 3.5 ساعات / 3 نقاط).
+
+#### 5.4 تفعيل زر تحديد الموقع الجغرافي الطافي (Locate Me FAB)
+- **المشكلة:** غياب تام لزر تحديد الموقع الجغرافي (GPS) في وضع العرض العادي للخريطة (`[Confirmed - Browser]`).
+- **التصنيف:** (d) حالة مفقودة & (b) عيب في تجربة المستخدم (UX-07).
+- **السبب الجذري:** حصر استدعاء الـ GPS في وضع منتقي الموقع فقط.
+- **الإصلاح:** تفعيل زر طافٍ بارز لتحديد الموقع في الثلث السفلي الأيمن ضمن نطاق إبهام اليد، ينقل الكاميرا بسلاسة بزووم 17.0 نحو المستخدم.
+- **الملفات المستهدفة:** `src/components/map/MapFloatingControls.tsx`, `src/components/InteractiveMap.tsx`.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 5.5 تجنب لوحة المفاتيح وسجل البحث وإمكانية الوصول (Keyboard, Recents & ARIA)
+- **المشكلة:** غرق قائمة الاقتراحات خلف الكيبورد (UX-02)، وانعدام سمات ARIA للدبابيس (UX-13)، وصغر الخطوط إلى 6 بكسل (UX-11).
+- **التصنيف:** (b) عيوب إمكانية وصول وتجربة مستخدم.
+- **الإصلاح:**
+  1. ضبط ارتفاع الاقتراحات ليتجنب لوحة المفاتيح: `max-h-[calc(100dvh-var(--keyboard-height)-6rem)]`.
+  2. ربط البحث بآخر 5 عمليات بحث من `dalelak_recent_searches`.
+  3. حقن سمات ARIA (`role="button"`, `tabindex="0"`) وتغليف الأنيميشن باستعلام `@media (prefers-reduced-motion)`.
+  4. إلغاء تقليص الخطوط وتثبيت نصوص الكروت عند 11.5 بكسل كحد أدنى.
+- **الملفات المستهدفة:** `src/components/map/MapModernTopBar.tsx`, `src/components/map/badgeMarkers.ts`, `src/index.css`.
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+---
+
+## الحزمة 6: تنظيف الأكواد المهجورة وتعزيز التخزين المؤقت
+## Batch 6: Dead Code Purge & Data Layer Hardening
+
+- **معيار الدخول:** اكتمال تجربة المستخدم في الحزمة 5.
+- **معيار الخروج:** مشروع نقي 100% من الأكواد المهجورة، ترحيل التخزين المؤقت إلى `IndexedDB`، وتقديم توصيات فهارس الخادم.
+- **الجهد التقديري:** 4 - 5 ساعات (Medium — 4 نقاط).
+
+### عناصر العمل التفصيلية:
+
+#### 6.1 حذف الملفات والأكواد المهجورة (Purge Ghost Code)
+- **الإجراء:** حذف الملفات الأربعة الموثقة في القسم 2.2 (`MapFooterBar.tsx`, `pinDispersal.ts`, `districtLabelPosition.ts`, `markerReconciliation.ts`) وتنظيف كود View في `MapHeaderBar.tsx` وحذف `cameraTransitionTokenRef`.
+- **الملفات المستهدفة:** حذف 4 ملفات وتنظيف الملفات المستوردة.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+#### 6.2 حذف نموذج المعاينة المنفصل (Purge directory-experience)
+- **الإجراء:** حذف مجلد `src/directory-experience` وملف الإعداد `vite.directory-preview.config.ts` (وفق القرار 4 المعتمد).
+- **الملفات المستهدفة:** حذف المجلد وإعداداته.
+- **الجهد التقديري:** صغير (Small — 30 دقيقة / نقطة واحدة).
+
+#### 6.3 ترحيل التخزين المؤقت إلى IndexedDB (Migrate Cache to IndexedDB)
+- **المشكلة:** انهيار التخزين المؤقت في صمت عند تجاوز حجم البيانات لحاجز 5MB في `localStorage` (`[Confirmed - Code]`).
+- **التصنيف:** (a) خلل برمجي & (d) حالة مفقودة (DATA-05).
+- **الإصلاح:** تثبيت مكتبة `idb-keyval` (1KB) والترحيل الكامل لحفظ كتالوج الأنشطة في `IndexedDB` غير المحدود بالسعة لحماية وضع الـ Offline وسرعة الإقلاع (وفق القرار 6 المعتمد).
+- **الملفات المستهدفة:** `src/App.tsx`, `src/services/catalogCache.ts`.
+- **الجهد التقديري:** متوسط (Medium — 2 ساعات / نقطتان).
+
+#### 6.4 إعداد وثيقة توصيات فهارس قاعدة بيانات Supabase (Database Recommendations)
+- **الإجراء:** إنشاء ملف SQL معتمد يتضمن إنشاء الفهرس المركب للاستعلام العام وفهارس PostGIS المكانية وقيود التحقق من المدخلات.
+- **الملفات المستهدفة:** إنشاء `docs/database-recommendations.sql`.
+- **الجهد التقديري:** صغير (Small — 1 ساعة / نقطة واحدة).
+
+---
+
+# الجزء الخامس: ملخص الجهد والمصفوفة التنفيذية المنقحة
+# Part 5: Revised Effort & Schedule Summary
+
+| الحزمة (Batch) | المحتوى والهدف الرئيسي | عناصر العمل | الجهد التقديري (بالساعات) | تصنيف الحجم (T-Shirt) | الاستقلالية وقابلية التراجع |
+|---|---|---|---|---|---|
+| **Batch 0** | شبكة الأمان المزدوجة (0-أ تنجح الآن + 0-ب متوقع فشلها xfail) | 10 سيناريوهات | 4 - 6 ساعات | **M (Medium)** | معزولة بالكامل في `src/tests/` |
+| **Batch 1** | المكاسب السريعة الستة + ترقيع BEH-01 + زووم GPS 17 + البوابات | 9 عناصر | 5 - 6 ساعات | **M (Medium)** | قابلة للشحن والتراجع الفوري |
+| **Batch 2** | مخزن الحالة الموحد ومزامنة الرابط القطعية | 3 عناصر | 6 - 8 ساعات | **L (Large)** | مستقلة هيكلياً |
+| **Batch 3** | خط أنابيب البيانات المفرد والإصلاح الجذري للأعطال | 6 عناصر | 6 - 8 ساعات | **L (Large)** | مؤمنة باختبارات Batch 0 |
+| **Batch 4A** | منسق الكاميرا السيادي الأوحد | 2 عنصر | 4 - 5 ساعات | **M (Medium)** | مستقلة حركياً |
+| **Batch 4B** | استقرار التجميع المكاني بـ Supercluster | 2 عنصر | 4 - 5 ساعات | **M (Medium)** | مستقلة خوارزمياً |
+| **Batch 4C** | طبقة الكانفاس الرسومية (مشروطة بقياس تقطيع الفريمات) | 2 عنصر | 3 - 4 ساعات *(مشروطة)* | **S/M (Optional)** | مستقلة كطبقة ريندر |
+| **Batch 5** | تجربة الموبايل، كبسولات الفلاتر، مساحات اللمس، والأدراج | 5 عناصر | 9 - 11 ساعة | **L (Large)** | ترقية واجهات تفاعلية |
+| **Batch 6** | تنظيف الأكواد ومجلد المعاينة وترحيل التخزين لـ IndexedDB | 4 عناصر | 4 - 5 ساعات | **M (Medium)** | تنظيف وتعزيز استدامة |
+| **الإجمالي** | **خطة الإصلاح المعماري الشاملة (مع 4C مشروطة)** | **37 عنصر عمل** | **41 - 54 ساعة** *(+3-4 س لـ 4C)* | — | **كل حزمة تشحن وتتراجع منفرداً** |
+
+---
+
+# الجزء السادس: القرارات المفتوحة وما تم ترجيحه وتوثيقه
+# Part 6: Open Decisions & Documented Preferences
+
+| # | القرار التصميمي / التقني | ما تم ترجيحه واعتماده | متى يُحسم ويُطبق كودياً؟ | الأثر على المنتج وكود التطبيق |
+|---|---|---|---|---|
+| **1** | **كثافة الدبابيس في العرض العام للمدينة (زووم 14)** | **الترجيح: الخيار (أ)** عرض 20-30 نشاطاً موثقاً كنقاط ملهمة، مع مراعاة أن هذا يتطلب تحديث وثيقة `DEFINITION.md`. | **قبل الحزمة 3** | ينهي ظاهرة الخريطة الصفراء الصامتة عند أول فتح ويمنح حيوية للمنصة. |
+| **2** | **نمط تحديث البحث عند تحريك الخريطة** | **معتمد: الخيار (أ)** كبسولة طافية "إعادة البحث في هذا النطاق" عند سحب الخريطة > 400 متر. | **قبل الحزمة 2** | يقضي تماماً على ارتعاش وتبدل النتائج الصامت أثناء السحب. |
+| **3** | **تقنية بناء الأدراج السفلية للموبايل** | **معتمد: الخيار (أ)** مكتبة `@use-gesture/react` لدعم السحب الحقيقي وسرعة القذف بـ 3 نقاط ارتكاز. | **قبل الحزمة 5** | يمنح تجربة استخدام مطابقة للتطبيقات الأصلية (Native Feel). |
+| **4** | **مصير نموذج المعاينة `src/directory-experience`** | **معتمد: الخيار (أ)** حذفه بالكامل مع إعدادات المنفذ 5190 بعد التأكد من عدم حاجة أي فريق له. | **عند الحزمة 6** | تنظيف المشروع وتقليص حجم المستودع وتوحيد تركيز التطوير. |
+| **5** | **زووم الكاميرا عند تحديد الموقع الجغرافي (GPS)** | **معتمد: الخيار (أ)** خفضه إلى 17.0 لعرض الشارع مع النطاق المحيط دون ضبابية. | **في الحزمة 1** | تم إدراجه فوراً ضمن عناصر عمل الحزمة الأولى. |
+| **6** | **الترحيل إلى IndexedDB** | **معتمد: الخيار (أ)** تثبيت `idb-keyval` (1KB) لحماية الذاكرة المؤقتة من سقف الـ 5MB في `localStorage`. | **في الحزمة 6** | حماية وضع العمل بدون إنترنت وسرعة الإقلاع مع نمو الأنشطة. |
+| **7** | **عتبة زووم التحول للمنطقة (District View Threshold)** | **قرار يحتاج حسمك النهائي:** هل نعتمد **15.0** (الأوسع نطاقاً لشمول مضلع الحي بالكامل) أم **15.5** (الوضع الحالي في كود الدبابيس)؟ | **قبل الحزمة 1** (لتثبيتها في `zoomPolicy.ts`) | يحدد اللحظة التي تبدأ فيها دبابيس المنطقة بالتفكك والظهور ككروت تفصيلية. |
+
+---
+
+## الخاتمة وإشعار التوقف وانتظار الموافقة
+
+تم توثيق وحفظ خطة الإصلاح المعماري الشاملة بكامل تفاصيلها الدقيقة دون أي تفريغ في ملفها الرسمي:  
+[`docs/audit/06-repair-plan.md`](file:///c:/Users/Ahmed/Desktop/AGENT_SYSTEM/projects/Dalilak_Production_Ecosystem/Dalilak-directory_Production_Clean/docs/audit/06-repair-plan.md)
+
+> [!IMPORTANT]
+> **التزاماً بالبند رقم 6 من التوجيهات الصارمة:**  
+> يتوقف المساعد الذكي الآن عن اتخاذ أي إجراء إضافي أو كتابة أي كود برمجي، وبانتظار اعتمادكم النهائي وحسم القرار رقم 7 (عتبة زووم المنطقة 15.0 أو 15.5) للانطلاق فوراً في تنفيذ **الحزمة 0 (شبكة الأمان المزدوجة)**.

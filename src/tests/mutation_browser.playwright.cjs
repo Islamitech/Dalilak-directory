@@ -56,10 +56,9 @@ async function runBrowserScenarios() {
     try {
       const s = await setup(browser, { width: 390, height: 844 }, port);
       const p = s.page;
-      p.setDefaultTimeout(5000);
+      p.setDefaultTimeout(12000);
 
-      await p.goto(s.url + '/search');
-      await p.waitForTimeout(700);
+      await p.goto(s.url + '/search', { waitUntil: 'domcontentloaded', timeout: 20000 });
 
       const alphaCard = p.getByText('صيدلية ألفا', { exact: true }).first();
       await alphaCard.waitFor({ timeout: 5000 });

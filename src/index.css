@@ -1039,3 +1039,4 @@ path.selected-district-polygon-focus {
   #map-filter-panel button, #map-filter-panel select { min-height: 44px; }
   .custom-biz-pin .activity-card-pin { text-rendering: optimizeSpeed; }
 }
+ .map-top-safe-area { padding-top: max(0.75rem, env(safe-area-inset-top, 0px)); }

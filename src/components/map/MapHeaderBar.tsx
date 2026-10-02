@@ -96,7 +96,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
     
     if (mapInstance?.leafletMapRef?.current && window.L) {
       const map = mapInstance.leafletMapRef.current;
-      map.flyTo([coords.lat, coords.lng], 19, { duration: 1.0 });
+      mapInstance?.cameraController?.request({ kind: 'flyTo', center: [coords.lat, coords.lng], zoom: 19, options: { duration: 1.0 } }, 'locate');
 
       // Add a distinctive pin for the searched building
       const icon = window.L.divIcon({

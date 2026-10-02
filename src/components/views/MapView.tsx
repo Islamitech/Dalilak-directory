@@ -218,6 +218,7 @@ export const MapView: React.FC<MapViewProps> = ({
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
           businesses={filteredBusinesses}
+          searchableBusinesses={businesses}
           mode="view"
           lat={lat}
           lng={lng}

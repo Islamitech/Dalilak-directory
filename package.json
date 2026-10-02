@@ -2,6 +2,9 @@
   "name": "dalelak-public-directory",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": "24.x"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +16,8 @@
     "test:safety-net": "tsx src/tests/safety_net_batch0.test.ts",
     "test:repair": "node scripts/verify-repair.mjs",
     "test:repair:browser": "node src/tests/mutation_browser.playwright.cjs",
+    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts",
+    "test:map:e2e": "playwright test -c playwright.map.config.ts",
     "test:seo": "tsx scripts/test-seo-endpoints.ts"
   },
   "dependencies": {
@@ -27,11 +32,14 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vercel/node": "^12.0.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.19.3",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "vitest": "^5.0.3"
   }
 }

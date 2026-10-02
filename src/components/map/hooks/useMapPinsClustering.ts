@@ -13,9 +13,10 @@ import {
   attachCardDomListeners,
 } from '../badgeMarkers';
 import { isBusinessInHadayekZone, filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
+import { isSearchSelectedBusiness } from '../../../utils/mapSearch';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { scheduleProgressiveWork } from '../utils/progressiveWork';
-import { activityCardScale, groupNearbyActivities } from '../utils/spatialActivityGroups';
+import { buildVisiblePinPipeline, visiblePinClusterKey } from '../utils/visiblePinPipeline';
 import { computeMarkerIconKey } from '../utils/markerReconciliation';
 import {
   planCameraTransitionOnZoneChange,
@@ -25,6 +26,7 @@ import {
 import { preloadDistrictTiles } from '../../../utils/hadayekTilePreloader';
 import { useMapInstance } from './useMapInstance';
 import { useMapState } from './useMapState';
+import { createMapViewportSnapshot, MapViewportSnapshot } from '../state/mapViewport';
 
 export interface UseMapPinsClusteringProps {
   mapInstance: ReturnType<typeof useMapInstance>;
@@ -52,6 +54,8 @@ export interface UseMapPinsClusteringProps {
     distanceMeters?: number;
     durationSeconds?: number;
   } | null;
+  viewportSnapshot?: MapViewportSnapshot | null;
+  onViewportSnapshotChange?: (snapshot: MapViewportSnapshot) => void;
 }
 
 function escapeHtml(str: string): string {
@@ -79,12 +83,13 @@ export const useMapPinsClustering = ({
   onSelectZone,
   onSelectBuilding,
   activeRoute,
+  viewportSnapshot = null,
+  onViewportSnapshotChange,
 }: UseMapPinsClusteringProps) => {
-  const [viewportRevision, setViewportRevision] = useState(0);
+  const viewportRevisionRef = useRef(0);
   const isRenderingActivitiesRef = useRef(false);
   const clusterRegistry = useRef(new Map<string, any>());
   const seenMarkers = useRef(new Set<string>());
-  const groupingCache = useRef<{ items: Business[]; zoom: number; groups: Business[][] } | null>(null);
   const filterIdentity = `${selectedZoneProp ?? ''}|${categoryFilterProp ?? ''}`;
   useEffect(() => { seenMarkers.current.clear(); }, [filterIdentity]);
   const animateNewMarker = (marker: any, id: string, staggerIndex = 0) => {
@@ -212,6 +217,11 @@ export const useMapPinsClustering = ({
     category: effectiveCategoryFilter,
     zone: effectiveSelectedZone,
   });
+  const updateViewportSnapshot = useCallback((map: any) => {
+    if (!map) return;
+    const snapshot = createMapViewportSnapshot(map, ++viewportRevisionRef.current);
+    onViewportSnapshotChange?.(snapshot);
+  }, [onViewportSnapshotChange]);
 
   const markCameraFlight = useCallback((map: any) => {
     try {
@@ -232,12 +242,12 @@ export const useMapPinsClustering = ({
           isCameraFlyingRef.current = false;
           container.classList.remove('is-camera-settling');
           flightSettlingTimerRef.current = null;
-          setViewportRevision((v) => v + 1);
+          updateViewportSnapshot(map);
         }, 160);
       };
       map.once('moveend', onFlightEnd);
     } catch {}
-  }, []);
+  }, [updateViewportSnapshot]);
 
   // Handler to select district
   const handleSelectDistrict = useCallback((letter: string) => {
@@ -259,6 +269,8 @@ export const useMapPinsClustering = ({
   // Cleanup selected business if it no longer matches the current zone or category filters
   useEffect(() => {
     if (!selectedBiz) return;
+    const isExplicitSearchSelection = isSearchSelectedBusiness(selectedBiz, searchQuery || '');
+    if (isExplicitSearchSelection) return;
     const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
     if (hasCategoryFilter) {
       if (!matchesCategoryFilter(selectedBiz, effectiveCategoryFilter)) {
@@ -270,7 +282,7 @@ export const useMapPinsClustering = ({
     if (hasActiveZone && !isBusinessInHadayekZone(selectedBiz, effectiveSelectedZone)) {
       setSelectedBizRef.current(null);
     }
-  }, [effectiveSelectedZone, effectiveCategoryFilter, selectedBiz]);
+  }, [effectiveSelectedZone, effectiveCategoryFilter, selectedBiz, searchQuery]);
 
   // 1. 🛡️ Initialize Dedicated Leaflet Panes and LayerGroups ONCE on map ready
   useEffect(() => {
@@ -490,7 +502,6 @@ export const useMapPinsClustering = ({
       if (decision.type === 'zone' && decision.targetBounds) {
         try {
           preloadDistrictTiles(effectiveSelectedZone, decision.targetBounds);
-          map.stop();
           const bounds = window.L.latLngBounds(decision.targetBounds);
 
           // Update highlight continuously to destination zone (NO 450ms blink-out!)
@@ -502,31 +513,30 @@ export const useMapPinsClustering = ({
 
           markCameraFlight(map);
           if (typeof map.flyToBounds === 'function') {
-            map.flyToBounds(bounds, {
+            mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds, options: {
               paddingTopLeft: viewportPadding.paddingTopLeft,
               paddingBottomRight: viewportPadding.paddingBottomRight,
               maxZoom: 16.5,
               duration,
               easeLinearity: 0.25,
-            });
+            } }, 'zone');
           } else {
-            map.fitBounds(bounds, {
+            mapInstance.cameraController?.request({ kind: 'fitBounds', bounds, options: {
               paddingTopLeft: viewportPadding.paddingTopLeft,
               paddingBottomRight: viewportPadding.paddingBottomRight,
               maxZoom: 16.5,
               animate: true,
-            });
+            } }, 'zone');
           }
         } catch {}
       } else if (decision.type === 'overview' && decision.targetCenter) {
         try {
           updateDistrictHighlightStyles('');
-          map.stop();
           markCameraFlight(map);
-          map.flyTo(decision.targetCenter, decision.targetZoom || 14, {
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: decision.targetCenter, zoom: decision.targetZoom || 14, options: {
             duration: decision.totalDuration || 1.1,
             easeLinearity: 0.25,
-          });
+          } }, 'zone');
         } catch {}
       }
     } else {
@@ -590,23 +600,21 @@ export const useMapPinsClustering = ({
     if (decision.shouldMove && decision.targetCenter) {
       try {
         cameraTransitionTokenRef.current++;
-        map.stop();
-
         if (decision.flightMode === 'pan-center') {
           // In State 1 at City Overview: keep overview zoom, pan smoothly with vertical offset
           const targetLat = isMobile ? selectedBiz.lat - 0.0035 : selectedBiz.lat;
-          map.panTo([targetLat, selectedBiz.lng], {
+          mapInstance.cameraController?.request({ kind: 'panTo', center: [targetLat, selectedBiz.lng], options: {
             animate: true,
             duration: decision.totalDuration || 0.6,
-          });
+          } }, 'selection');
         } else {
           // Local zoom / State 2
           const targetLat = isMobile && !isSelectedBizExpandedOnMap ? selectedBiz.lat - 0.0015 : selectedBiz.lat;
           markCameraFlight(map);
-          map.flyTo([targetLat, selectedBiz.lng], decision.targetZoom || 17, {
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: [targetLat, selectedBiz.lng], zoom: decision.targetZoom || 17, options: {
             duration: decision.totalDuration || 0.65,
             easeLinearity: 0.25,
-          });
+          } }, 'selection');
         }
       } catch {}
     }
@@ -671,8 +679,7 @@ export const useMapPinsClustering = ({
     if (lastFlownTargetRef.current !== targetKey) {
       lastFlownTargetRef.current = targetKey;
       try {
-        map.stop();
-        map.flyTo([targetBuilding.lat, targetBuilding.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+        mapInstance.cameraController?.request({ kind: 'flyTo', center: [targetBuilding.lat, targetBuilding.lng], zoom: Math.max(map.getZoom(), 17), options: { duration: 0.7 } }, 'building');
       } catch {}
     }
   }, [isMapReady, targetBuilding, showTargetPin]);
@@ -747,7 +754,7 @@ export const useMapPinsClustering = ({
 
     try {
       const bounds = window.L.latLngBounds(routePoints);
-      map.flyToBounds(bounds, { padding: [80, 80], maxZoom: 16.5, duration: 0.8 });
+      mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds, options: { padding: [80, 80], maxZoom: 16.5, duration: 0.8 } }, 'route');
     } catch {}
   }, [isMapReady, activeRoute]);
 
@@ -873,14 +880,15 @@ export const useMapPinsClustering = ({
     if (!hasCategory && !hasSearch) return [];
 
     const map = leafletMapRef.current;
+    const viewportZoom = viewportSnapshot?.zoom ?? mapInstance.zoomLevel;
     return filterBusinessesForMap(
       businesses,
       effectiveSelectedZone || 'all',
       hasCategory ? effectiveCategoryFilter : 'all',
       onlyVerifiedFilter,
-      map ? map.getZoom() : undefined
+      typeof viewportZoom === 'number' ? viewportZoom : undefined
     );
-  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter, searchQuery, isMapReady]);
+  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter, searchQuery, isMapReady, viewportSnapshot, mapInstance.zoomLevel]);
 
   const sortedBusinesses = useMemo(() => {
     return [...visibleBusinesses].sort((a, b) => {
@@ -945,8 +953,7 @@ export const useMapPinsClustering = ({
         // State 1 -> State 2: Smooth camera zoom and transform into expanded card
         try {
           cameraTransitionTokenRef.current++;
-          map.stop();
-          map.flyTo([selectedBiz.lat, selectedBiz.lng], 17.5, { duration: 0.65, easeLinearity: 0.25 });
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: [selectedBiz.lat, selectedBiz.lng], zoom: 17.5, options: { duration: 0.65, easeLinearity: 0.25 } }, 'selection');
         } catch {}
         setIsSelectedBizExpandedOnMap(true);
       } else {
@@ -1000,43 +1007,28 @@ export const useMapPinsClustering = ({
       return;
     }
 
-    const scale = activityCardScale(map.getZoom());
-    const bounds = map.getBounds().pad(0.2);
-    const zoom = map.getZoom();
+    const zoom = viewportSnapshot?.zoom ?? map.getZoom();
+    const snapshotBounds = viewportSnapshot?.bounds;
+    const bounds = snapshotBounds
+      ? window.L.latLngBounds([[snapshotBounds.south, snapshotBounds.west], [snapshotBounds.north, snapshotBounds.east]]).pad(0.2)
+      : map.getBounds().pad(0.2);
 
     // 🎯 Adaptive Level of Detail (LOD):
     // 1. District View: when an individual zone filter is active OR zoomed in to local scale (>= 15.5) -> Rich Vertical Cards
     // 2. City Overview: when observing the entire city (< 15.5, no specific zone selected) -> Sleek Horizontal Compact Cards (Image 3 DNA)
-    const isDistrictView = Boolean(
-      (effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim() !== '') ||
-      zoom >= 15.5
-    );
-
-    // 🛡️ Selected Entity Isolation (BEH-05 / SAFETY-03):
-    // Exclude selectedBiz from background pins and cluster groups so it never doubles or alters counts.
-    const businessesForClustering = selectedBiz
-      ? sortedBusinesses.filter(biz => biz.id !== selectedBiz.id)
-      : sortedBusinesses;
-
-    // 🚀 Performance Optimization: Pre-filter by visible viewport bounds before running spatial clustering
-    const inViewBusinesses = businessesForClustering.filter(biz => bounds.contains([biz.lat, biz.lng]));
-    if (groupingCache.current?.items !== inViewBusinesses || groupingCache.current.zoom !== zoom) {
-      groupingCache.current = { items: inViewBusinesses, zoom, groups: groupNearbyActivities(inViewBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
-    }
-    const visibleGroups = groupingCache.current.groups;
-
-    interface OccupiedSpatialSlot {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      isCluster: boolean;
-    }
-    const occupied: OccupiedSpatialSlot[] = [];
+    const pipeline = buildVisiblePinPipeline({
+      businesses: sortedBusinesses,
+      selectedBusiness: selectedBiz,
+      contains: (lat, lng) => bounds.contains([lat, lng]),
+      project: biz => map.project([biz.lat, biz.lng], zoom),
+      point: biz => map.latLngToContainerPoint([biz.lat, biz.lng]),
+      zoom,
+      hasSelectedZone: Boolean(effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim()),
+    });
+    const { groups: visibleGroups, singletonIds: nextIds, clusterKeys: nextClusters } = pipeline;
+    const isDistrictView = pipeline.isDistrictView;
     // Remove stale results before yielding, so a new filter never shows old pins.
-    const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
-    const clusterKey = (g: Business[]) => g.map(b => `${b.id}:${b.lat}:${b.lng}:${b.nameAr}`).join('|');
-    const nextClusters = new Set(visibleGroups.filter(g => g.length > 1).map(clusterKey));
+    const clusterKey = visiblePinClusterKey;
 
     const filterChanged =
       lastRenderedFilterRef.current.category !== effectiveCategoryFilter ||
@@ -1072,33 +1064,15 @@ export const useMapPinsClustering = ({
     isRenderingActivitiesRef.current = visibleGroups.length > 0;
 
     let staggerIndex = 0;
-    let overviewCardsCount = 0;
 
     // 🌟 Deterministic Prominence Stability (BEH-07 / SAFETY-05):
     // Pre-calculate top 3 scored businesses in view so cards are assigned deterministically across pans
-    const topProminentIdsInView = new Set(
-      businessesForClustering
-        .filter(b => bounds.contains([b.lat, b.lng]))
-        .slice(0, 3)
-        .map(b => b.id)
-    );
-
     const cancelWork = scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
       const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
       if (!bounds.contains([lat, lng])) return;
 
       if (group.length > 1) {
-        const clusterPoint = map.latLngToContainerPoint([lat, lng]);
-        // 🛡️ Cluster Shield: Register cluster's physical footprint into occupied grid to protect from cards overlapping!
-        occupied.push({
-          x: clusterPoint.x,
-          y: clusterPoint.y,
-          width: 48,
-          height: 48,
-          isCluster: true,
-        });
-
         const key = clusterKey(group);
         if (clusterRegistry.current.has(key)) return;
         const data = createLightweightClusterHtml(group.length);
@@ -1111,7 +1085,7 @@ export const useMapPinsClustering = ({
         marker.on('click', () => {
           const points = group.map(biz => [biz.lat, biz.lng]);
           if (map.getZoom() < 19 && group.some(biz => map.distance([lat, lng], [biz.lat, biz.lng]) > 3)) {
-            map.flyToBounds(window.L.latLngBounds(points), { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 });
+            mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds: window.L.latLngBounds(points), options: { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 } }, 'cluster');
           } else {
             const list = document.createElement('div');
             list.dir = 'rtl';
@@ -1137,46 +1111,10 @@ export const useMapPinsClustering = ({
       }
 
       const biz = group[0];
-      const point = map.latLngToContainerPoint([biz.lat, biz.lng]);
-
-      // Calculate candidate card dimensions
-      const cardWidth = isDistrictView ? 184 : 224;
-      const cardHeight = isDistrictView ? 134 : 60;
-      const cardW = cardWidth * scale;
-      const cardH = cardHeight * scale;
-
-      // 🛡️ Collision Engine: Check overlap against both existing cards AND cluster badges
-      const collides = occupied.some(occ => {
-        if (occ.isCluster) {
-          const cardCenterX = point.x;
-          const cardCenterY = point.y - cardH / 2;
-          return Math.abs(occ.x - cardCenterX) < (cardW / 2 + 28) &&
-                 Math.abs(occ.y - cardCenterY) < (cardH / 2 + 28);
-        }
-        const cardCenterX = point.x;
-        const cardCenterY = point.y - cardH / 2;
-        const occCenterX = occ.x;
-        const occCenterY = occ.y - occ.height / 2;
-        return Math.abs(occCenterX - cardCenterX) < (occ.width + cardW) / 2 + 10 &&
-               Math.abs(occCenterY - cardCenterY) < (occ.height + cardH) / 2 + 10;
-      });
-
-      // 🌟 Visual Hierarchy: In City Overview, reserve rich horizontal cards for the top 3 prominent activities in view;
-      // render remaining unselected activities as clean compact pins to eliminate visual chaos.
-      const allowFullCard = isDistrictView || topProminentIdsInView.has(biz.id);
-      const usePinDot = collides || !allowFullCard;
-      if (!usePinDot) {
-        overviewCardsCount++;
-        occupied.push({
-          x: point.x,
-          y: point.y,
-          width: cardW,
-          height: cardH,
-          isCluster: false,
-        });
-      }
-
-      const cardScale = usePinDot ? 1 : scale;
+      const layout = pipeline.layouts.get(biz.id);
+      if (!layout) return;
+      const usePinDot = layout.type === 'dot';
+      const cardScale = layout.scale;
       const markerType = usePinDot ? 'pindot' : (isDistrictView ? 'district' : 'overview');
       const iconKey = computeMarkerIconKey(biz, 0, [0, 0], markerType) + `_${cardScale}`;
       const existing = markersRegistryRef.current.get(biz.id);
@@ -1239,12 +1177,13 @@ export const useMapPinsClustering = ({
         activeWorkCleanupRef.current = null;
       }
     };
-  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, viewportRevision]);
+  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, selectedBiz?.id, viewportSnapshot]);
 
   // Refresh only after the viewport settles; never move the stored coordinates.
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map || !isMapReady || mode !== 'view') return;
+    updateViewportSnapshot(map);
     let frame: number | null = null;
     let timer: number | null = null;
 
@@ -1272,7 +1211,7 @@ export const useMapPinsClustering = ({
       }
       frame = requestAnimationFrame(() => {
         frame = null;
-        setViewportRevision((value) => value + 1);
+        updateViewportSnapshot(map);
       });
     };
 
@@ -1284,6 +1223,6 @@ export const useMapPinsClustering = ({
       if (frame !== null) cancelAnimationFrame(frame);
       if (timer !== null) window.clearTimeout(timer);
     };
-  }, [isMapReady, mode]);
+  }, [isMapReady, mode, updateViewportSnapshot]);
   return { isRenderingActivities: isRenderingActivitiesRef.current };
 };

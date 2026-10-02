@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Building2, Navigation, MapPin, ExternalLink, X, Compass, Store, Radar, ChevronDown, ChevronUp } from 'lucide-react';
 import { Business } from '../../types';
 import { getHadayekZone, getRecommendedGateForZone } from '../../data/hadayekAtlasData';
+import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
+import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
 
 export interface BuildingDetailData {
   buildingNumber: string;
@@ -36,11 +38,10 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
   const gateInfo = getRecommendedGateForZone(building.zoneLetter);
 
   // Find registered businesses at this building
-  const matchingBusinesses = businesses.filter((b) => {
-    const isZone = b.street?.includes(building.zoneLetter) || b.city?.includes(building.zoneLetter);
-    const hasNum = b.street?.includes(building.buildingNumber) || b.landmark?.includes(building.buildingNumber) || b.nameAr?.includes(building.buildingNumber);
-    return isZone && hasNum;
-  });
+  const matchingBusinesses = businesses.filter((b) =>
+    isBusinessInHadayekZone(b, building.zoneLetter) &&
+    isBusinessAssociatedWithBuilding(b, building.buildingNumber, building.zoneLetter, building)
+  );
 
   const handleStartNav = () => {
     if (onStartNavigation) {

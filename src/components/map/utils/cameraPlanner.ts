@@ -1,3 +1,5 @@
+import { isBusinessSelectionOverviewZoom, isZoneCameraTransitionZoom } from '../../../utils/mapZoomPolicy';
+
 /**
  * 🎥 Single Camera Movement Coordinator & Decision Engine
  * 
@@ -52,7 +54,7 @@ export function planCameraTransitionOnZoneChange(
     const bounds = targetDistrict?.polygons?.flat();
 
     // Check if camera is currently zoomed into a local area (>= 15.0) and switching zones
-    const isZoomedIn = typeof currentZoom === 'number' && currentZoom >= 15.0;
+    const isZoomedIn = isZoneCameraTransitionZoom(currentZoom);
     const isSwitchingZones = normPrev !== '' && normPrev !== normNext;
 
     const flightMode: 'parabolic-arc' | 'direct-glide' = isZoomedIn || isSwitchingZones ? 'parabolic-arc' : 'direct-glide';
@@ -129,7 +131,7 @@ export function planCameraTransitionOnBusinessSelect(
     // In State 1 (Compact card selection):
     // If camera is currently at city overview scale (currentZoom <= 15.0),
     // KEEP the overview scale so the whole city remains visible!
-    const isOverview = typeof currentZoom === 'number' && currentZoom <= 15.0;
+    const isOverview = isBusinessSelectionOverviewZoom(currentZoom);
     const zoomToUse = isOverview ? currentZoom : Math.max(currentZoom || 16.5, 16.5);
 
     return {

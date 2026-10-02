@@ -3,6 +3,7 @@ import { LocationAddressData, fetchLocationAddress } from '../../../utils/geocod
 import { MapTileLayerType } from '../constants/mapConstants';
 import { preloadHadayekTiles, cancelHadayekTilePreload, HADAYEK_BOUNDS_COORDS } from '../../../utils/hadayekTilePreloader';
 import { loadLeafletScript } from '../utils/leafletLoader';
+import { CameraController } from '../controllers/CameraController';
 
 export const HADAYEK_BOUNDS: [[number, number], [number, number]] = [
   HADAYEK_BOUNDS_COORDS.sw,
@@ -56,6 +57,7 @@ export const useMapInstance = ({
   }, []);
 
   const leafletMapRef = useRef<any>(null);
+  const cameraControllerRef = useRef<CameraController | null>(null);
   const tileLayerRef = useRef<any>(null);
   const markersGroupRef = useRef<any>(null);
   const pickerMarkerRef = useRef<any>(null);
@@ -85,7 +87,7 @@ export const useMapInstance = ({
         const cur = leafletMapRef.current.getCenter();
         if (Math.abs(cur.lat - lat) > 0.0005 || Math.abs(cur.lng - lng) > 0.0005) {
           if (mode === 'picker') {
-            leafletMapRef.current.flyTo([lat, lng], 17, { duration: 0.8 });
+          cameraControllerRef.current?.request({ kind: 'flyTo', center: [lat, lng], zoom: 17, options: { duration: 0.8 } }, 'locate');
           }
         }
       } catch {}
@@ -195,7 +197,7 @@ export const useMapInstance = ({
       setCurrentLng(precisionLng);
 
       if (leafletMapRef.current && flyTo) {
-        leafletMapRef.current.flyTo([precisionLat, precisionLng], customZoom || 17, { duration: 1.0 });
+        cameraControllerRef.current?.request({ kind: 'flyTo', center: [precisionLat, precisionLng], zoom: customZoom || 17, options: { duration: 1.0 } }, 'locate');
       }
 
       if (pickerMarkerRef.current) {
@@ -249,6 +251,8 @@ export const useMapInstance = ({
         bounceAtZoomLimits: false,
         maxBoundsViscosity: 0.75, // Natural elastic damping instead of rigid slam
       });
+      const cameraController = new CameraController(map);
+      cameraControllerRef.current = cameraController;
 
       if (mode === 'view') {
         map.setMaxBounds(HADAYEK_BOUNDS);
@@ -259,7 +263,7 @@ export const useMapInstance = ({
         // tiles were requested once for the constructor zoom and again after
         // fitBounds, doubling first-map network and producing a visible snap.
         try {
-          map.fitBounds(HADAYEK_VIEW_BOUNDS, { padding: [12, 12], maxZoom: 14.5, animate: false });
+          cameraController.request({ kind: 'fitBounds', bounds: HADAYEK_VIEW_BOUNDS, options: { padding: [12, 12], maxZoom: 14.5, animate: false } }, 'initial');
           const fittedCenter = map.getCenter();
           liveCenterRef.current = {
             lat: fittedCenter.lat,
@@ -295,11 +299,6 @@ export const useMapInstance = ({
 
       // 🚀 Background pre-warming of all Hadayek Al-Ahram tiles into cache
       preloadHadayekTiles(tileLayer);
-
-      // Stop ongoing programmatic transitions when the user drags the map
-      map.on('dragstart', () => {
-        try { map.stop(); } catch {}
-      });
 
       // Update zoom and center state on user navigation
       let zoomUpdateFrame: number | null = null;
@@ -359,6 +358,8 @@ export const useMapInstance = ({
       cancelHadayekTilePreload();
       setIsMapReady(false);
       if (leafletMapRef.current) {
+        cameraControllerRef.current?.destroy();
+        cameraControllerRef.current = null;
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }
@@ -426,17 +427,17 @@ export const useMapInstance = ({
       left: [-offset, 0],
       right: [offset, 0],
     };
-    leafletMapRef.current.panBy(panMap[direction], { animate: true, duration: 0.25 });
+    cameraControllerRef.current?.request({ kind: 'panBy', offset: panMap[direction], options: { animate: true, duration: 0.25 } }, 'user');
   };
 
   // Zoom Controls
-  const handleZoomIn = () => leafletMapRef.current?.zoomIn();
-  const handleZoomOut = () => leafletMapRef.current?.zoomOut();
+  const handleZoomIn = () => cameraControllerRef.current?.request({ kind: 'zoom', delta: 1 }, 'user');
+  const handleZoomOut = () => cameraControllerRef.current?.request({ kind: 'zoom', delta: -1 }, 'user');
 
   // Reset Position to default
   const handleResetPosition = () => {
     if (leafletMapRef.current) {
-      leafletMapRef.current.flyTo([lat, lng], 16, { duration: 0.8 });
+      cameraControllerRef.current?.request({ kind: 'flyTo', center: [lat, lng], zoom: 16, options: { duration: 0.8 } }, 'user');
     }
   };
 
@@ -448,6 +449,7 @@ export const useMapInstance = ({
 
   return {
     leafletMapRef,
+    cameraController: cameraControllerRef.current,
     isMapReady,
     mapScriptError,
     retryLoadMap,

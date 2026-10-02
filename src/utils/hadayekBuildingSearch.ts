@@ -101,7 +101,7 @@ export async function searchInsideHadayekZone(
       const associatedBiz = allBusinesses.filter(
         (b) =>
           isBusinessInHadayekZone(b, zoneLetter) &&
-          (b.street?.includes(bldgNum) || b.landmark?.includes(bldgNum) || b.nameAr?.includes(bldgNum))
+          isBusinessAssociatedWithBuilding(b, bldgNum, zoneLetter, coords)
       );
 
       results.push({
@@ -141,6 +141,31 @@ export async function searchInsideHadayekZone(
 export interface ParsedHadayekBuilding {
   buildingNumber: string;
   zoneLetter: string;
+}
+
+/** Exact building association from address fields only; business names are not location data. */
+export function isBusinessAssociatedWithBuilding(
+  business: Pick<Business, 'street' | 'landmark' | 'lat' | 'lng'>,
+  buildingNumber: string,
+  zoneLetter: string,
+  buildingCoordinates?: { lat: number; lng: number }
+): boolean {
+  const parsed = parseHadayekBuildingAddress(`${business.street || ''} ${business.landmark || ''}`, zoneLetter);
+  const normalizeZone = (zone: string) => zone.replace(/[أإآ]/g, 'ا').replace(/هـ|ة/g, 'ه').trim();
+  const exactAddress = Boolean(parsed && parsed.buildingNumber === normalizeBuildingQuery(buildingNumber) &&
+    normalizeZone(parsed.zoneLetter) === normalizeZone(zoneLetter));
+  if (exactAddress) return true;
+
+  // Preserve the drawer's documented nearby-activity context using actual coordinates,
+  // never accidental number substrings in names or unrelated addresses.
+  if (buildingCoordinates && Number.isFinite(business.lat) && Number.isFinite(business.lng)) {
+    const toRadians = (value: number) => (value * Math.PI) / 180;
+    const dLat = toRadians(buildingCoordinates.lat - business.lat);
+    const dLng = toRadians(buildingCoordinates.lng - business.lng);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(business.lat)) * Math.cos(toRadians(buildingCoordinates.lat)) * Math.sin(dLng / 2) ** 2;
+    return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) <= 90;
+  }
+  return false;
 }
 
 export function parseHadayekBuildingAddress(raw: string, currentZone?: string): ParsedHadayekBuilding | null {

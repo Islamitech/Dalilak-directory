@@ -9,6 +9,7 @@ export interface InteractiveMapProps {
   lng?: number;
   onLocationSelect?: (lat: number, lng: number, addressDetails?: LocationAddressData) => void;
   businesses?: Business[];
+  searchableBusinesses?: Business[];
   onSelectBusiness?: (biz: Business) => void;
   onEditBusiness?: (biz: Business) => void;
   heightClass?: string;
