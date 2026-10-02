@@ -7,6 +7,7 @@ import { Business } from './types';
 import { PublicShowcase } from './components/PublicShowcase';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { supabase, SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from './services/supabaseClient';
+import { readCatalogCache, writeCatalogCache } from './services/catalogCache';
 
 // VERIFIED columns that exist in Supabase (whatsapp, google_maps_url, google_place_id, google_sync_status do NOT exist).
 // google_maps_url, google_place_id, google_sync_status are stored in the 'notes' JSON field.
@@ -51,6 +52,7 @@ export default function App() {
     } catch {}
     return [];
   });
+  const [catalogCacheReady, setCatalogCacheReady] = useState(false);
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('dalelak_directory_cache');
@@ -88,6 +90,25 @@ export default function App() {
       window.setTimeout(() => overlay.remove(), 450);
     }, 100);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void readCatalogCache().then((cached) => {
+      if (!active || !cached?.length) return;
+      const publicCatalog = cached.filter((item: any) => isPublicBusiness(item)).map((item: any) => ({
+        ...item,
+        nameAr: typeof item.nameAr === 'string' ? item.nameAr.replace(BIDI_CONTROL_REGEX, '').trim() : item.nameAr,
+        nameEn: typeof item.nameEn === 'string' ? item.nameEn.replace(BIDI_CONTROL_REGEX, '').trim() : item.nameEn,
+        photos: Array.isArray(item.photos) && item.photos.length ? item.photos : (item.coverPhoto ? [item.coverPhoto] : []),
+      } as Business));
+      if (publicCatalog.length) {
+        setBusinesses(current => current.length ? current : publicCatalog);
+        setLoading(false);
+        setDirectoryLoad(current => current.pending ? { pending: false, error: '' } : current);
+      }
+    }).finally(() => { if (active) setCatalogCacheReady(true); });
+    return () => { active = false; };
   }, []);
 
   function mapRawToBusiness(r: any): Business {
@@ -321,8 +342,8 @@ export default function App() {
   }, []);
 
   useEffect(()=>{
-    try{localStorage.setItem('dalelak_directory_cache',JSON.stringify(getSafeCacheList(businesses)));}catch{}
-  },[businesses]);
+    if (catalogCacheReady) void writeCatalogCache(getSafeCacheList(businesses));
+  },[businesses, catalogCacheReady]);
 
   // Parse direct business link, preview mode & referral code if present in URL
   const urlParams = new URLSearchParams(window.location.search);
