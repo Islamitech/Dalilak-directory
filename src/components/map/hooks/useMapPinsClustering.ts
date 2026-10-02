@@ -25,6 +25,8 @@ import {
 import { preloadDistrictTiles } from '../../../utils/hadayekTilePreloader';
 import { useMapInstance } from './useMapInstance';
 import { useMapState } from './useMapState';
+import { isLocalPinPresentationZoom } from '../../../utils/mapZoomPolicy';
+import { createMapViewportSnapshot, MapViewportSnapshot } from '../state/mapViewport';
 
 export interface UseMapPinsClusteringProps {
   mapInstance: ReturnType<typeof useMapInstance>;
@@ -80,7 +82,7 @@ export const useMapPinsClustering = ({
   onSelectBuilding,
   activeRoute,
 }: UseMapPinsClusteringProps) => {
-  const [viewportRevision, setViewportRevision] = useState(0);
+  const [viewportSnapshot, setViewportSnapshot] = useState<MapViewportSnapshot | null>(null);
   const isRenderingActivitiesRef = useRef(false);
   const clusterRegistry = useRef(new Map<string, any>());
   const seenMarkers = useRef(new Set<string>());
@@ -212,6 +214,10 @@ export const useMapPinsClustering = ({
     category: effectiveCategoryFilter,
     zone: effectiveSelectedZone,
   });
+  const updateViewportSnapshot = useCallback((map: any) => {
+    if (!map) return;
+    setViewportSnapshot((previous) => createMapViewportSnapshot(map, (previous?.revision ?? 0) + 1));
+  }, []);
 
   const markCameraFlight = useCallback((map: any) => {
     try {
@@ -232,12 +238,12 @@ export const useMapPinsClustering = ({
           isCameraFlyingRef.current = false;
           container.classList.remove('is-camera-settling');
           flightSettlingTimerRef.current = null;
-          setViewportRevision((v) => v + 1);
+          updateViewportSnapshot(map);
         }, 160);
       };
       map.once('moveend', onFlightEnd);
     } catch {}
-  }, []);
+  }, [updateViewportSnapshot]);
 
   // Handler to select district
   const handleSelectDistrict = useCallback((letter: string) => {
@@ -873,14 +879,15 @@ export const useMapPinsClustering = ({
     if (!hasCategory && !hasSearch) return [];
 
     const map = leafletMapRef.current;
+    const viewportZoom = viewportSnapshot?.zoom ?? mapInstance.zoomLevel;
     return filterBusinessesForMap(
       businesses,
       effectiveSelectedZone || 'all',
       hasCategory ? effectiveCategoryFilter : 'all',
       onlyVerifiedFilter,
-      map ? map.getZoom() : undefined
+      typeof viewportZoom === 'number' ? viewportZoom : undefined
     );
-  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter, searchQuery, isMapReady]);
+  }, [mode, businesses, effectiveSelectedZone, effectiveCategoryFilter, onlyVerifiedFilter, searchQuery, isMapReady, viewportSnapshot, mapInstance.zoomLevel]);
 
   const sortedBusinesses = useMemo(() => {
     return [...visibleBusinesses].sort((a, b) => {
@@ -1000,16 +1007,19 @@ export const useMapPinsClustering = ({
       return;
     }
 
-    const scale = activityCardScale(map.getZoom());
-    const bounds = map.getBounds().pad(0.2);
-    const zoom = map.getZoom();
+    const zoom = viewportSnapshot?.zoom ?? map.getZoom();
+    const scale = activityCardScale(zoom);
+    const snapshotBounds = viewportSnapshot?.bounds;
+    const bounds = snapshotBounds
+      ? window.L.latLngBounds([[snapshotBounds.south, snapshotBounds.west], [snapshotBounds.north, snapshotBounds.east]]).pad(0.2)
+      : map.getBounds().pad(0.2);
 
     // 🎯 Adaptive Level of Detail (LOD):
     // 1. District View: when an individual zone filter is active OR zoomed in to local scale (>= 15.5) -> Rich Vertical Cards
     // 2. City Overview: when observing the entire city (< 15.5, no specific zone selected) -> Sleek Horizontal Compact Cards (Image 3 DNA)
     const isDistrictView = Boolean(
       (effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim() !== '') ||
-      zoom >= 15.5
+      isLocalPinPresentationZoom(zoom)
     );
 
     // 🛡️ Selected Entity Isolation (BEH-05 / SAFETY-03):
@@ -1239,12 +1249,13 @@ export const useMapPinsClustering = ({
         activeWorkCleanupRef.current = null;
       }
     };
-  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, viewportRevision]);
+  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, viewportSnapshot]);
 
   // Refresh only after the viewport settles; never move the stored coordinates.
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map || !isMapReady || mode !== 'view') return;
+    updateViewportSnapshot(map);
     let frame: number | null = null;
     let timer: number | null = null;
 
@@ -1272,7 +1283,7 @@ export const useMapPinsClustering = ({
       }
       frame = requestAnimationFrame(() => {
         frame = null;
-        setViewportRevision((value) => value + 1);
+        updateViewportSnapshot(map);
       });
     };
 
@@ -1284,6 +1295,6 @@ export const useMapPinsClustering = ({
       if (frame !== null) cancelAnimationFrame(frame);
       if (timer !== null) window.clearTimeout(timer);
     };
-  }, [isMapReady, mode]);
+  }, [isMapReady, mode, updateViewportSnapshot]);
   return { isRenderingActivities: isRenderingActivitiesRef.current };
 };

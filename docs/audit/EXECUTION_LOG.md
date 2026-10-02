@@ -4,7 +4,7 @@ Branch: `fix/map-full-repair` (created from local `main` at `5c24236`; upstream 
 No `docs/audit/07-decisions.md` was present; use the defaults from the execution request and `06-repair-plan.md`.  
 This log is the continuation point after context resets. Update after each batch.
 
-## Current status — Batch 0, safety net established; checkpoint publishing pending
+## Current status — Batch 1 complete locally; remote checkpoint publishing blocked
 
 - Step 0 reading: audit reports 01–06, project `TECH_LOG.md`, `DEFINITION.md`, `CORE_DIRECTIVE.md`, `package.json`, and `vercel.json` reviewed. Source files cited by 06 were inspected against current code; `ZoomPolicy`, `MapViewportSnapshot`, and `CameraController` do not exist in the inherited implementation. Focused full-path review remains ongoing for UI/test fixtures and deleted-code decisions.
 - Decision defaults applied: overview remains city-wide below zoom 15; local LOD starts at 15.5; selected result retains surrounding search context; outside-zone suggestions get an explicit all-zones action; excluded selection remains a context card outside result count; current map remains primary; no results tray, tile switch, backend viewport API, Canvas/WebGL or `directory-experience` changes.
@@ -13,6 +13,9 @@ This log is the continuation point after context resets. Update after each batch
 - Batch 0 changed test/tooling only: added Vitest, Playwright Test, `@types/node`, map-specific unit/E2E entry points and three mobile browser scenarios; adjusted legacy U3 navigation to `domcontentloaded` so it tests browser history rather than network idle/load timing.
 - New unit suite: 4 contracts pass and one explicit `it.fails` documents current loose building-name substring association. Search/filter/selection persistence, category/search collision, selected isolation, pan stability, stale building request and GPS-vs-gesture still need higher-fidelity fixtures; current legacy SAFETY-03/04/05/06/07/09 tests locally mock the behavior and are not proof. Keep Batch 0 open until these matrix scenarios are covered by production-linked tests or document the tested constraints precisely.
 - New E2E suite: 3/3 pass on installed Chrome at 390×844 and 360×640. Coverage confirms map visibility during search entry, no horizontal overflow at narrow viewport, and retained query when dismissing suggestions via outside click. This does not yet assert marker contents or camera motion because live directory fixtures are not deterministic in this harness.
+- Batch 1 added `src/utils/mapZoomPolicy.ts` and `MapViewportSnapshot` in `src/components/map/state/mapViewport.ts`. Zone filtering, camera planning and pin presentation use the centralized 15.0 / 15.5 policy. Filtering and rendering now use the same settled viewport snapshot (center, zoom, bounds, size, revision); search-dependent visibility memo also invalidates when snapshot or map zoom changes.
+- Batch 1 checks passed: lint; map unit 4 passed + RC-04 expected failure; map suite 42/42; legacy safety 19/19; mobile E2E 3/3; full `test:repair` including U3/U4/U7/B4 and preview 13/13; production build to isolated output.
+- Bundle size vs baseline: InteractiveMap 144.93 → 145.42 kB (+0.49 kB; gzip +0.21 kB); entry 185.51 → 185.93 kB (+0.42 kB; gzip +0.14 kB). Buildings chunk unchanged at 937.87 kB / 97.46 kB gzip.
 
 ### Baseline before new fixes
 
@@ -24,17 +27,17 @@ This log is the continuation point after context resets. Update after each batch
 - `npm run test:repair`: **passed** in serialized run: TypeScript, safety net, map 42/42, activity/progressive/spatial/data suites, browser U3/U4/U7/B4 4/4, preview 13/13. U3 passed after changing its navigation wait condition.
 - `npm run test:map:unit`: 4 passed, 1 expected failure (current building address association issue).
 - `npm run test:map:e2e`: 3/3 passed against installed Chrome; first run exposed missing browser binary under Playwright, so config now uses the machine's Chrome installation.
-- Bundle baseline: `.baseline-dist/assets/InteractiveMap-CTDG5AcE.js` 144.93 kB (38.56 kB gzip); `index-BESPZDY6.js` 185.51 kB (52.26 kB gzip); total emitted JS/assets as in clean build. Record exact final comparison after the final build.
+- Bundle baseline: `.baseline-dist/assets/InteractiveMap-CTDG5AcE.js` 144.93 kB (38.56 kB gzip); `index-BESPZDY6.js` 185.51 kB (52.26 kB gzip).
 - Build after Batch 0 tooling changes passed to `.batch0-dist`; browser app bundle unchanged versus baseline (InteractiveMap 144.93 kB, entry 185.51 kB; no production dependency imported by app bundle). Temporary outputs were removed.
-- Vercel/PR/tag/push: not attempted. Remote `origin` exists; auth/CLI not checked yet.
+- Batch 0 commit `8188955` and local tag `map-batch-0-done` created. Direct SSH push failed with Windows `couldn't create signal pipe, Win32 error 5`. Escalated `git push` was rejected by auto-review because destination ownership/trust was not verified; no workaround attempted. `vercel` and `gh` CLIs are absent, so preview and PR are not available from this environment without a trusted publishing route.
 
 ## Batch ledger
 
 | Batch | Status | Commit/tag | Verification | Notes |
 |---|---|---|---|---|
-| 0A reconciliation | done | pending combined Batch 0 commit | source checks in `06a-reconciliation.md` | RC-04 live; RC-07 unresolved data conflict. |
-| 0B safety net | in progress | none | lint/build/map/safety/repair/unit/browser passed as listed above | More production-linked interaction coverage needed for conflict matrix cases. U3 timeout resolved by using DOM-ready navigation. |
-| 1 ZoomPolicy + viewport + visible-pin pipeline | not started | — | — | Preserve 15/15.5 semantics. |
+| 0A reconciliation | done | `8188955` + local tag `map-batch-0-done` | source checks in `06a-reconciliation.md` | RC-04 live; RC-07 unresolved data conflict. |
+| 0B safety net | complete locally | `8188955` + local tag `map-batch-0-done` | lint/build/map/safety/repair/unit/browser passed as listed above | More production-linked interaction coverage needed for conflict matrix cases. Push/preview blocked. |
+| 1 ZoomPolicy + viewport + visible-pin pipeline | complete locally | pending commit/tag | lint/build/map/safety/repair/unit/browser passed | Preserves 15/15.5 behavior. |
 | 2a Search scope | not started | — | — | Keep surrounding pins and offer explicit all-zone action. |
 | 2b State reducer + selection presentation | not started | — | — | Preserve Definition's selected pin and action drawer; eliminate duplicate name/actions without removing either role. |
 | 3 CameraController | not started | — | — | User gesture cancels pending locate; apply requested priority; retain existing normal zone choreography. |

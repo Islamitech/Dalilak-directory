@@ -4,6 +4,7 @@ import { HADAYEK_GATES } from '../data/hadayekAtlasData';
 import { CATEGORY_GROUPS } from '../data/mockData';
 import { matchesCategoryFilter } from './categoryMatcher';
 import { normalizeArabicText } from './arabicSearch';
+import { isCitywideFilterZoom } from './mapZoomPolicy';
 
 const ZONE_CACHE_LIMIT = 5000;
 const businessZoneCache = new Map<string, string | null>();
@@ -266,7 +267,7 @@ export function filterBusinessesForMap(
 ): Business[] {
   if (!businesses || businesses.length === 0) return [];
 
-  const isCityOverview = typeof zoomLevel === 'number' && zoomLevel < 15.0;
+  const isCityOverview = isCitywideFilterZoom(zoomLevel);
 
   return businesses.filter((b) => {
     // 1. Valid coordinates required for map
