@@ -85,3 +85,11 @@ For every batch, record: code/tests changed, before/after results, build/lint/al
 - After the user explicitly confirmed the target, `git push -u origin fix/map-full-repair` succeeded to `git@github.com:Islamitech/Dalilak-directory.git`.
 - The remote branch was created and set as upstream. GitHub returned: `https://github.com/Islamitech/Dalilak-directory/pull/new/fix/map-full-repair`.
 - Vercel compatibility was checked locally: `vercel.json` parses, `npm run vercel-build` succeeds under Node 24.19, and package/lock pin `engines.node` to `24.x`. A live Vercel deployment URL/status remains unverified because the CLI is unavailable and there is no Vercel app connector in this session.
+
+## Selected-pin overlap follow-up (user screenshot, 2026-10-02)
+
+- Symptom: after selecting an activity, its visual card could overlap other background cards/dots and look like a duplicate pin.
+- Root cause: selected activity was excluded from clustering but its selected-card footprint was not reserved in the collision layout. The marker-rendering effect also omitted selected business identity from its dependencies, so correctness could depend on an unrelated viewport update.
+- Fix: include selected identity in the render-effect dependencies; reserve the selected card's 232x72 screen footprint before laying out background pins. Nearby business pins remain represented as dots; selected business itself is excluded from background groups.
+- Added pipeline unit regression for overlap conversion and Playwright regression that starts with one background pin, clicks it, then verifies only one selected card remains and its original background marker is removed.
+- Verification: lint passed; map unit 11/11; map E2E 5/5; `npm run test:repair` passed (42 map, safety, U3/U4/U7/B4 and 13 preview); Vercel build passed. InteractiveMap bundle 152.34 kB / 41.08 gzip; entry 187.59 / 52.97 gzip.

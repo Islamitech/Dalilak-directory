@@ -46,4 +46,29 @@ test.describe('map repair mobile safety net', () => {
     const searchBox = await searchButton.boundingBox();
     expect(searchBox?.height).toBeGreaterThanOrEqual(44);
   });
+
+  test('selected business is removed from background markers when its selected card opens', async ({ page }) => {
+    const businessName = 'صيدلية اختبار تكرار العلامة';
+    await page.setViewportSize({ width: 1083, height: 720 });
+    await page.addInitScript(() => localStorage.clear());
+    await page.route('**/rest/v1/businesses?*', route => route.fulfill({
+      status: 200,
+      headers: { 'content-range': '0-0/1', 'content-type': 'application/json' },
+      body: JSON.stringify([{
+        id: 'biz_map_duplicate_regression', name_ar: businessName, name_en: 'Duplicate Marker Pharmacy', category: 'صيدليات',
+        governorate: 'الجيزة', city: 'حدائق الأهرام', street: 'شارع اختبار', landmark: '', phone: '', secondary_phone: '',
+        working_hours: '', description: '', lat: 29.9683, lng: 31.1002, package_id: 'pkg_basic', package_name: '',
+        package_price: 0, verification_status: 'verified', notes: {}, created_at: '2026-01-01T00:00:00.000Z', cover_photo: '',
+      }]),
+    }));
+    await page.goto('/map');
+    await expect(page.locator('.leaflet-container').first()).toBeVisible({ timeout: 20_000 });
+    const quickFilters = page.getByRole('group', { name: 'فلاتر سريعة لنوع النشاط' });
+    await quickFilters.getByRole('button', { name: /صيدليات/ }).click();
+    const backgroundPin = page.locator(`.leaflet-marker-icon[title="${businessName}"]`);
+    await expect(backgroundPin).toHaveCount(1);
+    await backgroundPin.click();
+    await expect(page.locator('.leaflet-marker-icon.selected-compact-card')).toHaveCount(1);
+    await expect(backgroundPin).toHaveCount(0);
+  });
 });

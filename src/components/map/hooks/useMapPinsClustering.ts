@@ -1018,7 +1018,7 @@ export const useMapPinsClustering = ({
     // 2. City Overview: when observing the entire city (< 15.5, no specific zone selected) -> Sleek Horizontal Compact Cards (Image 3 DNA)
     const pipeline = buildVisiblePinPipeline({
       businesses: sortedBusinesses,
-      selectedBusinessId: selectedBiz?.id,
+      selectedBusiness: selectedBiz,
       contains: (lat, lng) => bounds.contains([lat, lng]),
       project: biz => map.project([biz.lat, biz.lng], zoom),
       point: biz => map.latLngToContainerPoint([biz.lat, biz.lng]),
@@ -1177,7 +1177,7 @@ export const useMapPinsClustering = ({
         activeWorkCleanupRef.current = null;
       }
     };
-  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, viewportSnapshot]);
+  }, [mode, isMapReady, sortedBusinesses, effectiveSelectedZone, effectiveCategoryFilter, selectedBiz?.id, viewportSnapshot]);
 
   // Refresh only after the viewport settles; never move the stored coordinates.
   useEffect(() => {

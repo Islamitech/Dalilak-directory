@@ -27,6 +27,7 @@ export const visiblePinClusterKey = (group: Business[]) =>
 /** One deterministic pipeline: source/filter output -> viewport cull -> groups -> marker presentation. */
 export function buildVisiblePinPipeline(input: {
   businesses: Business[];
+  selectedBusiness?: Business | null;
   selectedBusinessId?: string;
   contains: (lat: number, lng: number) => boolean;
   project: (biz: Business) => PinPoint;
@@ -37,13 +38,20 @@ export function buildVisiblePinPipeline(input: {
 }): VisiblePinPipelineResult {
   const scale = activityCardScale(input.zoom);
   const isDistrictView = input.hasSelectedZone || isLocalPinPresentationZoom(input.zoom);
-  const candidates = input.businesses.filter(b => b.id !== input.selectedBusinessId && input.contains(b.lat, b.lng));
+  const selectedBusinessId = input.selectedBusiness?.id ?? input.selectedBusinessId;
+  const candidates = input.businesses.filter(b => b.id !== selectedBusinessId && input.contains(b.lat, b.lng));
   const groups = groupNearbyActivities(candidates, input.project, input.groupRadius ?? 58);
   const singletonIds = new Set(groups.filter(g => g.length === 1).map(g => g[0].id));
   const clusterKeys = new Set(groups.filter(g => g.length > 1).map(visiblePinClusterKey));
   const prominent = new Set(candidates.slice(0, 3).map(b => b.id));
   const occupied: Array<{ x: number; y: number; width: number; height: number; cluster: boolean }> = [];
   const layouts = new Map<string, PinLayout>();
+
+  // Reserve the selected card's footprint first so nearby cards never render underneath it.
+  if (input.selectedBusiness && input.contains(input.selectedBusiness.lat, input.selectedBusiness.lng)) {
+    const selectedPoint = input.point(input.selectedBusiness);
+    occupied.push({ x: selectedPoint.x, y: selectedPoint.y, width: 232, height: 72, cluster: false });
+  }
 
   for (const group of groups) {
     if (group.length > 1) {

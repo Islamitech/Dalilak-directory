@@ -23,4 +23,17 @@ describe('visible pin pipeline', () => {
     expect(result.layouts.get('b-nearby')?.type).toBe('dot');
     expect(result.layouts.get('c-other')?.type).toBe('card');
   });
+
+  it('reserves the selected card footprint so background cards cannot render underneath it', () => {
+    const selected = biz('selected');
+    const neighbor = biz('neighbor', 31.02);
+    const result = buildVisiblePinPipeline({
+      businesses: [selected, neighbor], selectedBusiness: selected, contains: () => true,
+      project: b => ({ x: b.lng * 1000, y: 0 }),
+      point: b => ({ x: b.id === 'selected' ? 100 : 120, y: 200 }),
+      zoom: 17, hasSelectedZone: true,
+    });
+    expect(result.groups.flat().map(b => b.id)).toEqual(['neighbor']);
+    expect(result.layouts.get('neighbor')?.type).toBe('dot');
+  });
 });
