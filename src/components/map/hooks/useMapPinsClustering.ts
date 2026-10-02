@@ -55,6 +55,8 @@ export interface UseMapPinsClusteringProps {
     distanceMeters?: number;
     durationSeconds?: number;
   } | null;
+  viewportSnapshot?: MapViewportSnapshot | null;
+  onViewportSnapshotChange?: (snapshot: MapViewportSnapshot) => void;
 }
 
 function escapeHtml(str: string): string {
@@ -82,8 +84,10 @@ export const useMapPinsClustering = ({
   onSelectZone,
   onSelectBuilding,
   activeRoute,
+  viewportSnapshot = null,
+  onViewportSnapshotChange,
 }: UseMapPinsClusteringProps) => {
-  const [viewportSnapshot, setViewportSnapshot] = useState<MapViewportSnapshot | null>(null);
+  const viewportRevisionRef = useRef(0);
   const isRenderingActivitiesRef = useRef(false);
   const clusterRegistry = useRef(new Map<string, any>());
   const seenMarkers = useRef(new Set<string>());
@@ -217,8 +221,9 @@ export const useMapPinsClustering = ({
   });
   const updateViewportSnapshot = useCallback((map: any) => {
     if (!map) return;
-    setViewportSnapshot((previous) => createMapViewportSnapshot(map, (previous?.revision ?? 0) + 1));
-  }, []);
+    const snapshot = createMapViewportSnapshot(map, ++viewportRevisionRef.current);
+    onViewportSnapshotChange?.(snapshot);
+  }, [onViewportSnapshotChange]);
 
   const markCameraFlight = useCallback((map: any) => {
     try {
@@ -499,7 +504,6 @@ export const useMapPinsClustering = ({
       if (decision.type === 'zone' && decision.targetBounds) {
         try {
           preloadDistrictTiles(effectiveSelectedZone, decision.targetBounds);
-          map.stop();
           const bounds = window.L.latLngBounds(decision.targetBounds);
 
           // Update highlight continuously to destination zone (NO 450ms blink-out!)
@@ -511,31 +515,30 @@ export const useMapPinsClustering = ({
 
           markCameraFlight(map);
           if (typeof map.flyToBounds === 'function') {
-            map.flyToBounds(bounds, {
+            mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds, options: {
               paddingTopLeft: viewportPadding.paddingTopLeft,
               paddingBottomRight: viewportPadding.paddingBottomRight,
               maxZoom: 16.5,
               duration,
               easeLinearity: 0.25,
-            });
+            } }, 'zone');
           } else {
-            map.fitBounds(bounds, {
+            mapInstance.cameraController?.request({ kind: 'fitBounds', bounds, options: {
               paddingTopLeft: viewportPadding.paddingTopLeft,
               paddingBottomRight: viewportPadding.paddingBottomRight,
               maxZoom: 16.5,
               animate: true,
-            });
+            } }, 'zone');
           }
         } catch {}
       } else if (decision.type === 'overview' && decision.targetCenter) {
         try {
           updateDistrictHighlightStyles('');
-          map.stop();
           markCameraFlight(map);
-          map.flyTo(decision.targetCenter, decision.targetZoom || 14, {
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: decision.targetCenter, zoom: decision.targetZoom || 14, options: {
             duration: decision.totalDuration || 1.1,
             easeLinearity: 0.25,
-          });
+          } }, 'zone');
         } catch {}
       }
     } else {
@@ -599,23 +602,21 @@ export const useMapPinsClustering = ({
     if (decision.shouldMove && decision.targetCenter) {
       try {
         cameraTransitionTokenRef.current++;
-        map.stop();
-
         if (decision.flightMode === 'pan-center') {
           // In State 1 at City Overview: keep overview zoom, pan smoothly with vertical offset
           const targetLat = isMobile ? selectedBiz.lat - 0.0035 : selectedBiz.lat;
-          map.panTo([targetLat, selectedBiz.lng], {
+          mapInstance.cameraController?.request({ kind: 'panTo', center: [targetLat, selectedBiz.lng], options: {
             animate: true,
             duration: decision.totalDuration || 0.6,
-          });
+          } }, 'selection');
         } else {
           // Local zoom / State 2
           const targetLat = isMobile && !isSelectedBizExpandedOnMap ? selectedBiz.lat - 0.0015 : selectedBiz.lat;
           markCameraFlight(map);
-          map.flyTo([targetLat, selectedBiz.lng], decision.targetZoom || 17, {
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: [targetLat, selectedBiz.lng], zoom: decision.targetZoom || 17, options: {
             duration: decision.totalDuration || 0.65,
             easeLinearity: 0.25,
-          });
+          } }, 'selection');
         }
       } catch {}
     }
@@ -680,8 +681,7 @@ export const useMapPinsClustering = ({
     if (lastFlownTargetRef.current !== targetKey) {
       lastFlownTargetRef.current = targetKey;
       try {
-        map.stop();
-        map.flyTo([targetBuilding.lat, targetBuilding.lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+        mapInstance.cameraController?.request({ kind: 'flyTo', center: [targetBuilding.lat, targetBuilding.lng], zoom: Math.max(map.getZoom(), 17), options: { duration: 0.7 } }, 'building');
       } catch {}
     }
   }, [isMapReady, targetBuilding, showTargetPin]);
@@ -756,7 +756,7 @@ export const useMapPinsClustering = ({
 
     try {
       const bounds = window.L.latLngBounds(routePoints);
-      map.flyToBounds(bounds, { padding: [80, 80], maxZoom: 16.5, duration: 0.8 });
+      mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds, options: { padding: [80, 80], maxZoom: 16.5, duration: 0.8 } }, 'route');
     } catch {}
   }, [isMapReady, activeRoute]);
 
@@ -955,8 +955,7 @@ export const useMapPinsClustering = ({
         // State 1 -> State 2: Smooth camera zoom and transform into expanded card
         try {
           cameraTransitionTokenRef.current++;
-          map.stop();
-          map.flyTo([selectedBiz.lat, selectedBiz.lng], 17.5, { duration: 0.65, easeLinearity: 0.25 });
+          mapInstance.cameraController?.request({ kind: 'flyTo', center: [selectedBiz.lat, selectedBiz.lng], zoom: 17.5, options: { duration: 0.65, easeLinearity: 0.25 } }, 'selection');
         } catch {}
         setIsSelectedBizExpandedOnMap(true);
       } else {
@@ -1124,7 +1123,7 @@ export const useMapPinsClustering = ({
         marker.on('click', () => {
           const points = group.map(biz => [biz.lat, biz.lng]);
           if (map.getZoom() < 19 && group.some(biz => map.distance([lat, lng], [biz.lat, biz.lng]) > 3)) {
-            map.flyToBounds(window.L.latLngBounds(points), { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 });
+            mapInstance.cameraController?.request({ kind: 'flyToBounds', bounds: window.L.latLngBounds(points), options: { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 } }, 'cluster');
           } else {
             const list = document.createElement('div');
             list.dir = 'rtl';

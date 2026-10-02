@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback, useReducer } from 'react';
 import {
   InteractiveMapProps,
   MapTileLayerType,
@@ -21,6 +21,7 @@ import {
 import { useDirectoryLoad, useDirectorySearchPending } from '../contexts/DirectoryLoadContext';
 import { Loader2 } from 'lucide-react';
 import { filterBusinessesForMap } from '../utils/hadayekZoneHelper';
+import { createInitialMapState, mapStateReducer } from './map/state/mapState';
 
 export type { InteractiveMapProps, MapTileLayerType };
 export { MAP_QUICK_CATEGORIES };
@@ -62,10 +63,34 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const searchPending = useDirectorySearchPending();
   const [mapSearchMode, setMapSearchMode] = useState<'browse' | 'building'>(targetBuilding ? 'building' : 'browse');
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
+  const legacyState = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
+  const [interactionState, dispatchMapState] = useReducer(
+    mapStateReducer,
+    createInitialMapState({ searchQuery: searchQuery || '', selectedZone: selectedZone || '', categoryFilter: categoryFilter || 'all' })
+  );
+  const setMapZone = useCallback((zone: string) => dispatchMapState({ type: 'zone/set', zone }), []);
+  const setMapCategory = useCallback((category: string) => dispatchMapState({ type: 'category/set', category }), []);
+  const setSelectedBusiness = useCallback((business: any) => dispatchMapState({ type: 'selection/set', business }), []);
+  const setSelectedBusinessExpanded = useCallback((expanded: boolean) => dispatchMapState({ type: 'selection/expand', expanded }), []);
+  const handleSearchChange = useCallback((query: string) => {
+    dispatchMapState({ type: 'search/set', query });
+    onSearchChange?.(query);
+  }, [onSearchChange]);
+  const state = useMemo(() => ({
+    ...legacyState,
+    selectedZone: selectedZone !== undefined ? selectedZone : interactionState.selectedZone,
+    setSelectedZone: setMapZone,
+    mapCategoryFilter: categoryFilter !== undefined ? categoryFilter : interactionState.categoryFilter,
+    setMapCategoryFilter: setMapCategory,
+    selectedBiz: interactionState.selectedBusiness,
+    setSelectedBiz: setSelectedBusiness,
+    isSelectedBizExpandedOnMap: interactionState.selectedBusinessExpanded,
+    setIsSelectedBizExpandedOnMap: setSelectedBusinessExpanded,
+  }), [legacyState, selectedZone, categoryFilter, interactionState, setMapZone, setMapCategory, setSelectedBusiness, setSelectedBusinessExpanded]);
 
-  const activeZone = selectedZone !== undefined ? selectedZone : state.selectedZone;
-  const activeCategory = categoryFilter !== undefined ? categoryFilter : state.mapCategoryFilter;
+  const activeZone = state.selectedZone;
+  const activeCategory = state.mapCategoryFilter;
+  const activeSearchQuery = searchQuery ?? interactionState.searchQuery;
 
   const matchingBusinessesCount = useMemo(() => {
     return filterBusinessesForMap(
@@ -114,30 +139,37 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   } | null>(null);
 
   const activeRoute = externalActiveRoute !== undefined ? externalActiveRoute : localRoute;
+  const onViewportSnapshotChange = useCallback((viewport: any) => {
+    dispatchMapState({ type: 'viewport/set', viewport });
+  }, []);
 
   // Sync state if selectedZone prop changes from parent
   useEffect(() => {
     if (selectedZone !== undefined) {
-      state.setSelectedZone(selectedZone);
+      setMapZone(selectedZone);
     }
-  }, [selectedZone]);
+  }, [selectedZone, setMapZone]);
 
   // Sync state if categoryFilter prop changes from parent
   useEffect(() => {
     if (categoryFilter !== undefined) {
-      state.setMapCategoryFilter(categoryFilter);
+      setMapCategory(categoryFilter);
     }
-  }, [categoryFilter]);
+  }, [categoryFilter, setMapCategory]);
+
+  useEffect(() => {
+    if (searchQuery !== undefined) dispatchMapState({ type: 'search/set', query: searchQuery });
+  }, [searchQuery]);
 
   // Sync state if focusedBusiness prop changes from parent
   useEffect(() => {
     if (focusedBusiness) {
-      state.setSelectedBiz(focusedBusiness);
-      state.setShowBusinesses(true);
+      setSelectedBusiness(focusedBusiness);
+      legacyState.setShowBusinesses(true);
       setSelectedBuildingState(null);
       setNavigationTargetState(null);
     }
-  }, [focusedBusiness]);
+  }, [focusedBusiness, setSelectedBusiness, legacyState.setShowBusinesses]);
 
   const mapInstance = useMapInstance({
     containerRef,
@@ -162,15 +194,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   const handleClusteringSelectBusiness = useCallback((biz: any) => {
     setSelectedBuildingState(null);
-    state.setSelectedBiz(biz);
+    setSelectedBusiness(biz);
     if (onSelectBusiness) onSelectBusiness(biz);
-  }, [state.setSelectedBiz, onSelectBusiness]);
+  }, [setSelectedBusiness, onSelectBusiness]);
 
   const handleClusteringSelectBuilding = useCallback((bldg: any) => {
     setSelectedBuildingState(bldg);
-    state.setSelectedBiz(null);
+    setSelectedBusiness(null);
     if (externalOnSelectBuilding) externalOnSelectBuilding(bldg);
-  }, [state.setSelectedBiz, externalOnSelectBuilding]);
+  }, [setSelectedBusiness, externalOnSelectBuilding]);
 
   useMapPinsClustering({
     mapInstance,
@@ -180,13 +212,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     showHadayekGates,
     selectedZone: activeZone,
     categoryFilter: activeCategory,
-    searchQuery,
+    searchQuery: activeSearchQuery,
     targetBuilding: effectiveTargetBuilding,
     buildingSearchActive: mapSearchMode === 'building',
     onSelectBusiness: handleClusteringSelectBusiness,
     onSelectZone,
     onSelectBuilding: handleClusteringSelectBuilding,
     activeRoute,
+    viewportSnapshot: interactionState.viewport,
+    onViewportSnapshotChange,
   });
 
   const geolocation = useMapGeolocation({
@@ -300,8 +334,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {/* 🧭 Clean District & Activity Filter Bar (Shows only within Hadayek Al-Ahram area) */}
         {mode === 'view' && (Math.abs(lat - 29.9683) < 0.06 && Math.abs(lng - 31.1002) < 0.06) && (
           <MapModernTopBar
-            searchQuery={searchQuery}
-            onSearchQueryChange={onSearchChange}
+            searchQuery={activeSearchQuery}
+            onSearchQueryChange={handleSearchChange}
             searchMode={mapSearchMode}
             onSearchModeChange={(next) => { setMapSearchMode(next); setSelectedBuildingState(null); onClearBuilding?.(); }}
             buildingNumber={effectiveTargetBuilding?.buildingNumber}

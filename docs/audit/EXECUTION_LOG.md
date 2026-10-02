@@ -4,7 +4,7 @@ Branch: `fix/map-full-repair` (created from local `main` at `5c24236`; upstream 
 No `docs/audit/07-decisions.md` was present; use the defaults from the execution request and `06-repair-plan.md`.  
 This log is the continuation point after context resets. Update after each batch.
 
-## Current status — Batch 2a complete locally; remote checkpoint publishing blocked
+## Current status — Batch 2b and Batch 3 complete locally; remote checkpoint publishing blocked
 
 - Step 0 reading: audit reports 01–06, project `TECH_LOG.md`, `DEFINITION.md`, `CORE_DIRECTIVE.md`, `package.json`, and `vercel.json` reviewed. Source files cited by 06 were inspected against current code. `CameraController` remains unimplemented; Batch 1 introduced the zoom policy and viewport snapshot.
 - Decision defaults applied: overview remains city-wide below zoom 15; local LOD starts at 15.5; selected result retains surrounding search context; outside-zone suggestions get an explicit all-zones action; excluded selection remains a context card outside result count; current map remains primary; no results tray, tile switch, backend viewport API, Canvas/WebGL or `directory-experience` changes.
@@ -18,6 +18,9 @@ This log is the continuation point after context resets. Update after each batch
 - Bundle size vs baseline: InteractiveMap 144.93 → 145.42 kB (+0.49 kB; gzip +0.21 kB); entry 185.51 → 185.93 kB (+0.42 kB; gzip +0.14 kB). Buildings chunk unchanged at 937.87 kB / 97.46 kB gzip.
 - Batch 2a search repairs: map suggestions use the public searchable catalog rather than only category-filtered pins; explicit text matching ignores residual category filters; selection remains as a context marker while its search query matches; an explicit “عرض في كل المناطق” action clears the selected zone and selects that business. Selection keeps the query. Building drawer and building-result counts now use exact parsed address identity plus a 90m geospatial radius for nearby context, never name digit substrings.
 - Batch 2a validation passed: lint, map unit 6/6, map suite 42/42, safety contracts 19/19, full `test:repair`, E2E 3/3, production build. Bundle: InteractiveMap 146.05 kB (39.08 gzip), entry 185.94 kB (52.40 gzip); buildings chunk unchanged.
+- Batch 2b introduced the `mapStateReducer` as the `InteractiveMap` interaction snapshot for query, zone, category, selected activity/expanded state, and viewport. Parent-controlled search/filter values sync into this reducer; map handlers dispatch through it. The selected bottom drawer now contains contextual quick actions only, leaving the selected pin as the visible identity card. Seven map/state tests passed at the 2b checkpoint. The viewport reducer hookup and CameraController use the same map hook; for a buildable checkpoint those tightly related changes are committed together with Batch 3.
+- Batch 3 added the sole Leaflet camera mutation owner `CameraController`, priority arbitration (selection > building/route/locate > cluster > zone > initial), and pointer/drag cancellation of in-flight camera commands. All non-test application calls to Leaflet `flyTo`, `flyToBounds`, `fitBounds`, `panTo`, `panBy`, `zoomIn`, and `zoomOut` now occur only in that controller. Camera unit test verifies preemption and gesture cancellation.
+- Combined 2b/3 validation passed: lint; unit 8/8; map suite 42/42; legacy safety 19/19; E2E 3/3; full `test:repair` including browser U3/U4/U7/B4 and 13 preview checks; production build. Bundle currently 150.07 kB InteractiveMap (40.44 gzip) vs clean baseline 144.93 (+5.14 kB, +1.88 gzip); entry 185.94 kB (52.40 gzip) vs 185.51 (+0.43 kB, +0.14 gzip); large coordinates chunk unchanged.
 
 ### Baseline before new fixes
 
@@ -40,9 +43,9 @@ This log is the continuation point after context resets. Update after each batch
 | 0A reconciliation | done | `8188955` + local tag `map-batch-0-done` | source checks in `06a-reconciliation.md` | RC-04 live; RC-07 unresolved data conflict. |
 | 0B safety net | complete locally | `8188955` + local tag `map-batch-0-done` | lint/build/map/safety/repair/unit/browser passed as listed above | Some matrix contracts still depend on simulated behavior in legacy suite. Push/preview blocked. |
 | 1 ZoomPolicy + viewport + visible-pin pipeline | complete locally | `a92217e` + local tag `map-batch-1-done` | lint/build/map/safety/repair/unit/browser passed | Preserves 15/15.5 behavior. |
-| 2a Search scope | complete locally | pending commit/tag | lint/build/map/safety/repair/unit/browser passed | Search uses public catalog; selection stays context; building association exact address or ≤90m proximity. |
-| 2b State reducer + selection presentation | not started | — | — | Preserve Definition's selected pin and action drawer; eliminate duplicate name/actions without removing either role. |
-| 3 CameraController | not started | — | — | User gesture cancels pending locate; apply requested priority; retain existing normal zone choreography. |
+| 2a Search scope | complete locally | `8ce22e6` + local tag `map-batch-2a-done` | lint/build/map/safety/repair/unit/browser passed | Search uses public catalog; selection stays context; building association exact address or ≤90m proximity. |
+| 2b State reducer + selection presentation | complete locally | combined checkpoint with Batch 3, pending commit/tag | combined verification listed above | Pin remains identity card; drawer retains quick actions without repeated identity block. Reducer carries query/filter/selection/viewport. |
+| 3 CameraController | complete locally | combined checkpoint with Batch 2b, pending commit/tag | combined verification listed above | All production camera mutations centralized; user pointer/drag cancels active flight and priority ordering is enforced. |
 | 4 Group/cull/marker registry | not started | — | — | Preserve dots/cards/clusters/chooser/selected isolation. |
 | 5 Mobile/overlay/accessibility | not started | — | — | Keep map primary; no results tray or layer-control scope expansion. |
 | 6 Dedup/dead code | not started | — | — | Delete only after import-graph proof and tests; gate catalog awaits served-zone decision. |

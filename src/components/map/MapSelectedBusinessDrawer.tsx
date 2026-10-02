@@ -4,7 +4,6 @@ import { Business } from '../../types';
 import {
   getBusinessMapDetails,
   getSmartWhatsAppUrl,
-  getBusinessOpenStatus,
 } from '../../utils/directoryEnhancements';
 
 export interface MapSelectedBusinessDrawerProps {
@@ -22,55 +21,18 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
 }) => {
   if (!selectedBiz) return null;
 
-  const { effectiveUrl, isOfficial } = getBusinessMapDetails(selectedBiz);
+  const { effectiveUrl } = getBusinessMapDetails(selectedBiz);
   const smartWhatsAppUrl = getSmartWhatsAppUrl(selectedBiz);
-  const openStatus = getBusinessOpenStatus(selectedBiz.workingHours);
   const phone = selectedBiz.phone || selectedBiz.ownerPhone;
-  const photoUrl =
-    selectedBiz.coverPhoto ||
-    (selectedBiz.photos && selectedBiz.photos.length > 0
-      ? selectedBiz.photos[0]
-      : `/api/biz-og?biz=${selectedBiz.id}`);
 
   return (
-    <div className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2.5 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
+    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <img
-            src={photoUrl}
-            alt={selectedBiz.nameAr}
-            className="w-12 h-12 rounded-xl object-cover border border-amber-200 shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="bg-amber-50 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-200/80">
-                {selectedBiz.category}
-              </span>
-              <span
-                className={`text-[9.5px] font-black px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                  selectedBiz.verificationStatus === 'verified'
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${openStatus.dotColor}`} />
-                <span>{openStatus.isOpen ? 'مفتوح' : 'مغلق'}</span>
-              </span>
-            </div>
-            <h3 className="text-sm sm:text-base font-black text-slate-900 truncate mt-0.5">
-              {selectedBiz.nameAr}
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium truncate">
-              {selectedBiz.governorate} • {selectedBiz.city} {selectedBiz.street ? `(${selectedBiz.street})` : ''}
-            </p>
-          </div>
-        </div>
-
         <button
           type="button"
           onClick={() => setSelectedBiz(null)}
           className="text-slate-400 hover:text-slate-700 text-xs font-black w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
-          aria-label="إغلاق البطاقة"
+          aria-label={`إغلاق إجراءات ${selectedBiz.nameAr}`}
         >
           ✕
         </button>
