@@ -16,7 +16,7 @@ import { isBusinessInHadayekZone, filterBusinessesForMap } from '../../../utils/
 import { isSearchSelectedBusiness } from '../../../utils/mapSearch';
 import { matchesCategoryFilter } from '../../../utils/categoryMatcher';
 import { scheduleProgressiveWork } from '../utils/progressiveWork';
-import { activityCardScale, groupNearbyActivities } from '../utils/spatialActivityGroups';
+import { buildVisiblePinPipeline, visiblePinClusterKey } from '../utils/visiblePinPipeline';
 import { computeMarkerIconKey } from '../utils/markerReconciliation';
 import {
   planCameraTransitionOnZoneChange,
@@ -26,7 +26,6 @@ import {
 import { preloadDistrictTiles } from '../../../utils/hadayekTilePreloader';
 import { useMapInstance } from './useMapInstance';
 import { useMapState } from './useMapState';
-import { isLocalPinPresentationZoom } from '../../../utils/mapZoomPolicy';
 import { createMapViewportSnapshot, MapViewportSnapshot } from '../state/mapViewport';
 
 export interface UseMapPinsClusteringProps {
@@ -91,7 +90,6 @@ export const useMapPinsClustering = ({
   const isRenderingActivitiesRef = useRef(false);
   const clusterRegistry = useRef(new Map<string, any>());
   const seenMarkers = useRef(new Set<string>());
-  const groupingCache = useRef<{ items: Business[]; zoom: number; groups: Business[][] } | null>(null);
   const filterIdentity = `${selectedZoneProp ?? ''}|${categoryFilterProp ?? ''}`;
   useEffect(() => { seenMarkers.current.clear(); }, [filterIdentity]);
   const animateNewMarker = (marker: any, id: string, staggerIndex = 0) => {
@@ -1010,7 +1008,6 @@ export const useMapPinsClustering = ({
     }
 
     const zoom = viewportSnapshot?.zoom ?? map.getZoom();
-    const scale = activityCardScale(zoom);
     const snapshotBounds = viewportSnapshot?.bounds;
     const bounds = snapshotBounds
       ? window.L.latLngBounds([[snapshotBounds.south, snapshotBounds.west], [snapshotBounds.north, snapshotBounds.east]]).pad(0.2)
@@ -1019,36 +1016,19 @@ export const useMapPinsClustering = ({
     // 🎯 Adaptive Level of Detail (LOD):
     // 1. District View: when an individual zone filter is active OR zoomed in to local scale (>= 15.5) -> Rich Vertical Cards
     // 2. City Overview: when observing the entire city (< 15.5, no specific zone selected) -> Sleek Horizontal Compact Cards (Image 3 DNA)
-    const isDistrictView = Boolean(
-      (effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim() !== '') ||
-      isLocalPinPresentationZoom(zoom)
-    );
-
-    // 🛡️ Selected Entity Isolation (BEH-05 / SAFETY-03):
-    // Exclude selectedBiz from background pins and cluster groups so it never doubles or alters counts.
-    const businessesForClustering = selectedBiz
-      ? sortedBusinesses.filter(biz => biz.id !== selectedBiz.id)
-      : sortedBusinesses;
-
-    // 🚀 Performance Optimization: Pre-filter by visible viewport bounds before running spatial clustering
-    const inViewBusinesses = businessesForClustering.filter(biz => bounds.contains([biz.lat, biz.lng]));
-    if (groupingCache.current?.items !== inViewBusinesses || groupingCache.current.zoom !== zoom) {
-      groupingCache.current = { items: inViewBusinesses, zoom, groups: groupNearbyActivities(inViewBusinesses, biz => map.project([biz.lat, biz.lng], zoom), 58) };
-    }
-    const visibleGroups = groupingCache.current.groups;
-
-    interface OccupiedSpatialSlot {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      isCluster: boolean;
-    }
-    const occupied: OccupiedSpatialSlot[] = [];
+    const pipeline = buildVisiblePinPipeline({
+      businesses: sortedBusinesses,
+      selectedBusinessId: selectedBiz?.id,
+      contains: (lat, lng) => bounds.contains([lat, lng]),
+      project: biz => map.project([biz.lat, biz.lng], zoom),
+      point: biz => map.latLngToContainerPoint([biz.lat, biz.lng]),
+      zoom,
+      hasSelectedZone: Boolean(effectiveSelectedZone && effectiveSelectedZone !== 'all' && effectiveSelectedZone.trim()),
+    });
+    const { groups: visibleGroups, singletonIds: nextIds, clusterKeys: nextClusters } = pipeline;
+    const isDistrictView = pipeline.isDistrictView;
     // Remove stale results before yielding, so a new filter never shows old pins.
-    const nextIds = new Set(visibleGroups.filter(g => g.length === 1).map(g => g[0].id));
-    const clusterKey = (g: Business[]) => g.map(b => `${b.id}:${b.lat}:${b.lng}:${b.nameAr}`).join('|');
-    const nextClusters = new Set(visibleGroups.filter(g => g.length > 1).map(clusterKey));
+    const clusterKey = visiblePinClusterKey;
 
     const filterChanged =
       lastRenderedFilterRef.current.category !== effectiveCategoryFilter ||
@@ -1084,33 +1064,15 @@ export const useMapPinsClustering = ({
     isRenderingActivitiesRef.current = visibleGroups.length > 0;
 
     let staggerIndex = 0;
-    let overviewCardsCount = 0;
 
     // 🌟 Deterministic Prominence Stability (BEH-07 / SAFETY-05):
     // Pre-calculate top 3 scored businesses in view so cards are assigned deterministically across pans
-    const topProminentIdsInView = new Set(
-      businessesForClustering
-        .filter(b => bounds.contains([b.lat, b.lng]))
-        .slice(0, 3)
-        .map(b => b.id)
-    );
-
     const cancelWork = scheduleProgressiveWork(visibleGroups, group => {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
       const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
       if (!bounds.contains([lat, lng])) return;
 
       if (group.length > 1) {
-        const clusterPoint = map.latLngToContainerPoint([lat, lng]);
-        // 🛡️ Cluster Shield: Register cluster's physical footprint into occupied grid to protect from cards overlapping!
-        occupied.push({
-          x: clusterPoint.x,
-          y: clusterPoint.y,
-          width: 48,
-          height: 48,
-          isCluster: true,
-        });
-
         const key = clusterKey(group);
         if (clusterRegistry.current.has(key)) return;
         const data = createLightweightClusterHtml(group.length);
@@ -1149,46 +1111,10 @@ export const useMapPinsClustering = ({
       }
 
       const biz = group[0];
-      const point = map.latLngToContainerPoint([biz.lat, biz.lng]);
-
-      // Calculate candidate card dimensions
-      const cardWidth = isDistrictView ? 184 : 224;
-      const cardHeight = isDistrictView ? 134 : 60;
-      const cardW = cardWidth * scale;
-      const cardH = cardHeight * scale;
-
-      // 🛡️ Collision Engine: Check overlap against both existing cards AND cluster badges
-      const collides = occupied.some(occ => {
-        if (occ.isCluster) {
-          const cardCenterX = point.x;
-          const cardCenterY = point.y - cardH / 2;
-          return Math.abs(occ.x - cardCenterX) < (cardW / 2 + 28) &&
-                 Math.abs(occ.y - cardCenterY) < (cardH / 2 + 28);
-        }
-        const cardCenterX = point.x;
-        const cardCenterY = point.y - cardH / 2;
-        const occCenterX = occ.x;
-        const occCenterY = occ.y - occ.height / 2;
-        return Math.abs(occCenterX - cardCenterX) < (occ.width + cardW) / 2 + 10 &&
-               Math.abs(occCenterY - cardCenterY) < (occ.height + cardH) / 2 + 10;
-      });
-
-      // 🌟 Visual Hierarchy: In City Overview, reserve rich horizontal cards for the top 3 prominent activities in view;
-      // render remaining unselected activities as clean compact pins to eliminate visual chaos.
-      const allowFullCard = isDistrictView || topProminentIdsInView.has(biz.id);
-      const usePinDot = collides || !allowFullCard;
-      if (!usePinDot) {
-        overviewCardsCount++;
-        occupied.push({
-          x: point.x,
-          y: point.y,
-          width: cardW,
-          height: cardH,
-          isCluster: false,
-        });
-      }
-
-      const cardScale = usePinDot ? 1 : scale;
+      const layout = pipeline.layouts.get(biz.id);
+      if (!layout) return;
+      const usePinDot = layout.type === 'dot';
+      const cardScale = layout.scale;
       const markerType = usePinDot ? 'pindot' : (isDistrictView ? 'district' : 'overview');
       const iconKey = computeMarkerIconKey(biz, 0, [0, 0], markerType) + `_${cardScale}`;
       const existing = markersRegistryRef.current.get(biz.id);

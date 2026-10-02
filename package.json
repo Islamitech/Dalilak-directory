@@ -13,7 +13,7 @@
     "test:safety-net": "tsx src/tests/safety_net_batch0.test.ts",
     "test:repair": "node scripts/verify-repair.mjs",
     "test:repair:browser": "node src/tests/mutation_browser.playwright.cjs",
-    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts",
+    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts",
     "test:map:e2e": "playwright test -c playwright.map.config.ts"
   },
   "dependencies": {
