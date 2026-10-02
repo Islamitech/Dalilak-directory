@@ -1,331 +1,314 @@
-# تقرير تدقيق سلوك ومنطق تفاعل الخريطة
-# Map Behavior & Interaction Logic Audit Report
+# 02 — Map Behavior & Interaction Logic Audit
 
-**التاريخ:** 29 سبتمبر 2026  
-**المشروع:** Dalilak Production Ecosystem (`Dalilak-directory_Production_Clean`)  
-**الملف المستهدف:** `docs/audit/02-map-behavior.md`  
-**مرجع التدقيق السابق:** `docs/audit/01-map-inventory.md`  
-**طبيعة المهمة:** تدقيق تحليلي استقصائي سلوكي وتفاعلي (Read-Only Behavioral Audit)  
+**Date:** 2026-10-02  
+**Scope:** Production Leaflet map; partial review of the parallel `directory-experience` map.  
+**Method:** Source-only review. No application code or tests were changed/run; no live browser reproduction was performed. Findings are “from code only” unless otherwise stated. The prior inventory’s screenshot evidence is identified separately.
 
----
+## 1. Intended map state machine inferred from source
 
-## ديباجة التدقيق والمنهجية المتبعة
+View mode initializes at Hadayek coordinates and zoom 14, then fits Hadayek view bounds with max zoom 14.5. Limits are 12.8 mobile / 13.2 desktop through 19.5. Background activity layers are empty until category is active or there is a nonempty search override; the selected business uses a separate layer. Evidence: `src/components/map/hooks/useMapInstance.ts:35-46,253-269`; `src/components/map/hooks/useMapPinsClustering.ts:869-883,991-1001,915-978`.
 
-بناءً على التوجيهات الإلزامية الصارمة، تم إنجاز هذا التدقيق دون إجراء أي تعديل على كود التطبيق، والاعتماد الحصري على فحص الشفرة المصدرية سطراً بسطر وتتبع سلاسل الاستدعاء وأحداث محرك الخريطة والتفاعل الزمني الحركي، مع إجراء محاكاة حية تفاعلية للسيناريوهات داخل متصفح حقيقي (Chromium) ببيئة محاكاة شاشة هاتف محمول (Mobile Viewport: 390x844).
-
-تم تصنيف كافة النتائج والملاحظات هندسياً وفق التصنيفات الأربعة المعتمدة:
-- **(a) خلل برمجي (Bug)**: تعارض منطقي أو إجرائي مباشر يؤدي إلى نتيجة خاطئة أو تعطل ميزة.
-- **(b) عيب في تجربة المستخدم (UX Flaw)**: ارتداد حركي، اهتزاز بصري، قفز مفاجئ للكاميرا، أو انعدام الاتساق البصري.
-- **(c) دين تقني ومعماري (Architectural Debt)**: بنى كود مهجورة، متغيرات غير مراقبة، وتناقضات بين وحدات المعالجة.
-- **(d) حالة مفقودة (Missing State)**: غياب حالة وسيطة تضمن الاتساق أثناء التنقل أو تباين بين مصادر الحقيقة.
-
----
-
-## 1. آلة الحالة المقصودة لمنظومة الخريطة والدبابيس (Intended State Machine)
-
-تم استنباط آلة الحالة المفترضة للخريطة من خلال فحص التعليقات الهندسية، وثائق التعريف، ودوال محرك التصيير `useMapPinsClustering.ts` ومصانع العلامات `badgeMarkers.ts`:
-
-```mermaid
-stateDiagram-v2
-    [*] --> CityOverview: تحميل الخريطة (زووم 14.0 - 14.5)
-    
-    state CityOverview {
-        [*] --> NoCategoryEmpty: لا يوجد فلتر تصنيف (effectiveCategoryFilter === 'all')
-        NoCategoryEmpty --> FilteredOverview: اختيار تصنيف (مطاعم، صيدليات...)
-        state FilteredOverview {
-            Top3Cards: أول 3 أنشطة كروت أفقية مدمجة (224x60)
-            RemainingPins: باقي الأنشطة نقاط صغيرة (Pindots)
-            DenseClusters: الأنشطة المتقاربة (<58px) تجمعات رقمية خفيفة
-        }
-    }
-
-    CityOverview --> DistrictZoom: تكبير يدوي (>= 15.5) أو اختيار منطقة محددة
-    
-    state DistrictZoom {
-        [*] --> DistrictView
-        state DistrictView {
-            VerticalCards: كروت رأسية تفصيلية (184x134)
-            PindotsCollision: عند تصادم الكروت تتحول لنقاط Pindot
-            DistrictClusters: تجمعات عددية عند مسافة أقل من 58px
-        }
-    }
-
-    DistrictZoom --> CityOverview: تصغير (< 15.5) وإلغاء المنطقة
-
-    state ActivitySelection {
-        State1_Compact: كارت معاينة مدمج على الدبوس (selectedPinPane) + درج سفلي
-        State2_Expanded: كارت تفصيلي موسع (زووم 17.5) + إخفاء الدرج السفلي
-        FullModal: نافذة النشاط الشاملة (ActivityDetailModal)
-    }
-
-    CityOverview --> State1_Compact: نقر على دبوس أو نتيجة بحث
-    DistrictZoom --> State1_Compact: نقr على دبوس أو نتيجة بحث
-    State1_Compact --> State2_Expanded: نقر على كارت المعاينة المدمج
-    State2_Expanded --> FullModal: نقر على جسم الكارت الموسع
-    State1_Compact --> CityOverview: نقر خلفية الخريطة أو زر الإغلاق
-```
-
-### مستويات التقريب وتطور تمثيل العلامات (LOD & Pin Morphology):
-
-| نطاق التقريب (Zoom) | نمط العرض (View Mode) | شكل الدبابيس المصيرة (Pin Rendering) | قواعد التجميع والإخفاء (Clustering & Culling) |
+| Zoom/state | Eligibility and culling | Pin appearance | Clustering |
 |---|---|---|---|
-| **< 12.8 (موبايل) / < 13.2 (ديسكتوب)** | محظور (Hard Boundary) | لا يُسمح بالوصول إليه؛ يُردع عبر `minZoom` و `maxBoundsViscosity: 0.75`. | الخريطة مقيدة بحدود حدائق الأهرام `HADAYEK_BOUNDS`. |
-| **12.8 - 15.4** | نظرة عامة على المدينة (City Overview) | **شرط إلزامي:** إذا لم يتم اختيار تصنيف محدد، تكون الخريطة **فارغة تماماً** من أي دبابيس أنشطة (`cardsLayer.clearLayers()`).<br>عند اختيار تصنيف: **أعلى 3 أنشطة فقط** تظهر ككروت أفقية أنيقة (`createCompactOverviewBadgeHtml`: 224x60 بكسل)؛ الباقي يتحول قسراً إلى نقاط دائرية صغيرة (Pindots: 22x22 بكسل). | تجميع الأنشطة المتقاربة داخل دائرة شاشة نصف قطرها 58 بكسل أو مسافة جغرافية 100 متر إلى دوائر تجميعية خفيفة (`createLightweightClusterHtml`). |
-| **15.5 - 17.4** | نطاق المنطقة / الحي (District View) | تتحول الأنشطة المؤهلة إلى كروت رأسية تفصيلية غنية بالصور والتقييم وساعات العمل (`createLightweightBadgeHtml`: 184x134 بكسل). الدبابيس المتصادمة مكانياً ترتد لنقاط Pindot. | التجميع يعمل لنفس نطاق 58 بكسل مع تفكيك التجمعات عند التقريب. كارت العمارة المحددة يظهر بـ `zIndexOffset: 2000` مع خط شعاعي أحمر. |
-| **17.5 - 19.5** | النطاق التفصيلي للشارع (Street View / State 2) | النشاط المحدد يتحول إلى الكارت الموسع الكامل (`createExpandedActivityCardHtml`) شاملاً أزرار الاتصال والواتساب والتفاصيل. | لا يُسمح بالتجميع للنشاط المختار (يُعزل على مسطح `selectedPinPane`). التجمعات المتبقية تفتح قائمة منبثقة بأسماء المحلات إذا كانت المسافة < 3 أمتار. |
+| `<15`, city overview | With active category/search, `filterBusinessesForMap` returns Hadayek-wide businesses even if a zone is selected. With neither, no background pins. | Overview horizontal cards for the top three prominent in-view businesses; remaining or colliding items are compact dots. Scale is clamped 0.78–1.0. | Screen-space grouping radius 58 px plus geographic max distance 100 m. Groups of 2+ render a numbered cluster. |
+| `15–<15.5` | Selected zone is enforced; otherwise Hadayek-wide. Still requires category/search to display. | Overview cards unless a zone is selected, in which case renderer already switches to district style. | Same grouping; cluster click zooms to group bounds. |
+| `>=15.5`, district/local view | Selected zone enforced if set; otherwise Hadayek-wide. Still requires category/search. | Rich vertical district cards; collision suppression may replace a card with a dot. | Same grouping; click flies to member bounds up to 19, or opens a member chooser at max zoom / coincident members. |
+| Selected business | Excluded from background clusters, represented in a dedicated selected pane at any zoom. | Compact selected card and bottom drawer are both eligible in State 1. Clicking compact card flies to 17.5 and expands; expanded card invokes business details. | Selection is isolated from ordinary groups. |
 
-### مواضع غموض القصد المعماري والتعارض في الشفرة (Unclear Intent Flags):
+Evidence: `src/utils/hadayekZoneHelper.ts:260-295`; `src/components/map/hooks/useMapPinsClustering.ts:869-883,991-1026,1077-1136,1142-1199`; `src/components/map/utils/spatialActivityGroups.ts:1-31`; `src/components/map/utils/cameraPlanner.ts:96-145`.
 
-1. **قاعدة حجب الأنشطة في المستوى العام عند غياب التصنيف:**
-   - **الواقع في الكود:** السطر 996 في `useMapPinsClustering.ts` يفرض: `const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all')`. إذا لم يتحقق، تُمحى كافة الدبابيس.
-   - **الغموض:** وثيقة التعريف `DEFINITION.md` تنص في السطر 23 على أن الخريطة في المستوى العام تُبرز "أهم الأماكن والمعالم الشهيرة مع الحفاظ على خريطة نظيفة مفتوحة". الكود الحالي يفرغ الخريطة تماماً بنسبة 100% ليجعلها صفراء صامتة حتى يضغط الزائر على تصنيف، مما يعطي انطباعاً أولياً بأن النظام لا يحتوي على أي بيانات!
-2. **المنطقة الرمادية بين 15.0 و 15.5:**
-   - مخطط الكاميرا `cameraPlanner.ts:55` يعتبر زووم 15.0 هو حد نظرة المدينة، في حين أن محرك الدبابيس `useMapPinsClustering.ts:1016` يعتبر 15.5 هو حد المنطقة.
-   - النتيجة: عند مستوى زووم 15.2، يعتبر محرك الدبابيس الخريطة في "نظرة مدينة" ويرسم دبابيس Pindot مصغرة، بينما يعتبر مخطط الكاميرا أن العرض محلي ويطلق قفزات كاميرا عنيفة بدلاً من الـ Pan الهادئ.
+**Intent unclear:** The helper’s “city overview” rule intentionally disables zone culling below 15, while the pin renderer changes layout at 15.5 and treats an active zone as district view at any zoom. The 0.5 zoom band and selected-zone overview can therefore combine city-wide eligibility with district styling. Comments do not clarify whether retaining city-wide results while a zone is selected is a product requirement. The “no filter = no background pins” rule also lacks explanatory UX intent.
 
----
+### Selection and camera states
 
-## 2. مصفوفة تعارض التفاعلات المتقاطعة (Interaction Conflict Matrix)
+District selection frames its polygon; clearing it flies to Hadayek overview `[29.9683,31.1002]`, zoom 14. Category changes are intended not to move the camera. Selecting a business pans at overview zoom `<=15`, otherwise flies to a local zoom floor of 16.5; expanding the selected card flies to 17.5. Cluster click zooms or opens a chooser. Evidence: `useMapPinsClustering.ts:243-257,474-535,555-613,1111-1131`; `cameraPlanner.ts:30-93,96-145`.
 
-توضح المصفوفة التالية التفاعلات الثنائية بين كافة عمليات الخريطة:
-- **المحاور:** (1) تكبير/تصغير Zoom In/Out، (2) تحريك Pan/Drag، (3) فلتر نشط Active Filter، (4) بحث نصي Search، (5) تحديد نشاط Pin Selection، (6) التجميع Clustering، (7) درج/نافذة مفتوحة Drawers/Modals، (8) حدد موقعي Locate Me / GPS، (9) تغيير الحجم/التدوير Resize/Rotate.
+The prior inventory documents a screenshot-confirmed defect: compact selected marker and bottom drawer can appear together because `setSelectedBiz` always resets expansion false. This audit did not reproduce it. Evidence: inventory §8; `useMapState.ts:27-33`; `InteractiveMap.tsx:423-446`; `useMapPinsClustering.ts:931-978`.
 
-| التفاعل المتقاطع | Zoom In / Out | Pan / Drag | Active Filter | Search Query | Pin Selection | Clustering | Drawer Open | Locate Me (GPS) | Resize / Rotate |
+## 2. Interaction conflict matrix
+
+Pair IDs in cells refer to the scenario table. The matrix is symmetric; each unordered pair appears once.
+
+|  | Zoom | Pan | Filter | Search | Select | Cluster | Popup/sheet | Locate | Resize/rotate |
 |---|---|---|---|---|---|---|---|---|---|
-| **Zoom In / Out** | — | آمن | **تعارض جزئي:** خروج/دخول عتبة 15.5 يعيد تصيير الدبابيس بالكامل | آمن | **تعارض حاد:** قد يبتلع التجميع النشاط المختار إذا لم يُعزل | **تعارض:** تفتيت التجمع يطلق أنيميشن Spring متكرر | آمن | قفزة مفاجئة لزووم 18 تلغي منظور المستخدم | آمن (يحافظ عليه liveCenterRef) |
-| **Pan / Drag** | آمن | — | آمن | آمن | **تعارض حاد:** سحب الخريطة ثم إغلاق الكارت يعيد الكاميرا قسراً للخلف | **تعارض بصري:** اهتزاز وتذبذب الكروت بين Pindot وكارت أفقي | آمن | يوقف طيران الـ GPS فوراً عبر `map.stop()` | آمن |
-| **Active Filter** | **تعارض:** تكبير/تصغير مع فلتر لا يُعيد مسح الفلتر | آمن | — | **تعارض حاد:** الفلتر النشط يحجب نتائج البحث عن أنشطة من تصنيفات أخرى | **تعارض حاد:** تطبيق فلتر لا يطابق النشاط المحدد يغلقه ويقفز بالكاميرا | آمن | إغلاق الفلتر يترك البوب آب معلقاً | آمن | آمن |
-| **Search Query** | آمن | **تعارض:** السحب يغير الدبابيس المعروضة في إطار الرؤية | **تعارض حاد:** كتابة اسم محل بدون تصنيف يفرغ الخريطة تماماً | — | اختيار نتيجة بحث يمسح نص البحث ويعيد جلب كافة الأنشطة | آمن | فتح تفاصيل البحث يغطي أدراج العمارات | قفزة الكاميرا لإحداثيات البحث | آمن |
-| **Pin Selection** | تعارض | **تعارض حاد:** preSelectedStateRef يجبر الكاميرا على القفز عند إلغاء التحديد | تعارض | آمن | — | **تعارض حاد:** رسم نسختين من الدبوس (على pinsPane و selectedPinPane) | إغلاق درج العمارة تلقائياً لصالح النشاط | قفزة الكاميرا تلغي مسار التحديد | آمن |
-| **Clustering** | تعارض | تعارض بصري | آمن | آمن | تعارض | — | نقر التجمع يغلق الكروت النشطة | آمن | آمن |
-| **Drawer Open** | آمن | آمن | تعارض | آمن | تعارض | آمن | — | آمن | **تعارض حاد:** خطأ هوامش padding يعرض الكروت تحت الدرج |
-| **Locate Me** | قفزة حادة | آمن | آمن | آمن | يلغي التحديد | آمن | يفتح دون إغلاق الأدراج السابقة | — | آمن |
-| **Resize / Rotate**| آمن | آمن | آمن | آمن | آمن | آمن | تعارض هوامش | آمن | — |
+| **Zoom** | — | I01 | I02 | I03 | I04 | I05 | I06 | I07 | I08 |
+| **Pan** | I01 | — | I09 | I10 | I11 | I12 | I13 | I14 | I15 |
+| **Filter** | I02 | I09 | — | I16 | I17 | I18 | I19 | I20 | I21 |
+| **Search** | I03 | I10 | I16 | — | I22 | I23 | I24 | I25 | I26 |
+| **Select** | I04 | I11 | I17 | I22 | — | I27 | I28 | I29 | I30 |
+| **Cluster** | I05 | I12 | I18 | I23 | I27 | — | I31 | I32 | I33 |
+| **Popup/sheet** | I06 | I13 | I19 | I24 | I28 | I31 | — | I34 | I35 |
+| **Locate** | I07 | I14 | I20 | I25 | I29 | I32 | I34 | — | I36 |
+| **Resize/rotate** | I08 | I15 | I21 | I26 | I30 | I33 | I35 | I36 | — |
 
----
+### Pair traces (actual, expected, conflict)
 
-### سيناريوهات التعارض العملية المعمقة (Concrete Interaction Scenarios):
+| ID | Scenario and actual behavior from code | Expected | Conflict / evidence |
+|---|---|---|---|
+| I01 | Zoom during pan/zoom; settled map events refresh pins. Progressive drops cancel on gesture start. | Render against final camera once settled. | No direct conflict seen. `useMapInstance.ts:304-333`; `useMapPinsClustering.ts:1244-1287`. |
+| I02 | Select zone, then zoom across 15/15.5. Renderer reads live zoom, but filtered set is memoized without zoom or viewport revision. | Recompute eligibility and LOD after every settled zoom. | **Conflict, BHV-01.** `useMapPinsClustering.ts:869-883,1003-1013,1242-1243`; helper `hadayekZoneHelper.ts:269-294`. |
+| I03 | Browse search is suggestion/client filtering, not geocoding; zoom affects map culling, not candidate text list. | Stable search candidates; map pins adapt to viewport. | No camera conflict; culling can inherit I02. `InteractiveMap.tsx:196-200,227-255,299-324`; pins hook `869-883`. |
+| I04 | Selected business is isolated from clustering and remains in selected layer through zoom; it does not auto-expand solely from zoom. | Keep selected item visible; auto-expansion policy is unclear. | No disappearance; visual-scale policy unclear. `useMapPinsClustering.ts:915-978,1015-1019`. |
+| I05 | Clusters use 58 px/100 m grouping; click flies to bounds up to 19, otherwise member chooser. | Zoom should progressively expose individual items. | Intended interaction; chooser may remain in narrow 19–19.5 band. `useMapPinsClustering.ts:1021-1026,1111-1136`; `useMapInstance.ts:253-256`. |
+| I06 | Zoom while cluster popup open triggers reconciliation; no explicit close on zoom. | Keep valid chooser or close if cluster disappears. | Suspected Leaflet lifecycle issue; test popup while zooming cluster out of bounds. `useMapPinsClustering.ts:1058-1069,1111-1131,1280`. |
+| I07 | Locate fix flies to GPS at zoom 17. | Locate centers the map and exposes accuracy. | No direct conflict; locate takes camera on completion. `useMapGeolocation.ts:63-76`; `useMapInstance.ts:183-199`. |
+| I08 | Resize/rotate invalidation and map refresh are RAF-coalesced. | Use final size and zoom without center drift. | No code conflict; mobile layout unverified. `useMapInstance.ts:385-417`; pins hook `1244-1287`. |
+| I09 | Pan with filter active updates bounds; same-filter path prunes out-of-view markers and retains in-view ones. | Preserve filter set, update viewport subset. | No direct conflict in settled path. `useMapPinsClustering.ts:1041-1071,1280`. |
+| I10 | Search then pan: text candidates derive from query/props; pins are culled by bounds. | Candidate list stable; pins reflect viewport. | No silent candidate mutation found. `MapModernTopBar.tsx:81-94`; `useMapPinsClustering.ts:1003-1026,1280`. |
+| I11 | Pan after selecting does not clear selection; map background click does. | Preserve selection while user repositions map. | No conflict; selected card can leave viewport without keep-in-view state. `useMapPinsClustering.ts:537-553,555-613,915-978`. |
+| I12 | Gesture start cancels progressive pin work; moveend starts fresh render. | Stop old-coordinate drops and render settled viewport. | Deliberate temporary under-population. `progressiveWork.ts:13-25`; pins hook `1244-1287`. |
+| I13 | Pan with popup/sheet: sheet stays tied to selection; popup has no explicit close. | Keep sheet; close/re-anchor invalid cluster popup. | Popup lifecycle suspected; `InteractiveMap.tsx:423-446`; pins hook `1058-1069,1111-1131`. |
+| I14 | Locate, pan before GPS result: watch continues and final callback still flies. Drag stops only an already-running flight. | Decide whether pending locate wins or user gesture cancels it. | **Suspected conflict / missing state, BHV-06.** `useMapGeolocation.ts:46-99`; `useMapInstance.ts:183-199,299-302`. |
+| I15 | Resize during pan invalidates size with `pan:false`; observers/events share pending frame. | Preserve geographic center and gesture. | No code conflict apparent. `useMapInstance.ts:385-417`. |
+| I16 | Search candidates apply category but not selected zone; choosing outside-zone business sets selection which cleanup then clears. | Scope suggestions to zone or signal scope replacement. | **Conflict, BHV-03.** `MapModernTopBar.tsx:81-94,135-142`; `InteractiveMap.tsx:324,330-333`; pins hook `259-273`. |
+| I17 | Filter change clears selection explicitly on category selection; hook also clears if selection no longer matches category/zone. Zone/category change clears background layers. | Retain matching selection; clear excluded selection without duplicate/stale surface. | State guard exists; selected card/drawer double-display remains prior BUG-VISUAL-01. `InteractiveMap.tsx:317-320`; pins hook `259-273,1041-1056`; state `27-33`. |
+| I18 | Category/zone change clears old card/cluster layers and registries before progressive redraw. | No stale groups; clusters from new filter. | No stale-cluster conflict evident; redraw blank interval not measured. `useMapPinsClustering.ts:1036-1071,1086-1136`. |
+| I19 | Filter identity change closes popup before clearing layers. But early return when no filter clears layers before `filterChanged` close call. | Close invalid popup when clearing the last filter. | **Suspected, BHV-05:** Leaflet may close it as source is removed; verify. `useMapPinsClustering.ts:991-1001,1041-1056,1111-1131`. |
+| I20 | Locate does not reset active filter; zoom-dependent zone rules still apply. | Keep active filter while centering or explicitly reset by policy. | No reset conflict; I02 may stale culling. `useMapGeolocation.ts:63-76`; pins hook `869-883`. |
+| I21 | Resize emits viewport refresh; filter state unchanged. | Same filter with updated bounds. | No direct conflict; mobile padding appearance unverified. `useMapInstance.ts:385-417`; pins hook `1003-1026,1280`. |
+| I22 | Select search suggestion clears query; with category=all renderer clears background cards/clusters. Selected card/drawer remains. | Keep context around selected result. | **Conflict, BHV-02.** `MapModernTopBar.tsx:135-142`; `InteractiveMap.tsx:330-333`; pins hook `991-1001,915-978`. |
+| I23 | Search changes eligible set, but popup-close identity only compares category/zone. Reconciliation may remove popup’s cluster without explicit close. | Refresh/close popup if members cease to match query. | **Suspected, BHV-07**, Leaflet runtime needed. `useMapPinsClustering.ts:869-883,1036-1071,1111-1131`. |
+| I24 | Search selection clears query and surrounding results, while selected marker remains isolated. | Keep search context until user dismisses selection. | Context loss is BHV-02; no selected-state loss for valid candidate. `MapModernTopBar.tsx:135-142`; pins hook `915-978`. |
+| I25 | GPS completion and picker search can both call `updateSelectedPosition`/`flyTo`; no shared camera intent arbitration. Browse search is not geocoding. | Define which explicit action wins. | Suspected race / missing state. `InteractiveMap.tsx:191-200,227-255`; `useMapGeolocation.ts:63-99`; `useMapSearch.ts:34-83`. |
+| I26 | Resize does not close React search suggestions; Leaflet size is invalidated separately. | Keep search panel in viewport and usable with mobile keyboard. | Data stable; clipping/keyboard issue unverified. `MapModernTopBar.tsx:195-226,256-...`; `useMapInstance.ts:385-417`. |
+| I27 | Click chooser member closes popup and selects business; it is excluded from cluster set and promoted to selected pane. | Promote one result, preserve other members. | Coordinated; selected drawer/card issue remains. `useMapPinsClustering.ts:1015-1019,1122-1131,915-978`. |
+| I28 | Select another pin replaces current selection, setter resets expanded state, camera recenters. | Show one selected detail surface. | **Conflict; prior screenshot-confirmed BUG-VISUAL-01.** `useMapState.ts:27-33`; pins hook `915-978`; `InteractiveMap.tsx:423-446`. |
+| I29 | Locate moves camera but does not clear selected business; its card may remain offscreen. | Clarify whether selection remains when camera relocates. | Missing product state/unclear intent. `useMapGeolocation.ts:63-76`; pins hook `555-613,915-978`. |
+| I30 | Resize preserves React selection and invalidates map without pan; no selected-card resize handling. | Keep card and drawer usable on mobile. | Visual fit cannot be proven without browser. `useMapInstance.ts:385-417`; `InteractiveMap.tsx:423-446`. |
+| I31 | Cluster chooser member click closes popup then sets selection. | Close chooser and promote chosen result. | Explicitly coordinated. `useMapPinsClustering.ts:1111-1134,1122-1131,915-978`. |
+| I32 | Locate changes camera; groups recalculate from new bounds/projected points. | Clusters dissolve/reform at new position. | Expected; I02 applies across zoom 15. `useMapGeolocation.ts:63-76`; pins hook `1021-1026,1280`. |
+| I33 | Resize refreshes bounds; grouping recomputes. `inViewBusinesses` is a fresh array each run, so identity cache likely misses. | Recluster in new screen geometry. | Correct output path, avoidable regrouping cost (unmeasured). `useMapPinsClustering.ts:1021-1026,1280`. |
+| I34 | Locate does not close popup/sheet. | Keep relevant sheet; close/re-anchor map popup if anchor moves away. | Popup risk suspected, sheet policy unclear. `useMapGeolocation.ts:63-76`; pins hook `1111-1131`; `InteractiveMap.tsx:423-482`. |
+| I35 | Resize invalidates Leaflet while React overlays persist. | Reflow overlays and keep controls reachable. | State persists; clipping unverified. `useMapInstance.ts:385-417`; `InteractiveMap.tsx:423-482`. |
+| I36 | GPS completion flies to zoom 17 while resize/orientation invalidation runs separately. | Apply final camera using post-rotation viewport dimensions. | No explicit exclusion; timing unverified. `useMapGeolocation.ts:63-76`; `useMapInstance.ts:385-417`. |
 
-#### السيناريو 1: تطبيق فلتر ثم التصغير لمستوى المدينة (Filter applied, then zoom out)
-- **الكود المسؤول:** `useMapPinsClustering.ts:877-888, 1014-1018`.
-- **ما يحدث كودياً:** عند اختيار منطقة محددة (مثل منطقة "ح") وتطبيق تصنيف، ثم قيام المستخدم بالتصغير اليدوي للوصول إلى زووم 13 لمشاهدة كامل حدائق الأهرام، تظل قيمة `effectiveSelectedZone` تساوي `"ح"`. وبسبب السطر 884، تستمر دالة `filterBusinessesForMap` في حجب كافة أنشطة المناطق الأخرى ("أ"، "ب"، "ج"... إلخ). تظهر منطقة "ح" ممتلئة بالدبابيس بينما تظل باقي المدينة بأكملها صحراء بيضاء جرداء.
-- **ما ينبغي أن يحدث:** عند تجاوز عتبة التصغير لعموم المدينة (< 14.5)، يجب إما توسيع نطاق الرؤية تدريجياً لشمول أنشطة المدينة بالتصنيف المحدد، أو تقديم شارة تفاعلية واضحة تنبه المستخدم بأن الخريطة مقيدة بنطاق المنطقة المختارة مع زر سريع لفك التقييد.
+## 3. Camera ownership and jumps
 
-#### السيناريو 2: اختيار نتيجة بحث بينما يحجبها الفلتر النشط (Search result selected while filter hides it)
-- **الكود المسؤول:** `MapModernTopBar.tsx:87`, `useMapPinsClustering.ts:258-271`.
-- **ما يحدث كودياً:** إذا كان المستخدم قد اختار فلتر تصنيف "مطاعم"، ثم توجه لصندوق البحث وكتب "صيدلية ألفا":
-  1. في `MapModernTopBar.tsx:87`: يقوم الكود بفحص `if (!matchesCategoryFilter(b, categoryFilter)) return false;`، مما يؤدي إلى استبعاد "صيدلية ألفا" من قائمة الاقتراحات المنسدلة نهائياً!
-  2. إذا ضغط المستخدم زر البحث (Enter): لا يجد الكود أي نشاط مطابق، ويظهر صندوق نصي باهت: *"لم نجد نتائج مطابقة لـ صيدلية ألفا"*.
-  3. إذا تم تمرير النشاط عبر رابط خارجي، يقوم `useMapPinsClustering:262` برصد عدم تطابق التصنيف فوراً ويستدعي `setSelectedBizRef.current(null)` ليلغي اختيار النشاط ويمحوه من الواجهة!
-- **ما ينبغي أن يحدث:** يجب أن يتمتع البحث الشامل بالسيادة وتجاوز الفلاتر المحلية المسبقة (Filter Override)، بحيث يؤدي البحث الصريح عن صيدلية إلى فك فلتر المطاعم تلقائياً والانتقال للنشاط المطلوب مع إشعار بصري للمستخدم.
+| Trigger | Actual camera behavior | Assessment |
+|---|---|---|
+| Initial view | `fitBounds(HADAYEK_VIEW_BOUNDS, maxZoom:14.5, animate:false)`; stores fitted center/zoom. | Symmetric 12 px fit padding is not aware of mobile search bar/drawer; visual result unverified. `useMapInstance.ts:253-269`. |
+| External coordinates | Updates stored lat/lng and `liveCenterRef`; only picker flies. | View mode does not snap on every parent prop update. `useMapInstance.ts:72-93`. |
+| Zone select/clear | Planner flies to bounds max 16.5; clear flies to fixed centroid/zoom14. Intermediate pin refresh suppressed until moveend +160 ms. | Intended single planner for zones; can interrupt another independent camera effect. `useMapPinsClustering.ts:414-535,218-238`; `cameraPlanner.ts:30-82`. |
+| Business select | Pans at overview scale or flies to local scale; deselect preserves current user-panned camera. | Good explicit user-autonomy comment. Saved preselection center is not restored in inspected path. `useMapPinsClustering.ts:555-613`. |
+| Expanded card | Calls `flyTo` 17.5; selection effect can also evaluate on expanded-state change. | Possible double/competing animation; suspected, test in browser. `useMapPinsClustering.ts:568-613,943-952`; planner `116-145`. |
+| Building/route | Independent effects fly to building (max current/17) or route bounds (max16.5). | Multiple camera writers exist outside the planner; simultaneous prop updates may make final position effect-order dependent. Suspected. `useMapPinsClustering.ts:651-678,680-750`; planner comment `cameraPlanner.ts:1-14`. |
+| Search/locate | Picker results fly to zoom18; GPS final fix to zoom17; browse business suggestion invokes selection camera. | No shared pending-camera priority; BHV-06 and I25. `useMapInstance.ts:183-199`; `useMapSearch.ts:34-83`; `useMapGeolocation.ts:63-99`. |
+| Interruption/reset | Dragstart stops active Leaflet transition. Reset flies to parent `lat/lng` at zoom16. | Drag does not cancel async locate not yet delivered. Reset is prop-coordinate based. `useMapInstance.ts:299-302,436-441`. |
 
-#### السيناريو 3: اختفاء الدبوس المختار أو ابتلاعه عند تغير الزووم (Selected pin disappears or gets clustered)
-- **الكود المسؤول:** `useMapPinsClustering.ts:1020, 1075, 1197`.
-- **ما يحدث كودياً:** النشاط المختار `selectedBiz` لا يتم استثناؤه من مصفوفة `sortedBusinesses` التي تدخل خوارزمية التجميع المكاني `groupNearbyActivities`.
-  - النتيجة: عند التصغير، يدخل النشاط المختار في حساب التجمع، ويقوم الكود برسم علامة تجمع `clusterMarker` (مثل: "3 أنشطة متقاربة") على مسطح `pinsPane`، وفي نفس الوقت يرسم كارت النشاط المختار على مسطح `selectedPinPane` فوق التجمع مباشرة!
-  - يتسبب هذا في تداخل طبقات DOM متنافسة، حيث تتلقى كلتا الطبقتين أحداث النقر وتتصادمان بصرياً.
-- **ما ينبغي أن يحدث:** استثناء النشاط المختار صراحة من مصفوفة التجميع (`sortedBusinesses.filter(b => b.id !== selectedBiz.id)`)، وتثبيت تمثيله المنفرد المرتفع على مسطح الاختيار دون أي تكرار.
+## 4. Rendering, z-order, and performance
 
-#### السيناريو 4: مسح الفلتر أثناء فتح نافذة تجمع منبثقة (Filter cleared while a cluster popup is open)
-- **الكود المسؤول:** `useMapPinsClustering.ts:1044-1050, 1100-1115`.
-- **ما يحدث كودياً:** عندما يفتح المستخدم نافذة بوب آب التجمع المنبثقة (`marker.bindPopup(list).openPopup()`)، ثم يضغط على "مسح الفلاتر" من البار العلوي:
-  1. يدخل الكود في المسار السريع `if (filterChanged)` ويستدعي `clusterLayer.clearLayers()`.
-  2. يتم حذف علامة التجمع من الطبقة، لكن نافذة الـ Popup المفتوحة تظل عالقة كعنصر DOM يتيم على مسطح `popupPane` في Leaflet لأن الكود لم يستدعِ `map.closePopup()`.
-  3. إذا نقر المستخدم على أي زر داخل هذه القائمة العالقة، يتم تفعيل `setSelectedBiz` لنشاط تم إلغاء فلتره لتوه، فيقوم مراقب الفلاتر بإلغائه في الفريم التالي مسبباً قفزة ارتجاجية في الكاميرا.
-- **ما ينبغي أن يحدث:** استدعاء صريح لـ `map.closePopup()` فور تغير الفلاتر لتنظيف أي نوافذ منبثقة معلقة.
+- Zone/category filter changes close popup, clear layer groups/registries, then progressively add work; pan/zoom/search use incremental stale-marker pruning and identity retention. Four groups per frame / 3.5 ms cap. `useMapPinsClustering.ts:1036-1071,1086-1136`; `progressiveWork.ts:1-25`.
+- Marker registries retain Leaflet marker identity when icon key matches; selected marker is independently updated. Hook’s inline registry path coexists with exported `reconcileMarkerRegistry`; inventory §2 notes that utility is not the production implementation. `markerReconciliation.ts:19-33,42-89`; pins hook `1181-1229`.
+- Pane ordering: districts 360, labels 460, ordinary pins 600, selected pane 700; cluster z-index offset 600, cards 300, dots 100, selected marker offset 1200. Selection should visually dominate ordinary pin layer. `useMapPinsClustering.ts:280-300,1102-1135,1213-1218,968-975`.
+- Selected marker is excluded from clusters and separate from background rendering. Prior inventory reports double display of selected marker + drawer. `useMapPinsClustering.ts:1015-1019,915-978`; `InteractiveMap.tsx:423-446`.
+- Grouping cache compares `items` by reference, but `inViewBusinesses` is newly filtered on each effect run, so it is unlikely to hit; repeated grouping is a performance risk, not a measured slowdown. `useMapPinsClustering.ts:1021-1026`; `spatialActivityGroups.ts:5-31`.
+- No duplicate-marker or flicker was observed. Filter rebuild plus staggered progressive insertion could cause a brief transition, but that visual symptom is **unproven** and requires a browser recording.
 
-#### السيناريو 5: البحث النصي ثم تحريك الخريطة (Search then pan: does result set silently change?)
-- **الكود المسؤول:** `useMapPinsClustering.ts:1020, 1148-1153`.
-- **ما يحدث كودياً:**
-  - في المستوى العام (< 15.5): يحدد الكود أول 3 أنشطة فقط في مصفوفة `inViewBusinesses` لتحصل على الكروت الأفقية الكبيرة (`overviewCardsCount < 3`).
-  - عند قيام المستخدم بسحب الخريطة (Pan)، تتغير حدود الرؤية `bounds`، مما يؤدي لدخول أنشطة جديدة وخروج أنشطة قديمة من المصفوفة.
-  - النتيجة: النشاط الذي كان معروضاً ككارت أفقي كبير يتقلص فجأة وبشكل صامت ليصبح نقطة صغيرة (Pindot)، بينما يتحول نشاط آخر كان نقطة إلى كارت كبير بمجرد دخوله مجال الرؤية، مما يربك ذاكرة المستخدم البصرية (Visual Whiplash).
-- **ما ينبغي أن يحدث:** تثبيت تصنيف الكروت الأفقية الثلاثة الأبرز استناداً إلى الترتيب القطعي العام لكامل المدينة أو استعلام البحث، وليس استناداً إلى الصدفة المكانية لحدود البكسل أثناء السحب.
+## 5. Async race checks
 
----
+| Path | Guard | Result |
+|---|---|---|
+| Picker place search | 400 ms debounce and request id; stale response ignored; timeout canceled on clear/unmount. | Race guarded; no abort of in-flight request but stale data is discarded. `useMapSearch.ts:17-32,34-77,79-95`. |
+| GPS | Clears old watch/timer; best-accuracy sample; finalize-once flag. | Internal result guarded; camera intent after user pan is not. `useMapGeolocation.ts:28-44,46-145`. |
+| Topbar building lookup | Request id gates valid successive requests; clearing input returns before incrementing/invalidation. | Pending request can repopulate hidden coordinate state after clear; no rendered target without active zone+building is proven. `MapModernTopBar.tsx:101-120`; target derivation `MapView.tsx:147-161`. |
+| Progressive work | RAF cancellation on dependencies/gesture; next settled viewport starts a new run. | No out-of-order renderer callback found. `progressiveWork.ts:13-25`; `useMapPinsClustering.ts:1230-1287`. |
+| Browse search vs zone | Candidate filter omits zone; post-selection effect validates it. | Visible selection can be immediately cleared: BHV-03. `MapModernTopBar.tsx:81-94,135-142`; `useMapPinsClustering.ts:259-273`. |
 
-## 3. تدقيق منطق الكاميرا وحركاتها (Camera Logic & Motion Audit)
+## 6. Findings
 
-### سجل محركات حركة الكاميرا في المنظومة (The 17 Camera Movers):
+Severity: High = wrong entities/state can dominate map; Medium = common interaction loses/contradicts context; Low = limited UX/debt. Classification uses requested (a) bug, (b) UX flaw, (c) architectural debt, (d) missing state. All findings are **from code only** unless explicitly stated.
 
-| # | الموضع في الكود | الحدث / المحفز (Trigger) | دالة الحركة المنفذة | الإحداثيات والزووم المستهدف | التقييم الهندسي والأثر الجانبي |
-|---|---|---|---|---|---|
-| 1 | `useMapInstance.ts:88` | تغير إحداثيات Props في وضع `picker` | `map.flyTo` | `[lat, lng]`, زووم 17 | سليم؛ خاص بوضع تحديد الموقع. |
-| 2 | `useMapInstance.ts:193` | استدعاء `updateSelectedPosition` مع `flyTo=true` | `map.flyTo` | `[newLat, newLng]`, زووم مخصص أو 17 | سليم لمنتقي الموقع. |
-| 3 | `useMapInstance.ts:257` | أول تحميل للخريطة في وضع `view` | `map.fitBounds` | `HADAYEK_VIEW_BOUNDS`, أقصى زووم 14.5 | ممتاز؛ تم إلغاء الحركة لمنع الوميض الأولي. |
-| 4 | `useMapInstance.ts:424` | أزرار التحريك الاتجاهي (أسهم البان) | `map.panBy` | إزاحة 140 بكسل بالاتجاه المطلوب | سليم؛ استجابة ناعمة وسريعة. |
-| 5 | `useMapInstance.ts:428` | زر التكبير (+) | `map.zoomIn` | خطوة 0.5 زووم | سليم. |
-| 6 | `useMapInstance.ts:429` | زر التصغير (-) | `map.zoomOut` | خطوة 0.5 زووم | سليم. |
-| 7 | `useMapInstance.ts:434` | زر إعادة ضبط الموضع (Reset Button) | `map.flyTo` | `[lat, lng]`, **زووم 16** | **(b) UX Flaw:** تعارض؛ يقفز لزووم 16 بينما العرض العام للمدينة يفترض زووم 14! |
-| 8 | `useMapPinsClustering.ts:503` | اختيار منطقة سكنية من الفلاتر | `map.flyToBounds` | مضلعات المنطقة، أقصى زووم 16.5 | ممتاز؛ رحلة بارابولية انسيابية مريحة للعين. |
-| 9 | `useMapPinsClustering.ts:524` | إلغاء اختيار المنطقة (العودة للمدينة) | `map.flyTo` | `[29.9683, 31.1002]`, زووم 14 | ممتاز ومطابق للمواصفات. |
-| 10 | `useMapPinsClustering.ts:565` | **إلغاء تحديد نشاط تجاري (Deselect Biz)** | `map.flyTo` | `preSelectedStateRef` السابق | **(a) Bug & (b) Flaw حاد:** قفزة قسرية للخلف تلغي تحريك واستكشاف المستخدم اليدوي! |
-| 11 | `useMapPinsClustering.ts:606` | اختيار نشاط تجاري في المستوى العام (<= 15) | `map.panTo` | `[lat - offset, lng]` مع ثبات الزووم | ممتاز؛ تمركز هادئ مع الحفاظ على منظور المدينة. |
-| 12 | `useMapPinsClustering.ts:614` | اختيار نشاط تجاري في المستوى المحلي (> 15) | `map.flyTo` | `[lat - offset, lng]`, زووم 17 | ممتاز؛ تمييز النشاط دون حجب بالدرج السفلي. |
-| 13 | `useMapPinsClustering.ts:683` | تحديد عمارة سكنية بدقة `targetBuilding` | `map.flyTo` | إحداثيات العمارة، زووم 17 كحد أدنى | سليم ومطابق لتجربة البحث المساحي. |
-| 14 | `useMapPinsClustering.ts:758` | تفعيل مسار ملاحة داخلي `activeRoute` | `map.flyToBounds` | حدود نقاط المسار، أقصى زووم 16.5 | ممتاز؛ تأطير المسار بالكامل على الشاشة. |
-| 15 | `useMapPinsClustering.ts:954` | التحول من كارت المعاينة للكارت الموسع (State 1 -> 2) | `map.flyTo` | إحداثيات النشاط، زووم 17.5 | انسيابي ومطابق لتجربة الاستكشاف المتدرج. |
-| 16 | `useMapPinsClustering.ts:1098` | نقر تجمع أنشطة متباعدة | `map.flyToBounds` | إحداثيات الأنشطة، زووم +2 | سليم؛ يفكك التجمع تدريجياً. |
-| 17 | `useMapGeolocation.ts:75` | التقاط موقع الـ GPS عبر الأقمار الصناعية | `map.flyTo` | إحداثيات المستخدم، **زووم 18.0** | **(b) UX Flaw:** قفزة تكبير حادة جداً (18) تسبب ضبابية البلاطات وتفقد المستخدم اتجاهه العام. |
+### BHV-01 — Zoom-dependent culling uses a stale memoized business set
 
----
+- **Class/severity:** (a) bug; High. **Status:** from code only.
+- **Repro:** Select zone at zoom >=15 then zoom below 15; or select zone below 15 then zoom above 15.
+- **Expected:** Recompute zone eligibility on settled zoom and coordinate the 15/15.5 LOD boundary.
+- **Actual/symptom:** Renderer rereads live zoom on viewport refresh, but `visibleBusinesses` memo does not depend on zoom/viewport revision. Filter helper receives zoom only when memo runs. City-wide eligibility may remain after zooming in, or zone-only eligibility after zooming out; likely visible symptom is pins from the wrong zones appearing or disappearing.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:869-883,1003-1013,1242-1243`; `src/utils/hadayekZoneHelper.ts:269-294`.
+- **Inventory link:** §3 threshold conflict; §4.4–4.5.
 
-### الفحص التفصيلي لمشاكل الكاميرا والـ Viewport:
+### BHV-02 — Choosing search suggestion clears the query that keeps surrounding pins visible
 
-#### 1. خلل الارتداد العكسي القسري للكاميرا (The Pre-Selected Snapping Trap):
-- **الدليل:** `useMapPinsClustering.ts:561-574`.
-- **الآلية:** عندما يختار المستخدم نشاطاً، يحفظ الكود موقع الكاميرا وزوومها في `preSelectedStateRef`. فإذا قام المستخدم بسحب الخريطة واستكشاف منطقة أخرى بعيدة، ثم نقر على خلفية الخريطة لإغلاق الكارت المفتوح، ينفذ الكود فوراً:
-  ```ts
-  map.flyTo(preSelectedStateRef.current.center, preSelectedStateRef.current.zoom, { duration: 0.6 });
-  ```
-- **التشخيص:** **(a) Bug مؤكد مخبرياً.** تم إثباته في اختبار المتصفح العملي؛ حيث قفزت الكاميرا قسراً وأعادت المستخدم إلى إحداثياته القديمة متجاهلة استكشافه الجديد بالكامل.
+- **Class/severity:** (a) bug; Medium. **Status:** from code only. Prior inventory §5 Chain C labels its blank-map flash confirmed; not reproduced here.
+- **Repro:** With category `all`, type business name and select its suggestion.
+- **Expected:** Keep the selected item and nearby search context visible.
+- **Actual/symptom:** Handler clears search; renderer sees neither category nor search and clears background layers. Dedicated selected marker/drawer remains, so user loses surrounding pins (not all map elements).
+- **Evidence:** `src/components/map/MapModernTopBar.tsx:135-142`; `src/components/InteractiveMap.tsx:330-333`; `src/components/map/hooks/useMapPinsClustering.ts:991-1001,915-978`.
+- **Inventory link:** §5 Chain C.
 
-#### 2. خطأ تبديل محاور هوامش الرؤية (Inverted Viewport Padding Bug):
-- **الدليل:** `cameraPlanner.ts:153-167`.
-- **السطر:**
-  ```ts
-  159: paddingTopLeft: [20, 95], // Room for floating search bar
-  160: paddingBottomRight: [hasBottomDrawer ? 165 : 45, 20], // Room for bottom drawer
-  ```
-- **الخلل الهندسي:** في مكتبة Leaflet، يتم تعريف نقطة الحشو كـ `[x, y]` حيث `x` هو الإزاحة الأفقية من الحافة الجانبية، و `y` هو الإزاحة الرأسية من الحافة العلوية أو السفلية.
-- في السطر 160، تم وضع `165` في موضع `x` (الحافة اليمنى للشاشة) و `20` في موضع `y` (الحافة السفلية)!
-- **الأثر على المستخدم:** **(a) Bug & (b) UX Flaw.** عند فتح الدرج السفلي للنشاط، يتم حشو الخريطة بمقدار 165 بكسل من جهة اليمين، بينما تحصل الحافة السفلية على 20 بكسل فقط! النتيجة هي اختفاء الدبوس المختار خلف الدرج السفلي على شاشات الموبايل بدلاً من ظهوره بوضوح أعلاه!
+### BHV-03 — Search can offer a business that active zone filtering then rejects
 
-#### 3. المتغير الوهمي لرموز الانتقال (The Dead Transition Token):
-- **الدليل:** `cameraTransitionTokenRef` المعرف في `useMapPinsClustering.ts:185`.
-- يتم تزويد هذا العداد برمجياً في الأسطر 483، 563، 600، 952 (`++cameraTransitionTokenRef.current`).
-- **الخلل:** لا يوجد في كامل المشروع أي سطر كود يقوم بقراءة هذا المتغير أو مقارنته أو استخدامه لإلغاء الحركات القديمة! إنه **(c) Architectural Debt** متراكم من محاولات سابقة غير مكتملة لمنع تضارب حركات الكاميرا.
+- **Class/severity:** (a) bug and (d) missing state; Medium. **Status:** from code only.
+- **Repro:** Select zone A; search for a matching-category business in zone B; select it.
+- **Expected:** Scope suggestions to selected zone or clearly offer switching to city-wide search.
+- **Actual/symptom:** Suggestions use category/name/category/street, not zone. The selection cleanup effect clears the out-of-zone business, making the chosen result seem ignored.
+- **Evidence:** `src/components/map/MapModernTopBar.tsx:81-94,135-142`; `src/components/InteractiveMap.tsx:324,330-333`; `src/components/map/hooks/useMapPinsClustering.ts:259-273`.
+- **Inventory link:** §4.2 search state; §5 Chain C.
 
----
+### BHV-04 — Count pill and visible eligible-pin set use different zoom rules
 
-## 4. تدقيق تصيير ورسم الدبابيس والعلامات (Pin & Marker Rendering Audit)
+- **Class/severity:** (b) UX flaw and (c) architectural debt; Low. **Status:** from code only.
+- **Repro:** Select zone at overview zoom and compare result count/empty notice with map pins.
+- **Expected:** Count describes rendered eligible markers or is labeled as a different total.
+- **Actual/symptom:** Count calls `filterBusinessesForMap` without zoom; marker set passes live zoom. Helper changes zone treatment below 15, so count and map can disagree.
+- **Evidence:** `src/components/InteractiveMap.tsx:69-76,400-406`; `src/components/map/hooks/useMapPinsClustering.ts:869-883`; `src/utils/hadayekZoneHelper.ts:260-294`.
+- **Inventory link:** §2 duplicate filtering; §4.5.
 
-### الفحص الكودي لنظام التصيير:
+### BHV-05 — Clear-to-all path does not explicitly close cluster popup
 
-1. **الازدواجية والتكرار للنشاط المختار (Duplicate Selected Markers):**
-   - **الدليل:**
-     - في `useMapPinsClustering.ts:973`: يتم رسم النشاط المحدد على مسطح `selectedPinPane` (zIndex: 700).
-     - في `useMapPinsClustering.ts:1197`: مصفوفة `sortedBusinesses` في نفس الخطاف لا تستثني هذا النشاط، فتنشئ له ماركر ثانٍ على مسطح `pinsPane` (zIndex: 600) إما كنقطة Pindot أو ككارت عادي.
-   - **الأثر:** **(a) Bug & (c) Debt.** وجود علامتين في الـ DOM لنفس النشاط في نفس الإحداثيات الجغرافية بدقة، مما يهدر الذاكرة ويسبب تداخلاً في استجابة النقر.
+- **Class/severity:** (a) suspected bug; Medium. **Status:** suspected from code only.
+- **Repro:** Open cluster chooser, clear final category/search.
+- **Expected:** Close chooser when its cluster disappears.
+- **Actual/symptom:** No-filter early return clears layers and exits before later `filterChanged` branch calls `map.closePopup()`. Whether Leaflet closes popup on source removal is version-dependent; stale chooser over empty map is suspected.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:991-1001,1041-1056,1111-1131`.
+- **Inventory link:** §5 event map and Chain C.
+- **Verify:** Browser: open multi-item chooser, clear last filter/query, observe popup lifecycle.
 
-2. **التحديث المتدرج وميزانية الفريم (60fps Progressive Rendering):**
-   - **الدليل:** `progressiveWork.ts:1-26` بالتكامل مع `useMapPinsClustering.ts:1070`.
-   - **التقييم:** تطبيق ممتاز ومبهر لمنع تجمد الواجهة (Jank-Free)؛ حيث يتم تقسيم معالجة الدبابيس بحد أقصى 4 عناصر في الفريم وبميزانية زمنية صارمة `<= 3.5ms` لكل RequestAnimationFrame، مما يضمن ثبات معدل 60 إطاراً بالثانية أثناء الرسم.
-   - **الخلل المصاحب:** السطر 1272 يرجع `isRenderingActivities: isRenderingActivitiesRef.current` وهو مجرد مرجع (Ref) لا يطلق إعادة تصيير للواجهة، مما يحرم الواجهة من إظهار مؤشر تحميل حقيقي أثناء استمرار تساقط الدبابيس.
+### BHV-06 — Pending GPS result may override a later user pan
 
-3. **حالة الوميض العنيف وتذبذب التجمعات (Cluster Grid Jitter):**
-   - **الدليل:** `useMapPinsClustering.ts:1022` و `spatialActivityGroups.ts:12`.
-   - خوارزمية التجميع تعتمد على شبكة بكسل مسطحة `Math.floor(point.x / 58)`. عند تحريك الخريطة بمقدار بكسل واحد فقط، تتغير خلية الشبكة لبعض الأنشطة على الحواف، فيتغير مفتاح التجمع `clusterKey`.
-   - النتيجة: يقوم الكود بحذف التجمع القديم بالكامل وإنشاء تجمع جديد مصحوباً بأنيميشن ارتداد الربيع (Spring Pop)، مما يجعل التجمعات تقفز وتهتز بشكل متكرر أثناء السحب الهادئ للخريطة.
+- **Class/severity:** (d) missing state and (b) UX flaw; Medium. **Status:** suspected from code only.
+- **Repro:** Press locate; pan before GPS fix; then allow callback.
+- **Expected:** Explicit arbitration: locate remains a pending command or user gesture cancels it.
+- **Actual/symptom:** Watch continues and final result flies to location at zoom17. `dragstart` stops only an already-running animation; no pending-locate gesture cancellation exists.
+- **Evidence:** `src/components/map/hooks/useMapGeolocation.ts:46-99,132-145`; `src/components/map/hooks/useMapInstance.ts:183-199,299-302`.
+- **Inventory link:** §4.4 viewport state; §5 events.
+- **Verify:** Delay permission/fix, pan while locating, then allow callback.
 
----
+### BHV-07 — Open cluster chooser may retain members after search narrows
 
-## 5. تدقيق سباقات التزامن والعمليات غير المتزامنة (Async Race Conditions)
+- **Class/severity:** (a) suspected bug and (d) missing popup validity state; Medium. **Status:** suspected from code only.
+- **Repro:** Open cluster chooser, narrow/clear query without changing category/zone.
+- **Expected:** Update chooser or close it if members are invalid.
+- **Actual/symptom:** Search changes eligible businesses, but popup close key checks only category/zone; marker reconciliation may remove cluster without explicit popup close. Leaflet behavior unverified.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:869-883,1036-1071,1111-1131`; `MapModernTopBar.tsx:81-94`.
+- **Inventory link:** §4.2 and §5 Chain C.
+- **Verify:** Change query while chooser open and inspect content/anchor.
 
-تم اكتشاف 4 سباقات زمنية غير متزامنة تؤثر على دقة الخريطة:
+### BHV-08 — Independent camera effects can override one another
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as المستخدم
-    participant Input as مدخل البحث / الخريطة
-    participant Async1 as العملية غير المتزامنة (طلب 1)
-    participant Async2 as العملية غير المتزامنة (طلب 2)
-    participant State as حالة التطبيق (State)
+- **Class/severity:** (c) architectural debt; possible (a) bug; Medium. **Status:** suspected from code only.
+- **Repro:** Change zone with route/business/building target in same update; or update route while selecting a business.
+- **Expected:** One shared camera planner chooses destination and cancels/queues other movement.
+- **Actual/symptom:** Zone, selected business, target-building and route effects each call `map.stop()` plus independent fly methods. Shared token is not an arbiter for every path; final camera may depend on effect order.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:474-535,555-613,651-678,680-750`; planner’s single-owner claim `src/components/map/utils/cameraPlanner.ts:1-14`.
+- **Inventory link:** §4 state map; §5 trigger chains.
+- **Verify:** Log camera calls while simultaneous props update.
 
-    User->>Input: إدخال سريع "10"
-    Input->>Async1: بحث مساحي لعمارة 10 (بطيء: 800ms)
-    User->>Input: تعديل فوري "20"
-    Input->>Async2: بحث مساحي لعمارة 20 (سريع: 150ms)
-    Async2-->>State: استجابة عمارة 20 (تثبيت إحداثيات 20)
-    Note over State: الخريطة تعرض عمارة 20 بنجاح
-    Async1-->>State: وصول متأخر لاستجابة عمارة 10!
-    Note over State: (Bug) إحداثيات عمارة 10 تكتب فوق 20 بالرغم من أن المستخدم طلب 20!
-```
 
-### تفصيل السباقات الزمنية الأربعة:
+- **Class/severity:** (b) UX flaw; Medium. **Status:** from code only.
+- **Repro:** Select a search suggestion with no category active.
+- **Expected:** Keep a useful surrounding result context until user dismisses selection.
+- **Actual/symptom:** Background pins clear when query clears; selected surface stays. Prior screenshot-confirmed duplicate drawer/card can compound the context loss.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:991-1001,915-978`; `src/components/InteractiveMap.tsx:423-446`; `src/components/map/hooks/useMapState.ts:27-33`.
+- **Inventory link:** §8 BUG-VISUAL-01 and §5 Chain C.
 
-1. **سباق العنونة الجغرافية المعكوسة (Geocoding Race):**
-   - **الدليل:** `useMapInstance.ts:201-203`.
-   - دالة `updateSelectedPosition` تستدعي `fetchLocationAddress(precisionLat, precisionLng)` دون وجود `AbortController` أو عداد تسلسلي للطلبات. إذا تحرك الدبوس مرتين متتاليتين واستجاب الطلب الأول بعد الثاني، تظهر للمستخدم تفاصيل عنوان النقطة السابقة الملغاة.
-2. **سباق إحداثيات العمارات في MapView:**
-   - **الدليل:** `MapView.tsx:109-114`.
-   - فحص `isMounted` يحمي فقط عند مغادرة الشاشة بالكامل، لكنه لا يحمي عند تغير المدخلات السريعة (`activeBuildingNumber`) أثناء بقاء المكون معروضاً، مما يسمح للنتيجة الأبطأ بالكتابة فوق الأحدث.
-3. **سباق مزامنة الفلاتر بين الـ URL والحالة الداخلية:**
-   - **الدليل:** `InteractiveMap.tsx:118-129` بالتكامل مع `MapView.tsx:120-128`.
-   - توجد 3 طبقات غير متزامنة للفلاتر: رابط المتصفح، حالة `MapView`، وحالة `InteractiveMap`. عند الضغط على زر الرجوع للخلف في المتصفح، تنفذ الـ `useEffect` بتسلسل متفاوت زمني يسبق فيه طيران الكاميرا تصفية البيانات أو العكس، مسبباً وميضاً واختفاءً مفاجئاً للدبابيس قبل هبوط الكاميرا.
-4. **سباق إخماد الكاميرا وحركات اللمس المتداخلة (Flight Settling vs Gesture):**
-   - **الدليل:** `useMapPinsClustering.ts:229-234, 1235-1241`.
-   - عندما تنتهي حركة الكاميرا، يبدأ مؤقت زمني مدته 160ms (`flightSettlingTimerRef`). إذا بدأ المستخدم في لمس وسحب الخريطة بعد انتهاء الطيران بـ 50ms، ينطلق حدث `dragstart` ويوقف الحركة. ولكن بعد 110ms ينفجر مؤقت الـ 160ms المجدول سابقاً ليقوم بـ `setViewportRevision(v => v + 1)` وتشغيل مجدول رسم الدبابيس في منتصف حركة إصبع المستخدم!
 
----
+- **Class/severity:** (b) UX behavior / intent ambiguity; Low. **Status:** from code only, not a confirmed bug.
+- **Repro:** Pan while a zone is selected, then clear zone.
+- **Expected:** Unclear: preserve user camera or return to overview; source explicitly picks overview.
+- **Actual/symptom:** Camera flies to fixed Hadayek centroid, zoom14. Business deselection, in contrast, explicitly keeps current pan position.
+- **Evidence:** `src/components/map/utils/cameraPlanner.ts:73-82`; `src/components/map/hooks/useMapPinsClustering.ts:521-530,560-565`.
+- **Inventory link:** §5 Chain A; §4.4.
 
-## 6. سجل الملاحظات والخلل السلوكي التفصيلي (Behavioral Findings Register)
 
-| المعرف (ID) | سيناريو وخطوات إعادة الإنتاج | السلوك الفعلي المرصود | السلوك المتوقع هندسياً | الدليل في الكود (File & Line) | التصنيف والشدة | الارتباط بجرد 01 | حالة التحقق |
-|---|---|---|---|---|---|---|---|
-| **BEH-01** | كتابة اسم محل محدد في البحث العام (مثل: "كرم الشام") والخريطة في العرض العام. | تختفي جميع الدبابيس عن الخريطة وتصبح بيضاء تماماً بالرغم من ظهور النتيجة بالاقتراحات والعداد! | ظهور دبوس المحل المبحوث عنه فوراً وتمركز الكاميرا عليه. | `useMapPinsClustering.ts:996`<br>`activitySearchIntent.ts:18` | **(a) Bug حاد** | ربط مباشر مع عيب الجرد 8.1 | **Confirmed (مثبت بالمتصفح)** |
-| **BEH-02** | اختيار نشاط، سحب الخريطة لاستكشاف حي آخر، ثم النقر على خلفية الخريطة لإلغاء التحديد. | الكاميرا تطير قسراً وترتد للخلف بسرعة نحو موضع ما قبل التحديد ملغية حركة المستخدم. | يغلق الكارت وتظل الكاميرا ثابتة في موضعها الحالي الذي اختاره المستخدم. | `useMapPinsClustering.ts:561-574` | **(b) UX Flaw حاد** | ربط مع جرد 8.2 | **Confirmed (مثبت بالمتصفح)** |
-| **BEH-03** | تطبيق فلتر تصنيف (مثل "مطاعم") ثم محاولة البحث عن صيدلية بالاسم. | حجب الصيدلية بالكامل من الاقتراحات وإظهار رسالة "لا توجد نتائج مطابقة". | تجاوز الفلتر المسبق تلقائياً لصالح استعلام البحث الصريح. | `MapModernTopBar.tsx:87` | **(b) UX Flaw & (a) Bug** | جدول الازدواجيات 2 | **Confirmed (مثبت بالمتصفح)** |
-| **BEH-04** | فتح درج النشاط المحدد على شاشات الموبايل الرأسية. | إزاحة الخريطة جانبياً لليمين بمقدار 165px وظهور الكارت أسفل الشاشة محجوباً بالدرج. | إزاحة الخريطة رأسياً لأعلى بمقدار 165px ليظهر الكارت فوق حافة الدرج بوضوح. | `cameraPlanner.ts:160` | **(a) Bug & (b) UX** | جرد مستويات التقريب 3 | **From Code Only** |
-| **BEH-05** | اختيار نشاط تجاري في منطقة مزدحمة بالأنشطة. | رسم نسختين من نفس الدبوس، أو ظهور كارت النشاط متداخلاً فوق علامة تجمع رقمي. | عزل النشاط المختار واستثناؤه الصريح من مصفوفة التجميع العادية. | `useMapPinsClustering.ts:1020, 1197` | **(a) Bug & (c) Debt** | جرد مسطحات Panes 4 | **Confirmed (مثبت بالمتصفح)** |
-| **BEH-06** | فتح قائمة تجمع محلات منبثقة ثم مسح الفلاتر من البار العلوي. | تظل نافذة البوب آب العائمة معلقة بدون دبوس حامل لها في الـ DOM. | إغلاق فوري لأي نوافذ منبثقة بمجرد تعديل أو مسح الفلاتر. | `useMapPinsClustering.ts:1044` | **(b) UX Flaw** | جرد معالجات الأحداث 5 | **From Code Only** |
-| **BEH-07** | سحب الخريطة أفقياً في المستوى العام للمدينة (زووم 14). | كروت الأنشطة الأفقية الثلاثة تتحول وتتبدل عشوائياً بين Pindot وكارت أثناء السحب. | ثبات الأنشطة المميزة الثلاثة استناداً لتقييم المدينة وليس إطار الرؤية العابر. | `useMapPinsClustering.ts:1148-1153` | **(b) UX Flaw** | جرد الأرقام السحرية 3 | **From Code Only** |
-| **BEH-08** | الضغط المتكرر على زر استكشاف العمارات بسرعة (عمارة 10 ثم 20). | احتمالية استقرار الخريطة على إحداثيات العمارة الأولى نتيجة سباق الاستجابة غير المتزامنة. | إلغاء الطلبات السابقة واعتماد إحداثيات الطلب الأخير فقط. | `MapView.tsx:109-114` | **(a) Bug (Race)** | جدول مصادر الحالة 4 | **From Code Only** |
-| **BEH-09** | محاولة البحث عن عمارة برقم "1" في منطقة "أ" من درج العمارة. | تطابق خاطئ يعرض كافة أنشطة حدائق الأهرام بسبب الفحص بـ `.includes('أ')`. | استخدام دوال الفحص المكاني الدقيقة `isBusinessInHadayekZone`. | `BuildingDetailDrawer.tsx:39-43` | **(a) Bug حاد** | جرد أدراج الخريطة 1.7 | **Confirmed (كودياً)** |
-| **BEH-10** | تغير مسافة الزووم بين 15.0 و 15.5. | تضارب سلوكي؛ مخطط الكاميرا يعتبرها منطقة محلية بينما يرسم المحرك دبابيس المستوى العام. | توحيد عتبة نظرة المدينة هندسياً في نقطة فاصلة واحدة (15.0). | `cameraPlanner.ts:55`<br>`useMapPinsClustering.ts:1016` | **(c) Debt & (b) Flaw** | جرد مستويات التقريب 3 | **From Code Only** |
+- **Class/severity:** (c) architectural debt; possible (a) bug if route is user-facing; Medium. **Status:** from code only.
+- **Repro:** Reach `directory-experience` map; compare category aliases and change area/search while selected.
+- **Expected:** If both maps are user-facing, maintain consistent category semantics and selection behavior.
+- **Actual/symptom:** Local `area/category/query/selected` state, exact string category match, and input changes clear selection. Gate directions invokes `onAction('directions')` without destination data (inventory suspected P11); product impact depends on route and callback wiring, not reviewed here.
+- **Evidence:** `src/directory-experience/map/MapScreen.tsx:13-46,53-55,79-117,279-286`.
+- **Inventory link:** §2 category matching; §6 P11.
 
----
+## 7. Coverage and confidence
 
-## 7. نتائج التحقق الميداني المباشر عبر المتصفح (Browser Live Reproduction Results)
+### Read
 
-تم تشغيل سيناريوهات الفحص التفاعلي عبر محرك المتصفح الفعلي (Playwright / Chromium) على المنفذ `5295` بأبعاد هاتف محمول `390x844`:
+- `docs/audit/01-map-inventory.md` in full.
+- `src/components/map/hooks/useMapPinsClustering.ts`: behavior-relevant ranges 1–210, 243–257, 259–273, 275–412, 414–613, 630–678, 680–750, 760–801, 869–1289. Not every line 614–629 was inspected.
+- `src/components/map/hooks/useMapInstance.ts`: initialization/prop coordinates, tile layer, lifecycle, camera controls and resize behavior (35–93, 95–181, 183–199, 218–340, 342–417, 419–471).
+- `src/components/InteractiveMap.tsx`: imports/props, state wiring, map hook setup, search/filter/drawer areas (1–55, 60–160, 162–209, 211–280, 282–350, 400–493). Lines 351–399 not read in detail.
+- `src/components/map/hooks/useMapState.ts` full; `src/components/map/utils/cameraPlanner.ts`, `markerReconciliation.ts`, `spatialActivityGroups.ts`, `progressiveWork.ts` full.
+- `src/components/map/MapModernTopBar.tsx` search/candidate/handler/overlay ranges 55–193, 195–226, 256–449; `src/components/views/MapView.tsx` 1–275.
+- `src/utils/hadayekZoneHelper.ts` filtering function 250–295 only; `src/components/map/hooks/useMapSearch.ts` and `useMapGeolocation.ts` full.
+- `src/directory-experience/map/MapScreen.tsx` relevant state/filter/query and gate ranges only; parallel route activation not traced.
 
-1. **التحقق من حالة الخريطة الأولية (Initial Map Render):**
-   - **المرصود فعلياً:** تم تسجيل `Initial activity pins count: 0`. أثبت المتصفح أن الخريطة تبدأ بـ 0 دبابيس على الإطلاق عند فتح الموقع حتى يتم تحديد تصنيف.
-2. **التحقق من خلل البحث عن نشاط بالاسم (BEH-01):**
-   - عند كتابة "كرم الشام" في صندوق البحث مع بقاء التصنيف العام `all`:
-     - قائمة الاقتراحات المنسدلة أظهرت نتيجة البحث: `Suggestion items: 1`.
-     - عدد الدبابيس المعروضة على الخريطة الفعلية: `Map pins visible: 0`.
-     - تم تأكيد الخلل: الخريطة تظل فارغة تماماً بالرغم من تعرف محرك البحث على النشاط ووجوده الفعلي في قاعدة البيانات.
-3. **التحقق من فلترة التصنيفات وتصادم المقاييس (BEH-03):**
-   - عند اختيار تصنيف "صيدلية": تحولت الصيدليات المتقاربة فوراً إلى تجمع عددي `Clusters: 1, Pins: 0`.
-   - عند محاولة كتابة "كرم الشام" أثناء تنشيط فلتر الصيدلية، انخفضت الاقتراحات إلى `0`، وتم حجب النشاط عن المستخدم بالكامل بالرغم من كونه يبحث عنه بالاسم الصريح.
-4. **التحقق من ثبات الكاميرا أثناء تغيير التصنيف:**
-   - ثبت بالمتصفح صحة سلوك `planCameraTransitionOnCategoryChange`؛ حيث لم تقفز الكاميرا عند تبديل التصنيف وظلت في مكانها، ولكن لأن الصيدليات تقع خارج المنظور الحالي، ظل الزائر يرى خريطة فارغة دون تحريك الكاميرا نحو أقرب صيدلية له.
+### Not read
 
----
+`src/components/map/badgeMarkers.ts`; `MapFloatingControls.tsx`, `MapHeaderBar.tsx`, `MapSearchBox.tsx`, `MapSelectedBusinessDrawer.tsx`, `BuildingDetailDrawer.tsx`, `InAppNavigationDrawer.tsx`; `leafletLoader.ts`, `districtLabelPosition.ts`; `directory-experience/map/GeographicCanvas.tsx`, `MapActivityCards.tsx`, `useMapViewport.ts`, `mapGeometry.ts`, `map.css`; data/taxonomy files, `geocoding.ts`, building-search and tile-preloader helpers, parent route registration, and runtime Leaflet popup behavior. Earlier inventory reports some interface-only knowledge; this audit did not re-read those modules. No asserted runtime symptom depends solely on their uninspected internals.
 
-## 8. بيان التغطية الهندسية ومستوى الثقة (Coverage Statement & Confidence Assessment)
+**Runtime coverage:** None. Source project resides outside current workspace path; no browser run or mobile viewport reproduction. All findings are “from code only” except the prior inventory’s screenshot-confirmed BUG-VISUAL-01, which is not independently reproduced here. Popup closure, mobile fit/clipping, animation interruption, flicker, and measured performance need manual verification.
 
-### الملفات التي تم تدقيقها بالكامل سطرًا بسطر (Fully Read & Traced):
-1. `src/components/map/hooks/useMapPinsClustering.ts` (1274 سطراً - المنطق الأساسي للتجميع والتصيير والكاميرا).
-2. `src/components/map/hooks/useMapInstance.ts` (468 سطراً - دورة حياة Leaflet ومحركات الحركة والبلاطات).
-3. `src/components/map/hooks/useMapState.ts` (89 سطراً - إدارة الحالة المحلية للفلاتر والتحديد).
-4. `src/components/map/hooks/useMapGeolocation.ts` (110 أسطر - طلب الـ GPS وحركة الكاميرا نحو المستخدم).
-5. `src/components/map/hooks/useMapSearch.ts` (104 أسطر - معالجة البحث في وضع picker).
-6. `src/components/map/utils/cameraPlanner.ts` (168 سطراً - منسق القرارات الحركية ومسارات الطيران البارابولي).
-7. `src/components/map/utils/spatialActivityGroups.ts` (33 سطراً - خوارزمية التجميع المكاني المبنية على مسافة البكسل).
-8. `src/components/map/utils/progressiveWork.ts` (28 سطراً - مجدول الـ 60fps).
-9. `src/components/map/utils/leafletLoader.ts` (85 سطراً - محمل السكربت الديناميكي).
-10. `src/components/map/utils/markerReconciliation.ts` (90 سطراً - محرك مطابقة المفاتيح).
-11. `src/components/map/badgeMarkers.ts` (1133 سطراً - مصانع HTML للدبابيس الخمسة والتجمعات).
-12. `src/components/views/MapView.tsx` (274 سطراً - الغلاف العلوي ومزامنة الرابط والأدراج).
-13. `src/components/InteractiveMap.tsx` (474 سطراً - المكون الوسيط وحاوية الـ Canvas والأدراج).
-14. `src/components/PublicShowcase.tsx` (665 سطراً - محرك البحث وتصفية الدليل والتوجيه).
-15. `src/components/map/MapModernTopBar.tsx` (450 سطراً - صندوق البحث الحديث والفلاتر والاقتراحات).
-16. `src/components/map/MapSelectedBusinessDrawer.tsx` (174 سطراً - درج النشاط في State 1).
-17. `src/components/map/BuildingDetailDrawer.tsx` (209 أسطر - درج تفاصيل العمارة السكنية).
-18. `src/components/map/InAppNavigationDrawer.tsx` (340 سطراً - درج مسار الملاحة).
-19. `src/components/map/MapFloatingControls.tsx` (112 سطراً - أزرار التحكم الطافية).
-20. `src/utils/activitySearchIntent.ts` (21 سطراً - معالج النوايا الدلالية).
-21. `src/utils/directoryFiltering.ts` (88 سطراً - محرك الفلترة والتصفية الشامل).
-22. `src/utils/hadayekZoneHelper.ts` (367 سطراً - الفحص المكاني للمناطق).
-23. `src/utils/hadayekBuildingSearch.ts` (140 سطراً - فك ترميز أرقام العمارات).
+**Confidence:** High for BHV-01–04 source dataflow and selected-card state conditions; medium for independent camera writers and GPS precedence; low/suspected for popup lifecycle and mobile visual fit pending runtime checks. Coverage is broad across production filtering, rendering, camera and async hooks, but partial for visual factories, controls, data helpers and the parallel route.
+### BHV-09 — Mobile zone flight does not reserve drawer space
 
-### مستوى الثقة الهندسي (Confidence Assessment):
-- **مستوى الثقة:** **100% (قطعي ومثبت كودياً ومخبرياً)**.
-- تم إثبات كافة الظواهر بالأدلة القاطعة وأرقام الأسطر المحددة، وتم إعادة إنتاج أهم السيناريوهات عملياً في متصفح Chromium، مما يوفر رؤية مكتملة وجاهزة للمرحلة التالية من الإصلاح الهيكلي.
+- **Class/severity:** (b) UX flaw; Medium. **Status:** from code only.
+- **Repro:** At mobile viewport, select a district while the selected-business drawer is open.
+- **Expected:** The destination district is framed in the visible map area, accounting for the bottom drawer.
+- **Actual/symptom:** Zone flight always calls the padding helper with `hasBottomDrawer=false`, so it reserves 45px rather than the helper's 165px bottom inset; district focus may sit behind the drawer.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:487-488,503-519`; `src/components/map/utils/cameraPlanner.ts:158-171`.
+- **Inventory link:** §3 camera padding utility and §5 camera transitions.
 
----
-**نهاية تقرير تدقيق سلوك ومنطق تفاعل الخريطة (02-map-behavior.md).**
+### BHV-10 — Independent camera effects can cancel or replace each other
+
+- **Class/severity:** (c) architectural debt; possible (b) UX flaw; Medium. **Status:** suspected from code only.
+- **Repro:** Change selected zone while a building target/route is also updated, or click a cluster during another active flight.
+- **Expected:** One ordered camera intent should own movement and resolve competing targets.
+- **Actual/symptom:** Zone, business, building, and cluster handlers independently call `map.stop()` and start their own flights. The shared camera token is incremented but has no read sites, and cluster/building flights do not use the same flight-marking lifecycle; the later command can cancel/replace the earlier movement.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:186-194,483-535,555-613,671-677,1111-1115`; token writes at 485, 592, 947 and no reads; `cameraPlanner.ts:1-14`.
+- **Inventory link:** §5 Trigger Chains A/D and §6 P1/P10.
+- **Verify:** Trigger overlapping transitions during an active animation and record final camera center/zoom.
+
+### BHV-11 — Build search requests have no latest-request guard
+
+- **Class/severity:** (a) suspected bug / (d) missing state; Medium. **Status:** suspected from code only.
+- **Repro:** Submit building lookup A, then lookup B before A's exact-coordinate promise resolves; reverse the completion order.
+- **Expected:** The last submitted building remains the active target, and loading remains active until all current work completes.
+- **Actual/symptom:** Each `handleSelectBuildingItem` awaits exact coordinates then fallback, with no generation ID/cancellation. A late earlier completion can call `onSelectBuilding` after the newer one and replace its target; the older `finally` may clear the spinner while newer work is pending. MapView's separate coordinate effect has a request ID guard, but does not guard this top-bar callback path.
+- **Evidence:** `src/components/map/MapModernTopBar.tsx:113-132,145-159`; `src/components/views/MapView.tsx:101-120`.
+- **Inventory link:** §2 building lookup duplicate callers/no shared cache.
+- **Verify:** Delay exact lookup responses and return them out of order.
+
+### BHV-12 — Active selection remains geographically offscreen after user pans
+
+- **Class/severity:** (b) UX flaw / (d) missing state; Low. **Status:** from code only.
+- **Repro:** Select a business and pan to a distant part of Hadayek.
+- **Expected:** Either keep selection in view, dismiss the map card, or transition it to an explicitly anchored sheet state.
+- **Actual/symptom:** Selection layer is excluded from normal viewport culling and is removed only when selection becomes null. Pan does not clear selection; the floating card/drawer can remain while its map anchor is beyond bounds.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:537-553,915-978,1015-1026`; `src/components/InteractiveMap.tsx:423-445`.
+- **Inventory link:** §4.3 selected business state; §5 pan/moveend handlers.
+
+### BHV-13 — Category/zone change replaces all result markers before progressive redraw
+
+- **Class/severity:** (b) UX flaw / (c) architectural debt; Low to Medium at high result counts. **Status:** from code only; visual impact unverified.
+- **Repro:** Show many results, switch category or zone repeatedly.
+- **Expected:** New filter appears promptly without a visible empty or sparse interval, while invalid old pins disappear.
+- **Actual/symptom:** Filter identity change clears both result layers and registries synchronously, then schedules at most four marker additions per frame. The user may briefly see an empty/sparse layer; this report did not observe a recording.
+- **Evidence:** `src/components/map/hooks/useMapPinsClustering.ts:1036-1072,1086-1087,1235-1242`; `src/components/map/utils/progressiveWork.ts:1-27`.
+- **Inventory link:** §5 Chain B and §6 progressive-work notes.
+
+### BHV-14 — The parallel map uses different category and selection rules
+
+- **Class/severity:** (c) architectural debt; possible (a) bug if route is user-facing; Medium. **Status:** from code only.
+- **Repro:** Reach the `directory-experience` map and compare an alias category with the Leaflet map; type in search while a place is selected.
+- **Expected:** If both routes are intended for users, matching category semantics and documented selection persistence.
+- **Actual/symptom:** This implementation matches exact category strings and clears selection when area/category/query changes; results may diverge from the alias-aware Leaflet map, and selected detail disappears during query edits.
+- **Evidence:** `src/directory-experience/map/MapScreen.tsx:13-46,53-55,79-117`; category predicate at lines 28-38.
+- **Inventory link:** §2 duplicate category filtering and §7 parallel implementation.
+
+## 7. Coverage and confidence
+
+### Read
+
+- `docs/audit/01-map-inventory.md` in full.
+- Production behavior paths: `src/components/map/hooks/useMapPinsClustering.ts` (camera, selection, building target, clustering, marker reconciliation and refresh); `useMapInstance.ts` (initialization, prop changes, controls, movement events and resize); `useMapState.ts`, `useMapSearch.ts`, `useMapGeolocation.ts`; `src/components/InteractiveMap.tsx`; `src/components/views/MapView.tsx`; parent search/filter wiring in `src/components/PublicShowcase.tsx`; `src/components/map/MapModernTopBar.tsx`; `cameraPlanner.ts`, `markerReconciliation.ts`, `spatialActivityGroups.ts`, `progressiveWork.ts`; `src/utils/hadayekZoneHelper.ts` filter implementation.
+- Parallel map: relevant filtering/selection sections of `src/directory-experience/map/MapScreen.tsx`.
+
+### Not read
+
+`badgeMarkers.ts`; `MapFloatingControls.tsx`, `MapHeaderBar.tsx`, `MapSearchBox.tsx`, `MapSelectedBusinessDrawer.tsx`, `BuildingDetailDrawer.tsx`, `InAppNavigationDrawer.tsx`; `leafletLoader.ts`, `districtLabelPosition.ts`; `directory-experience/map/GeographicCanvas.tsx`, `MapActivityCards.tsx`, `useMapViewport.ts`, `mapGeometry.ts`, `map.css`; taxonomy and map data files; geocoding/building lookup/tile-preloader helper internals; route activation for `directory-experience`; Leaflet runtime popup behavior. Relevant caller interfaces were traced where necessary, but these module internals were not reviewed.
+
+**Runtime coverage:** No browser run; desktop and mobile scenarios were not reproduced. All findings are **from code only** in this pass. The prior inventory §8 records screenshots for the duplicate selected card/drawer (BUG-VISUAL-01), but they were not independently reproduced here. Popup closure, clipping, perceived flicker, and measured performance need runtime verification.
+
+**Coverage:** intended zoom/LOD rules, scope filtering, the full interaction matrix, camera command paths, pin grouping/culling/reconciliation, async geocoding/GPS/building-search paths, responsive invalidation, and independent parallel map filtering.  
+**Confidence:** High for code-level state transitions, zoom thresholds, parent data flow and conditional rendering; medium for cross-effect timing; low/suspected for Leaflet popup teardown, visual mobile fit, GPS-vs-gesture result and actual flicker/performance.  
+
+**Read-only maintained: no application code changed. This report is the only file changed.**

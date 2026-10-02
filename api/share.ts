@@ -65,6 +65,13 @@ function getBaseTemplate(): string {
     } catch {}
   }
 
+  const indexPath = path.join(process.cwd(), 'index.html');
+  if (fs.existsSync(indexPath)) {
+    try {
+      return fs.readFileSync(indexPath, 'utf8');
+    } catch {}
+  }
+
   return '';
 }
 
@@ -72,11 +79,177 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const rawBizQuery = req.query.biz || req.query.id;
     const rawBiz = Array.isArray(rawBizQuery) ? rawBizQuery[0] : rawBizQuery;
+    const rawPageQuery = req.query.page;
+    const pageKey = Array.isArray(rawPageQuery) ? rawPageQuery[0] : (typeof rawPageQuery === 'string' ? rawPageQuery : '');
+
     const ALLOWED_HOSTS = ['www.dalilaak.com', 'dalilaak.com', 'dalilak.vercel.app', 'localhost:5173', '127.0.0.1:5173'];
     const reqHost = ((req.headers['x-forwarded-host'] as string) || req.headers.host || '').toLowerCase().trim();
     const host = ALLOWED_HOSTS.includes(reqHost) || reqHost.endsWith('.vercel.app') ? reqHost : 'www.dalilaak.com';
     const proto = (req.headers['x-forwarded-proto'] as string) === 'http' && host.includes('localhost') ? 'http' : 'https';
     const origin = `${proto}://${host}`;
+
+    // 🌐 Institutional & High-Intent Static Page Server-Side Rendering
+    const STATIC_PAGE_META: Record<string, { title: string; desc: string; path: string; heading: string }> = {
+      about: {
+        title: 'عن منصة دليلك ورسالتها الميدانية | منصة دليلك',
+        desc: 'الرؤية والرسالة المؤسسية لمنظومة دليلك لتنظيم وتوثيق الوصول إلى الخدمات والأنشطة في محافظات مصر.',
+        path: '/about',
+        heading: 'عن منصة دليلك ورسالتها الميدانية',
+      },
+      pricing: {
+        title: 'باقات النمو والتوثيق الميداني للأنشطة | منصة دليلك',
+        desc: 'اكتشف باقات توثيق واعتماد المحلات والشركات، الفواتير الإلكترونية، وبطاقات الدعم الميداني في منصة دليلك.',
+        path: '/pricing',
+        heading: 'باقات التوثيق والنمو الميداني في دليلك',
+      },
+      'for-business': {
+        title: 'أضف نشاطك التجاري مجاناً | منصة دليلك',
+        desc: 'سجّل محلك أو خدمتك في منصة دليلك المعتمدة مجاناً واحصل على توثيق لموقعك على خرائط Google وتواصل مباشر مع العملاء.',
+        path: '/for-business',
+        heading: 'سجّل نشاطك التجاري في منصة دليلك',
+      },
+      search: {
+        title: 'استكشف الأنشطة والخدمات المعتمدة | منصة دليلك',
+        desc: 'دليل المحلات والأنشطة والخدمات المعتمدة في حدائق الأهرام ومحافظات مصر. تفاصيل العناوين، أرقام التواصل وساعات العمل.',
+        path: '/search',
+        heading: 'دليل المحلات والأنشطة التجارية والخدمات المعتمدة',
+      },
+      map: {
+        title: 'الخريطة التفاعلية والمواقع الموثقة | منصة دليلك',
+        desc: 'استكشف المحلات والأنشطة والخدمات الميدانية القريبة منك على الخريطة الحية المعتمدة في حدائق الأهرام ومصر.',
+        path: '/map',
+        heading: 'الخريطة التفاعلية للأنشطة والخدمات الميدانية',
+      },
+    };
+
+    if (pageKey && STATIC_PAGE_META[pageKey]) {
+      const pageInfo = STATIC_PAGE_META[pageKey];
+      let pageTitle = pageInfo.title;
+      let pageDesc = pageInfo.desc;
+      let pageHeading = pageInfo.heading;
+
+      const rawCat = req.query.cat;
+      const catParam = Array.isArray(rawCat) ? rawCat[0] : (typeof rawCat === 'string' ? rawCat : '');
+      if (pageKey === 'search' && catParam) {
+        const catMap: Record<string, string> = {
+          food: 'المطاعم والكافيهات والمأكولات',
+          grocery: 'السوبر ماركت والبقالة والتموين',
+          health: 'العيادات والرعاية الصحية والصيدليات',
+          fashion: 'الملابس والأزياء والإكسسوارات',
+          electronics: 'الهواتف والإلكترونيات والكمبيوتر',
+          automotive: 'السيارات والمركبات وخدمات الصيانة',
+          'beauty-fitness': 'التجميل والعناية الشخصية واللياقة',
+          crafts: 'الحرف والورش والصيانة الفنية المنزلية',
+          home: 'الأثاث والديكور ومستلزمات المنزل',
+          'professional-services': 'الشركات والخدمات والمكاتب المهنية',
+        };
+        const catLabel = catMap[catParam] || decodeURIComponent(catParam);
+        pageTitle = `${catLabel} في مصر وحدائق الأهرام | منصة دليلك`;
+        pageDesc = `دليل شامل وموثق لـ ${catLabel} في حدائق الأهرام ومصر. عناوين دقيقة، أرقام تواصل، ساعات عمل ومواقع Google Maps.`;
+        pageHeading = `دليل ${catLabel} المعتمد`;
+      }
+
+      const canonicalPageUrl = `${origin}${pageInfo.path}`;
+      const ogImageUrl = `${origin}/og-image.jpg?v=2026_dalilak_v5_platform`;
+
+      const jsonLdData = {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebPage',
+            '@id': `${canonicalPageUrl}#webpage`,
+            url: canonicalPageUrl,
+            name: pageTitle,
+            description: pageDesc,
+            inLanguage: 'ar',
+            isPartOf: {
+              '@type': 'WebSite',
+              '@id': `${origin}/#website`,
+            },
+          },
+          {
+            '@type': 'BreadcrumbList',
+            '@id': `${canonicalPageUrl}#breadcrumb`,
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'منصة دليلك',
+                item: `${origin}/`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: pageHeading,
+                item: canonicalPageUrl,
+              },
+            ],
+          },
+        ],
+      };
+      const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(jsonLdData).replace(/</g, '\\u003c')}</script>`;
+
+      let template = getBaseTemplate();
+      if (!template) {
+        template = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${escapeHtml(pageTitle)}</title></head><body><div id="root"></div></body></html>`;
+      }
+
+      let html = template.replace(/(src|href)="\.\//g, '$1="/');
+
+      // Replace Meta Tags
+      html = html.replace(/<title>.*?<\/title>/gi, () => `<title>${escapeHtml(pageTitle)}</title>`);
+      html = html.replace(/<meta\s+name="title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="title" content="${escapeHtml(pageTitle)}" />`);
+      html = html.replace(/<meta\s+name="description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="description" content="${escapeHtml(pageDesc)}" />`);
+
+      // Open Graph Tags
+      html = html.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:title" content="${escapeHtml(pageTitle)}" />`);
+      html = html.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:description" content="${escapeHtml(pageDesc)}" />`);
+      html = html.replace(/<meta\s+property="og:url"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:url" content="${escapeHtml(canonicalPageUrl)}" />`);
+      html = html.replace(/<meta\s+property="og:image"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image" content="${escapeHtml(ogImageUrl)}" />`);
+      html = html.replace(/<meta\s+property="og:image:secure_url"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image:secure_url" content="${escapeHtml(ogImageUrl)}" />`);
+
+      // Twitter Tags
+      html = html.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:title" content="${escapeHtml(pageTitle)}" />`);
+      html = html.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:description" content="${escapeHtml(pageDesc)}" />`);
+      html = html.replace(/<meta\s+name="twitter:url"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:url" content="${escapeHtml(canonicalPageUrl)}" />`);
+      html = html.replace(/<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:image" content="${escapeHtml(ogImageUrl)}" />`);
+
+      // Canonical URL
+      html = html.replace(/<link\s+rel="canonical"\s+href=".*?"\s*\/?>/gi, () => `<link rel="canonical" href="${escapeHtml(canonicalPageUrl)}" />`);
+
+      // Inject JSON-LD
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `  ${jsonLdTag}\n</head>`);
+      }
+
+      // Pre-rendered crawler snapshot
+      const staticSnapshot = `
+  <div id="root">
+    <main class="dalilak-crawler-snapshot" dir="rtl" lang="ar" style="max-width: 900px; margin: 2rem auto; padding: 1.5rem; font-family: 'Cairo', system-ui, -apple-system, sans-serif; color: #0f172a; line-height: 1.6;">
+      <article>
+        <header style="border-bottom: 2px solid #f59e0b; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+          <h1 style="font-size: 1.85rem; font-weight: 900; margin: 0 0 0.5rem 0; color: #0f172a;">${escapeHtml(pageHeading)}</h1>
+          <p style="margin: 0.25rem 0; font-size: 0.95rem; color: #475569;">${escapeHtml(pageDesc)}</p>
+        </header>
+        <section style="margin-bottom: 1.5rem;">
+          <p>منصة دليلك هي الدليل المعتمد لاستكشاف وتوثيق المحلات والأنشطة التجارية والخدمات الميدانية في محافظات مصر.</p>
+          <p><a href="/search" style="color: #d97706; font-weight: bold; text-decoration: none;">انتقل إلى دليل الأنشطة والبحث المباشر</a></p>
+        </section>
+        <footer style="border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.85rem; color: #64748b;">
+          <p>منصة دليلك | الدليل المعتمد للأنشطة والخدمات الميدانية في مصر</p>
+        </footer>
+      </article>
+    </main>
+  </div>`;
+
+      if (html.includes('<div id="root"></div>')) {
+        html = html.replace('<div id="root"></div>', staticSnapshot);
+      }
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
+      return res.status(200).send(html);
+    }
 
     if (!rawBiz || typeof rawBiz !== 'string') {
       const template = getBaseTemplate();

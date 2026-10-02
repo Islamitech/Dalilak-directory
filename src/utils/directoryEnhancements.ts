@@ -142,11 +142,20 @@ export function updatePageMetadata(options: {
   title: string;
   description?: string;
   canonicalUrl?: string;
+  ogImage?: string;
 }): void {
   if (typeof document === 'undefined') return;
 
-  if (options.title && document.title !== options.title) {
-    document.title = options.title;
+  if (options.title) {
+    if (document.title !== options.title) {
+      document.title = options.title;
+    }
+    const metaTitle = document.querySelector('meta[name="title"]') as HTMLMetaElement | null;
+    if (metaTitle) metaTitle.content = options.title;
+    const ogTitle = document.querySelector('meta[property="og:title"]') as HTMLMetaElement | null;
+    if (ogTitle) ogTitle.content = options.title;
+    const twTitle = document.querySelector('meta[name="twitter:title"]') as HTMLMetaElement | null;
+    if (twTitle) twTitle.content = options.title;
   }
 
   if (options.description) {
@@ -158,8 +167,11 @@ export function updatePageMetadata(options: {
     }
     metaDesc.content = options.description;
 
-    let ogDesc = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null;
+    const ogDesc = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null;
     if (ogDesc) ogDesc.content = options.description;
+
+    const twDesc = document.querySelector('meta[name="twitter:description"]') as HTMLMetaElement | null;
+    if (twDesc) twDesc.content = options.description;
   }
 
   if (options.canonicalUrl) {
@@ -170,6 +182,21 @@ export function updatePageMetadata(options: {
       document.head.appendChild(canonical);
     }
     canonical.href = options.canonicalUrl;
+
+    const ogUrl = document.querySelector('meta[property="og:url"]') as HTMLMetaElement | null;
+    if (ogUrl) ogUrl.content = options.canonicalUrl;
+
+    const twUrl = document.querySelector('meta[name="twitter:url"]') as HTMLMetaElement | null;
+    if (twUrl) twUrl.content = options.canonicalUrl;
+  }
+
+  if (options.ogImage) {
+    const ogImg = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null;
+    if (ogImg) ogImg.content = options.ogImage;
+    const ogImgSec = document.querySelector('meta[property="og:image:secure_url"]') as HTMLMetaElement | null;
+    if (ogImgSec) ogImgSec.content = options.ogImage;
+    const twImg = document.querySelector('meta[name="twitter:image"]') as HTMLMetaElement | null;
+    if (twImg) twImg.content = options.ogImage;
   }
 }
 

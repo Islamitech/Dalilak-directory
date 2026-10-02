@@ -222,10 +222,12 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     if (selectedBiz) {
       const name = selectedBiz.nameAr || selectedBiz.nameEn || 'نشاط معتمد';
       const loc = [selectedBiz.city, selectedBiz.governorate].filter(Boolean).join(' - ') || 'مصر';
+      const primaryPhoto = selectedBiz.coverPhoto || (selectedBiz.photos && selectedBiz.photos.length > 0 ? selectedBiz.photos[0] : undefined);
       updatePageMetadata({
         title: `${name} | منصة دليلك المعتمدة`,
         description: selectedBiz.description || `${selectedBiz.category} في ${loc} - تواصل مباشر وتفاصيل الموقع الجغرافي على الخريطة المعتمدة.`,
         canonicalUrl: getPublicDirectoryUrl(selectedBiz),
+        ogImage: primaryPhoto,
       });
       return;
     }

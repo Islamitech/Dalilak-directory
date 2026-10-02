@@ -50,11 +50,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { path: '/pricing', lastmod: todayStr },
       { path: '/for-business', lastmod: todayStr },
       { path: '/about', lastmod: todayStr },
+      // Top category explorations
+      { path: '/search?cat=food', lastmod: todayStr },
+      { path: '/search?cat=grocery', lastmod: todayStr },
+      { path: '/search?cat=health', lastmod: todayStr },
+      { path: '/search?cat=automotive', lastmod: todayStr },
+      { path: '/search?cat=crafts', lastmod: todayStr },
+      { path: '/search?cat=electronics', lastmod: todayStr },
+      { path: '/search?cat=beauty-fitness', lastmod: todayStr },
+      { path: '/search?cat=fashion', lastmod: todayStr },
+      { path: '/search?cat=home', lastmod: todayStr },
+      { path: '/search?cat=professional-services', lastmod: todayStr },
+      // Key Hadayek Al-Ahram Gate explorations
+      { path: '/search?zone=%D8%A3', lastmod: todayStr },
+      { path: '/search?zone=%D8%A8', lastmod: todayStr },
+      { path: '/search?zone=%D8%AC', lastmod: todayStr },
+      { path: '/search?zone=%D8%AF', lastmod: todayStr },
     ];
 
     const urls: string[] = staticRoutes.map((r) => 
 `  <url>
-    <loc>${origin}${r.path}</loc>
+    <loc>${escapeXml(`${origin}${r.path}`)}</loc>
     <lastmod>${r.lastmod}</lastmod>
   </url>`
     );

@@ -111,6 +111,26 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/about",
+      "destination": "/api/share?page=about"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/api/share?page=pricing"
+    },
+    {
+      "source": "/for-business",
+      "destination": "/api/share?page=for-business"
+    },
+    {
+      "source": "/search",
+      "destination": "/api/share?page=search"
+    },
+    {
+      "source": "/map",
+      "destination": "/api/share?page=map"
+    },
+    {
       "source": "/biz/(.*)",
       "destination": "/api/share?biz=$1"
     },

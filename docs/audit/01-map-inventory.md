@@ -1,501 +1,543 @@
-# تقرير تدقيق الخريطة الشامل: الجرد وحصر التشابكات
-# Comprehensive Map Inventory & Entanglement Audit
+# 01 — Map Inventory & Entanglement Audit
 
-**التاريخ:** 29 سبتمبر 2026  
-**المشروع:** Dalilak Production Ecosystem (`Dalilak-directory_Production_Clean`)  
-**المسار المستهدف:** `docs/audit/01-map-inventory.md`  
-**طبيعة المهمة:** تدقيق تحليلي معماري وهندسي استقصائي كودي للقراءة فقط (Read-Only Code Audit)  
+**Produced:** 2026-10-02  
+**Auditor:** read-only AI agent — zero application code modifications  
+**Scope:** All files in `src/` that contribute to the map. `dist/` and `node_modules/` excluded.
 
 ---
 
-## ديباجة التدقيق والمنهجية المتبعة
+## 1. Complete File / Function / Component Inventory
 
-تم إجراء هذا التدقيق المعماري الدقيق عبر قراءة وتحليل الكود المصدري الفعلي سطرًا بسطر عبر كافة الوحدات والوحدات الفرعية المسؤولة عن الخريطة والتصفية والبحث والملاحة والبيانات الجغرافية في المشروع، وتجنب أي تخمين مبني على أسماء الملفات. 
+### 1.1 Entry Points & Views
 
-تم تصنيف جميع الملاحظات والنتائج هندسيًا وفق التصنيفات الإلزامية:
-- **(a) خلل برمجي (Bug)**: تعارض منطقي أو إجرائي يؤدي إلى سلوك غير صحيح أو اختفاء غير مقصود للبيانات.
-- **(b) عيب في تجربة المستخدم (UX Flaw)**: اهتزاز، ارتداد الكاميرا، ارتباك التفاعل الحركي، أو غياب التغذية الراجعة.
-- **(c) دين تقني ومعماري (Architectural Debt)**: تكرار المنطق في عدة مواضع، أكواد مهجورة (Dead Code)، ومسارات قديمة غير مستخدمة.
-- **(d) حالة مفقودة (Missing State)**: غياب حالة مشتركة موحدة أو تعارض مصادر الحقيقة بين واجهات متعددة.
+| File | Role |
+|------|------|
+| `src/components/views/MapView.tsx` | Production entry point. Owns `activeZoneLetter`, `activeBuildingNumber`, `exactBuildingCoords`. Renders `<InteractiveMap>`. Initializes zone from URL `?zone=` param. |
+| `src/components/InteractiveMap.tsx` | Central orchestrator. Instantiates all four map hooks, renders every overlay and bottom drawer. |
+| `src/directory-experience/map/MapScreen.tsx` | **Fully independent parallel implementation** — SVG/Canvas map active only when the `directory-experience` routing tree is active. |
+
+### 1.2 Map Hooks (`src/components/map/hooks/`)
+
+| Hook | Lines | Responsibility |
+|------|-------|----------------|
+| `useMapInstance.ts` | 473 | Leaflet lifecycle: init, tile layer, resize observer, pan/zoom controls, `liveCenterRef`. |
+| `useMapState.ts` | 89 | React state bucket: filters, selected biz/zone, UI flags, `isSelectedBizExpandedOnMap`. |
+| `useMapPinsClustering.ts` | 1290 | All marker rendering: district polygons, gates, clustering, route, building pin, selected card. |
+| `useMapSearch.ts` | 109 | Geocoding search (place names), 400 ms debounce, race-condition guard via `requestId`. |
+| `useMapGeolocation.ts` | 154 | GPS `watchPosition` convergence, accuracy circle, multi-sample best-position logic. |
+
+### 1.3 Map Utilities (`src/components/map/utils/`)
+
+| File | Role |
+|------|------|
+| `cameraPlanner.ts` | Decision engine: zone → `flyToBounds`, biz select → `flyTo`, category change → no-move. Exports `planCameraTransitionOnZoneChange`, `planCameraTransitionOnBusinessSelect`, `getVisualViewportPadding`. |
+| `markerReconciliation.ts` | `computeMarkerIconKey` + incremental marker registry diff (`reconcileMarkerRegistry`). |
+| `spatialActivityGroups.ts` | Screen-space grid clustering (`groupNearbyActivities`) and zoom-dependent card scale (`activityCardScale`). |
+| `progressiveWork.ts` | Frame-budget pin scheduler (`scheduleProgressiveWork`, ≤ 3.5 ms/frame, cancellable). |
+| `pinDispersal.ts` | `disperseCoincidentPins` + `disperseActivityCardsScreenSpace`. **Not imported anywhere in the production render path** — confirmed dead code. |
+| `leafletLoader.ts` | Dynamic `<script>` injection with retry on failure. |
+| `districtLabelPosition.ts` | Label placement geometry helper (not read in detail — low risk). |
+
+### 1.4 Map UI Components (`src/components/map/`)
+
+| Component | Role |
+|-----------|------|
+| `MapModernTopBar.tsx` | Unified search + filter bar (view mode). Handles building/business/category/zone live suggestions. |
+| `MapSelectedBusinessDrawer.tsx` | Bottom drawer shown in **State 1** (biz selected, floating card not yet expanded on map). |
+| `BuildingDetailDrawer.tsx` | Bottom drawer for a selected building number. |
+| `ZoneScopedSearchBar.tsx` | Building-number lookup within a zone; rendered as `children` inside `MapModernTopBar`. |
+| `MapSearchBox.tsx` | Search input — picker mode only (geocoding). |
+| `MapHeaderBar.tsx` | Filter controls for picker mode. |
+| `MapFooterBar.tsx` | Bottom navigation bar (imported but **not rendered** in `InteractiveMap`). |
+| `MapFloatingControls.tsx` | Zoom +/−, pan, tile-layer toggle buttons. |
+| `InAppNavigationDrawer.tsx` | Route/navigation drawer. |
+| `badgeMarkers.ts` | HTML factories for all pin/card types: `createCompactActivityPinHtml`, `renderUnifiedCompactCardHtml`, `createExpandedActivityCardHtml`, `createLightweightBadgeHtml`, `createCompactOverviewBadgeHtml`, `createCompactSelectedActivityCardHtml`, `createLightweightClusterHtml`, `createBuildingBadgeHtml`, `createNavigationPinHtml`, `attachCardDomListeners`. |
+| `types.ts` | `InteractiveMapProps` interface. |
+| `constants/mapConstants.ts` | `GOVERNORATE_COORDS`, `MAP_QUICK_CATEGORIES`, `EGYPT_POPULAR_LOCATIONS`, **exported** `escapeHtml`. |
+
+### 1.5 Business-Logic Utilities Used by the Map
+
+| File | Role |
+|------|------|
+| `src/utils/hadayekZoneHelper.ts` | `getBusinessHadayekZoneLetter`, `isBusinessInHadayekZone`, `filterBusinessesForMap`, `getAvailableQuickCategoriesInZone`. GIS polygon point-in-polygon primary, text fallback secondary. |
+| `src/utils/categoryMatcher.ts` | `matchesCategoryFilter`, `resolveCategorySelection`, `classifyBusinessCategory`, alias-expansion taxonomy engine. |
+| `src/utils/arabicSearch.ts` | `normalizeArabicText` (diacritics, alef, ya, ha unification). |
+| `src/utils/hadayekBuildingSearch.ts` | `parseHadayekBuildingAddress`, `normalizeBuildingQuery`. |
+| `src/utils/hadayekTilePreloader.ts` | `preloadHadayekTiles`, `cancelHadayekTilePreload`. |
+| `src/utils/geocoding.ts` | `searchPlacesInEgypt`, `parseLocationQuery`, `fetchLocationAddress`. |
+| `src/utils/imageOptimizer.ts` | `getOptimizedImageUrl`. |
+| `src/utils/categoryPhotos.ts` | `getCategoryFallbackCover`. |
+| `src/utils/directoryEnhancements.ts` | `getBusinessOpenStatus`, `getBusinessMapDetails`, `getSmartWhatsAppUrl`. |
+| `src/utils/activitySearchIntent.ts` | `parseActivitySearchIntent`. |
+
+### 1.6 Data Files Used by the Map
+
+| File | Purpose |
+|------|---------|
+| `src/data/hadayekDistrictsGeoData.ts` | GIS polygon data for 16 districts, `findDistrictForCoordinates`, `isPointInPolygon`. |
+| `src/data/hadayekAtlasData.ts` | Zone data, gate recommendations, `estimateBuildingCoordinates`, `searchBuildingCoordinatesExact`. |
+| `src/data/hadayekBuildingsCoords.json` | Cadastral building coordinate database — lazy-imported in `ZoneScopedSearchBar`. |
+| `src/data/categoryTaxonomy.ts` | Category hierarchy and aliases consumed by `categoryMatcher`. |
+| `src/data/mockData.ts` | `CATEGORY_GROUPS` used in zone helper. |
+
+### 1.7 Parallel Implementation (`directory-experience`)
+
+| File | Role |
+|------|------|
+| `src/directory-experience/map/MapScreen.tsx` | Independent second map UI with own local state (`area`, `category`, `query`, `selected`). |
+| `src/directory-experience/map/GeographicCanvas.tsx` | SVG/Canvas rendering for the parallel map. |
+| `src/directory-experience/map/MapActivityCards.tsx` | Card list overlay for the parallel map. |
+| `src/directory-experience/map/useMapViewport.ts` | Fully custom pan/zoom engine (not Leaflet). |
+| `src/directory-experience/map/mapGeometry.ts` | Math helpers: `clampZoom`, `zoomAround`. |
+| `src/directory-experience/map/map.css` | Styles scoped to the parallel map. |
 
 ---
 
-## 1. جرد شامل لمكونات ووظائف منظومة الخريطة (Map Inventory)
+## 2. Duplicate Logic Table
 
-تتوزع منظومة الخريطة الحالية على 10 وظائف رئيسية عبر الملفات التالية:
+| Logic | Implementations (file:line) | Actually Used in Production | Dead / Superseded |
+|-------|-----------------------------|-----------------------------|--------------------|
+| **Filter businesses for map display** | (A) `filterBusinessesForMap` — `hadayekZoneHelper.ts:260` accepts `zoomLevel`. (B) `InteractiveMap.tsx:70` calls same function for **count only**, no zoom passed. (C) `useMapPinsClustering.ts:876` calls same function for visible pins, passes `map.getZoom()`. | A→B (count badge), A→C (visible pins) | Neither is dead, but the zoom-adaptive LOD logic at line 269 fires **only** when `zoomLevel` is supplied. Path B never supplies it, so the LOD guard is silently bypassed for the counter. **The count badge can disagree with actual pin count.** |
+| **`escapeHtml`** | (A) Exported from `mapConstants.ts:9`. (B) Identical private copy re-declared inside `useMapPinsClustering.ts:57-65`. | Both; (B) shadows (A) within that file | (B) is **architectural debt** — exact duplicate, never diverged, no justification. |
+| **Visible-pin computation** | (A) `visibleBusinesses` useMemo in `useMapPinsClustering.ts:869`. (B) `matchingBusinessesCount` useMemo in `InteractiveMap.tsx:69`. (C) `places` useMemo in `MapScreen.tsx:28`. | (A) for pins, (B) for count pill, (C) for parallel map | (C) uses `place.category === category` exact string equality — no alias expansion. Results diverge from (A) and (B). |
+| **Category filter matching** | (A) `matchesCategoryFilter` from `categoryMatcher.ts` — full taxonomy + alias engine. (B) `MapScreen.tsx:33`: `place.category === category` — exact string equality. | (A) in production Leaflet path; (B) in parallel SVG path | (B) is a simplified, incompatible implementation. If `MapScreen` reaches production users, results will differ from the main map. |
+| **Pin dispersal / spiderfy** | (A) `disperseCoincidentPins` + `disperseActivityCardsScreenSpace` in `pinDispersal.ts`. (B) Inline collision check inside `useMapPinsClustering.ts:1148–1177` using `occupied[]` slots. | **(B) only** | **(A) — entire `pinDispersal.ts` file is confirmed dead code.** Not imported anywhere in the main render path. The `padTop=75` viewport clamp in `disperseActivityCardsScreenSpace` is also silently dead. |
+| **Building coordinate lookup** | (A) `searchBuildingCoordinatesExact` + `estimateBuildingCoordinates` called in `MapView.tsx:111`. (B) Same two functions called in `MapModernTopBar.tsx:119`. (C) `ZoneScopedSearchBar.tsx:34` lazy-imports `hadayekBuildingsCoords.json` independently. | All three callers active | No shared result cache — three independent async sequences, each race-guarded separately. |
+| **Search query handling** | (A) `useMapSearch.ts` — Nominatim/geocoding, debounce, view mode only. (B) `MapModernTopBar.tsx:82-94` — client-side business name/category/street filter, live. (C) `MapScreen.tsx:33` — inline `.includes()` filter. | (A) picker mode; (B) view mode; (C) parallel map | (A) is **effectively unused in view mode**: `useMapSearch` is instantiated but its `searchQuery` is not wired to `MapModernTopBar`'s input field. The geocoder fires only in picker mode. In view mode the search string goes to `useMapPinsClustering` as `searchQuery` prop, driving `hasSearchOverride`. |
 
+---
+
+## 3. Hardcoded Zoom Thresholds & Magic Numbers
+
+| Value | Location (file:line) | Purpose | Agrees with others? |
+|-------|---------------------|---------|---------------------|
+| `14` | `useMapInstance.ts:40` (default), `InteractiveMap.tsx:146` | Initial zoom level | — |
+| `12.8` | `useMapInstance.ts:255` | Mobile `minZoom` | — |
+| `13.2` | `useMapInstance.ts:255` | Desktop `minZoom` | Old comments reference 14; minor mismatch. |
+| `14.5` | `useMapInstance.ts:262` (`fitBounds maxZoom`) | First-paint overview cap | Safe offset from default 14. |
+| `19.5` | `useMapInstance.ts:256, 272` | Map `maxZoom` (view + picker) | — |
+| `15.0` | `hadayekZoneHelper.ts:269` | "City overview" LOD: zone filter bypassed below this | **⚠ Conflicts with 15.5** (see next row). |
+| `15.5` | `useMapPinsClustering.ts:1012` | `isDistrictView` threshold: switches card layout | **⚠ 0.5 levels higher than filter threshold.** In the band 15.0–15.5, the zone filter is lifted but the renderer still shows "overview" card layout. |
+| `15.0` | `cameraPlanner.ts:55, 132` | `isZoomedIn` / `isOverview` checks for camera decisions | Consistent internally; third definition of the "local scale" boundary. |
+| `16.5` | `cameraPlanner.ts:133` | Zoom floor for non-overview business selection | — |
+| `16.5` | `useMapPinsClustering.ts:510, 750` | `flyToBounds maxZoom` for zone/route framing | Consistent with cameraPlanner. |
+| `17` | `useMapSearch.ts:45, 80` | Geocoding result / GPS fix zoom | — |
+| `17.5` | `useMapPinsClustering.ts:949` | Expanded card (State 2) `flyTo` zoom | Consistent with `cameraPlanner.ts:123`. |
+| `19` | `useMapPinsClustering.ts:1113` | Cluster explode max zoom | Below map maxZoom 19.5. |
+| `58` (px) | `spatialActivityGroups.ts:6` | Screen-space clustering radius | README documents ~52 px — discrepancy. |
+| `100` (m) | `spatialActivityGroups.ts:6` | Geographic cluster max-distance | — |
+| `3.5` (ms) | `progressiveWork.ts:8` | Frame budget per tick | — |
+| `0.06` (deg) | `InteractiveMap.tsx:300` | "Near Hadayek" gate for `MapModernTopBar` visibility | ≈6 km. Undocumented magic number. Reads from **props** `lat/lng`, not from live Leaflet center. |
+| `29.9683, 31.1002` | `useMapInstance.ts:38-39`, `cameraPlanner.ts:78`, `mapConstants.ts:21`, `MapView.tsx:59-60` | Hadayek Al-Ahram centroid | Consistent across all files ✓ |
+
+> **Critical conflict — zoom band 15.0 to 15.5:** `filterBusinessesForMap` uses `zoomLevel < 15.0` to stop enforcing zone scope, allowing all-city pins to appear. But `useMapPinsClustering` switches to the local "district view" card layout only at `zoom >= 15.5`. In the 0.5-level gap, zone filtering is already disabled but the renderer still shows compact overview cards — pins from outside the selected zone appear in an overview layout, the opposite of intended behaviour.
+
+---
+
+## 4. State Source Map
+
+### 4.1 Current Filters (`categoryFilter`, `selectedZone`)
+
+| State | Where it lives | Who writes it | Who reads it | Competing truths? |
+|-------|---------------|---------------|--------------|-------------------|
+| `categoryFilter` | Prop: `InteractiveMap.categoryFilter` (from parent) **AND** `state.mapCategoryFilter` (`useMapState:18`) | Parent writes prop; `InteractiveMap:125-129` syncs into `state.setMapCategoryFilter` via `useEffect`; `MapModernTopBar` calls `onCategoryChange` → parent. | `InteractiveMap:67` computes `activeCategory`; `useMapPinsClustering` receives it. | **YES — dual truth.** Prop and state diverge for one render frame during sync. Category filter change also calls `state.setMapCategoryFilter` inline (line 319) AND again via the parent prop effect (line 126) — **double write per §5 Chain B**. |
+| `selectedZone` | `MapView.activeZoneLetter` (URL) **AND** `InteractiveMap.selectedZone` prop **AND** `state.selectedZone` (`useMapState:17`) | URL at mount, district polygon click, `MapModernTopBar` zone select | `InteractiveMap:66` `activeZone` ternary; `useMapPinsClustering`; camera planner | **YES — triple truth.** Any lag in the `useEffect` sync chain causes a stale render. |
+| `onlyVerifiedFilter` | `useMapState.onlyVerifiedFilter` | Internal UI toggle only | `InteractiveMap:74` (count), `useMapPinsClustering:143` | Single truth ✓ |
+| `showGatesLayer` | `useMapState.showGatesLayer` | UI toggle | `useMapPinsClustering:762` | Single truth ✓ |
+
+### 4.2 Search Query / Results
+
+| State | Where | Who writes | Who reads | Conflict? |
+|-------|-------|-----------|-----------|-----------|
+| Browse search query | Parent prop → `InteractiveMap` → `MapModernTopBar` | Parent `App`/`MapView` | `useMapPinsClustering:182` (`hasSearchOverride`), `MapModernTopBar` suggestion list | **Dual purpose with no coordination** — same string gates pin visibility AND drives the suggestion dropdown. See §5 Chain C for the blank-map flash bug this causes. |
+| Picker search query | `useMapSearch.searchQuery` | `handleSearchChange` (debounced) | `MapSearchBox` UI | Isolated to picker mode ✓ |
+
+### 4.3 Selected Business — **confirmed double-display bug** (see §8)
+
+| State | Where | Who writes | Who reads | Conflict? |
+|-------|-------|-----------|-----------|-----------|
+| `selectedBiz` | `useMapState._setSelectedBiz` | Map marker click, search suggestion select, `focusedBusiness` prop effect | Effect 5b (floating card), `MapSelectedBusinessDrawer` (bottom drawer), camera effect 2d | **Multiple writers, each resets `isSelectedBizExpandedOnMap = false`.** Causes both the floating card and the bottom drawer to render simultaneously — proven by screenshots. |
+| `isSelectedBizExpandedOnMap` | `useMapState:28` | `setSelectedBiz` wrapper (always resets to `false`); `useMapPinsClustering:951` (sets to `true` only on floating-card click) | `InteractiveMap:424` drawer condition; `useMapPinsClustering:931` card variant choice | **ROOT CAUSE of BUG-VISUAL-01.** See §8 for full diagnosis. |
+
+### 4.4 Viewport / Zoom
+
+| State | Where | Who writes | Who reads | Conflict? |
+|-------|-------|-----------|-----------|-----------|
+| `zoomLevel` (React state) | `useMapInstance` | `zoomend` RAF callback | Passed to `useMapPinsClustering` | **Bypassed by clustering:** `useMapPinsClustering:1003` reads `map.getZoom()` directly from Leaflet, ignoring React state. Intentional for performance; React state is stale. |
+| `liveCenterRef` (ref) | `useMapInstance:65` | `zoomend`, `moveend`, `fitBounds` init | `initMap:231` (restore after re-init) | Ref, no React conflict ✓ |
+
+### 4.5 Visible Pins
+
+| Source | File:line | Scope | Notes |
+|--------|-----------|-------|-------|
+| `visibleBusinesses` useMemo | `useMapPinsClustering:869` | View mode pins | Requires `hasCategory OR hasSearch`; returns `[]` if neither. |
+| `matchingBusinessesCount` useMemo | `InteractiveMap:69` | Count pill | Calls `filterBusinessesForMap` **without** `zoomLevel` — LOD guard bypassed. Count can differ from rendered pins. |
+| `places` useMemo | `MapScreen.tsx:28` | Parallel impl | Completely separate truth with different filter semantics. |
+
+---
+
+## 5. Event Handler Map & Trigger Chains
+
+### 5.1 Events Registered on the Leaflet Map
+
+| Event | Registered in | Triggers |
+|-------|--------------|---------|
+| `dragstart` | `useMapInstance:300`; `useMapPinsClustering:1279` | `map.stop()` + cancel progressive pin drops |
+| `zoomend` | `useMapInstance:306` | RAF → `setZoomLevel` (React state); updates `liveCenterRef` |
+| `moveend` | `useMapInstance:324`; `useMapPinsClustering:1280` | Updates `liveCenterRef`; RAF → `setViewportRevision(v+1)` |
+| `moveend` (flight end) | `useMapPinsClustering:238` | Clears CSS flight class; `setTimeout(160)` → `setViewportRevision` |
+| `click` (picker) | `useMapInstance:336` | `updateSelectedPosition(e.latlng)` |
+| `click` (view background) | `useMapPinsClustering:549` | `setSelectedBiz(null)` if biz selected |
+| `movestart/zoomstart/dragstart` | `useMapPinsClustering:1279` | Cancel `activeWorkCleanupRef` (freeze progressive drops) |
+| `moveend/zoomend/resize` | `useMapPinsClustering:1280` | RAF → `setViewportRevision(v+1)` → re-render pins |
+| `polygon.click` (districts) | `useMapPinsClustering:397` | `handleSelectDistrict(district.letterAr)` |
+| `cluster marker click` | `useMapPinsClustering:1111` | `flyToBounds` or coincident-popup list |
+| `activity marker click` | `useMapPinsClustering:1219` | `setSelectedBizRef.current(biz)` |
+| `selected card click (compact)` | `useMapPinsClustering:943` | `map.flyTo(zoom 17.5)` + `setIsSelectedBizExpandedOnMap(true)` |
+| `selected card click (expanded)` | `useMapPinsClustering:954` | `onSelectBusiness(selectedBiz)` → opens modal |
+| `card-close-btn` (DOM) | `attachCardDomListeners` in `badgeMarkers.ts` | `setSelectedBiz(null)` via bound closure |
+| `picker marker dragend` | `useMapPinsClustering:843` | `updateSelectedPosition(lat, lng)` |
+| Resize / orientationchange | `useMapInstance:400-401` | RAF → `map.invalidateSize()` |
+| ResizeObserver on container | `useMapInstance:404-408` | `map.invalidateSize()` |
+
+### 5.2 Trigger Chains
+
+**Chain A — Zone selection (no loop confirmed ✓):**
 ```
-src/
-├── components/
-│   ├── InteractiveMap.tsx                     # الغلاف الرئيسي لمكون الخريطة
-│   ├── views/
-│   │   ├── MapView.tsx                         # شاشة عرض الخريطة الكاملة للمستخدم
-│   │   └── MapSandboxView.tsx                  # بيئة تجارب معزولة للمطور
-│   └── map/
-│       ├── badgeMarkers.ts                     # مصانع قوالب الـ HTML للعلامات والدبابيس
-│       ├── BuildingDetailDrawer.tsx            # درج تفاصيل العمارة السكنية
-│       ├── InAppNavigationDrawer.tsx           # درج الملاحة والتوجيه الداخلي
-│       ├── MapFloatingControls.tsx             # أزرار التحكم الطافية (التكبير/التصغير/التوجيه)
-│       ├── MapFooterBar.tsx                    # شريط سفلي لعرض الإحداثيات (مهجور/غير مدرج)
-│       ├── MapHeaderBar.tsx                    # شريط الرأس القديم (مخصص لوضع picker)
-│       ├── MapModernTopBar.tsx                 # شريط البحث والفلترة العلوي الحديث (وضع view)
-│       ├── MapSearchBox.tsx                    # صندوق البحث الجغرافي لوضع picker
-│       ├── MapSelectedBusinessDrawer.tsx       # درج النشاط التجاري المحدد (State 1)
-│       ├── ZoneScopedSearchBar.tsx             # البحث المخصص عن عمارة داخل المنطقة المحددة
-│       ├── constants/mapConstants.ts          # الثوابت الجغرافية وقوائم المحافظات والتصنيفات
-│       ├── hooks/
-│       │   ├── useMapGeolocation.ts            # التقاط الـ GPS الدقيق عبر الأقمار الصناعية
-│       │   ├── useMapInstance.ts               # تهيئة محرك Leaflet وإدارة Viewport وإطارات الخريطة
-│       │   ├── useMapPinsClustering.ts         # المنطق الرئيسي لتوزيع الدبابيس والتجميع والتصفية
-│       │   ├── useMapSearch.ts                 # معالجة البحث الجغرافي الخارجي
-│       │   └── useMapState.ts                  # حالة الخريطة المحلية (التصنيف، المنطقة، العرض)
-│       └── utils/
-│           ├── cameraPlanner.ts                # منسق حركات الكاميرا والرحلات البارابولية
-│           ├── districtLabelPosition.ts        # حساب مركز الثقل الداخلي للمناطق (غير مستخدم)
-│           ├── leafletLoader.ts                # المحمل الديناميكي لحزم Leaflet JS/CSS
-│           ├── markerReconciliation.ts         # مطابقة وتحديث العلامات (مستقل)
-│           ├── pinDispersal.ts                 # تشتيت العلامات المتطابقة (مهجور)
-│           ├── progressiveWork.ts              # مجدول الرسم المتدرج لتفادي تجميد الواجهة (60fps)
-│           └── spatialActivityGroups.ts        # تجميع الأنشطة المتجاورة وتقييم حجم الكروت
-├── utils/
-│   ├── hadayekZoneHelper.ts                    # التحقق المكاني والنصي للمناطق وتصفية الأنشطة
-│   ├── hadayekBuildingSearch.ts                # فك رموز عناوين العمارات والبحث المكاني
-│   ├── hadayekRouting.ts                       # استدعاء مسارات الطرق الحقيقية OSRM
-│   ├── hadayekTilePreloader.ts                 # التحميل المسبق والتسخين للبلاطات في الذاكرة
-│   └── directoryFiltering.ts                  # محرك فلترة الدليل العام
-└── data/
-    ├── hadayekDistrictsGeoData.ts              # حدود مضلعات المناطق الرسمية (GeoJSON) والبوابات
-    ├── hadayekAtlasData.ts                     # أطلس حدائق الأهرام والمعالم والبوابات الست
-    └── hadayekBuildingsCoords.json             # قاعدة بيانات إحداثيات العمارات المساحية
+User clicks district polygon
+  → handleSelectDistrict(letter)         [useMapPinsClustering:243]
+  → state.setSelectedZone(letter)
+  → useEffect 2b fires                   [useMapPinsClustering:415]
+  → planCameraTransitionOnZoneChange()   [cameraPlanner.ts]
+  → map.flyToBounds(…)
+  → 'moveend' → onFlightEnd()
+  → setTimeout(160) → setViewportRevision(v+1)
+  → useEffect 6 re-renders pins
 ```
 
-### تفصيل الوظائف الموزعة:
-
-1. **التهيئة والتحميل (Initialization & Leaflet Loader):**
-   - الملف: `src/components/map/utils/leafletLoader.ts` (`loadLeafletScript`).
-   - الملف: `src/components/map/hooks/useMapInstance.ts` (`initMap`).
-   - الآلية: تحميل أوراق الأنماط `leaflet.css` وملف `leaflet.js` ديناميكيًا من CDN عند الحاجة فقط (Zero Head Payload)، وتهيئة حاوية Leaflet بدون عناصر تحكم افتراضية، وضبط `maxBoundsViscosity: 0.75` والحدود الجغرافية لمدينة حدائق الأهرام.
-
-2. **التحكم بالكاميرا ومنظور العرض (Camera & Viewport Handling):**
-   - الملف: `src/components/map/utils/cameraPlanner.ts` (`planCameraTransitionOnZoneChange`, `planCameraTransitionOnBusinessSelect`, `getVisualViewportPadding`).
-   - الملف: `src/components/map/hooks/useMapPinsClustering.ts` (الأسطر 472-533، 553-621).
-   - الملف: `src/components/map/hooks/useMapInstance.ts` (`flyTo`, `panBy`, `zoomIn`, `zoomOut`, `liveCenterRef`).
-
-3. **رسم وتوليد دبابيس وعلامات الأنشطة (Pin & Marker Rendering):**
-   - الملف: `src/components/map/badgeMarkers.ts`:
-     - `createCompactActivityPinHtml`: دبوس دائري صغير الحجم (Pindot) عند الزحام والمستويات البعيدة.
-     - `createCompactOverviewBadgeHtml`: كارت أفقي مدمج للمستوى العام للمدينة (City Overview).
-     - `createLightweightBadgeHtml`: كارت رأسي للمستوى التفصيلي للمنطقة (District View).
-     - `createCompactSelectedActivityCardHtml`: كارت النشاط المحدد في الحالة الأولى (State 1).
-     - `createExpandedActivityCardHtml`: كارت النشاط الموسع بالكامل عند التكبير والتركيز (State 2).
-     - `createLightweightClusterHtml`: مؤشر التجمع العددي عند تقارب الأنشطة.
-
-4. **تجميع وتصغير وإخفاء الأنشطة (Clustering & Spatial Culling):**
-   - الملف: `src/components/map/utils/spatialActivityGroups.ts` (`groupNearbyActivities`).
-   - الملف: `src/components/map/hooks/useMapPinsClustering.ts` (الأسطر 1019-1162): التجميع المكاني وفق مسافة شاشة 58 بكسل، والتأكد من عدم تصادم الكروت مع بعضها أو مع كتل التجمع (Collision Engine).
-
-5. **البحث والتحليل الدلالي (Search & Address Resolution):**
-   - الملف: `src/utils/activitySearchIntent.ts` (`parseActivitySearchIntent`): استخلاص نوع النشاط والمنطقة تلقائيًا من العبارة المكتوبة.
-   - الملف: `src/utils/hadayekBuildingSearch.ts` (`parseHadayekBuildingAddress`): مطابقة رقم العمارة وحرف المنطقة.
-   - الملف: `src/components/map/ZoneScopedSearchBar.tsx`: إدخال رقم العمارة وبحثها عبر المضلعات.
-   - الملف: `src/components/map/MapModernTopBar.tsx`: الاقتراحات الفورية للعمارات والأنشطة والتصنيفات والمناطق.
-
-6. **التصفية وعزل النطاق المكاني (Filtering & Zone Isolation):**
-   - الملف: `src/utils/hadayekZoneHelper.ts` (`filterBusinessesForMap`, `isBusinessInHadayekZone`, `getBusinessHadayekZoneLetter`).
-   - الملف: `src/utils/directoryFiltering.ts` (`filterDirectoryBusinesses`).
-
-7. **القوائم السفلية والنوافذ المنبثقة (Drawers & Modals):**
-   - `MapSelectedBusinessDrawer.tsx`: الدرج السفلي للنشاط التجاري المحدد.
-   - `BuildingDetailDrawer.tsx`: درج تفاصيل العمارة المحددة والأنشطة القائمة بها.
-   - `InAppNavigationDrawer.tsx`: درج الملاحة والمسارات الداخلية من البوابات أو من موقع المستخدم.
-   - `src/components/atlas/ProximityRadarDrawer.tsx`: رادار استكشاف الخدمات المحيطة بالعمارة.
-   - `src/components/atlas/HadayekGatesModal.tsx`: نافذة دليل بوابات حدائق الأهرام ومساراتها.
-
----
-
-## 2. جدول الازدواجيات وتكرار المنطق (Logic Duplication Matrix)
-
-يوضح الجدول التالي التكرارات المكتشفة في الكود البرمجي حيث تقوم عدة دوال بتنفيذ نفس الغرض بوسائل مختلفة، مع تحديد المستخدم منها وما يعتبر مهجورًا أو ملغى (Dead / Superseded):
-
-| الغرض المنطقي | مواقع التنفيذ في الكود (File & Line) | التنفيذ الفعلي قيد الاستخدام | التنفيذ المهجور أو المعطل | الدليل والأثر البرمجي / تجربة المستخدم |
-|---|---|---|---|---|
-| **تحديد إحداثيات العمارات (Building Coords Search)** | 1. `src/data/hadayekAtlasData.ts:501-557`<br>2. `src/components/map/ZoneScopedSearchBar.tsx:28-48`<br>3. `src/components/map/MapHeaderBar.tsx:90-123`<br>4. `src/utils/hadayekBuildingSearch.ts:52-139` | التنفيذ (1) في `MapModernTopBar` والتنفيذ (2) في شريط البحث الموسع للمنطقة | التنفيذ (3) في `MapHeaderBar` معطل لأن الهيدر لا يعمل في وضع العرض.<br>التنفيذ (4) `searchInsideHadayekZone` دالة يتيمة غير مستدعاة إطلاقاً. | **(a) Bug & (c) Debt:** اختلاف آلية الاسترجاع؛ التنفيذ (2) يرفض النتيجة إذا تعددت المضلعات، بينما التنفيذ (1) يعتمد أقرب مسافة للسنترويد. يؤدي لتناقض في العثور على نفس العمارة حسب الواجهة المستخدمة. |
-| **تجميع وتشتيت الدبابيس (Clustering & Pin Dispersal)** | 1. `src/components/map/utils/spatialActivityGroups.ts:5-32`<br>2. `src/components/map/utils/pinDispersal.ts:41-316` | التنفيذ (1) هو المستخدم داخل `useMapPinsClustering.ts:1022` | التنفيذ (2) بالكامل (316 سطر كود) مهجور ولم يعد مستخدماً في أي شاشة إنتاجية (موجود فقط في ملفات اختبارات قديمة). | **(c) Architectural Debt:** وجود ملف كامل `pinDispersal.ts` بحجم 10.5KB بمفاهيم Spiderfy كود ميت يزيد من حجم المشروع وتشتت التطوير. |
-| **توليد HTML تجمع الأنشطة (Cluster HTML Generator)** | 1. `src/components/map/badgeMarkers.ts:878-899` (`createLightweightClusterHtml`)<br>2. `src/components/map/badgeMarkers.ts:901-970` (`createDistrictClusterHtml`) | التنفيذ (1) `createLightweightClusterHtml` داخل `useMapPinsClustering.ts:1088` | التنفيذ (2) `createDistrictClusterHtml` دالة مهجورة غير مستدعاة في أي مكان بالكود. | **(c) Debt:** كود مهجور يحمل تصاميم قديمة للتجمعات تم استبدالها بالنسخة الخفيفة دون تنظيف الدالة السابقة. |
-| **توليد كارت العمارة المحددة (Building Pin Generator)** | 1. `src/components/map/hooks/useMapPinsClustering.ts:640-657` (HTML نَصي مضمن)<br>2. `src/components/map/badgeMarkers.ts:971-1054` (`createBuildingBadgeHtml`)<br>3. `src/components/map/MapHeaderBar.tsx:104-110` (HTML نَصي مضمن آخر) | التنفيذ (1) المضمن داخل خطاف الـ clustering | التنفيذ (2) مستورد في السطر 11 من `useMapPinsClustering` لكنه لا يُستدعى أبداً!<br>التنفيذ (3) معطل في الهيدر القديم. | **(c) Architectural Debt:** استيراد دالة كاملة من `badgeMarkers.ts` وتجاهلها لصالح كتابة نص HTML مضمن يدويًا في نفس الخطاف، مع كتابة نص ثالث في الهيدر القديم. |
-| **مطابقة وتحديث العلامات (Marker Reconciliation)** | 1. `src/components/map/hooks/useMapPinsClustering.ts:1052-1064, 1166-1213`<br>2. `src/components/map/utils/markerReconciliation.ts:42-90` (`reconcileMarkerRegistry`) | التنفيذ (1) المكتوب مباشرة بداخل الخطاف | التنفيذ (2) مهجور ولا يتم استدعاؤه سوى في ملفات الاختبارات `src/tests/*`. | **(c) Debt:** كتب المطور محرك reconciliation عام منفصل، ثم أعاد كتابة نفس المنطق كوديًا بداخل `useMapPinsClustering.ts` دون استدعاء المحرك العام. |
-| **قواعد بيانات البوابات الرسمية (Gates Catalog)** | 1. `src/data/hadayekAtlasData.ts:56-147` (`HADAYEK_GATES`)<br>2. `src/data/hadayekDistrictsGeoData.ts:31-125` (`HADAYEK_OFFICIAL_GATES`) | التنفيذ (1) في النوافذ ومحددات البوابات<br>التنفيذ (2) في رسم دبابيس البوابات على الخريطة | كلاهما يعمل في مواضع منفصلة، ولكنهما يمثلان مصدرين متنافسين للحقيقة (Dual Sources of Truth). | **(a) Bug & (d) Missing State:** **تناقض بالبيانات!** البوابة الثالثة (منقرع) في `HADAYEK_GATES` تخدم المناطق `['ح', 'ط', 'س', 'م']`، بينما في `HADAYEK_OFFICIAL_GATES` تخدم `['ح', 'ط', 'س', 'ص']` (تم استبدال م بـ ص). |
-| **تحديد النقطة داخل المضلع (Point in Polygon)** | 1. `src/data/hadayekDistrictsGeoData.ts` (`isPointInPolygon`)<br>2. `src/data/hadayekAtlasData.ts:488-499` (`pointInPolygon`) | التنفيذ (1) المستورد | التنفيذ (2) معرف كدالة محلية بداخل `hadayekAtlasData.ts` ولا يتم استخدامها، حيث يتم استدعاء التنفيذ (1). | **(c) Debt:** دالة مهجورة مكررة بداخل الملف. |
-| **طلب الموقع الجغرافي (Geolocation Requests)** | 1. `src/components/map/hooks/useMapGeolocation.ts` (`handleGetLocation`)<br>2. `src/components/PublicShowcase.tsx:157-176` (`handleRequestLocation`)<br>3. `src/components/map/InAppNavigationDrawer.tsx:55-81` (`fetchGpsLocation`) | الثلاثة مستخدمون في شاشات وأدراج مختلفة | كل موضع يطلب الموقع بشكل منعزل تماماً دون مشاركة الإحداثيات مع الآخرين. | **(b) UX Flaw & (d) Missing State:** يضطر المستخدم للموافقة على إذن الـ GPS وإعادة الانتظار عدة مرات إذا طلب الترتيب حسب الأقرب، ثم فتح درج الملاحة، أو استخدم الخريطة. |
-| **تصفية الأنشطة التابعة للمدينة والمنطقة** | 1. `src/utils/directoryFiltering.ts:8-87`<br>2. `src/utils/hadayekZoneHelper.ts:260-291` (`filterBusinessesForMap`) | الاثنان ينفذان تباعاً في سلسلة واحدة (Chained Pipeline) | لا يوجد مهجور، ولكن يحدث تطبيق مزدوج لنفس المعايير. | **(a) Bug & (c) Debt:** تصفية متداخلة؛ ترسل `MapView` مصفوفة تمت تصفيتها بالفعل بـ `directoryFiltering`، ثم تعيد `filterBusinessesForMap` فحص الإحداثيات والتصنيف والمنطقة مجدداً. |
-
----
-
-## 3. جرد مستويات التقريب (Zoom Levels) والأرقام السحرية وتحليل توافقها
-
-يحتوي الكود على مجموعة كبيرة من أرقام التقريب (Zoom Thresholds) ومسافات البكسل المضمنة يدويًا (Magic Numbers)، وتظهر بينها تناقضات تؤدي إلى خلل سلوكي وبصري:
-
-```mermaid
-flowchart LR
-    Z12["12.8 / 13.2<br/>الحد الأدنى minZoom"] --> Z14["14.0<br/>نظرة عامة Hadayek Overview"]
-    Z14 --> Z145["14.5<br/>أقصى حد لـ fitBounds الأولي"]
-    Z14 --> Z15["15.0<br/>حد نظرة المدينة في cameraPlanner"]
-    Z14 --> Z155["15.5<br/>حد نظرة المدينة في clustering"]
-    Z155 --> Z165["16.5<br/>تقريب المنطقة / كروت تفصيلية"]
-    Z165 --> Z17["17.0 / 17.5<br/>التركيز على نشاط / عمارة"]
-    Z17 --> Z18["18.0<br/>GPS / البحث الموضعي"]
-    Z18 --> Z195["19.5<br/>الحد الأقصى maxZoom"]
+**Chain B — Category change: double write (c) architectural debt:**
+```
+User taps category chip in MapModernTopBar
+  → onCategoryChange(cat)               [InteractiveMap:317]
+  → state.setSelectedBiz(null)          [line 318]
+  → state.setMapCategoryFilter(cat)     [line 319]  ← WRITE #1
+  → parent onCategoryChange callback fires
+  → Parent state update → prop re-flows to InteractiveMap
+  → useEffect InteractiveMap:125-129 → state.setMapCategoryFilter(cat) ← WRITE #2 (redundant)
 ```
 
-### جدول مقارنة مستويات التقريب في الكود:
+**Chain C — Search suggestion select: blank-map flash (a) confirmed bug:**
+```
+User types in MapModernTopBar input
+  → searchQuery → hasSearchOverride = true → pins rendered
+  → Suggestion dropdown appears
+  → User clicks a business suggestion
+  → handleSelectBusinessItem → onSearchQueryChange?.('')
+  → searchQuery = '' → hasSearchOverride = false
+  → ALL pins disappear (visibleBusinesses returns [])
+  → Map shows completely empty for one or more frames
+```
 
-| رقم التقريب (Zoom) | الملف ورقم السطر | الوظيفة المخصصة في هذا الموضع | حالة التوافق / التعارض |
-|---|---|---|---|
-| **12.8 / 13.2** | `useMapInstance.ts:250` | الحد الأدنى للتصغير في الموبايل (12.8) والشاشات الكبيرة (13.2). | متوافق؛ يمنع تشتت الخريطة خارج نطاق حدائق الأهرام. |
-| **14.0** | `useMapInstance.ts:40`<br>`useMapPinsClustering.ts:524`<br>`cameraPlanner.ts:65, 79`<br>`spatialActivityGroups.ts:2` | القيمة الافتراضية لمنظور المدينة الكامل (Overview) ومبدأ احتساب مقياس كروت الأنشطة. | متوافق بشكل عام كمعيار للمدينة. |
-| **14.5** | `useMapInstance.ts:257` | الحد الأقصى للتكبير التلقائي عند تشغيل `fitBounds` على حدود حدائق الأهرام. | شبه متوافق مع زووم 14.0. |
-| **15.0** | `cameraPlanner.ts:55, 127` | الحد الفاصل الذي يقرر فيه `cameraPlanner` اعتبار الخريطة في منظور المدينة (City Overview) فلا يقوم بعمل زووم عنيف عند اختيار كارت. | **تعارض مباشر مع زووم 15.5:** بين زووم 15.0 و 15.5 يعتبر مخطط الكاميرا أن العرض محلي، بينما يعتبره محرك الدبابيس عرض مدينة! |
-| **15.5** | `useMapPinsClustering.ts:1016` | الحد الفاصل لاعتبار الخريطة في منظور المنطقة (District View) وعرض الكروت الرأسية بدلاً من الكروت الأفقية الخفيفة. | **تعارض مع cameraPlanner:** المنطقة الرمادية [15.0 - 15.5] ينتج عنها عدم استقرار شكل الكروت وسلوك تحريك الكاميرا. |
-| **16.0** | `useMapInstance.ts:434` | التقريب المستهدف عند الضغط على زر إعادة ضبط الموضع (`handleResetPosition`). | **تعارض مع زووم 14.0:** عند تفريغ المنطقة يعود لـ 14، لكن عند الضغط على زر إعادة الضبط في نفس الشاشة يقفز لـ 16! |
-| **16.5** | `useMapPinsClustering.ts:506, 758`<br>`cameraPlanner.ts:128` | أقصى حد للتكبير عند الانتقال للمنطقة أو مسار الملاحة. | متوافق داخليًا للمناطق. |
-| **17.0** | `useMapInstance.ts:88, 193`<br>`useMapPinsClustering.ts:614, 683` | التقريب التلقائي عند اختيار عمارة أو تعديل إحداثي في وضع الـ picker أو نقر نشاط من قائمة. | متوافق نسبيًا ولكن يتداخل مع 17.5. |
-| **17.5** | `useMapPinsClustering.ts:954`<br>`cameraPlanner.ts:118` | التقريب المباشر للشارع عند التبديل من كارت النشاط المدمج إلى الكارت الموسع (State 1 -> State 2). | متوافق للأنشطة الموسعة. |
-| **18.0** | `useMapGeolocation.ts:75`<br>`useMapSearch.ts:45, 80` | التقريب التلقائي عند استقبال إحداثيات الـ GPS أو اختيار نتيجة بحث جغرافي دقيقة. | قفزة تكبير حادة ومفاجئة لا تتماشى مع تدفق الملاحة العام (16.5 - 17.5). |
-| **19.0** | `MapHeaderBar.tsx:99`<br>`useMapPinsClustering.ts:1097` | التكبير الأقصى لتفريق التجمعات أو الانتقال لعمارة في الهيدر القديم. | قفزة عنيفة تؤدي أحيانًا إلى ضبابية البلاطات (Overzooming) قبل اكتمال تحميلها. |
-| **19.5** | `useMapInstance.ts:251, 268` | السقف الأقصى التام للخريطة `maxZoom`. | متوافق لمنع تجاوز البلاطات المتاحة. |
+**Chain D — Business selection from map click (no loop confirmed ✓):**
+```
+Activity marker click
+  → setSelectedBizRef.current(biz)
+  → state.selectedBiz changes + isSelectedBizExpandedOnMap = false
+  → Effect 2d fires (camera)
+  → map.flyTo/panTo
+  → 'moveend' → setViewportRevision
+  → Effect 6 re-renders (selected biz excluded from background pins) ✓
+  BUT: Effect 5b ALSO fires → renders floating card (State 1 compact)
+  AND: InteractiveMap:424 condition evaluates → renders bottom drawer simultaneously
+  → BOTH show at the same time → BUG-VISUAL-01
+```
 
-### الأرقام السحرية الأخرى (Magic Numbers):
-
-1. **ميزانية الرسم وإطارات الحركة (Frame & Time Budgets):**
-   - `progressiveWork.ts:8`: `maxMsPerFrame = 3.5ms` (ميزانية وقت صارمة جداً ممتازة لمنع إسقاط إطارات الـ 60fps).
-   - `progressiveWork.ts:7`: `maxItemsPerFrame = 4` (رسم 4 عناصر بحد أقصى لكل فريم).
-   - `useMapPinsClustering.ts:92`: `delay = Math.min(staggerIndex * 36, 680)` (حساب انزلاق الدبابيس بتأخير تراكمي 36ms وبسقف 680ms).
-   - `useMapPinsClustering.ts:229`: `160ms` مؤقت الاستقرار بعد انتهاء طيران الكاميرا لتحديث الـ Viewport.
-
-2. **مسافات وتصادمات الشاشة (Spatial Collision & Sizing):**
-   - `spatialActivityGroups.ts:6`: `radius = 58px` (نصف قطر التجميع المكاني على الشاشة) مقروناً بـ `maxMeters = 100m` كحد أقصى جغرافي.
-   - `useMapPinsClustering.ts:1127-1130`: أبعاد الكروت الافتراضية؛ في المنطقة `184x134px` وفي نظرة المدينة `224x60px`.
-   - `useMapPinsClustering.ts:1137-1145`: هوامش التصادم: `cardW / 2 + 28px` للتجمع، و `cardW / 2 + 10px` بين الكروت.
-   - `useMapPinsClustering.ts:1148`: حصر الكروت الأفقية في المستوى العام على **أول 3 أنشطة فقط** (`overviewCardsCount < 3`)، وتحويل الباقي تلقائياً لنقاط صغيرة (Pindots).
+**Chain E — `focusedBusiness` prop race (d) missing state:**
+```
+Parent sets focusedBusiness prop
+  → useEffect InteractiveMap:132 → state.setSelectedBiz(focusedBusiness)
+  (this also resets isSelectedBizExpandedOnMap = false)
+  → SIMULTANEOUSLY: any map background tap fires Effect 2c click handler
+  → setSelectedBiz(null) — wipes the just-set focused business
+  → No synchronization guard between prop-write and map-click handler
+```
 
 ---
 
-## 4. خريطة مصادر الحالة وتنافس الحقيقة (State Sources & Competing Truths)
+## 6. Layered Patches & Architectural Debt
 
-يظهر في النظام تشظي وتعدد في مصادر الحالة لنفس البيانات الأساسية، مما يتسبب في فقدان التزامن وظهور نتائج متضاربة:
+| ID | Location (file:line) | Finding | Classification |
+|----|---------------------|---------|----------------|
+| P1 | `useMapInstance.ts:226-228` | `(containerRef.current as any)._leaflet_id = null` — force-resets Leaflet's internal ID to prevent double-init error on React re-mount. Commit reference `3471e21` left in adjacent comment. | (c) architectural debt |
+| P2 | `useMapPinsClustering.ts:57-65` | Local `escapeHtml` re-declared, identical body to the export in `mapConstants.ts`. No import. | (c) architectural debt |
+| P3 | `pinDispersal.ts` (entire file) | `disperseCoincidentPins` and `disperseActivityCardsScreenSpace` — no production import found. | (c) confirmed dead code |
+| P4 | `useMapPinsClustering.ts:1197` | Inline CSS `transform:scale(cardScale)` applied to marker wrapper, while `iconAnchor` is also multiplied by `cardScale` on lines 1198-1199. The collision geometry uses the raw scale value; the visual size uses a CSS transform. On fractional scale values the rendered pin tip can appear above its actual GPS anchor. | (a) bug / (c) architectural debt |
+| P5 | `useMapInstance.ts:293` | `(containerRef.current as any)._leaflet_map = map` — attaches Leaflet instance to DOM node as a non-standard property. Never read back in source. | (c) dead/legacy attach |
+| P6 | `useMapPinsClustering.ts:250-256` | `(window as any).__selectHadayekDistrict` — global function injected on `window` for popup HTML onclick. Bypasses React event system entirely. | (c) architectural debt |
+| P7 | `InteractiveMap.tsx:300` | `mode === 'view' && Math.abs(lat - 29.9683) < 0.06 && Math.abs(lng - 31.1002) < 0.06` — controls whether `MapModernTopBar` renders at all. Reads from **props** `lat/lng`, not from live Leaflet center after user pans. If parent passes out-of-range coords, entire search/filter UI vanishes silently. | (a) suspected bug — verify by passing lat/lng 7+ km from centroid with `mode='view'` |
+| P8 | `MapModernTopBar.tsx:71` | `const topZones = ['أ', 'ب', 'ج', 'ح', 'ع', 'ك', 'ل']` — hardcoded zone letter list for digit-only search candidates. Drifts silently if `HADAYEK_OFFICIAL_DISTRICTS` changes. | (c) architectural debt |
+| P9 | `useMapPinsClustering.ts:90-124` | `window.matchMedia('(prefers-reduced-motion: reduce)')` read once per animation call — never observed. If user changes system preference mid-session, it takes effect only on next page load. | (b) UX flaw |
+| P10 | `cameraPlanner.ts:78` | `targetCenter: [29.9683, 31.1002]` — Hadayek centroid hardcoded, duplicated from `mapConstants.ts`. | (c) minor debt |
+| P11 | `MapScreen.tsx:279` | Gate directions button calls `p.onAction('directions')` without passing gate coordinates. Navigation will open with no destination. | (a) suspected bug — confirm by checking `onAction` handler signature |
+| P12 | `MapFooterBar.tsx` | Imported in `InteractiveMap.tsx` barrel but never rendered. Comment in README says "preserved, not rendered." | (c) dead import |
+
+---
+
+## 7. Dependency Graph
 
 ```mermaid
 flowchart TD
-    subgraph UI_State["حالة واجهة المستخدم العليا (PublicShowcase)"]
-        PS_Query["searchQuery"]
-        PS_Zone["hadayekZoneFilter"]
-        PS_Cat["categoryFilter / subcat"]
-        PS_Filtered["filteredBusinesses"]
-    end
+    %% Entry Points
+    MV["MapView.tsx (production entry)"] --> IM["InteractiveMap.tsx (orchestrator)"]
+    MS_DE["MapScreen.tsx (parallel impl)"] --> GC["GeographicCanvas.tsx"]
+    MS_DE --> MAC["MapActivityCards.tsx"]
 
-    subgraph Map_Internal_State["حالة الخريطة الداخلية (InteractiveMap / useMapState)"]
-        MS_Zone["state.selectedZone"]
-        MS_Cat["state.mapCategoryFilter"]
-        MS_Biz["state.selectedBiz"]
-        MS_Bldg["selectedBuildingState"]
-    end
+    %% InteractiveMap hooks
+    IM --> UMI[useMapInstance]
+    IM --> UMS[useMapState]
+    IM --> UMPC[useMapPinsClustering]
+    IM --> UMSe[useMapSearch]
+    IM --> UMG[useMapGeolocation]
 
-    subgraph Clustering_Hook["حالة الرندر الميداني (useMapPinsClustering)"]
-        CL_EffectiveZone["effectiveSelectedZone"]
-        CL_EffectiveCat["effectiveCategoryFilter"]
-        CL_VisibleBiz["visibleBusinesses"]
-    end
+    %% Hook dependencies
+    UMPC --> UMI
+    UMPC --> UMS
+    UMPC --> CP[cameraPlanner.ts]
+    UMPC --> MR[markerReconciliation.ts]
+    UMPC --> SAG[spatialActivityGroups.ts]
+    UMPC --> PW[progressiveWork.ts]
+    UMPC --> BM[badgeMarkers.ts]
+    UMPC --> HZH[hadayekZoneHelper.ts]
+    UMPC --> CM[categoryMatcher.ts]
+    UMPC --> HTP[hadayekTilePreloader.ts]
 
-    PS_Query --> PS_Filtered
-    PS_Zone -->|يمرر كـ prop| MS_Zone
-    PS_Zone -->|يمرر كـ prop| CL_EffectiveZone
-    MS_Zone -.->|تنافس وتزامن يدوي| CL_EffectiveZone
-    
-    PS_Cat -->|يمرر كـ prop| MS_Cat
-    PS_Cat -->|يمرر كـ prop| CL_EffectiveCat
-    MS_Cat -.->|تنافس وتزامن يدوي| CL_EffectiveCat
+    UMI --> LL[leafletLoader.ts]
+    UMI --> HTP
+    UMI --> GEO[geocoding.ts]
+    UMSe --> GEO
+    UMG --> UMI
 
-    PS_Filtered -->|يمرر كـ businesses| CL_VisibleBiz
+    %% UI components
+    IM --> MMTB[MapModernTopBar.tsx]
+    IM --> MSSBD[MapSelectedBusinessDrawer.tsx]
+    IM --> ZSST[ZoneScopedSearchBar.tsx]
+    IM --> BDD[BuildingDetailDrawer.tsx]
+    IM --> IAND[InAppNavigationDrawer.tsx]
+    IM --> MFC[MapFloatingControls.tsx]
+
+    MMTB --> HBS[hadayekBuildingSearch.ts]
+    MMTB --> HZH
+    MMTB --> CM
+    MMTB --> HA[hadayekAtlasData.ts]
+
+    ZSST --> HBS
+    ZSST --> HDD[hadayekDistrictsGeoData.ts]
+    ZSST -->|lazy import| HBCJ[(hadayekBuildingsCoords.json)]
+
+    BM --> IO[imageOptimizer.ts]
+    BM --> CP2[categoryPhotos.ts]
+    BM --> DE[directoryEnhancements.ts]
+    BM --> HZH
+
+    HZH --> HDD
+    HZH --> HA
+    HZH --> CM
+    CM --> CT[categoryTaxonomy.ts]
+
+    %% Dead code
+    PD["pinDispersal.ts ❌ dead code — no production import"]
+
+    %% Parallel impl
+    GC --> UMV[useMapViewport.ts]
+    UMV --> MG[mapGeometry.ts]
+
+    style PD fill:#f88,stroke:#f00
+    style MS_DE fill:#ffd,stroke:#888
+    style GC fill:#ffd,stroke:#888
+    style MAC fill:#ffd,stroke:#888
+    style UMV fill:#ffd,stroke:#888
 ```
 
-### تفصيل مصادر الحقيقة الخمسة:
-
-#### 1. الفلاتر الحالية (Current Filters: Zone, Category):
-- **أين تعيش:**
-  - `PublicShowcase.tsx:70, 74`: `hadayekZoneFilter` و `categoryFilter` (مربوطة بـ URL params).
-  - `MapView.tsx:68`: `activeZoneLetter` (مربوطة بـ URL params أيضاً ومستقلة عن الأب).
-  - `useMapState.ts:17, 18`: `selectedZone` و `mapCategoryFilter`.
-- **من يكتبها:**
-  - المستخدم عبر النقر على المناطق أو كروت التصنيفات في `MapModernTopBar` أو البار العلوي.
-  - الـ `useEffect` المتعددة في `InteractiveMap.tsx:118-129` التي تقوم بنسخ القيم من الـ Props إلى `state`.
-- **من يقرؤها:**
-  - `filterDirectoryBusinesses` في `PublicShowcase`.
-  - `useMapPinsClustering` عبر معادلة `effectiveSelectedZone` و `effectiveCategoryFilter` (الأسطر 155-165).
-- **مواضع التنافس (Competing Truth):**
-  - **(a) Bug & (d) Missing State:** توجد 3 مستويات من الـ State لكل فلتر! إذا قام المستخدم بتغيير الفلتر من داخل الخريطة عبر `MapModernTopBar` يتم استدعاء كولباك الأب وتحديث `state` الداخلي، ولكن في حال الرجوع للخلف أو تغيير الرابط بالمتصفح يحصل تفاوت زمني (Race Condition) بين مزامنة الـ URL ومزامنة الـ State الداخلي عبر `useEffect`، مما يجعل الكاميرا تتحرك أحياناً قبل اكتمال تصفية البيانات أو العكس.
-
-#### 2. نص ونتائج البحث (Search Query & Results):
-- **أين تعيش:**
-  - `PublicShowcase.tsx:66`: `searchQuery` و `deferredSearchQuery`.
-  - `useMapSearch.ts:13`: `searchQuery` مستقلة تماماً داخل الخطاف مخصصة لوضع picker.
-  - `ZoneScopedSearchBar.tsx:17`: `query` مستقلة خاصة برقم العمارة.
-  - `MapModernTopBar.tsx:30`: تستقبل `searchQuery` ولكن تدير حالة اقتراحات محلية `showSuggestions`.
-- **مواضع التنافس:**
-  - عند كتابة اسم نشاط محدد (مثل: "كرم الشام") في `MapModernTopBar`:
-    - الـ `SmartSearchBar` يرسل النص إلى `PublicShowcase`.
-    - `PublicShowcase` تقوم بتصفية `filteredBusinesses` إلى نتيجة واحدة فقط.
-    - ولكن `parseActivitySearchIntent` يرجع `null` لأن "كرم الشام" ليس تصنيفاً عاماً.
-    - تظل قيمة `effectiveCategoryFilter` مساوية لـ `'all'`.
-    - قاعدة الخطاف `useMapPinsClustering:996`: **"Activities MUST ONLY appear if an activity type/category is selected"**.
-    - **النتيجة الكارثية للمستخدم:** تختفي جميع الدبابيس عن الخريطة وتصبح بيضاء تماماً بالرغم من وجود النتيجة في الدليل!
-
-#### 3. العنصر المختار (Selected Pin / Business / Building):
-- **أين تعيش:**
-  - النشاط التجاري: `PublicShowcase.tsx:201` (`selectedBiz` المشتق من الـ URL token) متنافس مع `state.selectedBiz` في `useMapState.ts:27`.
-  - العمارة السكنية: `MapView.tsx:74` (`activeBuildingNumber`) متنافس مع `InteractiveMap.tsx:79` (`selectedBuildingState`).
-- **مواضع التنافس:**
-  - عند اختيار نشاط من الخريطة، يقوم `useMapPinsClustering` بتعيين `state.setSelectedBiz` محلياً، ولكنه لا يقوم بتحديث رابط الـ URL مباشرة إلا إذا فتح المستخدم تفاصيل النشاط الكاملة. في المقابل، إذا فتح المستخدم رابط نشاط مباشر، يقوم `PublicShowcase` بتمرير `focusedBusiness` الذي يعيد كتابة الـ State الداخلي في `InteractiveMap.tsx:132`.
-
-#### 4. موقع ومنظور الكاميرا (Viewport / Zoom / Center):
-- **أين تعيش:**
-  - الحقيقة الجغرافية اللحظية تعيش داخل كائن Leaflet الأصلي `leafletMapRef.current` ومثبتة في الـ Ref الحي `liveCenterRef.current` بداخل `useMapInstance.ts:65`.
-  - حالة الـ React: `zoomLevel` و `currentLat` و `currentLng` في `useMapInstance.ts:44-46`.
-- **مواضع التنافس:**
-  - لا تقرأ مكونات الواجهة إحداثيات الكاميرا من حالة الـ React أثناء السحب والتحريك (Pan/Drag) لأن التحديث المستمر يسبب إعادة تصيير مفرطة؛ تم قصر التحديث على `zoomend` و `moveend` مع استخدام `requestAnimationFrame` لمنع التلعثم.
-
-#### 5. الدبابيس المعروضة على الشاشة (Visible Pins):
-- **أين تعيش:**
-  - مسجلة حصرياً داخل طبقات Leaflet المنفصلة عبر الـ Refs:
-    - `cardsLayerGroupRef.current` (الكروت العادية).
-    - `clusterLayerGroupRef.current` (التجمعات).
-    - `selectedLayerGroupRef.current` (النشاط المختار على `selectedPinPane`).
-    - `targetLayerGroupRef.current` (العمارة المحددة).
-  - الفهرس المرجعي التراكمي: `markersRegistryRef.current` و `clusterRegistry.current`.
+> **Legend:** Yellow = `directory-experience` parallel implementation. Red = confirmed dead code.
 
 ---
 
-## 5. خريطة معالجات الأحداث وسلاسل المحفزات والحلقات (Event Handlers & Trigger Chains)
+## 8. BUG-VISUAL-01 — Dual Display of Selected Business Card (Proven by Screenshots)
 
-### جدول معالجات الأحداث على الخريطة:
+**Classification:** (a) confirmed bug  
+**User-visible symptom:** The selected business appears simultaneously in two places — a floating card on the map AND a bottom drawer below it.  
+**Evidence:** Two screenshots from the live application, 2026-10-02.
 
-| الحدث في Leaflet | المكون / الخطاف | ما يطلقه الحدث تفصيلاً (Trigger Action) | المخاطر والآثار الجانبية المكتشفة |
-|---|---|---|---|
-| `dragstart` | `useMapInstance.ts:295` | `map.stop()`: إيقاف فوري لأي حركة انسيابية مبرمجة سابقة للكاميرا. | سليم ومطلوب لإعطاء السيادة لحركة يد المستخدم. |
-| `movestart zoomstart dragstart` | `useMapPinsClustering.ts:1263` | `onGestureStart`: إلغاء مجدول الرسم المتدرج الحالي `activeWorkCleanupRef.current()` فوراً. | سليم؛ يمنع استهلاك المعالج في رسم دبابيس أثناء تحريك الخريطة السريع. |
-| `zoomend` | `useMapInstance.ts:301` | إلغاء الفريم السابق وطلب RAF جديد، وتحديث `setZoomLevel` في حال تغيرت القيمة بأكثر من 0.05، وتحديث `liveCenterRef`. | آمن بعد إضافة عتبة 0.05 وإلغاء الـ RAF السابق. |
-| `moveend` | `useMapInstance.ts:319` | تحديث `liveCenterRef.current` بالإحداثيات والزووم الجديد. | سليم؛ يحافظ على موقع الرؤية ثابتاً عند التدوير أو تغيير حجم الشاشة. |
-| `moveend zoomend resize` | `useMapPinsClustering.ts:1264` | استدعاء `refresh`: يفحص أولاً `isCameraFlyingRef.current`؛ إذا كانت الكاميرا في حالة طيران يتجاهل التحديث، وإذا استقرت يطلب RAF لتحديث `viewportRevision` (+1). | **حلقة مفرغة محتملة تم تفاديها جزئياً:** كان التحديث يطلق طيران الكاميرا الذي يطلق moveend فيعيد التحديث، ولكن تم كسرها بوضع علم `isCameraFlyingRef`. |
-| `click` (على الخريطة) | `useMapInstance.ts:331` | في وضع `picker`: استدعاء `updateSelectedPosition` ونقل الدبوس وطلب العنونة الجغرافية المعكوسة. | خاص بوضع منتقي الموقع فقط. |
-| `click` (على خلفية الخريطة) | `useMapPinsClustering.ts:540` | في وضع `view`: إلغاء تحديد النشاط التجاري `selectedBizRef.current = null`. | **(b) UX Flaw:** إلغاء النشاط يطلق استعادة إحداثيات ما قبل التحديد (`preSelectedStateRef`) مما يعيد الكاميرا قسراً للخلف حتى لو كان المستخدم قد تنقل في الخريطة! |
-| `click` (على مضلع المنطقة) | `useMapPinsClustering.ts:395` | استدعاء `handleSelectDistrict` وتعيين `selectedZone`. | يطلق سلسلة طيران الكاميرا للمنطقة وتغيير الهايلايت. |
-| `click` (على كارت النشاط المحدد) | `useMapPinsClustering.ts:949` | في State 1: طيران إلى زووم 17.5 والتحول إلى State 2 (كارت موسع).<br>في State 2: فتح الـ Modal الكامل للنشاط `ActivityDetailModal`. | انسيابي ومطابق للمواصفات. |
+### What the Screenshots Show
 
-### مخطط سلسلة المحفزات وحلقات التدفق (Trigger Flow & Cascade Diagram):
+**Screenshot 1:**
+- "Grand Market - جراند ماركت" selected and open.
+- On the map: floating amber-bordered card (`createCompactSelectedActivityCardHtml`) with photo and "انقر لعرض كامل التفاصيل" button.
+- At the bottom of the screen **at the same time**: `MapSelectedBusinessDrawer` showing the same business with (Navigation / WhatsApp / Call / Details) buttons.
+- Three other business cards visible behind the selected card, some overlapping.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as المستخدم
-    participant TopBar as شريط البحث والفلاتر
-    participant ClusterHook as useMapPinsClustering
-    participant CamPlanner as cameraPlanner
-    participant Leaflet as محرك Leaflet
-    participant State as MapState
+**Screenshot 2:**
+- Grand Market's floating card was clicked a second time — it upgraded to the expanded state (`createExpandedActivityCardHtml`) — large photo, ★ 3.9 rating, action buttons inside the card.
+- At the bottom of the screen **at the same time**: a residual strip `التفاصيل | ★★ 3.9` — the bottom drawer that failed to disappear.
 
-    User->>TopBar: اختيار منطقة (مثلاً: منطقة ج)
-    TopBar->>State: تحديث selectedZone = "ج"
-    State->>ClusterHook: تفعيل useEffect (سطر 413)
-    ClusterHook->>CamPlanner: planCameraTransitionOnZoneChange
-    CamPlanner-->>ClusterHook: قرار: shouldMove=true, mode=parabolic-arc, bounds
-    ClusterHook->>Leaflet: markCameraFlight (إضافة كلاس is-camera-flying)
-    ClusterHook->>Leaflet: map.flyToBounds(bounds, duration: 1.25s)
-    
-    Note over Leaflet: تبدأ الكاميرا رحلة الطيران البارابولي
-    Leaflet->>ClusterHook: إطلاق أحداث move / moveend أثناء الطيران
-    Note over ClusterHook: تم كتم refresh لأن isCameraFlyingRef = true
+---
 
-    Leaflet->>ClusterHook: حدث moveend النهائي (انتهاء الطيران)
-    ClusterHook->>ClusterHook: مؤقت الاستقرار (160ms) -> إزالة الكلاس
-    ClusterHook->>ClusterHook: setViewportRevision(v => v + 1)
-    ClusterHook->>ClusterHook: تفعيل رسم الدبابيس الجديد (سطر 986)
-    ClusterHook->>Leaflet: إفراغ الدبابيس القديمة وإسقاط الدبابيس الجديدة بتأثير الربيع (Spring)
+### Root Cause — Line-by-Line Diagnosis
+
+#### The broken guard condition — `InteractiveMap.tsx:424`
+
+```typescript
+{mode === 'view' && !navigationTargetState && !selectedBuildingState
+  && state.selectedBiz && !state.isSelectedBizExpandedOnMap && (
+    <MapSelectedBusinessDrawer ... />
+)}
 ```
 
----
+The intended guard is `!state.isSelectedBizExpandedOnMap`:  
+*"Show the bottom drawer only when the floating card is NOT yet expanded on the map."*
 
-## 6. الرقع المتراكمة والمسارات المهجورة (Layered Patches & Ghost Code)
+#### Who sets `isSelectedBizExpandedOnMap`?
 
-أظهر الفحص الدقيق تراكم عدة طبقات ترقيعية تاريخية عبر جلسات الذكاء الاصطناعي المتعاقبة لم يتم تنظيفها:
+In `useMapState.ts:28-33`:
+```typescript
+const [isSelectedBizExpandedOnMap, setIsSelectedBizExpandedOnMap] = useState<boolean>(false);
 
-1. **شريط الرأس القديم المعزول (`MapHeaderBar.tsx`):**
-   - **الدليل:** في `InteractiveMap.tsx:226` يتم استدعاء `MapHeaderBar` فقط وحصرياً إذا كان `mode === 'picker'`.
-   - **الخلل:** يحتوي `MapHeaderBar.tsx` على 472 سطراً، منها الأسطر من 243 إلى 390 تتضمن فلاتر التصنيفات وقائمة البوابات واختيار المناطق المنبثقة مشروطة بـ `{mode === 'view' && ...}`!
-   - **التشخيص:** **(c) Architectural Debt.** هذا الكود يستحيل منطقياً أن ينفذ أو يظهر في بيئة الإنتاج، وهو عبارة عن واجهة قديمة تم استبدالها بـ `MapModernTopBar.tsx` وتُركت داخل الملف.
-
-2. **شريط الفوتر المهجور بالكامل (`MapFooterBar.tsx`):**
-   - **الدليل:** تم إنشاء مكون `MapFooterBar.tsx` لعرض الإحداثيات وتصديره في `src/components/map/index.ts:17` واستيراده في السطر 19 من `InteractiveMap.tsx`.
-   - **الخلل:** المكون غير موجود في شجرة الـ JSX داخل `InteractiveMap.tsx` على الإطلاق، فهو كود ميت مهجور.
-
-3. **أزرار التحكم الطافية الناقصة (`MapFloatingControls.tsx`):**
-   - **الدليل:** يستقبل المكون في السطر 26-27 الـ Props التالية: `tileLayer: MapTileLayerType` و `switchTileLayer`. كما يستورد أيقونة `Layers` من `lucide-react` (سطر 12).
-   - **الخلل:** **(d) Missing State & (c) Debt.** المكون لا يقوم برسم أي زر أو قائمة لتبديل البلاطات (Satellite / Clean)! الأيقونة والدوال الممررة مهملة تماماً، مما يحرم مستخدم وضع الـ view العادي من التبديل إلى قمر صناعي من الأزرار الجانبية.
-
-4. **المسار المهجور لمجلد `map_temp` في `MapSandboxView.tsx`:**
-   - **الدليل:** السطر 69 في `src/components/views/MapSandboxView.tsx` يحتوي على الشارة النصية: `مجلد معزول: src/components/map_temp`.
-   - **الخلل:** المجلد `src/components/map_temp` تم حذفه أو دمجه سابقاً في `src/components/map`، ولكن النص ظل عالقاً ومضللاً للمطورين.
-
-5. **مأساة أسماء وعناوين المناطق (`districtLabelsPane` & `districtLabelPosition.ts`):**
-   - **الدليل:** في `useMapPinsClustering.ts:288` يتم إنشاء مسطح Leaflet باسم `districtLabelsPane` مع إعطائه `zIndex: 460`. كما يتوفر ملف حسابي متطور لحساب موقع الكلمة داخل المضلع `src/components/map/utils/districtLabelPosition.ts`.
-   - **الخلل:** **(c) Debt & (d) Missing State.** لا يتم رسم أي اسم منطقة أو مسمى جغرافي على هذا المسطح! المضلعات تظهر صامتة بدون أسماء الحروف، والملف الحسابي لا تستدعيه سوى ملفات التيست القديمة.
-
-6. **ازدواجية النظام المعماري للخريطة (`src/directory-experience/map`):**
-   - **الدليل:** وجود نظام خريطة موازٍ مبني كـ SVG Canvas مستقل تماماً في `src/directory-experience/map/GeographicCanvas.tsx` مع كتالوج بيانات وهمي مخصص لمعاينة منفصلة على المنفذ 5190 عبر `vite.directory-preview.config.ts`.
-   - **الأثر:** أي تعديل في خريطة الإنتاج لا ينعكس على الـ prototype التجريبي والعكس، مما يخلق تضارباً معرفياً للمطورين.
-
----
-
-## 7. مخطط الاعتماديات البينية لمنظومة الخريطة (Module Dependency Graph)
-
-يوضح المخطط التالي شجرة الاعتماديات والعلاقات البينية لمكونات الخريطة الإنتاجية الفعلية:
-
-```mermaid
-graph TD
-    App["App.tsx<br/>(Supabase Realtime & Catalog Cache)"] --> PS["PublicShowcase.tsx<br/>(Global Routing, Filters, SEO)"]
-    
-    PS --> MV["MapView.tsx<br/>(Map View Shell & URL Sync)"]
-    PS --> MSB["SmartSearchBar.tsx"]
-    PS --> ADM["ActivityDetailModal.tsx<br/>(OSM Mini Preview Iframe)"]
-    
-    MV --> IM["InteractiveMap.tsx<br/>(Core Map Canvas Wrapper)"]
-    MV --> PRD["ProximityRadarDrawer.tsx"]
-    MV --> HGM["HadayekGatesModal.tsx"]
-    
-    IM --> UMI["useMapInstance.ts<br/>(Leaflet Lifecycle, Panes, Bounds)"]
-    IM --> UMPC["useMapPinsClustering.ts<br/>(Markers, LOD, Collision, Camera)"]
-    IM --> UMS["useMapState.ts"]
-    IM --> UMG["useMapGeolocation.ts"]
-    IM --> MMTB["MapModernTopBar.tsx<br/>(Modern Search & Category Filter)"]
-    IM --> MSBD["MapSelectedBusinessDrawer.tsx<br/>(State 1 Bottom Sheet)"]
-    IM --> BDD["BuildingDetailDrawer.tsx"]
-    IM --> IAND["InAppNavigationDrawer.tsx"]
-    IM --> MFC["MapFloatingControls.tsx"]
-    
-    MMTB --> ZSSB["ZoneScopedSearchBar.tsx"]
-    
-    UMPC --> SAG["spatialActivityGroups.ts<br/>(Spatial Grouping & Scale)"]
-    UMPC --> CP["cameraPlanner.ts<br/>(Cinematic Flight Decisions)"]
-    UMPC --> BM["badgeMarkers.ts<br/>(HTML Pin & Card Factories)"]
-    UMPC --> PW["progressiveWork.ts<br/>(60 FPS RequestAnimationFrame Batcher)"]
-    UMPC --> MR["markerReconciliation.ts<br/>(Icon Key Computations)"]
-    
-    UMI --> LL["leafletLoader.ts<br/>(Dynamic Script & CSS Injection)"]
-    UMI --> HTP["hadayekTilePreloader.ts<br/>(Idle Tile Warming & Memory Cache)"]
-    
-    IAND --> HR["hadayekRouting.ts<br/>(OSRM Real Road Engine)"]
-    
-    UMPC --> HZH["hadayekZoneHelper.ts<br/>(GIS Point-in-Polygon & Category Matching)"]
-    HZH --> HDG["hadayekDistrictsGeoData.ts<br/>(Cadastral Polygons & Gates GeoJSON)"]
-    ZSSB --> HBC["hadayekBuildingsCoords.json<br/>(Cadastral Building Coordinates DB)"]
-    BDD --> HAD["hadayekAtlasData.ts<br/>(Atlas Gates & Zone Metadata)"]
-
-    style App fill:#f8fafc,stroke:#64748b,stroke-width:2px;
-    style IM fill:#fef3c7,stroke:#f59e0b,stroke-width:3px;
-    style UMPC fill:#dbeafe,stroke:#3b82f6,stroke-width:2px;
-    style UMI fill:#dbeafe,stroke:#3b82f6,stroke-width:2px;
-    style HDG fill:#dcfce7,stroke:#22c55e,stroke-width:2px;
-    style HBC fill:#dcfce7,stroke:#22c55e,stroke-width:2px;
+const setSelectedBiz = useCallback((biz: Business | null) => {
+  _setSelectedBiz(biz);
+  setIsSelectedBizExpandedOnMap(false);  // ← ALWAYS resets to false on any business change
+}, []);
 ```
 
----
+In `useMapPinsClustering.ts:951`:
+```typescript
+// State 1 → State 2: user clicked the compact floating card
+setIsSelectedBizExpandedOnMap(true);  // ← the ONLY place it is ever set to true
+```
 
-## 8. الخلاصات والنتائج الحرجة المؤثرة على تجربة المستخدم (Critical Findings Summary)
+#### The competing write paths
 
-1. **خلل اختفاء الأنشطة عند البحث بالاسم (Bug - Active):**
-   - **السبب:** اشتراط `useMapPinsClustering:996` وجود تصنيف نشط (`effectiveCategoryFilter !== 'all'`) لعرض أي دبابيس، مع عجز `parseActivitySearchIntent` عن تصنيف أسماء المحلات (مثل: "كرم الشام" أو "صيدلية العزبي").
-   - **الأثر على المستخدم:** الخريطة تصبح فارغة تماماً من أي دبابيس عند كتابة اسم محل معين، مما يوحي للمستخدم بأن النشاط غير موجود بالرغم من وجوده في الدليل.
+| Selection path | File:line | Sets `isSelectedBizExpandedOnMap`? |
+|---------------|-----------|-----------------------------------|
+| Click activity marker on map | `useMapPinsClustering.ts:1219` → `setSelectedBizRef.current(biz)` | **No** — calls the wrapped `setSelectedBiz` which resets to `false`. |
+| Select from search suggestion | `MapModernTopBar.tsx:139` → `onSelectBusiness(biz)` → `InteractiveMap.tsx:331` → `state.setSelectedBiz(biz)` | **No** — same wrapped call. |
+| `focusedBusiness` prop from parent | `InteractiveMap.tsx:134` → `state.setSelectedBiz(focusedBusiness)` | **No** — same wrapped call. |
+| Click the compact floating card on map | `useMapPinsClustering.ts:951` → `setIsSelectedBizExpandedOnMap(true)` | **Yes** — the only path that sets it correctly. |
 
-2. **ارتداد الكاميرا القسري عند إلغاء تحديد النشاط (UX Flaw - Active):**
-   - **السبب:** تخزين موضع الكاميرا قبل التحديد في `preSelectedStateRef` وإعادة تشغيل `flyTo` نحوه بمجرد النقر على خلفية الخريطة (`useMapPinsClustering:563`).
-   - **الأثر على المستخدم:** إذا قام المستخدم بتحديد نشاط، ثم قام بسحب الخريطة واستكشاف حي آخر، ثم نقر على الخريطة لإغلاق الكارت، يُفاجأ بنقله قسرياً وتطيره للخلف إلى حيث كان أول مرة.
+**Consequence:** When a business is selected by any means other than clicking the floating card itself:
+- `selectedBiz` ≠ null ✓  
+- `isSelectedBizExpandedOnMap` = **false** (the wrapper always resets it)
 
-3. **تناقض نطاق البوابات الرسمية (Bug & Missing State - Active):**
-   - **السبب:** الازدواج بين `HADAYEK_GATES` في `hadayekAtlasData.ts` و `HADAYEK_OFFICIAL_GATES` في `hadayekDistrictsGeoData.ts`.
-   - **الأثر على المستخدم:** البوابة الثالثة في شاشة تخدم منطقة "م"، وفي شاشة أخرى تخدم منطقة "ص".
+The guard at line 424 evaluates as:
+```
+mode='view' ✓  &&  !null ✓  &&  !null ✓  &&  selectedBiz ✓  &&  !false ✓
+→ renders MapSelectedBusinessDrawer  ✓
+```
 
-4. **تضارب عتبات التقريب بين المكونات (Architectural Debt & Jitter):**
-   - **السبب:** تباين حد نظرة المدينة بين `cameraPlanner.ts` (15.0) و `useMapPinsClustering.ts` (15.5).
-   - **الأثر على المستخدم:** في المدى بين 15.0 و 15.5 تتصرف الكاميرا على أنها في نطاق محلي، بينما يرسم محرك الدبابيس كروت نظرة المدينة المصغرة، مسبباً ارتباكاً بصرياً.
+Simultaneously, `useMapPinsClustering` Effect 5b (lines 915–978) evaluates:
+```typescript
+if (!selectedBiz) { ... return; }  // selectedBiz is set → does NOT return
+const isExpanded = isSelectedBizExpandedOnMap;  // = false
+const cardData = isExpanded
+  ? createExpandedActivityCardHtml(...)
+  : createCompactSelectedActivityCardHtml(...);  // ← builds the compact floating card
+// → adds floating card to the Leaflet layer
+```
 
-5. **تشتت مصادر الـ GPS (UX Flaw & Missing State):**
-   - **السبب:** كتابة كود طلب الموقع 3 مرات في مواضع مختلفة دون مشاركة النتيجة.
-   - **الأثر على المستخدم:** تكرار طلب إذن المتصفح وبطء التقاط الموقع في كل شاشة مستقلة.
+**Both conditions are true simultaneously → both render at the same time → Screenshot 1.**
 
----
+#### Why does Screenshot 2 show the expanded card alongside the residual drawer strip?
 
-## 9. بيان التغطية وفحص الملفات (Coverage Statement)
+When the user clicks the compact floating card (`handleCardClick`, line 943–957):
+```typescript
+setIsSelectedBizExpandedOnMap(true);
+```
 
-### أولاً: الملفات التي تم قراءتها وفحص كودها الفعلي بالكامل سطرًا بسطر (Files Fully Read):
-1. `src/App.tsx`
-2. `src/components/PublicShowcase.tsx`
-3. `src/components/InteractiveMap.tsx`
-4. `src/components/views/MapView.tsx`
-5. `src/components/views/MapSandboxView.tsx`
-6. `src/components/views/HomeView.tsx`
-7. `src/components/views/SearchView.tsx`
-8. `src/components/map/hooks/useMapInstance.ts`
-9. `src/components/map/hooks/useMapPinsClustering.ts`
-10. `src/components/map/hooks/useMapState.ts`
-11. `src/components/map/hooks/useMapGeolocation.ts`
-12. `src/components/map/hooks/useMapSearch.ts`
-13. `src/components/map/constants/mapConstants.ts`
-14. `src/components/map/types.ts`
-15. `src/components/map/badgeMarkers.ts`
-16. `src/components/map/BuildingDetailDrawer.tsx`
-17. `src/components/map/MapSelectedBusinessDrawer.tsx`
-18. `src/components/map/InAppNavigationDrawer.tsx`
-19. `src/components/map/MapFloatingControls.tsx`
-20. `src/components/map/MapHeaderBar.tsx`
-21. `src/components/map/MapModernTopBar.tsx`
-22. `src/components/map/MapSearchBox.tsx`
-23. `src/components/map/ZoneScopedSearchBar.tsx`
-24. `src/components/map/utils/cameraPlanner.ts`
-25. `src/components/map/utils/districtLabelPosition.ts`
-26. `src/components/map/utils/leafletLoader.ts`
-27. `src/components/map/utils/markerReconciliation.ts`
-28. `src/components/map/utils/pinDispersal.ts`
-29. `src/components/map/utils/progressiveWork.ts`
-30. `src/components/map/utils/spatialActivityGroups.ts`
-31. `src/components/atlas/HadayekAtlasNavigator.tsx`
-32. `src/components/atlas/HadayekGatesModal.tsx`
-33. `src/components/atlas/ProximityRadarDrawer.tsx`
-34. `src/components/search/SmartSearchBar.tsx`
-35. `src/components/search/ActiveFilterChips.tsx`
-36. `src/components/activity/ActivityDetailModal.tsx`
-37. `src/utils/hadayekZoneHelper.ts`
-38. `src/utils/hadayekBuildingSearch.ts`
-39. `src/utils/hadayekRouting.ts`
-40. `src/utils/hadayekTilePreloader.ts`
-41. `src/utils/directoryFiltering.ts`
-42. `src/utils/arabicSearch.ts`
-43. `src/utils/activitySearchIntent.ts`
-44. `src/utils/categoryMatcher.ts`
-45. `src/data/categoryTaxonomy.ts`
-46. `src/data/hadayekAtlasData.ts`
-47. `src/data/hadayekDistrictsGeoData.ts`
-48. `src/directory-experience/map/MapScreen.tsx`
-49. `vite.directory-preview.config.ts`
-50. `directory-preview.html`
-51. `package.json`
-52. `index.html`
+The guard at line 424 becomes `!true = false` → bottom drawer should hide ✓
 
-### ثانياً: الملفات التي لم تُقرأ أو اعتُبرت خارج نطاق منظومة الخريطة المباشرة (Files Not Read / Out of Scope):
-- مكونات لوحة إدارة المندوبين ومسؤولي النظام (`src/components/views/ForBusinessView.tsx`, `BusinessPricingView.tsx`, `AboutView.tsx`, `FavoritesView.tsx`).
-- مكونات الوسائط والفيديو المستقلة (`VideoPlayerModal.tsx`, `PhotoLightbox.tsx`, `PackagesHub.tsx`).
-- نصوص ومحررات تدريب الذكاء الاصطناعي وخدمات المراسلة الآلية للواتساب.
-- مصفوفات الأنماط الثابتة في `public/` والتصميم المرئي البحت في `src/index.css`.
-- حزم وبيانات الـ mock الاحتياطية في `src/directory-experience/preview/fixtures.ts`.
+However, **Leaflet and React update the DOM in different cycles**:
+- React `useState` re-render hides the bottom drawer only after the next React commit.
+- The Leaflet `divIcon` for the expanded card is injected into the DOM **immediately** by Leaflet, outside React's cycle.
+
+The gap between Leaflet's DOM mutation and React's re-render means the user sees the expanded card AND the bottom drawer residue at the same time during Screenshot 2. If the browser is under load, the residue can persist for a visible duration.
 
 ---
 
-**نهاية تقرير التدقيق المعماري رقم 01.**  
-تم تسجيل كافة الأدلة والاختلالات بدقة متناهية ودون تعديل أي ملف في كود التطبيق، بما يتوافق 100% مع التوجيهات الصارمة.
+### One-sentence summary
+
+> The wrapped `setSelectedBiz` in `useMapState` always resets `isSelectedBizExpandedOnMap` to `false`, so every selection path except clicking the floating card itself leaves both the bottom drawer guard (`!false = true`) and the floating card effect (`isExpanded = false → renders compact card`) simultaneously satisfied — causing both UI elements to appear at the same time.
+
+---
+
+### Exact locations for the fix (read-only report — no modifications made)
+
+| Location | File:line | Problem |
+|----------|-----------|---------|
+| Wrapped `setSelectedBiz` | `useMapState.ts:30-33` | Unconditionally resets `isSelectedBizExpandedOnMap = false` on every call, even when the same business is re-selected. |
+| Bottom drawer render guard | `InteractiveMap.tsx:424` | Depends solely on `isSelectedBizExpandedOnMap`; does not account for the selection source. |
+| Floating card creation | `useMapPinsClustering.ts:931-934` | Renders the card without checking whether the bottom drawer is currently visible. |
+| `focusedBusiness` sync effect | `InteractiveMap.tsx:132-139` | Calls `setSelectedBiz` directly, resetting expanded state even if the business was previously expanded. |
+
+---
+
+## 9. Coverage Statement
+
+### Files fully read (source-level, line by line)
+
+| File | Lines read |
+|------|-----------|
+| `src/components/views/MapView.tsx` | 276 |
+| `src/components/InteractiveMap.tsx` | 494 |
+| `src/components/map/hooks/useMapInstance.ts` | 473 |
+| `src/components/map/hooks/useMapState.ts` | 89 |
+| `src/components/map/hooks/useMapPinsClustering.ts` | 1290 (both halves) |
+| `src/components/map/hooks/useMapSearch.ts` | 109 |
+| `src/components/map/hooks/useMapGeolocation.ts` | 154 |
+| `src/components/map/constants/mapConstants.ts` | 87 |
+| `src/components/map/types.ts` | 53 |
+| `src/components/map/utils/cameraPlanner.ts` | 173 |
+| `src/components/map/utils/markerReconciliation.ts` | 91 |
+| `src/components/map/utils/spatialActivityGroups.ts` | 33 |
+| `src/components/map/utils/progressiveWork.ts` | 28 |
+| `src/components/map/utils/pinDispersal.ts` | 316 |
+| `src/components/map/badgeMarkers.ts` | 1-671 fully; 672-1133 structurally |
+| `src/components/map/MapModernTopBar.tsx` | 450 |
+| `src/components/map/MapSelectedBusinessDrawer.tsx` | 174 |
+| `src/components/map/ZoneScopedSearchBar.tsx` | 65 |
+| `src/utils/hadayekZoneHelper.ts` | 371 |
+| `src/utils/categoryMatcher.ts` | 179 |
+| `src/directory-experience/map/MapScreen.tsx` | 335 |
+| `src/directory-experience/map/useMapViewport.ts` | 68 |
+
+### Files NOT read
+
+- `src/components/map/utils/leafletLoader.ts` — interface known from callers; low risk
+- `src/components/map/utils/districtLabelPosition.ts` — label geometry; not implicated in bugs
+- `src/components/map/MapFloatingControls.tsx` — interface known; not implicated
+- `src/components/map/MapFooterBar.tsx` — confirmed not rendered
+- `src/components/map/MapHeaderBar.tsx` — picker mode only; not implicated
+- `src/components/map/MapSearchBox.tsx` — picker mode only; not implicated
+- `src/components/map/BuildingDetailDrawer.tsx` — not implicated
+- `src/components/map/InAppNavigationDrawer.tsx` — not implicated
+- `src/directory-experience/map/GeographicCanvas.tsx` — interface known
+- `src/directory-experience/map/MapActivityCards.tsx` — not implicated
+- `src/directory-experience/map/mapGeometry.ts` — not implicated
+- `src/utils/activitySearchIntent.ts`, `src/utils/geocoding.ts`, `src/utils/hadayekBuildingSearch.ts`, `src/utils/hadayekTilePreloader.ts` — interfaces known from callers
+- `src/data/hadayekDistrictsGeoData.ts`, `src/data/hadayekAtlasData.ts`, `src/data/categoryTaxonomy.ts` — interfaces known
+- `src/data/hadayekBuildingsCoords.json` — data file
+- `src/contexts/DirectoryLoadContext.ts` — interface known
+
+### Finding summary
+
+| Category | Count |
+|----------|-------|
+| Files fully read | 22 |
+| Files partially read | 2 |
+| Files not read (low risk / interface known) | ~20 |
+| Confirmed bugs (a) | 6 |
+| Suspected bugs (a) | 2 |
+| UX flaws (b) | 1 |
+| Architectural debt (c) | 9 |
+| Missing state (d) | 2 |
+| Confirmed dead code | 1 file + 1 duplicate function + 1 dead import |
+
+*No application code was modified. This report file is the only output.*
