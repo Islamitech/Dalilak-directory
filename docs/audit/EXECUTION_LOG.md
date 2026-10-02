@@ -64,3 +64,12 @@ For every batch, record: code/tests changed, before/after results, build/lint/al
 - Batch 6 checks: lint; full `test:repair`; E2E 4/4; production build. Final bundle: InteractiveMap 152.11 kB / 41.01 gzip (baseline +7.18 / +2.45 gzip); entry 187.59 / 52.96 (baseline +2.08 / +0.70); coordinates chunk unchanged.
 - Deferred from plan 06: three-position gesture-driven sheet, recent-search UI, ARIA virtual pin list, cache expiry policy and database recommendation SQL. No deletion where source/test/runtime consumers remain: `MapFooterBar` is used by picker; `pinDispersal` and `districtLabelPosition` have test consumers; `markerReconciliation` supplies live icon-key logic. `directory-experience` was left untouched per user instruction. Official/atlas gate served-zone disagreement remains unresolved.
 - Batch 4–6 push, preview and PR remain unavailable under the previously recorded publishing block. No publish retry was made.
+
+## Final checkpoint and publish stop
+
+- Batch 5 commit `980a777787cb872125231bbac35f56956b3bce38`, tag `map-batch-5-done`.
+- Batch 6 commit `c8fb765d5b8c982b4e8ba3446354a170f362880d`, tag `map-batch-6-done`.
+- Batch 2b/3 combined checkpoint commit: `a5d0e06737e8ba532a5cc39752bf3c43df76bbfa`; tags `map-batch-2b-done`, `map-batch-3-done`.
+- Final `git status` is clean after removing temporary build/test outputs. Branch `fix/map-full-repair` is based on `main` at `5c24236`; all changes remain local.
+- Publish is blocked by auto-review on the escalated `git push`: destination ownership/trust could not be verified. Direct SSH push first failed with Windows `couldn't create signal pipe, Win32 error 5`. Per policy, no retry through an alternate transport was attempted. `gh` and `vercel` CLIs are not installed, so no PR or preview status/URL exists.
+- User-side commands after establishing trusted GitHub access: `git push -u origin fix/map-full-repair`; then `gh pr create --base main --head fix/map-full-repair --title "Repair map state, camera, search and mobile behavior" --body-file <PR_DESCRIPTION_FILE>`. Preview: `vercel` deploy/check through the connected project; this workspace cannot provide an exact CLI command because the CLI/project link is absent.
