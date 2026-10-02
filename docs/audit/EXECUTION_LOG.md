@@ -53,3 +53,14 @@ This log is the continuation point after context resets. Update after each batch
 ## Required checkpoint template
 
 For every batch, record: code/tests changed, before/after results, build/lint/all-suite status against baseline, emitted bundle delta, commit SHA, tag, push result, Vercel preview check/log/URL, decision, and anything skipped. If a checkpoint is blocked, record the exact command/error and continue independent work only where safe. Never claim a batch complete if one required checkpoint is unresolved.
+
+## Later batch detail
+
+- Batch 4 commit `8d540bb48e6ca0248bd5e752d49140b08099851b`, tag `map-batch-4-done`. `useMapPinsClustering` consumes a pure visible-pin pipeline: viewport-culled groups, singleton/cluster targets, and card/dot presentation after selected-business isolation. Existing 58px projected grouping, 100m ground guard, 3 prominent overview cards, collision dimensions and 15.5 local presentation policy are preserved. Added two pipeline tests.
+- Batch 4 checks: lint; map unit 10/10; map suite 42/42; legacy safety 19/19; full `test:repair`; E2E 3/3; production build. InteractiveMap bundle 150.42 kB / 40.63 gzip (Batch 3: 150.07 / 40.44; baseline 144.93 / 38.56). Entry 185.94 / 52.40; coordinates chunk unchanged 937.87 / 97.46 gzip.
+- Batch 5 changes: quick category chips; suggestion height tracks the on-screen keyboard; safe-area top padding; map zoom controls stack above suggestions; touch targets >=44px; drawer bottom safe area; view mode exposes existing GPS flow through a locate control (zoom remains 17). Browser regression proves zoom works with query active and query remains intact.
+- Batch 5 checks: lint; map unit 10/10; full `test:repair` including U3/U4/U7/B4 and 13 preview checks; E2E 4/4 at 390x844 and 360x640; final build.
+- Batch 6 uses browser-native IndexedDB instead of adding `idb-keyval`. It reads/migrates `dalelak_directory_cache`, and writes to localStorage only as a fallback when IndexedDB is unavailable. Existing public-business sanitization is retained.
+- Batch 6 checks: lint; full `test:repair`; E2E 4/4; production build. Final bundle: InteractiveMap 152.11 kB / 41.01 gzip (baseline +7.18 / +2.45 gzip); entry 187.59 / 52.96 (baseline +2.08 / +0.70); coordinates chunk unchanged.
+- Deferred from plan 06: three-position gesture-driven sheet, recent-search UI, ARIA virtual pin list, cache expiry policy and database recommendation SQL. No deletion where source/test/runtime consumers remain: `MapFooterBar` is used by picker; `pinDispersal` and `districtLabelPosition` have test consumers; `markerReconciliation` supplies live icon-key logic. `directory-experience` was left untouched per user instruction. Official/atlas gate served-zone disagreement remains unresolved.
+- Batch 4–6 push, preview and PR remain unavailable under the previously recorded publishing block. No publish retry was made.

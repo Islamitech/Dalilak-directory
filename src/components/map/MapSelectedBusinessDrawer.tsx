@@ -26,12 +26,12 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
   const phone = selectedBiz.phone || selectedBiz.ownerPhone;
 
   return (
-    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
+    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-0 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => setSelectedBiz(null)}
-          className="text-slate-400 hover:text-slate-700 text-xs font-black w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
+          className="text-slate-400 hover:text-slate-700 text-xs font-black min-w-11 min-h-11 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
           aria-label={`إغلاق إجراءات ${selectedBiz.nameAr}`}
         >
           ✕
@@ -45,7 +45,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           <button
             type="button"
             onClick={() => onStartNavigation(selectedBiz)}
-            className="py-2 px-1 rounded-xl text-center flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black border border-amber-400"
+            className="min-h-11 px-1 rounded-xl text-center flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black border border-amber-400"
             title="بدء التوجيه والملاحة إلى هذا النشاط"
           >
             <Navigation className="w-3.5 h-3.5" />
@@ -56,7 +56,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
             href={effectiveUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="py-2 px-1 rounded-xl text-center flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
+            className="min-h-11 px-1 rounded-xl text-center flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
             title="فتح الاتجاهات على خرائط Google"
           >
             <Navigation className="w-3.5 h-3.5 text-blue-600" />
@@ -66,7 +66,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           <button
             type="button"
             disabled
-            className="py-2 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
+            className="min-h-11 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
           >
             <Navigation className="w-3.5 h-3.5" />
             <span className="text-[11px]">اتجاهات</span>
@@ -79,7 +79,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
             href={smartWhatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="py-2 px-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-center flex items-center justify-center gap-1 transition-colors active:scale-95 cursor-pointer shadow-xs"
+            className="min-h-11 px-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-center flex items-center justify-center gap-1 transition-colors active:scale-95 cursor-pointer shadow-xs"
             title="محادثة واتساب مباشرة"
           >
             <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
@@ -89,7 +89,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           <button
             type="button"
             disabled
-            className="py-2 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
+            className="min-h-11 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             <span className="text-[11px]">واتساب</span>
@@ -100,7 +100,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
         {phone ? (
           <a
             href={`tel:${phone}`}
-            className="py-2 px-1 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-center flex items-center justify-center gap-1 transition-colors active:scale-95 cursor-pointer shadow-xs"
+            className="min-h-11 px-1 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-center flex items-center justify-center gap-1 transition-colors active:scale-95 cursor-pointer shadow-xs"
             title="اتصال هاتفي مباشر"
           >
             <Phone className="w-3.5 h-3.5 text-slate-600" />
@@ -110,7 +110,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           <button
             type="button"
             disabled
-            className="py-2 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
+            className="min-h-11 px-1 rounded-xl bg-slate-50 text-slate-400 text-center flex items-center justify-center gap-1 opacity-50"
           >
             <Phone className="w-3.5 h-3.5" />
             <span className="text-[11px]">اتصال</span>
@@ -123,7 +123,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           onClick={() => {
             if (onSelectBusiness) onSelectBusiness(selectedBiz);
           }}
-          className="py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-center flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-xs font-black"
+          className="min-h-11 px-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-center flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-xs font-black"
           title="عرض كامل التفاصيل والصور"
         >
           <Eye className="w-3.5 h-3.5" />

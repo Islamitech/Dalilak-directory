@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers,
+  LocateFixed,
+  Loader2,
 } from 'lucide-react';
 
 import { MapTileLayerType } from './constants/mapConstants';
@@ -25,6 +27,8 @@ export interface MapFloatingControlsProps {
   handlePan: (direction: 'up' | 'down' | 'left' | 'right') => void;
   tileLayer: MapTileLayerType;
   switchTileLayer: (layer: MapTileLayerType) => void;
+  onLocate?: () => void;
+  isLocating?: boolean;
 }
 
 export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
@@ -38,6 +42,8 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
   handlePan,
   tileLayer,
   switchTileLayer,
+  onLocate,
+  isLocating = false,
 }) => {
   return (
     <>
@@ -58,11 +64,16 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* FLOATING CONTROLS TOOLBAR OVER MAP */}
       {/* 1. Zoom, Center Pin, & Reset Controls (Top Right Overlay) */}
-      <div className="map-icon-controls absolute top-[7.5rem] right-2 sm:top-20 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[900]">
+      <div className="map-icon-controls absolute top-[7.5rem] right-2 sm:top-20 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[1010]">
+        {mode === 'view' && onLocate && (
+          <button type="button" onClick={onLocate} disabled={isLocating} aria-label="تحديد موقعي الحالي" aria-busy={isLocating} className="min-w-11 min-h-11 bg-white/95 text-amber-700 rounded-2xl border border-slate-200 shadow-lg flex items-center justify-center disabled:opacity-60" title="تحديد موقعي الحالي">
+            {isLocating ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : <LocateFixed className="w-5 h-5" />}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleZoomIn}
-          className="bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
+          className="min-w-11 min-h-11 bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
           title="تكبير الخريطة (+)"
         >
           <ZoomIn className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
@@ -71,7 +82,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         <button
           type="button"
           onClick={handleZoomOut}
-          className="bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
+          className="min-w-11 min-h-11 bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
           title="تصغير الخريطة (-)"
         >
           <ZoomOut className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />

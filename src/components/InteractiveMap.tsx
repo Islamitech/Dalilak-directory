@@ -454,6 +454,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           handlePan={mapInstance.handlePan}
           tileLayer={mapInstance.tileLayer}
           switchTileLayer={mapInstance.switchTileLayer}
+          onLocate={mode === 'view' ? geolocation.handleGetLocation : undefined}
+          isLocating={geolocation.isLocating}
         />
 
         {/* 🏢 Selected Business Bottom Drawer (Visible ONLY in State 1: when biz is selected but pin card is NOT yet expanded) */}
