@@ -79,3 +79,9 @@ For every batch, record: code/tests changed, before/after results, build/lint/al
 - Pinned `engines.node` to `24.x` in package and lockfile. Vercel's official supported-version documentation lists Node 24.x, and local runtime `v24.19.0` successfully ran lint and `npm run vercel-build -- --outDir .vercel-check-dist`.
 - Client Supabase configuration uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; server-only directory env fallbacks are imported by `api/sitemap.ts`, `api/share.ts`, and `api/biz-og.ts` through `src/server/directoryData.ts`.
 - Live deployment/preview cannot be verified: Vercel CLI is absent and the GitHub push required to trigger the connected preview was rejected by auto-review. The remote project settings and deployment environment values could not be inspected here.
+
+## GitHub push confirmation (2026-10-02)
+
+- After the user explicitly confirmed the target, `git push -u origin fix/map-full-repair` succeeded to `git@github.com:Islamitech/Dalilak-directory.git`.
+- The remote branch was created and set as upstream. GitHub returned: `https://github.com/Islamitech/Dalilak-directory/pull/new/fix/map-full-repair`.
+- Vercel compatibility was checked locally: `vercel.json` parses, `npm run vercel-build` succeeds under Node 24.19, and package/lock pin `engines.node` to `24.x`. A live Vercel deployment URL/status remains unverified because the CLI is unavailable and there is no Vercel app connector in this session.
