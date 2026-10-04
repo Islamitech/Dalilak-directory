@@ -109,6 +109,7 @@ All 20 combinations of screens and viewports were tested using Chromium with DOM
 ## 6. Commit List (Round 2 Atomic Commits)
 
 ```
+* ce450cb test(ux-report): add playwright e2e tests, responsive verification, and deliver ux round 2 audit report
 * de42503 chore(ux-guards): enforce component, hook, cross-feature imports, and rtl limits in build
 * 5580abd perf(ux-bundle): code-split atlas geodata, lazy-load home view, and tighten bundle budgets to measured +10% headroom
 * bf8bd51 refactor(ux-rtl): enforce logical css properties, complete dark theme tokens, and protect text with bdi dir=auto
@@ -119,8 +120,6 @@ All 20 combinations of screens and viewports were tested using Chromium with DOM
 * 199d060 refactor(ux-15): adopt shared ui primitives across modals, drawers, chips, search inputs and delete old re-exports
 * 99ecb86 docs(ux-14): record comprehensive refactoring gap analysis and baseline integrity in 03-gap-analysis.md
 ```
-
-*(Final commit for Items 10 & 11 encompasses the Playwright E2E suite, responsive artifacts, and this report).*
 
 ---
 
