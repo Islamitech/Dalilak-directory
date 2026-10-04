@@ -3,7 +3,6 @@ import { SlidersHorizontal } from 'lucide-react';
 import { Business } from '../../types';
 import { searchBuildingCoordinatesExact } from '../../data/hadayekAtlasData';
 import { MapSearchInputBar } from './MapSearchInputBar';
-import { MapQuickCategoriesBar } from './MapQuickCategoriesBar';
 import { MapSearchSuggestionsDropdown } from './MapSearchSuggestionsDropdown';
 import { MapFilterPanel } from './MapFilterPanel';
 import { useMapSearchMatches } from '../../features/map';
@@ -171,15 +170,6 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             isExecutingSearch={isExecutingSearch}
           />
         </div>
-
-        <MapQuickCategoriesBar
-          categories={categories}
-          categoryFilter={categoryFilter}
-          onSelectCategory={(catId) => {
-            onCategoryChange?.(categoryFilter === catId ? 'all' : catId);
-            onSearchModeChange('browse');
-          }}
-        />
 
         {expanded && (
           <MapFilterPanel

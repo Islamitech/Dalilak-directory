@@ -9,7 +9,6 @@ import {
   Sun,
   Store,
 } from 'lucide-react';
-import { ViewSegmentedSwitch, DirectoryViewMode } from './ViewSegmentedSwitch';
 import { NavbarMobileDrawer } from './NavbarMobileDrawer';
 import { SearchField } from '../../shared/ui/SearchField';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -41,17 +40,6 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   const moreButtonRef = useRef<HTMLButtonElement | null>(null);
   const { theme, toggleTheme } = useTheme();
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
-  const isMapRoute = cleanRoute === '/' || cleanRoute === '/map';
-  const isDirectoryRoute = isMapRoute || cleanRoute === '/search';
-  const activeViewMode: DirectoryViewMode = isMapRoute ? 'map' : 'list';
-
-  const handleSwitchView = (view: DirectoryViewMode) => {
-    if (view === 'map') {
-      onNavigate('/map');
-    } else {
-      onNavigate('/search');
-    }
-  };
 
   const handleLinkClick = (path: string) => {
     onNavigate(path);
@@ -78,16 +66,6 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
     >
       <div className="max-w-7xl mx-auto px-2.5 min-[360px]:px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
         <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-3">
-          {/* Floating Segmented Switch (.view-switch from prototype.html) */}
-          {isDirectoryRoute && (
-            <div className="lg:hidden fixed bottom-[calc(20px+env(safe-area-inset-bottom,0px))] start-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-              <ViewSegmentedSwitch
-                activeView={activeViewMode}
-                onViewChange={handleSwitchView}
-              />
-            </div>
-          )}
-
           {/* 1. Right (RTL Start): Brand Logo & Name (order-1) */}
           <div className="order-1 flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <a
@@ -96,7 +74,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               className="flex items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-0.5"
               aria-label="الرئيسية - منصة دليلك"
             >
-              <Logo size="sm" className="w-8 h-8 sm:w-9 sm:h-9" />
+              <Logo variant="icon" size="sm" className="w-8 h-8 sm:w-9 sm:h-9" />
               <div className="flex flex-col">
                 <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-amber-600 transition-colors">
                   دليلك

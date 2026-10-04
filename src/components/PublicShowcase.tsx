@@ -9,6 +9,7 @@ import { getBusinessSlug } from '../utils/directoryUrl';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
 import { CategoryBar } from './layout/CategoryBar';
+import { ViewSegmentedSwitch } from './layout/ViewSegmentedSwitch';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
 import { useFavorites } from '../features/favorites';
@@ -116,6 +117,16 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
       style={{ direction: 'rtl' }}
     >
+      {/* 🎛️ Floating View Segmented Switch (.view-switch from prototype.html) */}
+      {isDirectoryRoute && (
+        <div className="fixed bottom-[calc(20px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+          <ViewSegmentedSwitch
+            activeView={isMapRoute ? 'map' : 'list'}
+            onViewChange={(view) => handleNavigate(view === 'map' ? '/map' : '/search')}
+          />
+        </div>
+      )}
+
       <AppNavbar
         currentPath={currentPath}
         onNavigate={handleNavigate}
@@ -133,7 +144,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         }}
       />
 
-      {isDirectoryRoute && (
+      {!isMapRoute && isDirectoryRoute && (
         <CategoryBar
           activeCategory={filterState.categoryFilter}
           onSelectCategory={filterState.handleCategoryChange}

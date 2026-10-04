@@ -61,16 +61,16 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         </div>
       )}
 
-      {/* 📊 Live Map Stats Badge - Pulsing dot with live count */}
+      {/* 📊 Live Map Stats Badge - Pulsing dot with live count (.map-stats at top-left) */}
       {mode === 'view' && businessesCount !== undefined && businessesCount > 0 && (
-        <div className="map-stats absolute top-28 start-3 sm:top-20 sm:start-5 z-[1010] pointer-events-auto bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-md flex items-center gap-2 select-none backdrop-blur-md">
+        <div className="map-stats absolute top-16 end-3 sm:top-3.5 sm:end-4 z-[1010] pointer-events-auto bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-md flex items-center gap-2 select-none backdrop-blur-md">
           <span className="dot w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.25)] animate-pulse" />
           <span>{businessesCount} نشاط موثق</span>
         </div>
       )}
 
-      {/* FLOATING CONTROLS TOOLBAR OVER MAP */}
-      <div className="map-floating map-icon-controls absolute top-[7.5rem] end-2 sm:top-20 sm:end-5 lg:top-4 lg:end-4 flex flex-col gap-2 z-[1010]">
+      {/* FLOATING CONTROLS TOOLBAR OVER MAP (.map-floating at top-right) */}
+      <div className="map-floating map-icon-controls absolute top-16 start-3 sm:top-3.5 sm:start-4 flex flex-col gap-2 z-[1010]">
         {/* 1. Locate Me Button (44px target) */}
         {mode === 'view' && onLocate && (
           <button
