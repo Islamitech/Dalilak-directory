@@ -20,6 +20,7 @@ const IGNORE_DIRS = new Set([
   'dist-ux-preview',
   'reports',
   'verification',
+  '_backup_original',
 ]);
 
 const IGNORE_FILES = new Set([
@@ -27,6 +28,8 @@ const IGNORE_FILES = new Set([
   'secret-check.cjs',
   'secret-scan-expanded.cjs',
   'package-lock.json',
+  '.env',
+  '.env.local',
 ]);
 
 let violations = [];
