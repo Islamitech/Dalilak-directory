@@ -32,9 +32,9 @@ function escapeXml(str: string): string {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const ALLOWED_HOSTS = ['www.dalilaak.com', 'dalilaak.com', 'dalilak.vercel.app', 'localhost:5173', '127.0.0.1:5173'];
+    const ALLOWED_HOSTS = new Set(['www.dalilaak.com', 'dalilaak.com', 'dalilak.vercel.app', 'localhost:5173', '127.0.0.1:5173']);
     const reqHost = ((req.headers['x-forwarded-host'] as string) || req.headers.host || '').toLowerCase().trim();
-    const host = ALLOWED_HOSTS.includes(reqHost) || reqHost.endsWith('.vercel.app') ? reqHost : 'www.dalilaak.com';
+    const host = ALLOWED_HOSTS.has(reqHost) ? reqHost : 'www.dalilaak.com';
     const proto = (req.headers['x-forwarded-proto'] as string) === 'http' && host.includes('localhost') ? 'http' : 'https';
     const origin = escapeXml(`${proto}://${host}`);
 
