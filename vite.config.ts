@@ -2,25 +2,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
-function preloadHomeViewPlugin() {
-  return {
-    name: 'preload-homeview',
-    transformIndexHtml(html: string, ctx: any) {
-      if (!ctx.bundle) return html;
-      const homeChunk = Object.keys(ctx.bundle).find(
-        (k) => k.startsWith('assets/HomeView-') && k.endsWith('.js')
-      );
-      if (homeChunk) {
-        return html.replace(
-          '</head>',
-          `    <link rel="modulepreload" crossorigin href="/${homeChunk}">\n  </head>`
-        );
-      }
-      return html;
-    },
-  };
-}
-
 function supabaseEnvGuardPlugin() {
   return {
     name: 'supabase-env-guard',
@@ -49,7 +30,7 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
   },
-  plugins: [react(), tailwindcss(), preloadHomeViewPlugin(), supabaseEnvGuardPlugin()],
+  plugins: [react(), tailwindcss(), supabaseEnvGuardPlugin()],
   build: {
     sourcemap: false,
     rollupOptions: {

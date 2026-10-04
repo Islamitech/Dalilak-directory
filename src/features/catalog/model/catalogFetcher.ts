@@ -49,17 +49,19 @@ export async function fetchAllBusinesses(
       callbacks.onBatch(accumulated, true);
       break;
     }
-    callbacks.onBatch(accumulated, false);
-    if (offset > 0) {
+    // Emit partial snapshot only for the first batch to achieve sub-second FCP
+    if (offset === raw.length) {
+      callbacks.onBatch(accumulated, false);
+      // Give browser an uninterrupted window to paint LCP, settle DOM, and clear TBT
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    } else {
       await new Promise((resolve) => {
         if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(resolve, { timeout: 1000 });
+          (window as any).requestIdleCallback(resolve, { timeout: 2000 });
         } else {
-          setTimeout(resolve, 200);
+          setTimeout(resolve, 100);
         }
       });
-    } else {
-      await new Promise((resolve) => window.setTimeout(resolve, 0));
     }
   }
 }

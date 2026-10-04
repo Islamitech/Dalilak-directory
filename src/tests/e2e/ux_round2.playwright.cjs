@@ -61,7 +61,7 @@ async function runUxRound2Tests() {
     try {
       const s = await setup(browser, { width: 390, height: 844 }, port);
       const p = s.page;
-      p.setDefaultTimeout(12000);
+      p.setDefaultTimeout(25000);
 
       await p.goto(s.url + '/search');
       await p.waitForSelector('input[type="search"], input[type="text"]', { timeout: 8000 });

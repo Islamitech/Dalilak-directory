@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchLocationAddress } from '../../../utils/geocoding';
 import { MapTileLayerType } from '../constants/mapConstants';
-import { preloadHadayekTiles, cancelHadayekTilePreload } from '../../../utils/hadayekTilePreloader';
 import { loadLeafletScript } from '../utils/leafletLoader';
 import { CameraController } from '../controllers/CameraController';
 import {
@@ -74,7 +73,6 @@ export const useMapInstance = ({
         leafletMapRef.current = map;
         (containerRef.current as any)._leaflet_map = map;
         setIsMapReady(true);
-        preloadHadayekTiles(tileLayer);
         map.on('zoomend moveend', () => {
           if (!isSubscribed) return;
           try {
@@ -88,7 +86,7 @@ export const useMapInstance = ({
       onError: () => { if (isSubscribed) setMapScriptError('تعذر تحميل محرك الخريطة من المصدر. يرجى التحقق من الاتصال بالإنترنت.'); },
     });
     return () => {
-      isSubscribed = false; cleanupLoader(); cancelHadayekTilePreload(); setIsMapReady(false);
+      isSubscribed = false; cleanupLoader(); setIsMapReady(false);
       cameraControllerRef.current?.destroy(); cameraControllerRef.current = null;
       leafletMapRef.current?.remove(); leafletMapRef.current = null;
     };
