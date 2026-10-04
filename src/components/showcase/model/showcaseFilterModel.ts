@@ -18,7 +18,7 @@ export interface FilterBusinessesParams {
   openNowOnly: boolean;
   hasRatingOnly: boolean;
   hasVideoOnly: boolean;
-  sortBy: 'default' | 'nearest' | 'newest' | 'has_video' | 'open_now' | 'alpha';
+  sortBy: 'default' | 'nearest' | 'newest' | 'has_video' | 'open_now' | 'alpha' | 'rating' | 'reviews' | 'name';
   userCoords: { lat: number; lng: number } | null;
   shuffleSeed: number;
   pinnedDirectBizId: string | null;
@@ -60,6 +60,12 @@ export function computeFilteredBusinesses({
       const distB = calculateDistanceKm(userCoords.lat, userCoords.lng, b.lat, b.lng);
       return distA - distB;
     });
+  } else if (sortBy === 'rating') {
+    return [...list].sort((a, b) => (b.googleRating || 0) - (a.googleRating || 0));
+  } else if (sortBy === 'reviews') {
+    return [...list].sort((a, b) => (b.googleReviewsCount || 0) - (a.googleReviewsCount || 0));
+  } else if (sortBy === 'name' || sortBy === 'alpha') {
+    return [...list].sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
   } else if (sortBy === 'newest') {
     return [...list].sort(
       (a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime()
@@ -72,8 +78,6 @@ export function computeFilteredBusinesses({
       const bOpen = getBusinessOpenStatus(b.workingHours).isOpen ? 1 : 0;
       return bOpen - aOpen;
     });
-  } else if (sortBy === 'alpha') {
-    return [...list].sort((a, b) => (a.nameAr || '').localeCompare(b.nameAr || '', 'ar'));
   }
 
   if (pinnedDirectBizId && sortBy === 'default') {

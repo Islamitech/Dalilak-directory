@@ -1,11 +1,19 @@
-import React from 'react';
-import { RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { RotateCcw, Heart, ArrowUpDown } from 'lucide-react';
 import { Business } from '../../../types';
 import { FilterBar } from '../../../components/search/FilterBar';
 import { ActiveFilterChips } from '../../../components/search/ActiveFilterChips';
 import { BusinessCardGrid } from '../../../components/cards/BusinessCardGrid';
 import { Button } from '../../../shared/ui';
 import { getCategoryGroupById, getCategoryLabel, getSubcategoryById } from '../../../data/categoryTaxonomy';
+
+const SORT_CYCLE = ['default', 'rating', 'reviews', 'name'] as const;
+const SORT_LABELS: Record<string, string> = {
+  default: 'الافتراضي',
+  rating: 'الأعلى تقييماً',
+  reviews: 'الأكثر مراجعات',
+  name: 'أبجدي',
+};
 
 interface SearchResultsSectionProps {
   filteredBusinesses: Business[];
@@ -66,6 +74,19 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
   userCoords,
   onOpenVideoModal,
 }) => {
+  const [favFilter, setFavFilter] = useState(false);
+
+  const handleCycleSort = () => {
+    const current = (typeof sortBy === 'string' ? sortBy : 'default') || 'default';
+    const idx = SORT_CYCLE.indexOf(current as any);
+    const next = SORT_CYCLE[(idx + 1) % SORT_CYCLE.length];
+    onSortChange(next);
+  };
+
+  const displayedBusinesses = favFilter
+    ? filteredBusinesses.filter((b) => favorites.includes(b.id))
+    : filteredBusinesses;
+
   return (
     <div className="space-y-5 pt-2">
       <FilterBar
@@ -86,27 +107,71 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
         onReshuffle={onReshuffle}
       />
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 p-3.5 rounded-2xl shadow-2xs">
+      {/* Prototype List Header (.list-header) */}
+      <div className="list-header flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-2xs">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-xs sm:text-sm font-black text-slate-900">نتائج البحث والأنشطة:</span>
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-slate-950 font-mono shadow-2xs">
-            {filteredBusinesses.length} نشاطاً
-          </span>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>الأنشطة</span>
+            <span
+              className="count inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/15 text-amber-800 dark:text-amber-300 font-mono"
+              id="listCount"
+            >
+              {displayedBusinesses.length}
+            </span>
+          </h3>
           {categoryFilter !== 'all' && (
-            <span className="text-xs font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+            <span className="text-xs font-bold text-amber-900 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
               {getCategoryLabel(categoryFilter)}
             </span>
           )}
           {subcategoryFilter !== 'all' && (
-            <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+            <span className="text-xs font-bold text-slate-800 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
               {getCategoryLabel(subcategoryFilter)}
             </span>
           )}
         </div>
 
-        <Button variant="outline" size="sm" onClick={handleReturnToDiscovery} icon={<RotateCcw className="w-3.5 h-3.5" />}>
-          العودة إلى صفحة الاكتشاف
-        </Button>
+        {/* Prototype List Tools (.list-tools: #favToolBtn, #sortBtn) */}
+        <div className="list-tools flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            id="favToolBtn"
+            onClick={() => setFavFilter(!favFilter)}
+            className={`tool-btn min-h-[34px] px-3.5 rounded-full border text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+              favFilter
+                ? 'active bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+            }`}
+            title="تصفية المفضلة"
+          >
+            <Heart className={`w-3.5 h-3.5 ${favFilter ? 'fill-current text-slate-950' : 'text-slate-400'}`} />
+            <span>المفضلة</span>
+            {favorites.length > 0 && (
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                {favorites.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            id="sortBtn"
+            onClick={handleCycleSort}
+            className={`tool-btn min-h-[34px] px-3.5 rounded-full border text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+              sortBy !== 'default'
+                ? 'active bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+            }`}
+            title="تبديل الترتيب"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            <span id="sortLabel">{SORT_LABELS[sortBy] || 'الافتراضي'}</span>
+          </button>
+
+          <Button variant="outline" size="sm" onClick={handleReturnToDiscovery} icon={<RotateCcw className="w-3.5 h-3.5" />}>
+            صفحة الاكتشاف
+          </Button>
+        </div>
       </div>
 
       {hasActiveFilters && (
@@ -137,13 +202,16 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
       )}
 
       <BusinessCardGrid
-        businesses={filteredBusinesses}
+        businesses={displayedBusinesses}
         loading={loading}
         onOpenBusiness={onOpenBusiness}
         onToggleFavorite={onToggleFavorite}
         favorites={favorites}
         userCoords={userCoords}
-        onResetFilters={handleReturnToDiscovery}
+        onResetFilters={() => {
+          if (favFilter) setFavFilter(false);
+          handleReturnToDiscovery();
+        }}
         onOpenVideoModal={onOpenVideoModal}
       />
     </div>
