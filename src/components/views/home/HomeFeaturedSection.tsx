@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeft, Store } from 'lucide-react';
 import { Business } from '../../../types';
 import { BusinessCard } from '../../../features/business-details';
+import { LoadingSkeleton, EmptyState } from '../../../shared/ui';
 
 export interface HomeFeaturedSectionProps {
   businesses: Business[];
@@ -52,28 +53,17 @@ export const HomeFeaturedSection: React.FC<HomeFeaturedSectionProps> = ({
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading && featuredBusinesses.length === 0 ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between animate-pulse"
-            >
-              <div className="aspect-[4/3] w-full bg-slate-800/60" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-slate-800/60 rounded w-3/4" />
-                <div className="h-3 bg-slate-800/40 rounded w-1/2" />
-                <div className="h-8 bg-slate-800/60 rounded w-full mt-4" />
-              </div>
-            </div>
-          ))
-        ) : featuredBusinesses.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-[var(--text-secondary)]">
-            <Store className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-            <p className="font-bold text-sm">لم يتم العثور على أنشطة مطابقة حالياً.</p>
-          </div>
-        ) : (
-          featuredBusinesses.map((biz) => (
+      {loading && featuredBusinesses.length === 0 ? (
+        <LoadingSkeleton variant="grid" count={6} />
+      ) : featuredBusinesses.length === 0 ? (
+        <EmptyState
+          icon={<Store className="w-8 h-8 text-amber-600" />}
+          title="لا توجد أنشطة موثقة معروضة حالياً"
+          description="يمكنك تصفح كامل الدليل الجغرافي أو إضافة نشاطك الميداني."
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featuredBusinesses.map((biz) => (
             <BusinessCard
               key={biz.id}
               business={biz}
@@ -83,9 +73,9 @@ export const HomeFeaturedSection: React.FC<HomeFeaturedSectionProps> = ({
               userCoords={userCoords}
               onOpenVideoModal={onOpenVideoModal}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

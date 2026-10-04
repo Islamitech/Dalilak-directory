@@ -8,6 +8,8 @@ const VideoPlayerModal = React.lazy(() =>
   import('../VideoPlayerModal').then((m) => ({ default: m.VideoPlayerModal }))
 );
 
+import { Modal, LoadingSkeleton, ErrorState, EmptyState } from '../../shared/ui';
+
 export interface PublicShowcaseModalsProps {
   selectedBiz: Business | null;
   routingToken?: string | null;
@@ -42,27 +44,35 @@ export const PublicShowcaseModals: React.FC<PublicShowcaseModalsProps> = ({
   return (
     <>
       {routingToken && !selectedBiz && (
-        <section
-          role="status"
-          className="fixed inset-x-4 top-24 z-50 bg-white border rounded-2xl shadow-xl p-6 text-center"
-        >
-          <h2>
-            {directoryLoad.pending
+        <Modal
+          isOpen={true}
+          onClose={handleCloseBusiness}
+          title={
+            directoryLoad.pending
               ? 'جارٍ تحميل النشاط…'
               : directoryLoad.error
               ? 'تعذر تحميل النشاط'
-              : 'النشاط غير متاح'}
-          </h2>
-          <p>قد يكون الرابط قديمًا أو النشاط غير منشور.</p>
-          {directoryLoad.error && (
-            <button onClick={() => window.dispatchEvent(new Event('directory:retry'))}>
-              إعادة المحاولة
-            </button>
+              : 'النشاط غير متاح'
+          }
+          maxWidth="md"
+        >
+          {directoryLoad.pending ? (
+            <LoadingSkeleton variant="detail" />
+          ) : directoryLoad.error ? (
+            <ErrorState
+              title="تعذر تحميل تفاصيل النشاط"
+              description="حدث خطأ أثناء محاولة جلب تفاصيل هذا النشاط. تحقق من اتصالك بالإنترنت."
+              onRetry={() => window.dispatchEvent(new CustomEvent('directory:retry'))}
+            />
+          ) : (
+            <EmptyState
+              title="النشاط غير متاح"
+              description="قد يكون الرابط قديمًا أو النشاط غير منشور حالياً في الدليل."
+              actionLabel="العودة للدليل"
+              onAction={handleCloseBusiness}
+            />
           )}
-          <button className="min-h-11 underline" onClick={handleCloseBusiness}>
-            العودة للدليل
-          </button>
-        </section>
+        </Modal>
       )}
 
       {selectedBiz && (

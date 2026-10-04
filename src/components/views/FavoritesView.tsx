@@ -3,7 +3,7 @@ import React from 'react';
 import { Business } from '../../types';
 import { BusinessCard } from '../../features/business-details';
 import { Heart, Search, ArrowLeft } from 'lucide-react';
-import { EmptyState, Button } from '../../shared/ui';
+import { EmptyState, Button, LoadingSkeleton, ErrorState } from '../../shared/ui';
 
 export interface FavoritesViewProps {
   businesses: Business[];
@@ -50,7 +50,15 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
         </button>
       </div>
 
-      {favoriteBusinesses.length === 0 && (directoryLoad.pending || directoryLoad.error) ? <p role="status">{directoryLoad.pending?'جارٍ تحميل الأنشطة المحفوظة…':'تعذر تحميل الأنشطة المحفوظة؛ قائمتك ما زالت محفوظة على الجهاز.'}</p> : favoriteBusinesses.length === 0 ? (
+      {favoriteBusinesses.length === 0 && directoryLoad.pending ? (
+        <LoadingSkeleton variant="grid" count={3} />
+      ) : favoriteBusinesses.length === 0 && directoryLoad.error ? (
+        <ErrorState
+          title="تعذر تحميل الأنشطة المحفوظة"
+          description="قائمتك ما زالت محفوظة على جهازك. تعذر الاتصال بالخادم لتحديث البيانات."
+          onRetry={() => window.dispatchEvent(new CustomEvent('directory:retry'))}
+        />
+      ) : favoriteBusinesses.length === 0 ? (
         <EmptyState
           icon={<Heart className="w-8 h-8 text-rose-500 fill-rose-500" />}
           title="قائمة المفضلة فارغة حالياً"

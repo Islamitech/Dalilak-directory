@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Business } from '../../types';
 import { UnifiedBusinessCard as BusinessCard } from '../../features/business-details/components/UnifiedBusinessCard';
 import { Search, RotateCcw, Sparkles } from 'lucide-react';
-import { EmptyState, Skeleton, Button } from '../../shared/ui';
+import { EmptyState, Skeleton, Button, ErrorState, LoadingSkeleton } from '../../shared/ui';
 
 export interface BusinessCardGridProps {
   businesses: Business[];
@@ -54,16 +54,19 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
 
   // 1. Loading Skeleton
   if (loading && businesses.length === 0) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in py-2">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={`skel-${i}`} variant="card" className="h-72" />
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton variant="grid" count={6} />;
   }
 
-  if (!businesses.length && directoryLoad.error) return null;
+  // 2. Error State with Retry (No Blank Screen)
+  if (!businesses.length && directoryLoad.error) {
+    return (
+      <ErrorState
+        title="تعذر تحميل قائمة الأنشطة"
+        description={directoryLoad.error}
+        onRetry={() => window.dispatchEvent(new CustomEvent('directory:retry'))}
+      />
+    );
+  }
 
   // 2. Empty State
   if (!loading && businesses.length === 0) {
