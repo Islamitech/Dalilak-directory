@@ -1,7 +1,16 @@
 import {isPublicBusiness, businessMetadata} from '../shared/publicBusiness.js';
 import {getBusinessSlug} from '../utils/directoryUrl.js';
-export const SUPABASE_URL=(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://xdqpbajymacpdccorjcj.supabase.co').trim().replace(/\/+$/,'');
-export const SUPABASE_ANON_KEY=(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_VJ8y1c53by7_sEn90hy8Pw_vO_K_b2x').trim();
+const rawUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim().replace(/\/+$/,'');
+const rawKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+if (!rawUrl || !rawKey) {
+  throw new Error(
+    'Missing required Supabase environment variables: SUPABASE_URL and SUPABASE_ANON_KEY must be configured.'
+  );
+}
+
+export const SUPABASE_URL = rawUrl;
+export const SUPABASE_ANON_KEY = rawKey;
 const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at';
 export function publicBusinessSlug(row:any):string {return getBusinessSlug({id:row.id,nameAr:row.name_ar,nameEn:row.name_en,city:row.city,customDirectoryUrl:businessMetadata(row).customDirectoryUrl});}
 export async function fetchDirectoryRows(query:URLSearchParams,range?:string):Promise<{rows:any[];total:number}> {

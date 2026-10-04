@@ -37,4 +37,12 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 600,
   },
+  test: {
+    env: {
+      VITE_SUPABASE_URL: 'https://fixture.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key-dalilak',
+      SUPABASE_URL: 'https://fixture.supabase.co',
+      SUPABASE_ANON_KEY: 'test-anon-key-dalilak',
+    },
+  },
 });

@@ -4,6 +4,9 @@ const fs = require('node:fs');
 const net = require('node:net');
 const { chromium, setup, rows } = require('../../../verification/browser-harness.cjs');
 
+process.env.VITE_SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://fixture.supabase.co';
+process.env.VITE_SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key-dalilak';
+
 async function isPortOpen(port) {
   return new Promise((resolve) => {
     const socket = new net.Socket();

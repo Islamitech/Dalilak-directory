@@ -100,6 +100,7 @@ describe('Secrets Detection Scanner (scripts/check-no-secrets.cjs)', () => {
     { name: 'Google API Key', regex: /AIza[0-9A-Za-z_-]{35}/ },
     { name: 'Supabase Role', regex: new RegExp(['service', 'role'].join('_'), 'i') },
     { name: 'Supabase Secret Key', regex: /sb_secret_[A-Za-z0-9_-]{15,}/ },
+    { name: 'Supabase Publishable Key Literal', regex: /sb_publishable_[A-Za-z0-9_-]{15,}/ },
     { name: 'JWT Token Pattern', regex: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+/ },
     { name: '14-digit National ID', regex: /\b[23][0-9]{13}\b/ },
   ];
@@ -108,9 +109,10 @@ describe('Secrets Detection Scanner (scripts/check-no-secrets.cjs)', () => {
     expect(PATTERNS[0].regex.test(['AIza', 'SyD-fakeKeyExample1234567890abcdef_'].join(''))).toBe(true);
     expect(PATTERNS[1].regex.test(['SUPABASE_', 'SERVICE_', 'ROLE_KEY=test'].join(''))).toBe(true);
     expect(PATTERNS[2].regex.test(['sb_secret_', 'abcdef1234567890_test_key'].join(''))).toBe(true);
-    expect(PATTERNS[3].regex.test(['eyJ', 'hbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThisTokenString123'].join(''))).toBe(true);
-    expect(PATTERNS[4].regex.test(['2980101', '1234567'].join(''))).toBe(true);
-    expect(PATTERNS[4].regex.test(['3020512', '1234567'].join(''))).toBe(true);
+    expect(PATTERNS[3].regex.test(['sb_publishable_', 'abcdef1234567890_test_key'].join(''))).toBe(true);
+    expect(PATTERNS[4].regex.test(['eyJ', 'hbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThisTokenString123'].join(''))).toBe(true);
+    expect(PATTERNS[5].regex.test(['2980101', '1234567'].join(''))).toBe(true);
+    expect(PATTERNS[5].regex.test(['3020512', '1234567'].join(''))).toBe(true);
   });
 
   it('does not trigger false positives on innocent numbers or identifiers', () => {

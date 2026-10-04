@@ -7,6 +7,7 @@ const PATTERNS = [
   { name: 'Google API Key', regex: /AIza[0-9A-Za-z_-]{35}/ },
   { name: 'Supabase Service Role Key', regex: /service_role/i },
   { name: 'Supabase Secret Key', regex: /sb_secret_[A-Za-z0-9_-]{15,}/ },
+  { name: 'Supabase Publishable Key Literal', regex: /sb_publishable_[A-Za-z0-9_-]{15,}/ },
   { name: 'JWT Token Pattern', regex: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+/ },
   { name: '14-digit National ID', regex: /\b[23][0-9]{13}\b/ },
 ];

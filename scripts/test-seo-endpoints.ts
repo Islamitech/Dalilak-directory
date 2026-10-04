@@ -1,7 +1,37 @@
-import sitemapHandler from '../api/sitemap.js';
-import shareHandler from '../api/share.js';
+process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://fixture.supabase.co';
+process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'test-anon-key-dalilak';
+
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const url = String(input);
+  if (url.includes('/rest/v1/businesses')) {
+    const fixtureRows = [
+      {
+        id: 'biz_fixture_1',
+        name_ar: 'نشاط تجريبي',
+        category: 'المطاعم والكافيهات',
+        city: 'حدائق الأهرام',
+        street: 'منطقة أ',
+        verification_status: 'verified',
+        package_id: 'pkg_basic',
+        created_at: new Date().toISOString(),
+        notes: JSON.stringify({ publishedStatus: 'published', customDirectoryUrl: 'biz-fixture-1' }),
+      },
+    ];
+    return new Response(JSON.stringify(fixtureRows), {
+      status: 200,
+      headers: {
+        'content-type': 'application/json',
+        'content-range': '0-0/1',
+      },
+    });
+  }
+  return originalFetch(input, init);
+};
 
 async function runTests() {
+  const { default: sitemapHandler } = await import('../api/sitemap.js');
+  const { default: shareHandler } = await import('../api/share.js');
   console.log('--- 1. Testing Sitemap Generation ---');
   let sitemapOutput = '';
   let sitemapStatus = 0;
