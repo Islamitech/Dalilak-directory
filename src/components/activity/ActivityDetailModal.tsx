@@ -113,7 +113,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         hideDefaultHeader
         aria-labelledby="activity-detail-modal-title"
         className="!sheet-modal !rounded-t-3xl !rounded-b-none sm:!rounded-3xl !max-w-[480px] !w-full !max-h-[92dvh] !bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0 shadow-2xl"
-        overlayClassName="!items-end sm:!items-center !p-0 sm:!p-6 !bg-slate-900/60 !backdrop-blur-xs"
+        overlayClassName="!items-end sm:!items-center lg:!justify-start !p-0 sm:!p-6 lg:!ps-6 lg:!pe-0 !bg-slate-900/60 lg:!bg-slate-900/35 !backdrop-blur-xs"
         contentClassName="p-0 flex flex-col flex-1 min-h-0 overflow-y-auto"
       >
         <div className="flex flex-col h-full text-start">
