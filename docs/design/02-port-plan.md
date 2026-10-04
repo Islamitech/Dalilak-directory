@@ -204,11 +204,11 @@
 | 23 | Favorites Filter Chip (`#favToolBtn`) | `src/components/views/SearchView.tsx` | **done** | Phase 3 Task 3-5 |
 | 24 | Sort Cycle Button (`#sortBtn`) | `src/components/views/SearchView.tsx` | **done** | Phase 3 Task 3-5 |
 | 25 | Empty Search State (`.empty`) | `src/shared/ui/EmptyState.tsx` | **done** | Phase 3 Task 3-5 |
-| 26 | Search Input Field (`.search-field`) | `src/shared/ui/SearchField.tsx` | **pending** | Phase 4 Task 4-1 |
-| 27 | Cadastral Building & Street Search | `src/utils/hadayekBuildingSearch.ts` | **pending** | Phase 4 Task 4-1 (Preserved production feature) |
+| 26 | Search Input Field (`.search-field`) | `src/shared/ui/SearchField.tsx` | **done** | Phase 4 Task 4-1 |
+| 27 | Cadastral Building & Street Search | `src/utils/hadayekBuildingSearch.ts` | **done** | Phase 4 Task 4-1 (Preserved production feature) |
 | 28 | Hadayek Atlas & Proximity Radar | `src/features/atlas/` | **done** | Preserved production feature (D5) |
-| 29 | Deep Linking & History Handling | `src/components/showcase/hooks/useShowcaseBusinessSelection.ts` | **pending** | Phase 4 Task 4-3 |
-| 30 | Desktop Two-Pane Interactivity Sync | `DesktopTwoPaneView.tsx`, `PublicShowcaseViews.tsx` | **pending** | Phase 4 Task 4-4 |
+| 29 | Deep Linking & History Handling | `src/hooks/useDirectoryNavigation.ts` | **done** | Phase 4 Task 4-3 |
+| 30 | Desktop Two-Pane Interactivity Sync | `DesktopTwoPaneView.tsx`, `PublicShowcaseViews.tsx` | **done** | Phase 4 Task 4-4 |
 | 31 | Toast Notification Stack (`.toast`) | `src/shared/ui/Toast.tsx` | **done** | Accessible toast notices with aria-live |
 | 32 | Connection Status Banner | `src/shared/ui/ConnectionBanner.tsx` | **done** | Offline / online detection |
 | 33 | Theme Toggle (Light / Dark) | `src/contexts/ThemeContext.tsx`, `AppNavbar.tsx` | **done** | Preserved production feature |

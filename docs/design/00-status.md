@@ -17,10 +17,42 @@
 | **Repository Hygiene (Line Endings)** | `chore: normalize line endings` | PASS | "6. LINE ENDINGS ... Add .gitattributes (* text=auto eol=lf), renormalize in ONE separate commit ('chore: normalize line endings'), no content changes." |
 | **Audit Remediation (Step 0)** | `fix(p0-14)` | PASS | "Fix whatever fails, then continue. Commit as fix(p0-14)." |
 | **Phase 3 (Core Views & Interactive Components)** | `2bd07dc`, `e5027e4`, `f89fb3e`, `10b65ce`, `1e0503d`, `163ea3c` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
+| **Phase 4 (Integration & Advanced Behaviors)** | `6f66a81`, `a3a0b30`, `4ddefd0`, `e6361b3`, `0a21aaa` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
 
 ## Formal Authorization Record
 
 > "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app."
+
+---
+
+## Phase 4 Completion Report
+
+### 1. Ported Components & Behaviors
+- **Task 4-1 (`feat(p4-01)`, `6f66a81`):** Ported dedicated `SearchField.tsx` with exact prototype classes (`.search-field`, `.search-input`, `.search-clear`), 48px height, rounded corners (`rounded-[14px]`), accessible 44px touch-target clear button, and Arabic digit normalization. Integrated `CadastralBuildingCard` in `SearchResultsSection.tsx` so building queries (e.g. "عمارة 123 أ") surface an informative cadastral card with one-click navigation to center the map on that building centroid.
+- **Task 4-2 (`feat(p4-02)`, `a3a0b30`):** Polished More Menu drawer (`NavbarMobileDrawer.tsx`, `useDrawerFocusTrap.ts`, `AppNavbar.tsx`). Implemented accessible dialog semantics (`role="dialog" aria-modal="true" aria-labelledby="navbar-drawer-title"`), focus trapping (Tab/Shift+Tab cycle), Escape key dismiss, backdrop click dismiss, and focus restore to trigger button. Provides clean access to Pricing, For Business, About, Hadayek Gates/Atlas, Offline guide, and Theme toggle.
+- **Task 4-3 (`feat(p4-03)`, `4ddefd0`):** Deep linking & history synchronization in `useDirectoryNavigation.ts`. Direct deep links (`/biz/:id`, `?biz=:id`) immediately open the detail modal without view loss. Browser Back button dismisses the modal cleanly without reloading or resetting the underlying view (`/search` or `/map`). Canonical share URL copies `https://www.dalilaak.com/biz/:slug`.
+- **Task 4-4 (`feat(p4-04)`, `e6361b3`):** Desktop two-pane synchronization (`DesktopTwoPaneView.tsx`, `ActivityDetailModal.tsx`). At >= 1024px, clicking a card highlights the map marker and animates the camera; clicking a pin smoothly scrolls the list to the corresponding card and highlights it. Detail modal is positioned alongside the list column on desktop (`lg:!justify-start lg:!ps-6`), keeping the interactive map canvas unoccluded and visible.
+- **Task 4-5 (`test(p4-05)`, `0a21aaa`):** Multi-browser matrix verification script (`scripts/verify-phase4-matrix.cjs`) across Chromium, Firefox, and WebKit on 5 responsive viewports.
+
+### 2. Quality Gates & Budgets
+- `node scripts/check-architecture.cjs`: PASS (App.tsx 32 lines, 138 UI components <= 250 lines, 25 custom hooks <= 120 lines, 0 cross-feature deep imports, 0 physical-direction classes, 0 circular imports).
+- `npx tsc --noEmit`: PASS (0 type errors).
+- `npm run build`: PASS (Vite production build clean).
+- `npm test`: PASS (42/42 tests passing across all suites).
+- `npm run check:bundle`: PASS (all 11 chunks within budgets).
+- `npm run check:secrets`: PASS (0 exposed secrets).
+- `npm run test:guard`: PASS (path normalization + cycle prevention).
+- First-load JS: Baseline 592.66 kB raw / 169.42 kB gzip -> Phase 4: 599.99 kB raw / 170.91 kB gzip (**+1.24% raw delta**, strictly within <= 5.0% budget).
+
+### 3. Responsive Matrix & Overflow
+- **Browsers Run:** Chromium, Firefox, WebKit (Headless).
+- **Viewports Tested:** 360x740, 390x844, 768x1024, 1024x768, 1280x800.
+- **Horizontal Scroll Violations:** 0 across all 15 tests (`scrollWidth <= clientWidth`).
+- **Screenshots:** Captured and committed to `reports/evidence/p4/`:
+  - `p4_chromium_360_search.png`, `p4_chromium_360_map.png`
+  - `p4_chromium_1280_search.png`, `p4_chromium_1280_map.png`
+  - Firefox and WebKit equivalents for 360 and 1280.
+- **axe-core Status:** NOT RUN (Reason: `axe-core` / `@axe-core/playwright` is not installed in package devDependencies. Semantic ARIA dialog roles, focus trap, and touch targets verified via Playwright DOM assertions).
 
 ---
 
