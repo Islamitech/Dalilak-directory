@@ -16,3 +16,8 @@ export { SearchDiscoveryCategories } from './components/SearchDiscoveryCategorie
 export { SearchSuggestionsDropdown } from './components/SearchSuggestionsDropdown';
 export { SearchResultsSection } from './components/SearchResultsSection';
 export { useUnifiedSearch, type UseUnifiedSearchOptions } from './hooks/useUnifiedSearch';
+export {
+  type SearchViewProps,
+  computeFeaturedBusinesses,
+  handleLocationSelection,
+} from './model/searchViewLogic';

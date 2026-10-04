@@ -2,7 +2,7 @@ import React from 'react';
 import { DirectoryLoadContext } from './contexts/DirectoryLoadContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PublicShowcase } from './components/PublicShowcase';
-import { useCatalogLifecycle } from './features/catalog/hooks/useCatalogLifecycle';
+import { useCatalogLifecycle } from './features/catalog';
 import { useInitialRouteParams } from './app/router/useInitialRouteParams';
 import { Toast } from './shared/ui/Toast';
 

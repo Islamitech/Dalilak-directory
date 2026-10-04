@@ -1,2 +1,3 @@
 export * from './model/merchantRegistration';
-export { ForBusinessView, type ForBusinessViewProps } from '../../components/views/ForBusinessView';
+export { MerchantFormFields } from './components/MerchantFormFields';
+export { ForBusinessView, type ForBusinessViewProps } from './components/ForBusinessView';

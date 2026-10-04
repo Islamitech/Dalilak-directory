@@ -10,6 +10,23 @@ console.log('\n========================================');
 console.log('🏗️  DALILAK ARCHITECTURE & MODULE CHECK');
 console.log('========================================');
 
+// Helper: recursively collect source files
+function getAllSourceFiles(dir) {
+  let results = [];
+  for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, item.name);
+    if (item.isDirectory()) {
+      if (item.name === 'node_modules' || item.name === 'dist' || item.name === 'tests' || item.name === '__tests__') continue;
+      results = results.concat(getAllSourceFiles(full));
+    } else if (/\.(tsx?|jsx?)$/.test(item.name)) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+const sourceFiles = getAllSourceFiles(SRC);
+
 // 1. Check App.tsx line count (must be <= 150 lines)
 const appTsxPath = path.join(SRC, 'App.tsx');
 if (fs.existsSync(appTsxPath)) {
@@ -23,24 +40,89 @@ if (fs.existsSync(appTsxPath)) {
   errors.push('src/App.tsx not found.');
 }
 
-// 2. Build import graph to detect circular dependencies
-function getAllSourceFiles(dir) {
-  let results = [];
-  for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, item.name);
-    if (item.isDirectory()) {
-      if (item.name === 'node_modules' || item.name === 'dist' || item.name === 'tests') continue;
-      results = results.concat(getAllSourceFiles(full));
-    } else if (/\.(tsx?|jsx?)$/.test(item.name)) {
-      results.push(full);
-    }
+// 2. Component line count <= 250 lines
+const componentFiles = sourceFiles.filter((f) => {
+  const rel = path.relative(SRC, f).replace(/\\/g, '/');
+  const isHook = rel.includes('/hooks/') || path.basename(rel).startsWith('use');
+  return f.endsWith('.tsx') && !isHook;
+});
+let compViolations = 0;
+componentFiles.forEach((f) => {
+  const lines = fs.readFileSync(f, 'utf8').split('\n').length;
+  if (lines > 250) {
+    const rel = path.relative(SRC, f).replace(/\\/g, '/');
+    errors.push(`Component "${rel}" exceeds limit: ${lines} lines (must be <= 250 lines).`);
+    compViolations++;
   }
-  return results;
+});
+if (compViolations === 0) {
+  console.log(`✅ All ${componentFiles.length} UI components adhere to <= 250 lines limit.`);
 }
 
-const sourceFiles = getAllSourceFiles(SRC);
-const importGraph = new Map();
+// 3. Hook line count <= 120 lines
+const hookFiles = sourceFiles.filter((f) => {
+  const rel = path.relative(SRC, f).replace(/\\/g, '/');
+  return rel.includes('/hooks/') || path.basename(rel).startsWith('use');
+});
+let hookViolations = 0;
+hookFiles.forEach((f) => {
+  const lines = fs.readFileSync(f, 'utf8').split('\n').length;
+  if (lines > 120) {
+    const rel = path.relative(SRC, f).replace(/\\/g, '/');
+    errors.push(`Hook "${rel}" exceeds limit: ${lines} lines (must be <= 120 lines).`);
+    hookViolations++;
+  }
+});
+if (hookViolations === 0) {
+  console.log(`✅ All ${hookFiles.length} custom hooks adhere to <= 120 lines limit.`);
+}
 
+// 4. No cross-feature deep imports
+let deepImportViolations = 0;
+const IMPORT_FEATURE_REGEX = /(?:import|export)\s+(?:(?:(?:\*\s+as\s+\w+)|(?:[\w\s{},*]+))\s+from\s+)?['"]([^'"]+)['"]/g;
+
+sourceFiles.forEach((filePath) => {
+  const rel = path.relative(SRC, filePath).replace(/\\/g, '/');
+  const content = fs.readFileSync(filePath, 'utf8');
+  let match;
+  while ((match = IMPORT_FEATURE_REGEX.exec(content)) !== null) {
+    const importPath = match[1];
+    if (importPath.includes('features/')) {
+      const parts = importPath.split('features/')[1].split('/');
+      // Deep import if path has subdirectories beyond feature root (e.g. features/map/model/...)
+      if (parts.length > 1 && !parts[1].startsWith('index')) {
+        const currentFeature = rel.startsWith('features/') ? rel.split('/')[1] : null;
+        const targetFeature = parts[0];
+        if (currentFeature !== targetFeature) {
+          errors.push(`Cross-feature deep import in "${rel}": "${importPath}". Features must only be imported via their public API (features/${targetFeature}).`);
+          deepImportViolations++;
+        }
+      }
+    }
+  }
+});
+if (deepImportViolations === 0) {
+  console.log(`✅ Zero cross-feature deep imports detected. All feature imports go through public APIs.`);
+}
+
+// 5. No forbidden physical-direction classes (RTL enforcement)
+const PHYSICAL_DIRECTION_REGEX = /\b(ml-\d+|mr-\d+|pl-\d+|pr-\d+|border-l(-\d+)?|border-r(-\d+)?|text-left\b|text-right\b)\b/g;
+let rtlViolations = 0;
+sourceFiles.forEach((filePath) => {
+  const rel = path.relative(SRC, filePath).replace(/\\/g, '/');
+  const content = fs.readFileSync(filePath, 'utf8');
+  const matches = content.match(PHYSICAL_DIRECTION_REGEX);
+  if (matches) {
+    errors.push(`Forbidden physical-direction class in "${rel}": ${matches.join(', ')}. Use logical utilities (ms-, me-, ps-, pe-, border-s, border-e, text-start, text-end).`);
+    rtlViolations++;
+  }
+});
+if (rtlViolations === 0) {
+  console.log(`✅ Zero forbidden physical-direction classes detected. RTL logical utilities strictly used.`);
+}
+
+// 6. Build import graph to detect circular dependencies
+const importGraph = new Map();
 const IMPORT_REGEX = /(?:import|export)\s+(?:(?:(?:\*\s+as\s+\w+)|(?:[\w\s{},*]+))\s+from\s+)?['"]([^'"]+)['"]/g;
 
 sourceFiles.forEach((filePath) => {
@@ -53,7 +135,6 @@ sourceFiles.forEach((filePath) => {
     const importPath = match[1];
     if (importPath.startsWith('.')) {
       let resolved = path.resolve(dir, importPath);
-      // Try extensions
       const extensions = ['', '.ts', '.tsx', '.js', '.jsx', '/index.ts', '/index.tsx'];
       for (const ext of extensions) {
         if (fs.existsSync(resolved + ext) && fs.statSync(resolved + ext).isFile()) {
@@ -109,7 +190,7 @@ if (cycles.length > 0) {
   console.log(`✅ Zero circular imports detected across ${sourceFiles.length} source files.`);
 }
 
-// 3. Shared/lib purity check (must not import React components or UI)
+// 7. Shared/lib purity check (must not import React components or UI)
 const sharedLibFiles = sourceFiles.filter((f) => f.includes(path.join('shared', 'lib')));
 sharedLibFiles.forEach((f) => {
   const content = fs.readFileSync(f, 'utf8');

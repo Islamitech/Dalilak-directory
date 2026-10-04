@@ -44,3 +44,14 @@ export { sortBusinessesForMap } from './model/mapBusinessFilter';
 export { renderSelectedBusinessMarker } from './model/mapSelectedMarker';
 export { executePinPipeline, type PinPipelineContext } from './model/mapPinPipeline';
 export { escapeHtml } from './model/mapMarkerHtml';
+export {
+  syncAuxiliaryLayers,
+  type UseMapPinsClusteringProps,
+} from './model/mapAuxiliaryLayers';
+export {
+  useMapSearchMatches,
+  type UseMapSearchMatchesParams,
+} from './model/mapSearchSuggestionsLogic';
+export { GEO_ERRORS, startGeolocationWatch } from './model/geolocationUtils';
+export { useMapViewUrlState } from './hooks/useMapViewUrlState';
+export { MapSandboxHeader } from './components/MapSandboxHeader';

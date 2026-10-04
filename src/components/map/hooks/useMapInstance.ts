@@ -4,9 +4,15 @@ import { MapTileLayerType } from '../constants/mapConstants';
 import { preloadHadayekTiles, cancelHadayekTilePreload } from '../../../utils/hadayekTilePreloader';
 import { loadLeafletScript } from '../utils/leafletLoader';
 import { CameraController } from '../controllers/CameraController';
-import { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS } from '../../../features/map/model/mapBounds';
-import { applyTileLayer } from '../../../features/map/model/mapTileLayers';
-import { createLeafletMapInstance, calculatePanOffset, UseMapInstanceProps } from '../../../features/map/model/mapFactory';
+import {
+  HADAYEK_BOUNDS,
+  HADAYEK_VIEW_BOUNDS,
+  HADAYEK_TILE_BOUNDS,
+  applyTileLayer,
+  createLeafletMapInstance,
+  calculatePanOffset,
+  type UseMapInstanceProps,
+} from '../../../features/map';
 
 export { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS };
 export type { UseMapInstanceProps };

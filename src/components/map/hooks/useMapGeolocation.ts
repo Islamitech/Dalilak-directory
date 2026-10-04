@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   GEO_ERRORS,
   startGeolocationWatch,
-} from '../../../features/map/model/geolocationUtils';
+} from '../../../features/map';
 
 export interface UseMapGeolocationProps {
   updateSelectedPosition: (lat: number, lng: number, flyTo?: boolean, customZoom?: number) => Promise<void>;

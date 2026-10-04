@@ -9,7 +9,7 @@ import {
 } from '../../data/hadayekAtlasData';
 import { ProximityRadarDrawer } from '../atlas/ProximityRadarDrawer';
 import { HadayekGatesModal } from '../atlas/HadayekGatesModal';
-import { useMapViewUrlState } from '../../features/map/hooks/useMapViewUrlState';
+import { useMapViewUrlState } from '../../features/map';
 
 export interface MapViewProps {
   searchQuery?: string;

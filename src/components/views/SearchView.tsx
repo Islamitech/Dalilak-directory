@@ -1,12 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Business } from '../../types';
-import { FilterDrawer } from '../search/FilterDrawer';
+import {
+  FilterDrawer,
+  SearchHeroHeader,
+  SearchDiscoveryCategories,
+  SearchResultsSection,
+  type SearchViewProps,
+  computeFeaturedBusinesses,
+  handleLocationSelection,
+} from '../../features/search';
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
 import { SearchDiscoveryFeatured } from './search/SearchDiscoveryFeatured';
-import { SearchHeroHeader } from '../../features/search/components/SearchHeroHeader';
-import { SearchDiscoveryCategories } from '../../features/search/components/SearchDiscoveryCategories';
-import { SearchResultsSection } from '../../features/search/components/SearchResultsSection';
-import { SearchViewProps, computeFeaturedBusinesses, handleLocationSelection } from '../../features/search/model/searchViewLogic';
 
 export type { SearchViewProps };
 

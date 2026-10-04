@@ -6,7 +6,7 @@ import { MapSearchInputBar } from './MapSearchInputBar';
 import { MapQuickCategoriesBar } from './MapQuickCategoriesBar';
 import { MapSearchSuggestionsDropdown } from './MapSearchSuggestionsDropdown';
 import { MapFilterPanel } from './MapFilterPanel';
-import { useMapSearchMatches } from '../../features/map/model/mapSearchSuggestionsLogic';
+import { useMapSearchMatches } from '../../features/map';
 
 export interface MapModernTopBarProps {
   searchQuery?: string;

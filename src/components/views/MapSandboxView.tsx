@@ -3,7 +3,7 @@ import { Business } from '../../types';
 import { InteractiveMap } from '../InteractiveMap';
 import { MOCK_SANDBOX_BUSINESSES, MOCK_PRESETS } from '../../data/mockData';
 import { getHadayekZone, estimateBuildingCoordinates } from '../../data/hadayekAtlasData';
-import { MapSandboxHeader } from '../../features/map/components/MapSandboxHeader';
+import { MapSandboxHeader } from '../../features/map';
 
 export interface MapSandboxViewProps {
   onNavigate?: (path: string) => void;

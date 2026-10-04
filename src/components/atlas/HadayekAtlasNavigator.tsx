@@ -15,7 +15,7 @@ import {
   HelpCircle,
   ExternalLink,
 } from 'lucide-react';
-import { AtlasGateBanner } from '../../features/atlas/components/AtlasGateBanner';
+import { AtlasGateBanner } from '../../features/atlas';
 
 export interface HadayekAtlasNavigatorProps {
   onSelectTarget: (target: {

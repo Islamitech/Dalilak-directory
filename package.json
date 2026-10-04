@@ -8,8 +8,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "vercel-build": "vite build",
+    "build": "node scripts/check-architecture.cjs && vite build",
+    "vercel-build": "node scripts/check-architecture.cjs && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "check:secrets": "node scripts/check-no-secrets.cjs",

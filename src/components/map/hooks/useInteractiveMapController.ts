@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useReducer } from 'react';
 import { useMapState } from './useMapState';
 import { createInitialMapState, mapStateReducer } from '../state/mapState';
-import { TargetBuildingData } from '../../../features/map/model/mapTargetBuildingLayer';
+import { TargetBuildingData } from '../../../features/map';
 
 export interface InteractiveMapControllerParams {
   initialShowBusinesses?: boolean;
