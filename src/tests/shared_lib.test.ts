@@ -16,6 +16,8 @@ import {
   formatDistanceString,
   formatRating,
 } from '../shared/lib';
+import { parseFavorites } from '../services/catalogState';
+import { FAVORITES_STORAGE_KEY } from '../features/favorites';
 
 describe('Shared Library: Phone & WhatsApp Utilities', () => {
   it('correctly normalizes Arabic-Indic and Persian digits to ASCII', () => {
@@ -105,5 +107,28 @@ describe('Shared Library: Formatting Utilities', () => {
     expect(formatRating(undefined)).toBeNull();
     expect(formatRating(null)).toBeNull();
     expect(formatRating(0)).toBeNull();
+  });
+});
+
+describe('Favorites Storage Format & Backward Compatibility (716b654)', () => {
+  it('enforces exact storage key name dalelak_user_favorites', () => {
+    expect(FAVORITES_STORAGE_KEY).toBe('dalelak_user_favorites');
+  });
+
+  it('correctly reads and parses favorites stored in the 716b654 JSON format', () => {
+    const rawLegacyJson = JSON.stringify(['biz_legacy_1', 'biz_legacy_2', 'biz_legacy_1']);
+    const parsed = parseFavorites(rawLegacyJson);
+    expect(parsed).toEqual(['biz_legacy_1', 'biz_legacy_2']);
+  });
+
+  it('handles corrupted, null, or empty string gracefully', () => {
+    expect(parseFavorites(null)).toEqual([]);
+    expect(parseFavorites('')).toEqual([]);
+    expect(parseFavorites('invalid json')).toEqual([]);
+    expect(parseFavorites('{"not":"an array"}')).toEqual([]);
+    expect(parseFavorites(JSON.stringify(['valid_id', 123, null, 'another_valid']))).toEqual([
+      'valid_id',
+      'another_valid',
+    ]);
   });
 });

@@ -11,7 +11,7 @@ import { AppFooter } from './layout/AppFooter';
 import { MobileBottomNav } from './layout/MobileBottomNav';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
-import { useShowcaseFavorites } from './showcase/hooks/useShowcaseFavorites';
+import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
 import { useShowcaseGeolocation } from './showcase/hooks/useShowcaseGeolocation';
 import { useShowcaseBusinessSelection } from './showcase/hooks/useShowcaseBusinessSelection';
@@ -46,7 +46,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   }, []);
 
   const filterState = useShowcaseFilterState();
-  const { favorites, toggleFavorite } = useShowcaseFavorites(showToast);
+  const { favorites, toggleFavorite } = useFavorites(showToast);
   const geo = useShowcaseGeolocation(filterState, showToast);
 
   const handleNavigate = useCallback((newPath: string) => {
