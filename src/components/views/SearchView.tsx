@@ -136,7 +136,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
   const handleLocationSelect = (val: string) => handleLocationSelection(val, onGovChange, onCityChange);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-7 sm:space-y-10 pb-24 bg-[#f8fafc]" dir="rtl">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-7 sm:space-y-10 pb-8 bg-[#f8fafc]" dir="rtl">
       <div className="space-y-7 sm:space-y-10">
         <SearchHeroHeader
           categoryFilter={categoryFilter}

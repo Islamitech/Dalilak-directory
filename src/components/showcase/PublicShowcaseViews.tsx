@@ -11,6 +11,8 @@ const ForBusinessView = React.lazy(() => import('../views/ForBusinessView').then
 const BusinessPricingView = React.lazy(() => import('../views/BusinessPricingView').then((m) => ({ default: m.BusinessPricingView })));
 const AboutView = React.lazy(() => import('../views/AboutView').then((m) => ({ default: m.AboutView })));
 const MapSandboxView = React.lazy(() => import('../views/MapSandboxView').then((m) => ({ default: m.MapSandboxView })));
+const DesktopTwoPaneView = React.lazy(() => import('../views/DesktopTwoPaneView').then((m) => ({ default: m.DesktopTwoPaneView })));
+import { useIsDesktop } from '../../shared/hooks/useMediaQuery';
 
 export interface PublicShowcaseViewsProps {
   currentPath: string;
@@ -56,6 +58,37 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
   loading,
 }) => {
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
+  const isDesktop = useIsDesktop();
+
+  if (isDesktop && (cleanRoute === '/' || cleanRoute === '/map' || cleanRoute === '/search')) {
+    return (
+      <DesktopTwoPaneView
+        businesses={publicBusinesses}
+        filteredBusinesses={filteredBusinesses}
+        loading={loading}
+        searchQuery={filterState.searchQuery}
+        onSearchChange={filterState.setSearchQuery}
+        categoryFilter={effectiveMapCategoryFilter}
+        onCategoryChange={filterState.handleCategoryChange}
+        selectedZone={effectiveSearchZone}
+        onZoneChange={filterState.setHadayekZoneFilter}
+        sortBy={filterState.sortBy}
+        onSortChange={filterState.setSortBy}
+        openNowOnly={filterState.openNowOnly}
+        onToggleOpenNow={() => filterState.setOpenNowOnly(!filterState.openNowOnly)}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        userCoords={userCoords}
+        onOpenBusiness={handleOpenBusiness}
+        onNavigate={handleNavigate}
+        onOpenVideoModal={(b) => setSelectedVideoBiz(b)}
+        mapCenter={mapCenter}
+        focusedBusiness={focusedMapBiz}
+        setFocusedBusiness={setFocusedMapBiz}
+        onClearFocusedBusiness={() => setFocusedMapBiz(null)}
+      />
+    );
+  }
 
   switch (cleanRoute) {
     case '/':

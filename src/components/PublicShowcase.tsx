@@ -8,7 +8,7 @@ import { Business } from '../types';
 import { getBusinessSlug } from '../utils/directoryUrl';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
-import { MobileBottomNav } from './layout/MobileBottomNav';
+import { CategoryBar } from './layout/CategoryBar';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
 import { useFavorites } from '../features/favorites';
@@ -105,13 +105,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const publicBusinesses = useMemo(() => businesses.filter(isPublicBusiness), [businesses]);
 
   const isMapRoute = currentPath === '/' || currentPath === '/map';
+  const isDirectoryRoute = isMapRoute || currentPath === '/search';
 
   return (
     <div
       className={
         isMapRoute
           ? "h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
-          : "min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
+          : "min-h-screen lg:h-[100dvh] flex flex-col lg:overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
       }
       style={{ direction: 'rtl' }}
     >
@@ -132,12 +133,19 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         }}
       />
 
+      {isDirectoryRoute && (
+        <CategoryBar
+          activeCategory={filterState.categoryFilter}
+          onSelectCategory={filterState.handleCategoryChange}
+        />
+      )}
+
       <DirectoryStatus />
       <main
         className={
           isMapRoute
-            ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
-            : "flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0"
+            ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col"
+            : "flex-1 lg:min-h-0 lg:overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
         }
       >
         <React.Suspense
@@ -192,12 +200,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       />
 
       <WhatsAppFloatingButton referralCode={referralCode} />
-
-      <MobileBottomNav
-        currentPath={currentPath}
-        onNavigate={handleNavigate}
-        favoritesCount={favorites.length}
-      />
     </div>
   );
 };

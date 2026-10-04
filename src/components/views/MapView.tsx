@@ -144,8 +144,8 @@ export const MapView: React.FC<MapViewProps> = ({
   ]);
 
   return (
-    <div className="space-y-4">
-      <div className="relative w-full h-[calc(100vh-8.5rem)] min-h-[480px] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
+    <div className="w-full h-full min-h-0 relative flex-1 flex flex-col overflow-hidden">
+      <div className="relative w-full h-full min-h-0 flex-1 overflow-hidden">
         <InteractiveMap
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
