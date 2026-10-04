@@ -87,7 +87,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4 pb-24 text-right" style={{ direction: 'rtl' }}>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4 pb-24 text-start" style={{ direction: 'rtl' }}>
       <header className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-black text-slate-900">أضف نشاطك مجاناً</h1>
         <p className="text-sm text-emerald-700">تسجيل نشاطك وظهوره في الدليل مجانيان بالكامل.</p>
@@ -132,7 +132,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {popupBlocked && (
-              <div role="alert" aria-live="assertive" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5 text-right space-y-3 animate-fade-in">
+              <div role="alert" aria-live="assertive" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5 text-start space-y-3 animate-fade-in">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">

@@ -159,7 +159,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
           </div>
 
           <h3 className="text-base font-black text-slate-900 leading-snug mb-1.5 line-clamp-1 group-hover:text-amber-600 transition-colors">
-            {business.nameAr}
+            <bdi dir="auto">{business.nameAr}</bdi>
           </h3>
 
           <div className="flex items-center gap-1 text-xs text-slate-500 mb-3 line-clamp-1">

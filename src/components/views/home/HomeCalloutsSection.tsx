@@ -11,7 +11,7 @@ export const HomeCalloutsSection: React.FC<HomeCalloutsSectionProps> = ({ onNavi
       {/* Live Map Quick Callout */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-          <div className="space-y-2 text-center md:text-right max-w-xl">
+          <div className="space-y-2 text-center md:text-start max-w-xl">
             <span className="text-amber-200 text-xs font-black bg-white/15 px-3 py-1 rounded-full inline-block">
               خريطة حدائق الأهرام المباشرة
             </span>
@@ -37,7 +37,7 @@ export const HomeCalloutsSection: React.FC<HomeCalloutsSectionProps> = ({ onNavi
       {/* Business Owner Free Registration Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-          <div className="space-y-2 text-center md:text-right max-w-xl">
+          <div className="space-y-2 text-center md:text-start max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>مجاناً 100% لأصحاب الأنشطة والخدمات</span>

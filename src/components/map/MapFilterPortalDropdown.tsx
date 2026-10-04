@@ -46,7 +46,7 @@ export const MapFilterPortalDropdown: React.FC<MapFilterPortalDropdownProps> = (
           top: dropdownPos ? `${dropdownPos.top}px` : '44px',
           left: dropdownPos ? `${dropdownPos.left}px` : '16px',
         }}
-        className="w-72 sm:w-80 max-w-[calc(100vw-16px)] bg-slate-950/98 border-2 border-amber-500/60 rounded-2xl shadow-2xl backdrop-blur-xl p-3 z-[999999] text-right text-white animate-fade-in-scale space-y-2.5 select-none font-['Cairo',sans-serif]"
+        className="w-72 sm:w-80 max-w-[calc(100vw-16px)] bg-slate-950/98 border-2 border-amber-500/60 rounded-2xl shadow-2xl backdrop-blur-xl p-3 z-[999999] text-start text-white animate-fade-in-scale space-y-2.5 select-none font-['Cairo',sans-serif]"
         dir="rtl"
       >
         <div className="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -78,7 +78,7 @@ export const MapFilterPortalDropdown: React.FC<MapFilterPortalDropdownProps> = (
               key="all"
               type="button"
               onClick={() => onSelectCategory('all')}
-              className={`text-[11px] font-bold px-2 py-1.5 rounded-lg text-right truncate transition-all cursor-pointer flex items-center gap-1.5 border ${
+              className={`text-[11px] font-bold px-2 py-1.5 rounded-lg text-start truncate transition-all cursor-pointer flex items-center gap-1.5 border ${
                 mapCategoryFilter === 'all'
                   ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
                   : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:bg-slate-800'
@@ -92,7 +92,7 @@ export const MapFilterPortalDropdown: React.FC<MapFilterPortalDropdownProps> = (
                 key={cat.id}
                 type="button"
                 onClick={() => onSelectCategory(cat.id)}
-                className={`text-[11px] font-bold px-2 py-1.5 rounded-lg text-right truncate transition-all cursor-pointer flex items-center justify-between border ${
+                className={`text-[11px] font-bold px-2 py-1.5 rounded-lg text-start truncate transition-all cursor-pointer flex items-center justify-between border ${
                   mapCategoryFilter === cat.id
                     ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
                     : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:bg-slate-800'

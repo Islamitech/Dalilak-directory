@@ -15,10 +15,10 @@ export const VideoWatermarkBadge: React.FC<VideoWatermarkBadgeProps> = ({
   className = '',
 }) => {
   const positionClasses = {
-    'bottom-right': 'bottom-2.5 right-2.5',
-    'bottom-left': 'bottom-2.5 left-2.5',
-    'top-right': 'top-2.5 right-2.5',
-    'top-left': 'top-2.5 left-2.5',
+    'bottom-right': 'bottom-2.5 end-2.5',
+    'bottom-left': 'bottom-2.5 start-2.5',
+    'top-right': 'top-2.5 end-2.5',
+    'top-left': 'top-2.5 start-2.5',
   }[position];
 
   return (

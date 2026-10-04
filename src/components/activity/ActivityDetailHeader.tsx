@@ -25,7 +25,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
             if (photos.length > 0) onPreviewPhoto(0);
           }}
           onContextMenu={(e) => e.preventDefault()}
-          className="w-full h-full text-right cursor-pointer select-none protected-asset-shield focus:outline-none focus:ring-2 focus:ring-amber-500 block relative"
+          className="w-full h-full text-start cursor-pointer select-none protected-asset-shield focus:outline-none focus:ring-2 focus:ring-amber-500 block relative"
         >
           <img
             src={photos[0] || `/api/biz-og?biz=${business.id}`}
@@ -46,7 +46,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
 
           <div className="absolute bottom-3.5 inset-x-4 text-white space-y-1 z-10 pointer-events-none">
             <h1 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
-              {business.nameAr}
+              <bdi dir="auto">{business.nameAr}</bdi>
             </h1>
             <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300 font-bold">
               <span className="flex items-center gap-1">

@@ -61,7 +61,9 @@ export const BusinessCardMapPopupVariant: React.FC<BusinessCardVariantProps> = (
           loading="lazy"
         />
         <div className="min-w-0 flex-1 space-y-0.5">
-          <h4 className="text-sm font-black text-slate-900 truncate">{business.nameAr}</h4>
+          <h4 className="text-sm font-black text-slate-900 truncate">
+            <bdi dir="auto">{business.nameAr}</bdi>
+          </h4>
           <div className="flex items-center gap-1 text-[11px] text-slate-500 truncate">
             <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
             <span>{[business.city, business.street].filter(Boolean).join('، ')}</span>

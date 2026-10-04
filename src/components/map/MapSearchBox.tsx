@@ -59,7 +59,7 @@ export const MapSearchBox: React.FC<MapSearchBoxProps> = ({
               key={idx}
               type="button"
               onClick={() => handleSelectSearchResult(item)}
-              className="w-full text-right p-3 hover:bg-amber-500/20 text-xs text-white transition-colors flex items-start gap-2 cursor-pointer"
+              className="w-full text-start p-3 hover:bg-amber-500/20 text-xs text-white transition-colors flex items-start gap-2 cursor-pointer"
             >
               <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>

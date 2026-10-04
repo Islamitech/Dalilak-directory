@@ -55,7 +55,7 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
             <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black">
               <Radar className="w-4 h-4 animate-spin" />
             </div>
-            <div className="text-right">
+            <div className="text-start">
               <span className="text-xs font-black block text-amber-400">رادار الخدمات والأنشطة</span>
               <span className="text-[11px] text-slate-300">أقرب {displayList.length} أنشطة حول {targetLabel}</span>
             </div>

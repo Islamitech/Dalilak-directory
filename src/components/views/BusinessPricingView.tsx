@@ -13,7 +13,7 @@ export const BusinessPricingView: React.FC<BusinessPricingViewProps> = ({
   onNavigate,
 }) => {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 pb-24 text-right" style={{ direction: 'rtl' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 pb-24 text-start" style={{ direction: 'rtl' }}>
       {/* Top Banner */}
       <div className="text-center space-y-3 max-w-3xl mx-auto">
         <span className="text-amber-700 bg-amber-100 text-xs font-black px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
@@ -49,7 +49,7 @@ export const BusinessPricingView: React.FC<BusinessPricingViewProps> = ({
 
       {/* Direct WhatsApp Consultation CTA */}
       <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
-        <div className="space-y-1 text-center sm:text-right">
+        <div className="space-y-1 text-center sm:text-start">
           <span className="text-amber-300 text-xs font-black">استشارة مخصصة</span>
           <h3 className="text-lg sm:text-xl font-black">
             هل تحتاج إلى خطة نمو أو تسعير مخصص لمشروعك؟

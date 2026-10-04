@@ -20,7 +20,7 @@ export const BusinessCardDetailVariant: React.FC<BusinessCardVariantProps> = ({
   const smartWhatsAppUrl = getSmartWhatsAppUrl(business);
 
   return (
-    <div className="space-y-6 text-right font-['Cairo',sans-serif]">
+    <div className="space-y-6 text-start font-['Cairo',sans-serif]">
       <ActivityDetailHeader
         business={business}
         photos={photos}

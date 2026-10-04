@@ -44,7 +44,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                 onClick={() => {
                   if (onSelectBusiness) onSelectBusiness(sim);
                 }}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 text-right flex items-center gap-2.5 transition-all cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 text-start flex items-center gap-2.5 transition-all cursor-pointer"
               >
                 <img
                   src={sim.coverPhoto || (sim.photos && sim.photos[0]) || `/api/biz-og?biz=${sim.id}`}
@@ -52,7 +52,9 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                   className="w-10 h-10 rounded-lg object-cover shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="font-black text-slate-900 text-xs truncate">{sim.nameAr}</p>
+                  <p className="font-black text-slate-900 text-xs truncate">
+                    <bdi dir="auto">{sim.nameAr}</bdi>
+                  </p>
                   <p className="text-[10px] text-slate-500 truncate">{sim.category}</p>
                 </div>
               </button>

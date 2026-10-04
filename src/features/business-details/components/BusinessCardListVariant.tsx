@@ -71,7 +71,7 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
           </div>
 
           <h3 className="text-sm sm:text-base font-black text-slate-900 truncate group-hover:text-amber-600 transition-colors">
-            {business.nameAr}
+            <bdi dir="auto">{business.nameAr}</bdi>
           </h3>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 truncate">

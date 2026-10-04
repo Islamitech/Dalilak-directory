@@ -30,7 +30,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
 }) => {
   return (
     <div className="absolute top-full inset-x-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
-      <div className="p-3 space-y-3 max-h-[min(18rem,40dvh)] overflow-y-auto overscroll-contain text-right">
+      <div className="p-3 space-y-3 max-h-[min(18rem,40dvh)] overflow-y-auto overscroll-contain text-start">
         {suggestions.length > 0 && (
           <div className="space-y-1">
             <span className="text-[10.5px] font-black text-[var(--text-muted)] block px-2">
@@ -45,10 +45,12 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                   if (onSelectBusiness) onSelectBusiness(biz);
                   else onSelectQuery(biz.nameAr);
                 }}
-                className="w-full text-right p-2 rounded-xl hover:bg-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                className="w-full text-start p-2 rounded-xl hover:bg-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
               >
                 <div className="min-w-0">
-                  <p className="font-black text-[var(--text-primary)] truncate">{biz.nameAr}</p>
+                  <p className="font-black text-[var(--text-primary)] truncate">
+                    <bdi dir="auto">{biz.nameAr}</bdi>
+                  </p>
                   <p className="text-[10px] text-[var(--text-muted)] truncate">{biz.category} • {biz.governorate}</p>
                 </div>
                 <span className="text-[10px] bg-amber-500/15 text-amber-700 px-2 py-0.5 rounded-md shrink-0 font-bold">

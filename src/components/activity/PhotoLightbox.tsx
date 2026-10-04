@@ -130,7 +130,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
       </button>
 
       {photos.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 max-w-[80vw] overflow-x-auto py-1 px-2 scrollbar-none">
+        <div className="absolute bottom-4 start-1/2 -translate-x-1/2 flex items-center gap-2 max-w-[80vw] overflow-x-auto py-1 px-2 scrollbar-none">
           {photos.map((_, i) => (
             <button
               key={i}

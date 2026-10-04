@@ -114,7 +114,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
         {/* Action Buttons: Filters + Explore + Fullscreen */}
         <div className="flex items-center gap-1.5 flex-wrap shrink-0 w-full sm:w-auto ms-0 sm:ms-auto justify-start">
           {showHadayekGates && (
-            <label className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200 font-bold cursor-pointer text-[10px] sm:text-xs transition-colors shrink-0 px-1 border-r border-slate-700/50">
+            <label className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200 font-bold cursor-pointer text-[10px] sm:text-xs transition-colors shrink-0 px-1 border-e border-slate-700/50">
               <input
                 type="checkbox"
                 checked={showGatesLayer}

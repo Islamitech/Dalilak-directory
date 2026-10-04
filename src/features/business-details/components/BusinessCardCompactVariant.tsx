@@ -46,7 +46,9 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <h4 className="text-sm font-black text-slate-900 truncate">{business.nameAr}</h4>
+          <h4 className="text-sm font-black text-slate-900 truncate">
+            <bdi dir="auto">{business.nameAr}</bdi>
+          </h4>
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
         </div>
         <p className="text-xs text-slate-500 truncate mb-1">{business.category}</p>

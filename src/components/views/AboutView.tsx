@@ -8,7 +8,7 @@ export interface AboutViewProps {
 
 export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 pb-24 text-right" style={{ direction: 'rtl' }}>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 pb-24 text-start" style={{ direction: 'rtl' }}>
       {/* Brand Hero */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <div className="flex items-center justify-center">

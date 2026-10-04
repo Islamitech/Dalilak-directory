@@ -105,7 +105,7 @@ export const PublicShowcaseModals: React.FC<PublicShowcaseModalsProps> = ({
       )}
 
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-black shadow-2xl border border-amber-500/30 animate-fade-in">
+        <div className="fixed top-20 start-1/2 -translate-x-1/2 z-50 pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-black shadow-2xl border border-amber-500/30 animate-fade-in">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
           <span>{toastMessage}</span>
         </div>

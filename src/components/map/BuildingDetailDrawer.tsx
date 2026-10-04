@@ -121,7 +121,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
           <button
             type="button"
             onClick={() => setIsBusinessesOpen(!isBusinessesOpen)}
-            className="w-full p-2.5 flex items-center justify-between text-right hover:bg-slate-100/90 transition-colors cursor-pointer"
+            className="w-full p-2.5 flex items-center justify-between text-start hover:bg-slate-100/90 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 flex items-center justify-center shrink-0">
@@ -156,11 +156,11 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
                     key={biz.id}
                     type="button"
                     onClick={() => onSelectBusiness && onSelectBusiness(biz)}
-                    className="w-full text-right p-2 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-colors flex items-center justify-between gap-1.5 cursor-pointer shadow-2xs group"
+                    className="w-full text-start p-2 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-colors flex items-center justify-between gap-1.5 cursor-pointer shadow-2xs group"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-black text-slate-900 truncate group-hover:text-emerald-800 transition-colors">
-                        {biz.nameAr}
+                        <bdi dir="auto">{biz.nameAr}</bdi>
                       </div>
                       <div className="text-[10px] text-emerald-700 font-bold truncate">
                         {biz.category}

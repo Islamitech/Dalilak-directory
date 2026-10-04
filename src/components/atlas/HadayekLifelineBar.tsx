@@ -63,7 +63,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                   onSelectCategory(item.categoryQuery);
                 }
               }}
-              className={`p-3 rounded-2xl border text-right transition-all flex items-start gap-2.5 cursor-pointer active:scale-95 ${
+              className={`p-3 rounded-2xl border text-start transition-all flex items-start gap-2.5 cursor-pointer active:scale-95 ${
                 isActive
                   ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-black'
                   : 'bg-[var(--bg-card)] hover:bg-slate-50 dark:hover:bg-slate-800/80 border-[var(--border-color)] hover:border-amber-500/40 text-[var(--text-primary)]'

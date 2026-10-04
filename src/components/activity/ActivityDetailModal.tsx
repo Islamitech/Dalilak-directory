@@ -116,7 +116,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         overlayClassName="!bg-slate-900/60 !backdrop-blur-xs pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]"
         contentClassName="p-0 flex flex-col flex-1 min-h-0 overflow-hidden"
       >
-        <div className="flex flex-col h-full overflow-hidden text-right">
+        <div className="flex flex-col h-full overflow-hidden text-start">
           {/* Modal Top Bar */}
           <div className="p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white shrink-0">
             <div className="flex items-center gap-2 min-w-0">

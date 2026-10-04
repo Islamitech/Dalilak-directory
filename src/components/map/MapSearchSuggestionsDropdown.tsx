@@ -42,7 +42,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
         <button
           type="button"
           onClick={() => onSelectBuildingItem(buildingMatch.zoneLetter, buildingMatch.buildingNumber)}
-          className="w-full text-right p-3 hover:bg-amber-50/90 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+          className="w-full text-start p-3 hover:bg-amber-50/90 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
@@ -73,7 +73,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
           key={dm.zoneLetter}
           type="button"
           onClick={() => onSelectBuildingItem(dm.zoneLetter, dm.buildingNumber)}
-          className="w-full text-right p-2.5 px-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+          className="w-full text-start p-2.5 px-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
@@ -96,7 +96,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
           key={biz.id}
           type="button"
           onClick={() => onSelectBusinessItem(biz)}
-          className="w-full text-right p-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+          className="w-full text-start p-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
@@ -123,7 +123,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
             key={`all-zones-${biz.id}`}
             type="button"
             onClick={() => onSelectOutsideZoneBusiness?.(biz)}
-            className="w-full text-right px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold"
+            className="w-full text-start px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold"
           >
             عرض {biz.nameAr} في كل المناطق{zoneLetter ? ` (منطقة ${zoneLetter})` : ''}
           </button>
@@ -135,7 +135,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
         <button
           type="button"
           onClick={() => onSelectZone?.(matchingZone.letterAr)}
-          className="w-full text-right p-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+          className="w-full text-start p-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
@@ -161,7 +161,7 @@ export const MapSearchSuggestionsDropdown: React.FC<MapSearchSuggestionsDropdown
           key={mc.id}
           type="button"
           onClick={() => onSelectCategoryItem(mc.id, activityIntent?.zone === 'all' || !activityIntent ? '' : activityIntent.zone)}
-          className="w-full text-right p-3 hover:bg-amber-50/90 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+          className="w-full text-start p-3 hover:bg-amber-50/90 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">

@@ -19,7 +19,7 @@ export const CorporateCustomSection: React.FC<CorporateCustomSectionProps> = ({
     <div className="pt-6 border-t border-[var(--border-color)]">
       <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-right space-y-1">
+          <div className="text-center sm:text-start space-y-1">
             <span className="text-[10.5px] font-black text-amber-600 uppercase">
               حلول الشركات والمشاريع الكبرى
             </span>

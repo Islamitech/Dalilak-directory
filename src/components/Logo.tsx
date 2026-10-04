@@ -181,7 +181,7 @@ export const Logo: React.FC<LogoProps> = ({
     return (
       <div className={`inline-flex items-center gap-3 bg-[var(--bg-surface)]/95 border border-amber-500/30 rounded-2xl p-2.5 sm:p-3 shadow-md backdrop-blur-md select-none ${className}`}>
         {IconElement}
-        <div className="flex flex-col text-right">
+        <div className="flex flex-col text-start">
           <div className="flex items-center gap-1.5">
             <span className="font-black text-sm sm:text-base text-[var(--text-primary)] font-['Cairo'] leading-none">
               دليلك
@@ -212,7 +212,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className={`flex items-center gap-2.5 sm:gap-3.5 select-none group ${className}`}>
       {IconElement}
 
-      <div className="flex flex-col justify-center text-right">
+      <div className="flex flex-col justify-center text-start">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <span
             className={`font-black ${titleSize} font-['Cairo'] tracking-tight leading-none transition-colors duration-300 ${

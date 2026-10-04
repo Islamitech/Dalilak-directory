@@ -71,7 +71,7 @@ export const SearchDiscoveryFeatured: React.FC<SearchDiscoveryFeaturedProps> = (
 
       {/* 💼 بانر أصحاب الأعمال («مكانك موجود. خلّي الناس توصله.») */}
       <section className="bg-white border border-amber-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-5 shadow-2xs">
-        <div className="space-y-1 text-center md:text-right">
+        <div className="space-y-1 text-center md:text-start">
           <div className="inline-flex items-center gap-1.5 text-xs font-black text-amber-700">
             <Store className="w-4 h-4" />
             <span>أصحاب المحلات والأنشطة</span>
