@@ -26,6 +26,12 @@ export interface Business {
   whatsapp?: string;
   workingHours: string;
   description: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoIntro?: string;
+  seoFaq?: { question: string; answer: string }[];
+  seoStatus?: 'draft' | 'approved' | 'rejected';
+  seoGeneratedAt?: string;
   lat: number;
   lng: number;
   photos: string[];

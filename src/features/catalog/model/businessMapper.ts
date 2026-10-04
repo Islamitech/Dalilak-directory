@@ -2,7 +2,7 @@ import { Business } from '../../../types';
 import { SUPABASE_REST_BASE } from '../../../services/supabaseClient';
 
 export const FAST_BUSINESS_SELECT =
-  'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';
+  'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo,seo_title,seo_description,seo_intro,seo_faq,seo_status,seo_generated_at';
 
 export const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc,id.asc`;
 
@@ -202,5 +202,11 @@ export function mapRawToBusiness(r: any): Business {
     isDeleted: metaIsDeleted,
     viewsCount: metaViewsCount,
     favoriteCount: metaFavoriteCount,
+    seoTitle: r.seo_title || r.seoTitle || undefined,
+    seoDescription: r.seo_description || r.seoDescription || undefined,
+    seoIntro: r.seo_intro || r.seoIntro || undefined,
+    seoFaq: Array.isArray(r.seo_faq) ? r.seo_faq : (Array.isArray(r.seoFaq) ? r.seoFaq : undefined),
+    seoStatus: r.seo_status || r.seoStatus || undefined,
+    seoGeneratedAt: r.seo_generated_at || r.seoGeneratedAt || undefined,
   };
 }

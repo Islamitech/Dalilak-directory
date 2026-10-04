@@ -106,8 +106,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const locPart = citySlug && !nameSlug.includes(citySlug) ? `-${citySlug}` : '';
       const fullSlug = publicBusinessSlug(biz);
       const locUrl = `${origin}/biz/${encodeURIComponent(fullSlug)}`;
-      // Real lastmod timestamp from updated_at / created_at (not dynamic todayStr)
-      const lastMod = (biz.updated_at || biz.created_at || BASELINE_DEPLOY_DATE).slice(0, 10);
+      // Real lastmod timestamp from seo_generated_at / updated_at / created_at (not dynamic todayStr)
+      const lastMod = (biz.seo_generated_at || biz.updated_at || biz.created_at || BASELINE_DEPLOY_DATE).slice(0, 10);
 
       // Collect primary photos for Image Sitemap
       const primaryPhoto = coverPhoto || (Array.isArray(biz.photos) && biz.photos.length > 0 ? biz.photos[0] : null);

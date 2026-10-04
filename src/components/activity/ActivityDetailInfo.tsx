@@ -121,14 +121,14 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
         </div>
       </div>
 
-      {/* Description (collapsible if long) */}
-      {business.description && (
+      {/* Description or SEO Intro */}
+      {(business.seoIntro || business.description) && (
         <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 space-y-1.5">
           <span className="text-[11px] text-amber-700 dark:text-amber-400 font-black block">نبذة عن المكان والخدمات:</span>
-          <p className={`text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-xs ${!isDescExpanded && business.description.length > 200 ? 'line-clamp-3' : ''}`}>
-            {business.description}
+          <p className={`text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-xs ${!isDescExpanded && (business.seoIntro || business.description).length > 200 ? 'line-clamp-3' : ''}`}>
+            {business.seoIntro || business.description}
           </p>
-          {business.description.length > 200 && (
+          {(business.seoIntro || business.description).length > 200 && (
             <button
               type="button"
               onClick={() => setIsDescExpanded(!isDescExpanded)}
@@ -137,6 +137,26 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
               {isDescExpanded ? 'عرض أقل ▴' : 'عرض المزيد ▾'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Verified SEO FAQ Accordion */}
+      {Array.isArray(business.seoFaq) && business.seoFaq.length > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 space-y-2">
+          <span className="text-[11px] text-amber-700 dark:text-amber-400 font-black block">الأسئلة الشائعة والمعلومات الموثقة:</span>
+          <div className="space-y-1.5">
+            {business.seoFaq.map((faq: { question: string; answer: string }, idx: number) => (
+              <details key={idx} className="group rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 text-xs">
+                <summary className="font-bold text-slate-800 dark:text-slate-200 cursor-pointer list-none flex items-center justify-between">
+                  <span>{faq.question}</span>
+                  <span className="text-amber-600 dark:text-amber-400 text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <p className="mt-1.5 text-slate-600 dark:text-slate-400 leading-relaxed font-normal text-[11px]">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
         </div>
       )}
 

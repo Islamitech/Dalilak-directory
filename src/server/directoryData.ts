@@ -11,7 +11,7 @@ if (!rawUrl || !rawKey) {
 
 export const SUPABASE_URL = rawUrl;
 export const SUPABASE_ANON_KEY = rawKey;
-const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at,is_deleted';
+const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at,is_deleted,seo_title,seo_description,seo_intro,seo_faq,seo_status,seo_generated_at';
 export function publicBusinessSlug(row:any):string {return getBusinessSlug({id:row.id,nameAr:row.name_ar,nameEn:row.name_en,city:row.city,customDirectoryUrl:businessMetadata(row).customDirectoryUrl});}
 export async function fetchDirectoryRows(query:URLSearchParams,range?:string):Promise<{rows:any[];total:number}> {
  const response=await fetch(SUPABASE_URL+'/rest/v1/businesses?'+query,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY,Accept:'application/json',...(range?{Range:range,'Range-Unit':'items',Prefer:'count=exact'}:{})},signal:AbortSignal.timeout(8000)});
