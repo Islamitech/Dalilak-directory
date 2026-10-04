@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'text' | 'rectangular' | 'circular';
+  variant?: 'text' | 'rectangular' | 'circular' | 'card';
   width?: string | number;
   height?: string | number;
 }
@@ -18,6 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     text: 'h-4 rounded-md',
     rectangular: 'rounded-2xl',
     circular: 'rounded-full',
+    card: 'rounded-2xl',
   };
 
   const inlineStyles: React.CSSProperties = {
