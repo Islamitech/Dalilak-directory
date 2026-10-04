@@ -289,58 +289,9 @@ async function runTests() {
   }
 
   // -------------------------------------------------------------
-  // Test 5: Re-render does not steal focus (Suspicion 4)
+  // (Test 5 removed: it exercised FilterDrawer on /search, which was
+  // removed when /search was simplified to a pure card grid.)
   // -------------------------------------------------------------
-  console.log('--- Test 5: Re-render with new inline onClose does not steal focus ---');
-  try {
-    const s = await setup(browser);
-    await s.page.goto(s.url + '/search');
-    await s.page.waitForTimeout(600);
-
-    // Open FilterDrawer
-    const openDrawerBtn = s.page.getByRole('button', { name: /فلترة متقدمة/ });
-    await openDrawerBtn.waitFor({ timeout: 5000 });
-    await openDrawerBtn.click();
-    await s.page.waitForTimeout(400);
-
-    const drawer = s.page.locator('[role="dialog"][aria-labelledby="filter-drawer-title"]');
-    await drawer.waitFor({ timeout: 5000 });
-
-    // Focus the governorate select element (not the first element, which is the close button)
-    const govSelect = drawer.locator('select').first();
-    await govSelect.focus();
-    await s.page.waitForTimeout(100);
-
-    const activeBefore = await s.page.evaluate(() => document.activeElement?.tagName);
-    console.log('Active element before re-render:', activeBefore);
-    assert.strictEqual(activeBefore, 'SELECT', 'Select must be the active element before re-render');
-
-    // Trigger state change in parent (select 'الجيزة')
-    // This calls onGovChange, updating SearchView state and passing a new inline onClose arrow function
-    await govSelect.selectOption('الجيزة');
-    // Wait past the 50ms setTimeout in useAccessibleDialog
-    await s.page.waitForTimeout(200);
-
-    const activeAfter = await s.page.evaluate(() => ({
-      tag: document.activeElement?.tagName,
-      ariaLabel: document.activeElement?.getAttribute('aria-label'),
-      text: document.activeElement?.textContent?.trim().slice(0, 30),
-      id: document.activeElement?.id,
-    }));
-    console.log('Active element after re-render:', activeAfter);
-
-    assert.strictEqual(
-      activeAfter.tag,
-      'SELECT',
-      `Focus was stolen by re-render! Expected SELECT to stay focused, but got <${activeAfter.tag}> (aria-label: ${activeAfter.ariaLabel})`
-    );
-
-    console.log('✓ Test 5 Passed\n');
-    await s.context.close();
-  } catch (err) {
-    console.error('✗ Test 5 FAILED:', err.message, '\n');
-    failures.push({ test: 'Test 5: Re-render Focus Steal', error: err.message });
-  }
 
   await browser.close();
   if (server && server.httpServer) {
@@ -348,7 +299,7 @@ async function runTests() {
   }
 
   console.log('===================================================');
-  console.log(`TOTAL TESTS RUN: 5, FAILURES: ${failures.length}`);
+  console.log(`TOTAL TESTS RUN: 4, FAILURES: ${failures.length}`);
   if (failures.length > 0) {
     console.log('FAILED TESTS:');
     for (const f of failures) {

@@ -16,7 +16,6 @@ import {
   sanitizePhoneNumber,
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
-  createCompactSelectedActivityCardHtml,
   createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
 } from '../components/map/badgeMarkers';
@@ -118,24 +117,7 @@ async function runSafetyNetSuite() {
     assert.equal(transition.totalDuration, 1.15);
   });
 
-  await testBaseline('A2.1: Two-State Selection - State 1 generates compact preview card on marker', () => {
-    const biz = createMockBusiness({
-      id: 'b_state1',
-      nameAr: 'صيدلية النور',
-      category: 'صيدليات',
-      lat: 29.975,
-      lng: 31.105,
-    });
-    const { html, iconSize, iconAnchor } = createCompactSelectedActivityCardHtml(biz);
-    assert.ok(html.includes('compact-selected-card-pin'), 'Container class must match');
-    assert.ok(html.includes('صيدلية النور'), 'Business name rendered');
-    assert.ok(html.includes('card-close-btn'), 'Has close button');
-    assert.equal(iconSize[0], 232);
-    assert.equal(iconSize[1], 72);
-    assert.equal(iconAnchor[1], 72);
-  });
-
-  await testBaseline('A2.2: Two-State Selection - State 2 triggers street level zoom (17.5) with expanded card', () => {
+  await testBaseline('A2.1: Two-State Selection - State 2 triggers street level zoom (17.5) with expanded card', () => {
     const decision = planCameraTransitionOnBusinessSelect(null, 'biz_1', { lat: 29.975, lng: 31.105 }, 14.0, true);
     assert.equal(decision.shouldMove, true);
     assert.equal(decision.targetZoom, 17.5, 'Must zoom to street level for expanded card');

@@ -1,13 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Business } from '../../types';
-import { InteractiveMap, MAP_QUICK_CATEGORIES } from '../InteractiveMap';
-import { getAvailableQuickCategoriesInZone } from '../../utils/hadayekZoneHelper';
+import { InteractiveMap } from '../InteractiveMap';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import {
   getHadayekZone,
   getRecommendedGateForZone,
 } from '../../data/hadayekAtlasData';
-import { ProximityRadarDrawer } from '../atlas/ProximityRadarDrawer';
 import { HadayekGatesModal } from '../atlas/HadayekGatesModal';
 import { useMapViewUrlState } from '../../features/map';
 
@@ -59,7 +57,6 @@ export const MapView: React.FC<MapViewProps> = ({
   onClearFocusedBusiness,
 }) => {
   const [isGatesModalOpen, setIsGatesModalOpen] = useState(false);
-  const [isRadarOpen, setIsRadarOpen] = useState(false);
 
   const {
     activeZoneLetter,
@@ -71,20 +68,6 @@ export const MapView: React.FC<MapViewProps> = ({
     clearTarget,
     clearBuilding,
   } = useMapViewUrlState(focusedBusiness, selectedZone, onZoneChange);
-
-  const quickCategories = useMemo(() => {
-    return getAvailableQuickCategoriesInZone(businesses, activeZoneLetter, MAP_QUICK_CATEGORIES);
-  }, [businesses, activeZoneLetter]);
-
-  const activeCategoryObj = useMemo(() => {
-    if (!categoryFilter || categoryFilter === 'all') return null;
-    return quickCategories.find((c) => c.id === categoryFilter) || {
-      id: categoryFilter,
-      name: categoryFilter,
-      icon: '📍',
-      count: 0,
-    };
-  }, [categoryFilter, quickCategories]);
 
   const targetBuilding = useMemo(() => {
     if (!activeZoneLetter || !activeBuildingNumber || !exactBuildingCoords) return null;
@@ -106,7 +89,6 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [activeZoneLetter]);
 
   const handleSelectZoneJump = useCallback((letter: string) => {
-    setIsRadarOpen(false);
     selectZone(letter);
   }, [selectZone]);
 
@@ -148,7 +130,6 @@ export const MapView: React.FC<MapViewProps> = ({
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
           businesses={effectiveFilteredBusinesses}
-          searchableBusinesses={businesses}
           mode="view"
           lat={lat}
           lng={lng}
@@ -163,7 +144,6 @@ export const MapView: React.FC<MapViewProps> = ({
           onSelectBuilding={(bldg) => {
             setActiveZoneLetter(bldg.zoneLetter);
             setActiveBuildingNumber(bldg.buildingNumber);
-            setIsRadarOpen(true);
             if (typeof window !== 'undefined') {
               const newUrl = new URL(window.location.href);
               newUrl.searchParams.set('zone', bldg.zoneLetter);
@@ -172,24 +152,13 @@ export const MapView: React.FC<MapViewProps> = ({
             }
           }}
           onClearBuilding={clearBuilding}
-          onOpenRadar={() => setIsRadarOpen(true)}
           heightClass="h-full"
           defaultExpanded={false}
           onExploreDirectory={() => onNavigate('/search')}
           onOpenGatesGuide={() => setIsGatesModalOpen(true)}
-          quickCategories={quickCategories}
           focusedBusiness={focusedBusiness}
           onClearFocusedBusiness={onClearFocusedBusiness}
         />
-
-        {targetBuilding && isRadarOpen && (
-          <ProximityRadarDrawer
-            target={targetBuilding}
-            businesses={businesses}
-            onOpenBusiness={onOpenBusiness}
-            onClose={() => setIsRadarOpen(false)}
-          />
-        )}
       </div>
 
       <HadayekGatesModal

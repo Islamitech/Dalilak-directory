@@ -17,7 +17,6 @@ import {
   sanitizePhoneNumber,
   createLightweightBadgeHtml,
   createExpandedActivityCardHtml,
-  createCompactSelectedActivityCardHtml,
   createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
 } from '../components/map/badgeMarkers';
@@ -513,32 +512,6 @@ test('createExpandedActivityCardHtml renders expanded details card with close bu
   assert.ok(html.includes('✕'), 'Must show close symbol');
   assert.ok(html.includes('card-action-link'), 'Must have action links with card-action-link class');
   assert.equal(iconSize[0], 256, 'Expanded card width is 256px');
-});
-
-test('createCompactSelectedActivityCardHtml renders compact comfortable preview card without map occlusion', () => {
-  const biz = createMockBusiness({
-    id: 'compact1',
-    nameAr: 'لمعة لغسيل السيارات',
-    category: 'مغسلة سيارات',
-    street: 'شارع الدكتور ماجد محمود توفيق',
-    lat: 29.968,
-    lng: 31.100,
-    verificationStatus: 'verified',
-  });
-
-  const { html, iconSize, iconAnchor } = createCompactSelectedActivityCardHtml(biz);
-  assert.ok(!html.includes('onclick='), 'Forbidden to use inline onclick');
-  assert.ok(!html.includes('onerror='), 'Forbidden to use inline onerror');
-  assert.ok(html.includes('card-close-btn'), 'Must have close button with card-close-btn class');
-  assert.ok(html.includes('✕'), 'Must show close symbol');
-  assert.ok(html.includes('biz-card-photo'), 'Must render thumbnail photo with safe class');
-  assert.ok(html.includes('لمعة لغسيل السيارات'), 'Must render business name');
-  assert.ok(html.includes('مغسلة سيارات'), 'Must render category badge');
-  assert.ok(html.includes('compact-selected-card-pin'), 'Must have compact-selected-card-pin root container');
-  assert.equal(iconSize[0], 232, 'Compact card width is 232px');
-  assert.equal(iconSize[1], 72, 'Compact card total height is 72px (unobtrusive to map view)');
-  assert.equal(iconAnchor[0], Math.round(232 / 2), 'Anchor X is centered at bottom');
-  assert.equal(iconAnchor[1], 72, 'Anchor Y points directly to exact ground coordinates');
 });
 
 test('createCompactOverviewBadgeHtml renders sleek horizontal overview card without close button', () => {

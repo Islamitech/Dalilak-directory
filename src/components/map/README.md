@@ -38,7 +38,6 @@ src/components/map/
 ├── MapHeaderBar.tsx               # 🎛️ الشريط العلوي المصغر فائق النحافة (Ultra-compact)
 ├── MapFloatingControls.tsx        # 🕹️ أدوات التحكم الجانبية العائمة (التقريب، ضبط البوصلة)
 ├── MapSearchBox.tsx               # 🔍 شريط البحث الجغرافي السريع (في وضع Picker)
-├── MapSelectedBusinessDrawer.tsx  # 📋 كارت الدرج المنبثق لتفاصيل النشاط المحدد
 ├── MapFooterBar.tsx               # ⚙️ شريط الإحداثيات (محفوظ ومفصول عن واجهة العرض العامة)
 ├── constants/
 │   └── mapConstants.ts            # 🌐 ثوابت الإحداثيات، طبقات البلاطات، وقوائم التصنيفات

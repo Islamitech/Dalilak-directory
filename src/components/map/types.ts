@@ -9,7 +9,6 @@ export interface InteractiveMapProps {
   lng?: number;
   onLocationSelect?: (lat: number, lng: number, addressDetails?: LocationAddressData) => void;
   businesses?: Business[];
-  searchableBusinesses?: Business[];
   onSelectBusiness?: (biz: Business) => void;
   onEditBusiness?: (biz: Business) => void;
   heightClass?: string;
@@ -30,7 +29,6 @@ export interface InteractiveMapProps {
   defaultExpanded?: boolean;
   onExploreDirectory?: () => void;
   onOpenGatesGuide?: () => void;
-  quickCategories?: Array<{ id: string; name: string; icon: string; count?: number }>;
   activeRoute?: {
     origin: { lat: number; lng: number; label: string };
     destination: { lat: number; lng: number; label: string };
@@ -47,7 +45,6 @@ export interface InteractiveMapProps {
   } | null) => void;
   onStartNavigation?: (target: { title: string; lat: number; lng: number; type: 'building' | 'business'; details?: string }) => void;
   onClearBuilding?: () => void;
-  onOpenRadar?: () => void;
   focusedBusiness?: Business | null;
   onClearFocusedBusiness?: () => void;
 }

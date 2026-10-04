@@ -20,17 +20,16 @@ export { MAP_QUICK_CATEGORIES };
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   searchQuery, onSearchChange, mode = 'view', lat = 29.9683, lng = 31.1002,
-  onLocationSelect, businesses = [], searchableBusinesses, onSelectBusiness,
+  onLocationSelect, businesses = [], onSelectBusiness,
   targetBuilding = null, onSelectBuilding: externalOnSelectBuilding,
   showHadayekGates = true, selectedZone, onSelectZone, categoryFilter, onCategoryChange,
   initialShowBusinesses = false, onToggleBusinessesVisibility, defaultExpanded = false,
-  onExploreDirectory, quickCategories, activeRoute: externalActiveRoute, onUpdateRoute,
-  onStartNavigation: externalOnStartNavigation, onClearBuilding, onOpenRadar,
+  onExploreDirectory, activeRoute: externalActiveRoute, onUpdateRoute,
+  onStartNavigation: externalOnStartNavigation, onClearBuilding,
   focusedBusiness, onClearFocusedBusiness,
 }) => {
   const directoryLoad = useDirectoryLoad();
   const searchPending = useDirectorySearchPending();
-  const [mapSearchMode, setMapSearchMode] = useState<'browse' | 'building'>(targetBuilding ? 'building' : 'browse');
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -42,7 +41,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     setNavigationTargetState,
     localRoute,
     setLocalRoute,
-    handleSearchChange,
     onViewportSnapshotChange,
     setSelectedBusiness,
   } = useInteractiveMapController({
@@ -108,10 +106,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     activeCategory,
     activeSearchQuery,
     effectiveTargetBuilding,
-    buildingSearchActive: mapSearchMode === 'building',
+    buildingSearchActive: Boolean(effectiveTargetBuilding),
     handleClusteringSelectBusiness,
     onSelectZone,
     handleClusteringSelectBuilding,
+    onClearFocusedBusiness,
     activeRoute,
     viewportSnapshot: interactionState.viewport,
     onViewportSnapshotChange,
@@ -170,26 +169,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           mode={mode}
           lat={lat}
           lng={lng}
-          activeSearchQuery={activeSearchQuery}
-          handleSearchChange={handleSearchChange}
-          mapSearchMode={mapSearchMode}
-          setMapSearchMode={setMapSearchMode}
           setSelectedBuildingState={setSelectedBuildingState}
           onClearBuilding={onClearBuilding}
           effectiveTargetBuilding={effectiveTargetBuilding}
           activeZone={activeZone}
           state={state}
-          setNavigationTargetState={setNavigationTargetState}
-          setLocalRoute={setLocalRoute}
-          onSelectZone={onSelectZone}
-          activeCategory={activeCategory}
-          onCategoryChange={onCategoryChange}
-          quickCategories={quickCategories}
-          filteredBusinessesCount={matchingBusinessesCount}
           businesses={businesses}
-          searchableBusinesses={searchableBusinesses}
           externalOnSelectBuilding={externalOnSelectBuilding}
           selectedBuildingState={selectedBuildingState}
+          onViewList={onExploreDirectory}
         />
 
         <MapFloatingControls
@@ -211,9 +199,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         <MapDrawersCoordinator
           mode={mode}
           businesses={businesses}
-          selectedBiz={state.selectedBiz}
-          isSelectedBizExpandedOnMap={state.isSelectedBizExpandedOnMap}
-          onClearFocusedBusiness={onClearFocusedBusiness}
           onSelectBusiness={onSelectBusiness}
           selectedBuildingState={selectedBuildingState}
           onClearBuilding={onClearBuilding}
@@ -221,7 +206,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             state.setSelectedBiz(biz);
             setSelectedBuildingState(null);
           }}
-          onOpenRadar={onOpenRadar}
           navigationTargetState={navigationTargetState}
           onSetNavigationTarget={(target) => {
             setNavigationTargetState(target);
@@ -236,7 +220,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             setLocalRoute(route);
             if (onUpdateRoute) onUpdateRoute(route);
           }}
-          setSelectedBiz={(biz) => state.setSelectedBiz(biz)}
           setSelectedBuildingState={setSelectedBuildingState}
         />
       </div>

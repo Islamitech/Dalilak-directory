@@ -9,16 +9,8 @@ export {
   clearRecentSearchesList,
 } from './model/recentSearches';
 
-export { FilterDrawer, type FilterDrawerProps } from './components/FilterDrawer';
 export { SmartSearchBar, type SmartSearchBarProps } from './components/SmartSearchBar';
-export { SearchHeroHeader } from './components/SearchHeroHeader';
-export { SearchDiscoveryCategories } from './components/SearchDiscoveryCategories';
 export { SearchSuggestionsDropdown } from './components/SearchSuggestionsDropdown';
-export { SearchResultsSection } from './components/SearchResultsSection';
 export { CadastralBuildingCard, type CadastralBuildingCardProps } from './components/CadastralBuildingCard';
 export { useUnifiedSearch, type UseUnifiedSearchOptions } from './hooks/useUnifiedSearch';
-export {
-  type SearchViewProps,
-  computeFeaturedBusinesses,
-  handleLocationSelection,
-} from './model/searchViewLogic';
+export { type SearchViewProps } from './model/searchViewLogic';

@@ -24,13 +24,7 @@ export const useMapState = ({
   const [showTargetPin] = useState<boolean>(true);
   const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
   const [copied, setCopied] = useState<boolean>(false);
-  const [selectedBiz, _setSelectedBiz] = useState<Business | null>(null);
-  const [isSelectedBizExpandedOnMap, setIsSelectedBizExpandedOnMap] = useState<boolean>(false);
-
-  const setSelectedBiz = useCallback((biz: Business | null) => {
-    _setSelectedBiz(biz);
-    setIsSelectedBizExpandedOnMap(false);
-  }, []);
+  const [selectedBiz, setSelectedBiz] = useState<Business | null>(null);
 
   const [centerReticleActive, setCenterReticleActive] = useState<boolean>(false);
   const [isInHadayekScope, setIsInHadayekScope] = useState<boolean>(true);
@@ -76,8 +70,6 @@ export const useMapState = ({
     setSelectedZone,
     selectedBiz,
     setSelectedBiz,
-    isSelectedBizExpandedOnMap,
-    setIsSelectedBizExpandedOnMap,
     centerReticleActive,
     setCenterReticleActive,
     isInHadayekScope,

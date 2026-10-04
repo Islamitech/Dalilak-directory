@@ -36,30 +36,3 @@ export interface SearchViewProps {
   onNavigate: (path: string) => void;
   onReshuffle?: () => void;
 }
-
-export function computeFeaturedBusinesses(allBusinesses: Business[]): Business[] {
-  const verified = allBusinesses.filter((b) => b.verificationStatus === 'verified' && !b.isDeleted);
-  const withMedia = verified.filter((b) => (b.photos && b.photos.length > 0) || b.coverPhoto);
-  const pool = withMedia.length >= 6 ? withMedia : verified.length >= 6 ? verified : allBusinesses;
-  return pool.slice(0, 6);
-}
-
-export function handleLocationSelection(
-  val: string,
-  onGovChange: (g: string) => void,
-  onCityChange: (c: string) => void
-): void {
-  if (val === 'all') {
-    onGovChange('all');
-    onCityChange('all');
-  } else if (val === 'حدائق الأهرام') {
-    onGovChange('الجيزة');
-    onCityChange('حدائق الأهرام');
-  } else if (['مدينة 6 أكتوبر', 'مدينة الشيخ زايد', 'الهرم', 'فيصل', 'الدقي', 'المهندسين'].includes(val)) {
-    onGovChange('الجيزة');
-    onCityChange(val);
-  } else {
-    onGovChange(val);
-    onCityChange('all');
-  }
-}

@@ -50,6 +50,18 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
   const hasCategoryFilter = Boolean(effectiveCategoryFilter && effectiveCategoryFilter !== 'all' && effectiveCategoryFilter.trim() !== '');
   const hasSearchOverride = Boolean(searchQuery && searchQuery.trim() !== '' && sortedBusinesses.length > 0);
 
+  if (selectedBiz) {
+    markersRegistry.forEach((entry) => {
+      cardsLayer.removeLayer(entry.marker);
+    });
+    markersRegistry.clear();
+    cardsLayer.clearLayers();
+    clusterLayer.clearLayers();
+    clusterRegistry.clear();
+    onComplete();
+    return () => {};
+  }
+
   if (!hasCategoryFilter && !hasSearchOverride) {
     cardsLayer.clearLayers();
     clusterLayer.clearLayers();

@@ -91,7 +91,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
   // 3. Grid View
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         {visibleList.map((biz) => (
           <BusinessCard
             key={biz.id}
@@ -107,7 +107,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
 
       {/* Pagination / Load More Status */}
       <div className="pt-2 pb-4 flex flex-col items-center justify-center gap-2">
-        <p className="text-xs text-slate-500 font-bold">
+        <p className="text-xs text-slate-500 font-bold bg-white border border-slate-200/80 shadow-xs rounded-full px-3.5 py-1.5">
           عرض {visibleList.length} من أصل {businesses.length} نشاطاً
         </p>
 
@@ -115,7 +115,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + pageSize)}
-            className="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+            className="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             <span>تحميل المزيد ({businesses.length - visibleList.length} متبقي)</span>
           </button>

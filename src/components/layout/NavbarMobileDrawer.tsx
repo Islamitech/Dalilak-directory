@@ -4,15 +4,12 @@ import {
   Store,
   BadgeDollarSign,
   Compass,
-  Moon,
-  Sun,
   MapPin,
   ListFilter,
   Heart,
   Info,
   WifiOff,
 } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useDrawerFocusTrap } from './hooks/useDrawerFocusTrap';
 
 export interface NavbarMobileDrawerProps {
@@ -38,7 +35,6 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
   onOpenAtlas,
   triggerRef,
 }) => {
-  const { theme, toggleTheme } = useTheme();
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -181,24 +177,6 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                 <span>أطلس البوابات والمناطق</span>
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
-            >
-              <div className="flex items-center gap-2.5">
-                {theme === 'dark' ? (
-                  <Sun className="w-4 h-4 text-amber-400 stroke-[2.2]" />
-                ) : (
-                  <Moon className="w-4 h-4 text-slate-700 stroke-[2.2]" />
-                )}
-                <span>{theme === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي'}</span>
-              </div>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
-                {theme === 'dark' ? 'مفعل' : 'تفعيل'}
-              </span>
-            </button>
           </div>
         </div>
 

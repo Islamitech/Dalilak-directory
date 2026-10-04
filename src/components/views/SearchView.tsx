@@ -1,85 +1,39 @@
-import React, { useState, useMemo } from 'react';
-import { Business } from '../../types';
-import {
-  SearchHeroHeader,
-  SearchDiscoveryCategories,
-  SearchResultsSection,
-  type SearchViewProps,
-  computeFeaturedBusinesses,
-  handleLocationSelection,
-} from '../../features/search';
-import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
+import React, { useMemo } from 'react';
+import { type SearchViewProps } from '../../features/search';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
-import { SearchDiscoveryFeatured } from './search/SearchDiscoveryFeatured';
-
-const FilterDrawer = React.lazy(() =>
-  import('../../features/search/components/FilterDrawer').then((m) => ({ default: m.FilterDrawer }))
-);
+import { BusinessCardGrid } from '../../components/cards/BusinessCardGrid';
+import { ViewSegmentedSwitch } from '../layout/ViewSegmentedSwitch';
 
 export type { SearchViewProps };
 
+/**
+ * 📋 SearchView — simplified activity list (/search)
+ *
+ * Shows only the simplified business cards: vertical stack on phones,
+ * expanding to 3-4 columns on large screens. Filtering happens via the
+ * single header search; no extra toolbars on this page.
+ */
 export const SearchView: React.FC<SearchViewProps> = ({
   filteredBusinesses,
   allBusinesses,
   loading,
   searchQuery,
-  onSearchChange,
   selectedGov,
-  onGovChange,
   selectedCity,
-  onCityChange,
   selectedZone,
-  onZoneChange,
   categoryFilter,
-  onCategoryChange,
   subcategoryFilter,
-  onSubcategoryChange,
   sortBy,
-  onSortChange,
   openNowOnly,
-  onToggleOpenNow,
   hasRatingOnly,
-  onToggleHasRating,
   hasVideoOnly,
-  onToggleHasVideo,
   userCoords,
-  isLocatingUser,
-  onRequestLocation,
   onOpenBusiness,
   onToggleFavorite,
   favorites,
   onResetAllFilters,
-  hasActiveFilters,
-  onOpenVideoModal,
   onNavigate,
-  onReshuffle,
 }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [showAllManually, setShowAllManually] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    return !window.location.search.includes('mode=discovery');
-  });
-
-  const isFilteringOrSearching = useMemo(() => {
-    return Boolean(
-      showAllManually ||
-      searchQuery.trim() ||
-      (categoryFilter && categoryFilter !== 'all') ||
-      (subcategoryFilter && subcategoryFilter !== 'all') ||
-      (selectedGov && selectedGov !== 'all') ||
-      (selectedCity && selectedCity !== 'all') ||
-      (selectedZone && selectedZone !== 'all') ||
-      openNowOnly ||
-      hasRatingOnly ||
-      hasVideoOnly ||
-      sortBy !== 'default' ||
-      hasActiveFilters
-    );
-  }, [
-    showAllManually, searchQuery, categoryFilter, subcategoryFilter, selectedGov,
-    selectedCity, selectedZone, openNowOnly, hasRatingOnly, hasVideoOnly, sortBy, hasActiveFilters,
-  ]);
-
   const effectiveFilteredBusinesses = useMemo(() => {
     if (filteredBusinesses && filteredBusinesses.length > 0) return filteredBusinesses;
     return computeFilteredBusinesses({
@@ -115,123 +69,30 @@ export const SearchView: React.FC<SearchViewProps> = ({
     userCoords,
   ]);
 
-  const featuredBusinesses = useMemo(() => computeFeaturedBusinesses(allBusinesses), [allBusinesses]);
-
-  const advancedFiltersCount = [
-    selectedGov !== 'all',
-    selectedCity !== 'all',
-    selectedZone !== 'all',
-    hasRatingOnly,
-  ].filter(Boolean).length;
-
-  const categoryScopeBusinesses = useMemo(
-    () => selectedZone && selectedZone !== 'all' ? getBusinessesInZone(allBusinesses, selectedZone) : allBusinesses,
-    [allBusinesses, selectedZone]
-  );
-
-  const handleReturnToDiscovery = () => {
-    setShowAllManually(false);
-    onResetAllFilters();
-    try {
-      window.history.replaceState(null, '', '/search');
-    } catch {}
-  };
-
-  const handleLocationSelect = (val: string) => handleLocationSelection(val, onGovChange, onCityChange);
-
   return (
-    <div className="max-w-7xl mx-auto px-3 min-[380px]:px-4 sm:px-6 lg:px-8 py-3 sm:py-5 pb-[calc(100px+env(safe-area-inset-bottom,0px))] bg-[#f8fafc] dark:bg-slate-950 transition-colors" dir="rtl">
-      {!showAllManually && (
-        <div className="space-y-7 sm:space-y-10 mb-6">
-          <SearchHeroHeader
-            categoryFilter={categoryFilter}
-            selectedZone={selectedZone}
-            selectedCity={selectedCity}
-            selectedGov={selectedGov}
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange}
-            onLocationSelect={handleLocationSelect}
-            onRequestLocation={onRequestLocation}
-            isLocatingUser={isLocatingUser}
-            userCoords={userCoords}
-            onNavigate={onNavigate}
-            onSearchSubmit={() => setShowAllManually(true)}
-          />
-
-          <SearchDiscoveryCategories
-            categoryFilter={categoryFilter}
-            subcategoryFilter={subcategoryFilter}
-            onCategoryChange={onCategoryChange}
-            onSubcategoryChange={onSubcategoryChange}
-            categoryScopeBusinesses={categoryScopeBusinesses}
-            onShowAll={() => {
-              setShowAllManually(true);
-              onCategoryChange('all');
-              onSubcategoryChange('all');
+    <div
+      className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 py-3 sm:py-5 pb-[calc(96px+env(safe-area-inset-bottom,0px))] bg-[#f8fafc]"
+      dir="rtl"
+    >
+      <div className="sticky top-[112px] sm:top-[68px] z-30 flex justify-center pointer-events-none mb-3">
+        <div className="pointer-events-auto">
+          <ViewSegmentedSwitch
+            activeView="list"
+            onViewChange={(view) => {
+              if (view === 'map') onNavigate('/map');
             }}
           />
         </div>
-      )}
-
-      {isFilteringOrSearching ? (
-          <SearchResultsSection
-            filteredBusinesses={effectiveFilteredBusinesses}
-            loading={loading}
-            searchQuery={searchQuery}
-            selectedZone={selectedZone}
-            categoryFilter={categoryFilter}
-            onCategoryChange={onCategoryChange}
-            subcategoryFilter={subcategoryFilter}
-            onSubcategoryChange={onSubcategoryChange}
-            sortBy={sortBy}
-            onSortChange={onSortChange}
-            openNowOnly={openNowOnly}
-            onToggleOpenNow={onToggleOpenNow}
-            hasVideoOnly={hasVideoOnly}
-            onToggleHasVideo={onToggleHasVideo}
-            onOpenFilterDrawer={() => setDrawerOpen(true)}
-            advancedFiltersCount={advancedFiltersCount}
-            onNavigate={onNavigate}
-            onReshuffle={onReshuffle}
-            handleReturnToDiscovery={handleReturnToDiscovery}
-            hasActiveFilters={hasActiveFilters}
-            selectedGov={selectedGov}
-            onGovChange={onGovChange}
-            selectedCity={selectedCity}
-            onCityChange={onCityChange}
-            onOpenBusiness={onOpenBusiness}
-            onToggleFavorite={onToggleFavorite}
-            favorites={favorites}
-            userCoords={userCoords}
-            onOpenVideoModal={onOpenVideoModal}
-          />
-        ) : (
-          <SearchDiscoveryFeatured
-            featuredBusinesses={featuredBusinesses}
-            allBusinessesCount={allBusinesses.length}
-            onShowAll={() => setShowAllManually(true)}
-            onOpenBusiness={onOpenBusiness}
-            onToggleFavorite={onToggleFavorite}
-            favorites={favorites}
-            userCoords={userCoords}
-            onOpenVideoModal={onOpenVideoModal}
-            onNavigate={onNavigate}
-          />
-        )}
-
-      {drawerOpen && (
-        <React.Suspense fallback={null}>
-          <FilterDrawer
-            isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} allBusinesses={allBusinesses}
-            selectedGov={selectedGov} onGovChange={onGovChange} selectedCity={selectedCity} onCityChange={onCityChange}
-            selectedZone={selectedZone} onZoneChange={onZoneChange} categoryFilter={categoryFilter} onCategoryChange={onCategoryChange}
-            subcategoryFilter={subcategoryFilter} onSubcategoryChange={onSubcategoryChange}
-            openNowOnly={openNowOnly} onToggleOpenNow={onToggleOpenNow} hasRatingOnly={hasRatingOnly} onToggleHasRating={onToggleHasRating}
-            hasVideoOnly={hasVideoOnly} onToggleHasVideo={onToggleHasVideo} sortBy={sortBy} onSortChange={onSortChange}
-            onResetAll={onResetAllFilters} resultsCount={effectiveFilteredBusinesses.length}
-          />
-        </React.Suspense>
-      )}
+      </div>
+      <BusinessCardGrid
+        businesses={effectiveFilteredBusinesses}
+        loading={loading}
+        onOpenBusiness={onOpenBusiness}
+        onToggleFavorite={onToggleFavorite}
+        favorites={favorites}
+        userCoords={userCoords}
+        onResetFilters={onResetAllFilters}
+      />
     </div>
   );
 };

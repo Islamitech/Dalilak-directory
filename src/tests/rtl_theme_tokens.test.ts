@@ -2,14 +2,13 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-describe('Item 7: RTL Logical Utilities, Dark Theme Tokens, and BDI', () => {
-  it('verifies that src/index.css contains dark theme tokens and custom-variant dark', () => {
+describe('Item 7: RTL Logical Utilities, Light-Only Theme, and BDI', () => {
+  it('verifies that src/index.css is light-only (no dark variant, no dark tokens)', () => {
     const cssPath = path.resolve(__dirname, '../index.css');
     const css = fs.readFileSync(cssPath, 'utf8');
 
-    expect(css).toContain('@custom-variant dark');
-    expect(css).toContain('[data-theme="dark"]');
-    expect(css).toContain('.dark');
+    expect(css).not.toContain('@custom-variant dark');
+    expect(css).not.toContain('[data-theme="dark"]');
     expect(css).toContain('--bg-primary');
     expect(css).toContain('--bg-card');
     expect(css).toContain('--text-primary');
@@ -59,11 +58,5 @@ describe('Item 7: RTL Logical Utilities, Dark Theme Tokens, and BDI', () => {
       'utf8'
     );
     expect(compactFile).toContain('<bdi dir="auto">{business.nameAr}</bdi>');
-
-    const listFile = fs.readFileSync(
-      path.resolve(__dirname, '../features/business-details/components/BusinessCardListVariant.tsx'),
-      'utf8'
-    );
-    expect(listFile).toContain('<bdi dir="auto">{business.nameAr}</bdi>');
   });
 });

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMapPinsClustering } from './useMapPinsClustering';
 import { useMapGeolocation } from './useMapGeolocation';
 import { useMapSearch } from './useMapSearch';
+import { useTargetBuildingCamera } from './useTargetBuildingCamera';
 import { Business } from '../../../types';
 
 export interface UseMapPinsAndSearchParams {
@@ -18,12 +19,15 @@ export interface UseMapPinsAndSearchParams {
   handleClusteringSelectBusiness: (b: any) => void;
   onSelectZone?: (z: string) => void;
   handleClusteringSelectBuilding: (bldg: any) => void;
+  onClearFocusedBusiness?: () => void;
   activeRoute: any;
   viewportSnapshot: any;
   onViewportSnapshotChange: (v: any) => void;
 }
 
 export function useMapPinsAndSearch(p: UseMapPinsAndSearchParams) {
+  useTargetBuildingCamera(p.effectiveTargetBuilding, p.mapInstance);
+
   useMapPinsClustering({
     mapInstance: p.mapInstance,
     state: p.state,
@@ -38,6 +42,7 @@ export function useMapPinsAndSearch(p: UseMapPinsAndSearchParams) {
     onSelectBusiness: p.handleClusteringSelectBusiness,
     onSelectZone: p.onSelectZone,
     onSelectBuilding: p.handleClusteringSelectBuilding,
+    onClearFocusedBusiness: p.onClearFocusedBusiness,
     activeRoute: p.activeRoute,
     viewportSnapshot: p.viewportSnapshot,
     onViewportSnapshotChange: p.onViewportSnapshotChange,

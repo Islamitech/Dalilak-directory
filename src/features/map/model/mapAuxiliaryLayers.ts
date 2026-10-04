@@ -22,6 +22,7 @@ export interface UseMapPinsClusteringProps {
   onSelectBusiness?: (biz: Business) => void;
   onSelectZone?: (zoneLetter: string) => void;
   onSelectBuilding?: (building: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => void;
+  onClearFocusedBusiness?: () => void;
   activeRoute?: ActiveRouteData | null;
   viewportSnapshot?: MapViewportSnapshot | null;
   onViewportSnapshotChange?: (snapshot: MapViewportSnapshot) => void;
@@ -43,9 +44,7 @@ export interface SyncAuxiliaryLayersParams {
   zoomLevel: number;
   activeRoute?: ActiveRouteData | null;
   selectedBiz: Business | null;
-  isSelectedBizExpandedOnMap: boolean;
   selectedMarkerRef: MutableRefObject<any>;
-  onExpandSelectedBiz: () => void;
   onSelectBusiness?: (biz: Business) => void;
   onClearSelectedBiz: () => void;
 }
@@ -60,15 +59,13 @@ export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
     renderGatesMarkers(p.layers.gatesLayerGroup);
   }
 
-  renderTargetBuildingMarker(p.layers.targetLayerGroup, p.targetBuilding, p.showTargetPin, p.onSelectBuilding, p.cameraController, p.zoomLevel);
+  renderTargetBuildingMarker(p.layers.targetLayerGroup, p.targetBuilding, p.showTargetPin, p.onSelectBuilding);
   renderRouteLayer(p.layers.routeLayerGroup, p.activeRoute ?? null, p.cameraController);
 
   renderSelectedBusinessMarker(
     p.layers.selectedLayerGroup,
     p.selectedMarkerRef,
     p.selectedBiz,
-    p.isSelectedBizExpandedOnMap,
-    p.onExpandSelectedBiz,
     p.onSelectBusiness,
     p.onClearSelectedBiz
   );

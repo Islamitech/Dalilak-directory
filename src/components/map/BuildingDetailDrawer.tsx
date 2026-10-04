@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Navigation, ExternalLink, Compass, Store, Radar, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Navigation, ExternalLink, Compass, Store, ChevronDown, ChevronUp } from 'lucide-react';
 import { Business } from '../../types';
 import { getHadayekZone, getRecommendedGateForZone } from '../../data/hadayekAtlasData';
 import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
@@ -19,7 +19,6 @@ export interface BuildingDetailDrawerProps {
   businesses?: Business[];
   onSelectBusiness?: (biz: Business) => void;
   onStartNavigation?: (target: { title: string; lat: number; lng: number; type: 'building' | 'business'; details?: string }) => void;
-  onOpenRadar?: () => void;
 }
 
 export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
@@ -28,7 +27,6 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
   businesses = [],
   onSelectBusiness,
   onStartNavigation,
-  onOpenRadar,
 }) => {
   const [isBusinessesOpen, setIsBusinessesOpen] = useState<boolean>(false);
 
@@ -177,20 +175,8 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
         </div>
       )}
 
-      {/* Proximity Radar Trigger Button */}
-      {onOpenRadar && (
-        <button
-          type="button"
-          onClick={onOpenRadar}
-          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-98"
-        >
-          <Radar className="w-4 h-4 text-slate-950 animate-pulse" />
-          <span>📡 عرض رادار الخدمات المحيطة (أقرب 10 أنشطة لهذا المبنى)</span>
-        </button>
-      )}
-
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-xs font-black">
+      <div className="grid grid-cols-2 gap-2 text-xs font-black">
         <button
           type="button"
           onClick={handleStartNav}

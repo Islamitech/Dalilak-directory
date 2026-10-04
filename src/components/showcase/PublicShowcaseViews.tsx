@@ -60,7 +60,7 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
   const isDesktop = useIsDesktop();
 
-  if (isDesktop && (cleanRoute === '/' || cleanRoute === '/map' || cleanRoute === '/search')) {
+  if (isDesktop && (cleanRoute === '/' || cleanRoute === '/map')) {
     return (
       <DesktopTwoPaneView
         businesses={publicBusinesses}

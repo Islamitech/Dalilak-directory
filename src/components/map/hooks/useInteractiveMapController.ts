@@ -33,7 +33,6 @@ export function useInteractiveMapController({
   const setMapZone = useCallback((zone: string) => dispatchMapState({ type: 'zone/set', zone }), []);
   const setMapCategory = useCallback((category: string) => dispatchMapState({ type: 'category/set', category }), []);
   const setSelectedBusiness = useCallback((biz: any) => dispatchMapState({ type: 'selection/set', business: biz }), []);
-  const setSelectedBusinessExpanded = useCallback((expanded: boolean) => dispatchMapState({ type: 'selection/expand', expanded }), []);
 
   const handleSearchChange = useCallback((query: string) => {
     dispatchMapState({ type: 'search/set', query });
@@ -48,9 +47,7 @@ export function useInteractiveMapController({
     setMapCategoryFilter: setMapCategory,
     selectedBiz: interactionState.selectedBusiness,
     setSelectedBiz: setSelectedBusiness,
-    isSelectedBizExpandedOnMap: interactionState.selectedBusinessExpanded,
-    setIsSelectedBizExpandedOnMap: setSelectedBusinessExpanded,
-  }), [legacyState, selectedZone, categoryFilter, interactionState, setMapZone, setMapCategory, setSelectedBusiness, setSelectedBusinessExpanded]);
+  }), [legacyState, selectedZone, categoryFilter, interactionState, setMapZone, setMapCategory, setSelectedBusiness]);
 
   const [selectedBuildingState, setSelectedBuildingState] = useState<{
     buildingNumber: string;

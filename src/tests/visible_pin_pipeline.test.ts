@@ -16,12 +16,30 @@ describe('visible pin pipeline', () => {
     expect(result.singletonIds).toEqual(new Set(['visible']));
   });
 
-  it('selects one featured overview card and renders the next overlapping candidate as a dot', () => {
+  it('selects one featured overview card and collision-hides the overlapping candidate', () => {
     const items = [biz('a-top'), biz('b-nearby', 31.001), biz('c-other', 31.1)];
     const result = buildVisiblePinPipeline({ businesses: items, contains: () => true, project: b => ({ x: b.lng * 100000, y: 0 }), point: b => ({ x: b.lng < 31.01 ? 100 : 300, y: 200 }), zoom: 14, hasSelectedZone: false });
     expect(result.layouts.get('a-top')?.type).toBe('card');
-    expect(result.layouts.get('b-nearby')?.type).toBe('dot');
+    expect(result.layouts.has('b-nearby')).toBe(false);
+    expect(result.singletonIds.has('b-nearby')).toBe(false);
     expect(result.layouts.get('c-other')?.type).toBe('card');
+  });
+
+  it('hides dots that collide with cluster footprints while keeping free-standing markers', () => {
+    const clusterA = biz('cluster-a', 31);
+    const clusterB = biz('cluster-b', 31.0001);
+    const nearDot = biz('near-dot', 31.0013);
+    const farBiz = biz('far-biz', 31.4);
+    const result = buildVisiblePinPipeline({
+      businesses: [clusterA, clusterB, nearDot, farBiz], contains: () => true,
+      project: b => ({ x: b.lng * 100000, y: 0 }),
+      point: b => ({ x: b.lng < 31.0005 ? 100 : b.lng < 31.002 ? 130 : 400, y: 200 }),
+      zoom: 14, hasSelectedZone: false,
+    });
+    expect(result.clusterKeys.size).toBe(1);
+    expect(result.layouts.has('near-dot')).toBe(false);
+    expect(result.singletonIds.has('near-dot')).toBe(false);
+    expect(result.layouts.has('far-biz')).toBe(true);
   });
 
   it('reserves the selected card footprint so background cards cannot render underneath it', () => {

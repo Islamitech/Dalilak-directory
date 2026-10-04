@@ -5,13 +5,13 @@ import {
   Compass,
   Navigation,
   Maximize2,
-  Moon,
-  Sun,
   Store,
+  Heart,
+  Package,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { NavbarMobileDrawer } from './NavbarMobileDrawer';
 import { SearchField } from '../../shared/ui/SearchField';
-import { useTheme } from '../../contexts/ThemeContext';
 
 export interface AppNavbarProps {
   currentPath: string;
@@ -24,6 +24,9 @@ export interface AppNavbarProps {
   onLocateMe?: () => void;
   onFitAll?: () => void;
   onOpenAtlas?: () => void;
+  showFilterButton?: boolean;
+  hasActiveFilters?: boolean;
+  onToggleFilters?: () => void;
 }
 
 export const AppNavbar: React.FC<AppNavbarProps> = ({
@@ -35,10 +38,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   onLocateMe,
   onFitAll,
   onOpenAtlas,
+  showFilterButton = false,
+  hasActiveFilters = false,
+  onToggleFilters,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement | null>(null);
-  const { theme, toggleTheme } = useTheme();
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
 
   const handleLinkClick = (path: string) => {
@@ -61,7 +66,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 
   return (
     <header
-      className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-2xs pt-[env(safe-area-inset-top)] transition-colors duration-200"
+      className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-2xs pt-[env(safe-area-inset-top)]"
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto px-2.5 min-[360px]:px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
@@ -126,20 +131,57 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               </button>
             )}
 
-            {/* Theme Toggle Button */}
+            {/* Favorites — always visible (mobile + desktop) */}
             <button
               type="button"
-              onClick={toggleTheme}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all"
-              aria-label={theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
-              title={theme === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي'}
+              onClick={() => onNavigate('/favorites')}
+              className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border items-center justify-center cursor-pointer transition-all ${
+                cleanRoute === '/favorites'
+                  ? 'bg-amber-50 border-amber-400 text-amber-600'
+                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400'
+              } flex`}
+              aria-label={`المفضلة${favoritesCount > 0 ? ` (${favoritesCount})` : ''}`}
+              title="المفضلة"
             >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400 stroke-[2.2]" />
-              ) : (
-                <Moon className="w-4 h-4 text-slate-700 stroke-[2.2]" />
+              <Heart className="w-4 h-4 stroke-[2.2]" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -start-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+                  {favoritesCount > 99 ? '+99' : favoritesCount}
+                </span>
               )}
             </button>
+
+            {/* Packages / pricing — always visible (mobile + desktop) */}
+            <button
+              type="button"
+              onClick={() => onNavigate('/pricing')}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border items-center justify-center cursor-pointer transition-all ${
+                cleanRoute === '/pricing'
+                  ? 'bg-amber-50 border-amber-400 text-amber-600'
+                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400'
+              } flex`}
+              aria-label="الباقات والأسعار"
+              title="الباقات"
+            >
+              <Package className="w-4 h-4 stroke-[2.2]" />
+            </button>
+
+            {/* Filter trigger — visible on both /map and /search */}
+            {showFilterButton && onToggleFilters && (
+              <button
+                type="button"
+                onClick={onToggleFilters}
+                aria-haspopup="dialog"
+                aria-label="تصفية الأنشطة"
+                title="التصفية"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all"
+              >
+                <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
+                {hasActiveFilters && (
+                  <span className="absolute top-1.5 end-1.5 w-2 h-2 rounded-full bg-amber-500" />
+                )}
+              </button>
+            )}
 
             {/* For Business CTA (Desktop >= 1024px) */}
             <a

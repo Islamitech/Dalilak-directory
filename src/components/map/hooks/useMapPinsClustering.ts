@@ -16,6 +16,7 @@ import {
   type UseMapPinsClusteringProps,
 } from '../../../features/map';
 import { filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
+import { useMapSelectionCamera } from './useMapSelectionCamera';
 
 export type { UseMapPinsClusteringProps };
 
@@ -23,7 +24,7 @@ export const useMapPinsClustering = ({
   mapInstance, state, mode = 'view', businesses, showHadayekGates = true,
   selectedZone: selectedZoneProp, categoryFilter: categoryFilterProp, searchQuery,
   targetBuilding, buildingSearchActive = false, onSelectBusiness, onSelectZone,
-  onSelectBuilding, activeRoute, viewportSnapshot = null,
+  onSelectBuilding, onClearFocusedBusiness, activeRoute, viewportSnapshot = null,
 }: UseMapPinsClusteringProps) => {
   const [isRendering, setIsRendering] = useState(false);
   const layersRef = useRef<MapLayerGroups | null>(null);
@@ -68,17 +69,20 @@ export const useMapPinsClustering = ({
       zoomLevel: mapInstance.zoomLevel,
       activeRoute,
       selectedBiz: state.selectedBiz,
-      isSelectedBizExpandedOnMap: state.isSelectedBizExpandedOnMap,
       selectedMarkerRef,
-      onExpandSelectedBiz: () => state.setIsSelectedBizExpandedOnMap(true),
       onSelectBusiness: (biz) => onSelectBusiness?.(biz),
-      onClearSelectedBiz: () => state.setSelectedBiz(null),
+      onClearSelectedBiz: () => {
+        state.setSelectedBiz(null);
+        onClearFocusedBusiness?.();
+      },
     });
   }, [
     effectiveZone, effectiveCategory, buildingSearchActive, targetBuilding,
     showHadayekGates, state.showGatesLayer, state.showTargetPin, mapInstance.isMapReady,
-    activeRoute, state.selectedBiz, state.isSelectedBizExpandedOnMap,
+    activeRoute, state.selectedBiz,
   ]);
+
+  useMapSelectionCamera(state.selectedBiz, mapInstance);
 
   // Compute businesses filtered for map display
   const sortedBusinesses = useMemo(() => {

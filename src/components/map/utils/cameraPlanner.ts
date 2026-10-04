@@ -153,6 +153,24 @@ export function planCameraTransitionOnBusinessSelect(
   };
 }
 
+export function flyCameraToSelectedBusiness(
+  map: any,
+  cameraController: { request: (command: unknown, priority: string) => boolean } | null | undefined,
+  biz: { id: string; lat: number; lng: number },
+): void {
+  const decision = planCameraTransitionOnBusinessSelect(null, biz.id, { lat: biz.lat, lng: biz.lng }, map.getZoom(), true);
+  if (!decision.shouldMove || !decision.targetCenter) return;
+  const targetZoom = decision.targetZoom ?? map.getZoom();
+  const viewport = map.getSize();
+  // Shift the center north so the expanded card anchored above the pin stays fully on-screen
+  const centerWorld = map.project(decision.targetCenter, targetZoom).subtract([0, Math.round(viewport.y * 0.16)]);
+  const center = map.unproject(centerWorld, targetZoom);
+  cameraController?.request(
+    { kind: 'flyTo', center: [center.lat, center.lng], zoom: targetZoom, options: { duration: decision.totalDuration ?? 0.65 } },
+    'selection',
+  );
+}
+
 /**
  * Calculates asymmetric viewport padding to ensure visual center is not obscured
  * by the floating top search bar or bottom detail drawers.

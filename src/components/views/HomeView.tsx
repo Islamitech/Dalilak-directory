@@ -113,7 +113,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         userCoords={userCoords}
         isLocatingUser={isLocatingUser}
         onRequestLocation={onRequestLocation}
-        onOpenBusiness={onOpenBusiness}
         onNavigate={onNavigate}
         activeTarget={activeTarget}
         onSelectTarget={handleTargetSelection}

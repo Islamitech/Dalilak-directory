@@ -473,16 +473,6 @@ export function createCompactOverviewBadgeHtml(
 }
 
 /**
- * Creates the focused Compact Selected Activity Card (Image 3 focused state).
- */
-export function createCompactSelectedActivityCardHtml(
-  biz: Business,
-  pixelOffset: [number, number] = [0, 0]
-): { html: string; iconSize: [number, number]; iconAnchor: [number, number]; fallbackCover: string } {
-  return renderUnifiedCompactCardHtml(biz, true, false, undefined, pixelOffset);
-}
-
-/**
  * Creates an authentic, photo-rich Expanded Details Card for the selected business on the map.
  * Shown ONLY for the currently selected activity, with direct action buttons (directions, whatsapp, call)
  * and an explicit close button (✕) to deselect and return to the 3-cards view.

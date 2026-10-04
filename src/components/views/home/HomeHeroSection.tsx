@@ -4,7 +4,6 @@ import { Business } from '../../../types';
 import { HadayekZone } from '../../../data/hadayekAtlasData';
 import { HadayekAtlasNavigator } from '../../atlas/HadayekAtlasNavigator';
 import { HadayekLifelineBar } from '../../atlas/HadayekLifelineBar';
-import { ProximityRadarDrawer } from '../../atlas/ProximityRadarDrawer';
 import { SmartSearchBar } from '../../search/SmartSearchBar';
 
 export interface HomeHeroSectionProps {
@@ -18,7 +17,6 @@ export interface HomeHeroSectionProps {
   userCoords: { lat: number; lng: number } | null;
   isLocatingUser: boolean;
   onRequestLocation: () => void;
-  onOpenBusiness: (biz: Business) => void;
   onNavigate: (path: string) => void;
   activeTarget: {
     zone: HadayekZone;
@@ -44,7 +42,6 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
   userCoords,
   isLocatingUser,
   onRequestLocation,
-  onOpenBusiness,
   onNavigate,
   activeTarget,
   onSelectTarget,
@@ -138,32 +135,23 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
           />
         </div>
 
-        {/* Proximity Radar Drawer: Automatically shown when target is chosen */}
+        {/* Action: Open the selected building on the Full Interactive Map */}
         {activeTarget && (
-          <div className="max-w-4xl mx-auto space-y-3">
-            <ProximityRadarDrawer
-              target={activeTarget}
-              businesses={businesses}
-              onOpenBusiness={onOpenBusiness}
-            />
-
-            {/* Action: Open on Full Interactive Map */}
-            <div className="flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => {
-                  const zoneParam = encodeURIComponent(activeTarget.zone.letterAr);
-                  const bldgParam = encodeURIComponent(activeTarget.buildingNumber || '');
-                  onNavigate(`/map?zone=${zoneParam}&bldg=${bldgParam}`);
-                }}
-                className="bg-slate-950 hover:bg-slate-800 text-white dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 font-black text-xs sm:text-sm px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer active:scale-95"
-              >
-                <Navigation className="w-4 h-4" />
-                <span>
-                  فتح {activeTarget.buildingNumber ? `عمارة ${activeTarget.buildingNumber} ` : ''}({activeTarget.zone.nameAr}) على الخريطة التفاعلية الكاملة الآن
-                </span>
-              </button>
-            </div>
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                const zoneParam = encodeURIComponent(activeTarget.zone.letterAr);
+                const bldgParam = encodeURIComponent(activeTarget.buildingNumber || '');
+                onNavigate(`/map?zone=${zoneParam}&bldg=${bldgParam}`);
+              }}
+              className="bg-slate-950 hover:bg-slate-800 text-white dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 font-black text-xs sm:text-sm px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+            >
+              <Navigation className="w-4 h-4" />
+              <span>
+                فتح {activeTarget.buildingNumber ? `عمارة ${activeTarget.buildingNumber} ` : ''}({activeTarget.zone.nameAr}) على الخريطة التفاعلية الكاملة الآن
+              </span>
+            </button>
           </div>
         )}
       </div>

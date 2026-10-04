@@ -1,6 +1,5 @@
 import React from 'react';
 import { DirectoryLoadContext } from './contexts/DirectoryLoadContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { PublicShowcase } from './components/PublicShowcase';
 import { useCatalogLifecycle } from './features/catalog';
 import { useInitialRouteParams } from './app/router/useInitialRouteParams';
@@ -15,17 +14,15 @@ export default function App() {
   const { initialBizId, isPreviewMode, referralCode } = useInitialRouteParams();
 
   return (
-    <ThemeProvider>
-      <DirectoryLoadContext.Provider value={directoryLoad}>
-        <Toast message={syncToastMessage} type="success" />
-        <PublicShowcase
-          businesses={businesses}
-          initialBizId={initialBizId}
-          isPreviewMode={isPreviewMode}
-          referralCode={referralCode}
-          loading={loading}
-        />
-      </DirectoryLoadContext.Provider>
-    </ThemeProvider>
+    <DirectoryLoadContext.Provider value={directoryLoad}>
+      <Toast message={syncToastMessage} type="success" />
+      <PublicShowcase
+        businesses={businesses}
+        initialBizId={initialBizId}
+        isPreviewMode={isPreviewMode}
+        referralCode={referralCode}
+        loading={loading}
+      />
+    </DirectoryLoadContext.Provider>
   );
 }

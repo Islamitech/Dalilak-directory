@@ -50,7 +50,6 @@ export const MapSandboxView: React.FC<MapSandboxViewProps> = ({ onNavigate }) =>
       <div className="relative w-full h-[620px] rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-700">
         <InteractiveMap
           businesses={currentBusinesses}
-          searchableBusinesses={currentBusinesses}
           selectedZone={activeZoneLetter}
           targetBuilding={targetBuilding}
           onSelectBusiness={(b) => setSelectedMapBiz(b)}

@@ -8,9 +8,10 @@ import { Business } from '../types';
 import { getBusinessSlug } from '../utils/directoryUrl';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
-import { CategoryBar } from './layout/CategoryBar';
-import { ViewSegmentedSwitch } from './layout/ViewSegmentedSwitch';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
+const DirectoryFilterSheet = React.lazy(() =>
+  import('./showcase/DirectoryFilterSheet').then((m) => ({ default: m.DirectoryFilterSheet }))
+);
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
 import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
@@ -38,6 +39,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const directoryLoad = useDirectoryLoad();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -117,16 +119,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       }
       style={{ direction: 'rtl' }}
     >
-      {/* 🎛️ Floating View Segmented Switch (.view-switch from prototype.html) */}
-      {isDirectoryRoute && (
-        <div className="fixed bottom-[calc(20px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-          <ViewSegmentedSwitch
-            activeView={isMapRoute ? 'map' : 'list'}
-            onViewChange={(view) => handleNavigate(view === 'map' ? '/map' : '/search')}
-          />
-        </div>
-      )}
-
       <AppNavbar
         currentPath={currentPath}
         onNavigate={handleNavigate}
@@ -142,16 +134,24 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         onOpenAtlas={() => {
           window.dispatchEvent(new CustomEvent('atlas:open'));
         }}
+        showFilterButton={isDirectoryRoute}
+        hasActiveFilters={filterState.hasActiveFilters}
+        onToggleFilters={() => setFilterSheetOpen(true)}
       />
 
-      {!isMapRoute && isDirectoryRoute && (
-        <CategoryBar
-          activeCategory={filterState.categoryFilter}
-          onSelectCategory={filterState.handleCategoryChange}
-        />
-      )}
-
       <DirectoryStatus />
+
+      {filterSheetOpen && (
+        <React.Suspense fallback={null}>
+          <DirectoryFilterSheet
+            isOpen={filterSheetOpen}
+            onClose={() => setFilterSheetOpen(false)}
+            businesses={publicBusinesses}
+            effectiveCategory={effectiveMapCategoryFilter}
+            filterState={filterState}
+          />
+        </React.Suspense>
+      )}
       <main
         className={
           isMapRoute
