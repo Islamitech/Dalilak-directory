@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Business } from '../../types';
 import {
   getBusinessMapDetails,
-  getSmartWhatsAppUrl,
   downloadBusinessVCard,
 } from '../../utils/directoryEnhancements';
 import { getPublicDirectoryUrl } from '../../utils/directoryUrl';
@@ -10,9 +9,7 @@ import { Modal, IconButton } from '../../shared/ui';
 import { X, ShieldCheck, Share2, Heart, CheckCheck, AlertCircle, Lock } from 'lucide-react';
 import { ShowcasePhotoLightbox } from './PhotoLightbox';
 import { useActivityPhotos } from './hooks/useActivityPhotos';
-import { ActivityDetailHeader } from './ActivityDetailHeader';
-import { ActivityDetailInfo } from './ActivityDetailInfo';
-import { ActivityDetailQuickActions } from './ActivityDetailActions';
+import { UnifiedBusinessCard } from '../../features/business-details';
 import { ActivityDetailFooter, ActivityDetailStickyBar } from './ActivityDetailFooter';
 
 export interface ActivityDetailModalProps {
@@ -77,7 +74,6 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   }
 
   const { effectiveUrl } = getBusinessMapDetails(business);
-  const smartWhatsAppUrl = getSmartWhatsAppUrl(business);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -170,24 +166,14 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
 
           {/* Scrollable Content */}
           <div className="p-4 sm:p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-h-0 text-xs">
-            <ActivityDetailHeader
+            <UnifiedBusinessCard
+              variant="detail"
               business={business}
               photos={photos}
               onPreviewPhoto={(idx) => setPreviewPhotoIndex(idx)}
               onOpenVideoModal={onOpenVideoModal}
-            />
-
-            <ActivityDetailQuickActions
-              business={business}
-              effectiveUrl={effectiveUrl}
-              smartWhatsAppUrl={smartWhatsAppUrl}
               onShowOnMap={onShowOnMap}
-            />
-
-            <ActivityDetailInfo
-              business={business}
-              effectiveUrl={effectiveUrl}
-              onShowOnMap={onShowOnMap}
+              onOpenBusiness={onSelectBusiness || (() => {})}
             />
 
             <ActivityDetailFooter
