@@ -8,3 +8,26 @@ dist-ux-preview/
 !.env.example
 _backup_original/
 **/_backup_original/
+
+# Archives and dumps
+*.zip
+*.tar
+*.tar.gz
+*.dump
+*.bak
+*.sql.bak
+*.sql.gz
+
+# Credentials, batch scripts, and auth/session state
+*.bat
+auth/
+session/
+.auth/
+.sessions/
+sessions/
+whatsapp-auth/
+
+# Verification artifacts and caches
+verification/vite-cache/
+verification/evidence/
+
