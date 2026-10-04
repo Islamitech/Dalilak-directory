@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { RotateCcw, Heart, ArrowUpDown } from 'lucide-react';
 import { Business } from '../../../types';
 import { FilterBar } from '../../../components/search/FilterBar';
@@ -6,6 +6,9 @@ import { ActiveFilterChips } from '../../../components/search/ActiveFilterChips'
 import { BusinessCardGrid } from '../../../components/cards/BusinessCardGrid';
 import { Button } from '../../../shared/ui';
 import { getCategoryGroupById, getCategoryLabel, getSubcategoryById } from '../../../data/categoryTaxonomy';
+import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
+import { getRecommendedGateForZone } from '../../../data/hadayekAtlasData';
+import { CadastralBuildingCard } from './CadastralBuildingCard';
 
 const SORT_CYCLE = ['default', 'rating', 'reviews', 'name'] as const;
 const SORT_LABELS: Record<string, string> = {
@@ -18,6 +21,8 @@ const SORT_LABELS: Record<string, string> = {
 interface SearchResultsSectionProps {
   filteredBusinesses: Business[];
   loading: boolean;
+  searchQuery?: string;
+  selectedZone?: string;
   categoryFilter: string;
   onCategoryChange: (cat: string) => void;
   subcategoryFilter: string;
@@ -46,32 +51,11 @@ interface SearchResultsSectionProps {
 }
 
 export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
-  filteredBusinesses,
-  loading,
-  categoryFilter,
-  onCategoryChange,
-  subcategoryFilter,
-  onSubcategoryChange,
-  sortBy,
-  onSortChange,
-  openNowOnly,
-  onToggleOpenNow,
-  hasVideoOnly,
-  onToggleHasVideo,
-  onOpenFilterDrawer,
-  advancedFiltersCount,
-  onNavigate,
-  onReshuffle,
-  handleReturnToDiscovery,
-  hasActiveFilters,
-  selectedGov,
-  onGovChange,
-  selectedCity,
-  onCityChange,
-  onOpenBusiness,
-  onToggleFavorite,
-  favorites,
-  userCoords,
+  filteredBusinesses, loading, searchQuery, selectedZone, categoryFilter, onCategoryChange,
+  subcategoryFilter, onSubcategoryChange, sortBy, onSortChange, openNowOnly, onToggleOpenNow,
+  hasVideoOnly, onToggleHasVideo, onOpenFilterDrawer, advancedFiltersCount, onNavigate,
+  onReshuffle, handleReturnToDiscovery, hasActiveFilters, selectedGov, onGovChange,
+  selectedCity, onCityChange, onOpenBusiness, onToggleFavorite, favorites, userCoords,
   onOpenVideoModal,
 }) => {
   const [favFilter, setFavFilter] = useState(false);
@@ -86,6 +70,18 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
   const displayedBusinesses = favFilter
     ? filteredBusinesses.filter((b) => favorites.includes(b.id))
     : filteredBusinesses;
+
+  const cadastralBuilding = useMemo(() => {
+    if (!searchQuery) return null;
+    const match = parseHadayekBuildingAddress(searchQuery, selectedZone);
+    if (!match) return null;
+    const gateInfo = getRecommendedGateForZone(match.zoneLetter);
+    return {
+      buildingNumber: match.buildingNumber,
+      zoneLetter: match.zoneLetter,
+      nearestGateName: gateInfo?.primaryGate?.popularNameAr || 'البوابة الأولى',
+    };
+  }, [searchQuery, selectedZone]);
 
   return (
     <div className="space-y-5 pt-2">
@@ -173,6 +169,18 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Cadastral Building Intent Card */}
+      {cadastralBuilding && (
+        <CadastralBuildingCard
+          buildingNumber={cadastralBuilding.buildingNumber}
+          zoneLetter={cadastralBuilding.zoneLetter}
+          nearestGateName={cadastralBuilding.nearestGateName}
+          onNavigateToMap={(z, b) =>
+            onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`)
+          }
+        />
+      )}
 
       {hasActiveFilters && (
         <ActiveFilterChips

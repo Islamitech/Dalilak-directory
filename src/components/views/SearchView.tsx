@@ -170,6 +170,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
           <SearchResultsSection
             filteredBusinesses={effectiveFilteredBusinesses}
             loading={loading}
+            searchQuery={searchQuery}
+            selectedZone={selectedZone}
             categoryFilter={categoryFilter}
             onCategoryChange={onCategoryChange}
             subcategoryFilter={subcategoryFilter}
