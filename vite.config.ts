@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+
 function preloadHomeViewPlugin() {
   return {
     name: 'preload-homeview',
@@ -20,6 +21,24 @@ function preloadHomeViewPlugin() {
   };
 }
 
+function supabaseEnvGuardPlugin() {
+  return {
+    name: 'supabase-env-guard',
+    configResolved(config: any) {
+      if (config.command === 'build') {
+        const env = loadEnv(config.mode, process.cwd(), '');
+        const url = (process.env.VITE_SUPABASE_URL || env.VITE_SUPABASE_URL || '').trim();
+        const key = (process.env.VITE_SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || '').trim();
+        if (!url || !key) {
+          throw new Error(
+            'Missing required Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be configured.'
+          );
+        }
+      }
+    },
+  };
+}
+
 export default defineConfig({
   base: '/',
   server: {
@@ -30,11 +49,7 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
   },
-  define: {
-    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || 'https://fixture.supabase.co'),
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key-dalilak'),
-  },
-  plugins: [react(), tailwindcss(), preloadHomeViewPlugin()],
+  plugins: [react(), tailwindcss(), preloadHomeViewPlugin(), supabaseEnvGuardPlugin()],
   build: {
     sourcemap: false,
     rollupOptions: {
