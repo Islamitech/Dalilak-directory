@@ -50,8 +50,17 @@ export async function fetchAllBusinesses(
       break;
     }
     callbacks.onBatch(accumulated, false);
-    if (offset >= 100000) throw new Error('Catalog limit exceeded');
-    await new Promise((resolve) => window.setTimeout(resolve, 0));
+    if (offset > 0) {
+      await new Promise((resolve) => {
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(resolve, { timeout: 1000 });
+        } else {
+          setTimeout(resolve, 200);
+        }
+      });
+    } else {
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    }
   }
 }
 

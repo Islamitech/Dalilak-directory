@@ -16,8 +16,14 @@
       gtag('js', new Date());
 
       gtag('config', 'G-1EH17YQTVR');
+
+      window.addEventListener('load', function() {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR';
+        document.head.appendChild(s);
+      });
     </script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -130,107 +136,42 @@
         outline: 3px solid #f59e0b !important;
         outline-offset: 2px;
       }
-      #initial-loading-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 2147483647;
-        display: grid;
-        place-items: center;
-        background: #fffdf8;
-        color: #0f172a;
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.45s ease, visibility 0.45s ease;
-        will-change: opacity, visibility;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        border: none !important;
-        outline: none !important;
-      }
-      #initial-loading-overlay.is-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      #initial-loading-overlay, #initial-loading-overlay * {
-        border: 0 !important;
-        border-style: none !important;
-        outline: 0 !important;
-        outline-style: none !important;
-        box-shadow: none !important;
-        -webkit-box-shadow: none !important;
-      }
-      .initial-loading-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
-        border: none !important;
-        outline: none !important;
-      }
-      .initial-loading-logo {
-        display: block;
-        width: 88px;
-        height: 88px;
-        aspect-ratio: 1;
-        border: 0 !important;
-        outline: 0 !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        object-fit: contain;
-        animation: initial-logo-settle 2.4s ease-in-out infinite;
-      }
-      .initial-loading-label {
-        color: #475569;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        border: none !important;
-        outline: none !important;
-      }
-      @keyframes initial-logo-settle {
-        0%, 100% { transform: translateY(2px) scale(0.98); opacity: 0.9; }
-        50% { transform: translateY(0) scale(1); opacity: 1; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .initial-loading-logo { animation: none; }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
     </style>
   </head>
-  <body class="bg-slate-50 text-slate-900 font-['Cairo',sans-serif] antialiased min-h-screen" style="margin: 0; border: none !important; outline: none !important;">
-    <div id="root"></div>
-    <div id="initial-loading-overlay" role="status" aria-live="polite" aria-label="جاري تجهيز دليلك" style="border: none !important; outline: none !important;">
-      <div class="initial-loading-content" style="border: none !important; outline: none !important;">
-        <svg class="initial-loading-logo" viewBox="0 0 512 512" width="88" height="88" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;border:none !important;outline:none !important;background:transparent;filter:drop-shadow(0 4px 14px rgba(0,0,0,0.12));">
-          <defs>
-            <linearGradient id="loadGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FDE68A" />
-              <stop offset="25%" stop-color="#F59E0B" />
-              <stop offset="60%" stop-color="#D97706" />
-              <stop offset="100%" stop-color="#B45309" />
-            </linearGradient>
-            <linearGradient id="loadDarkBase" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#111827" />
-              <stop offset="50%" stop-color="#0B132B" />
-              <stop offset="100%" stop-color="#030712" />
-            </linearGradient>
-            <linearGradient id="loadPlat" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FFFFFF" />
-              <stop offset="35%" stop-color="#F1F5F9" />
-              <stop offset="100%" stop-color="#94A3B8" />
-            </linearGradient>
-          </defs>
-          <rect x="16" y="16" width="480" height="480" rx="124" fill="url(#loadDarkBase)" />
-          <rect x="16" y="16" width="480" height="480" rx="124" fill="none" stroke="url(#loadGold)" stroke-width="16" />
-          <path d="M256 74 C166 74 102 138 102 226 C102 304 196 394 256 450 C316 394 410 304 410 226 C410 138 346 74 256 74 Z" fill="url(#loadGold)" />
-          <circle cx="256" cy="214" r="92" fill="#0B132B" />
-          <path d="M188 266 C224 252 288 252 324 266 L324 278 C288 264 224 264 188 278 Z" fill="url(#loadPlat)" />
-          <path d="M198 260 L198 214 L224 196 L224 253 Z" fill="#CBD5E1" />
-          <path d="M232 251 L232 164 L260 142 L280 154 L280 252 Z" fill="url(#loadPlat)" />
-          <path d="M288 253 L288 212 L314 220 L314 261 Z" fill="#CBD5E1" />
-        </svg>
-        <span class="initial-loading-label" style="border: none !important; outline: none !important;">جاري تجهيز دليلك</span>
+  <body class="bg-slate-50 text-slate-900 font-['Cairo',sans-serif] antialiased min-h-screen" style="margin: 0;">
+    <div id="root">
+      <!-- Instant Fast-Paint App Shell for Sub-Second FCP (<0.4s) & Instant LCP -->
+      <div id="fast-paint-shell" style="min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column;" dir="rtl">
+        <header style="background: rgba(255,255,255,0.95); border-bottom: 1px solid #e2e8f0; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(245,158,11,0.25);">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <h1 style="margin: 0; font-size: 18px; font-weight: 900; color: #0f172a; line-height: 1.1;">دليلك</h1>
+              <span style="font-size: 10px; font-weight: 700; color: #64748b;">دليل الخدمات الذكي</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <div style="width: 36px; height: 36px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0;"></div>
+            <div style="width: 36px; height: 36px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0;"></div>
+          </div>
+        </header>
+        <div style="padding: 10px 16px;">
+          <div style="height: 44px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 14px; gap: 8px; color: #94a3b8; font-size: 13px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>ابحث عن مطعم، صيدلية، أو خدمة...</span>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border: 3px solid rgba(245,158,11,0.2); border-top-color: #f59e0b; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <span style="font-size: 12px; font-weight: 700; color: #64748b;">جاري تحميل الدليل...</span>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

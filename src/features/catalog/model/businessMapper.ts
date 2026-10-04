@@ -2,7 +2,7 @@ import { Business } from '../../../types';
 import { SUPABASE_REST_BASE } from '../../../services/supabaseClient';
 
 export const FAST_BUSINESS_SELECT =
-  'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo,seo_title,seo_description,seo_intro,seo_faq,seo_status,seo_generated_at';
+  'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';
 
 export const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc,id.asc`;
 
