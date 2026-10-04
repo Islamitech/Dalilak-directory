@@ -16,6 +16,7 @@ import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
 import { CATEGORY_TAXONOMY, getCategoryGroupById } from '../../data/categoryTaxonomy';
 import { classifyBusinessCategory } from '../../utils/categoryMatcher';
 import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
+import { Button } from '../../shared/ui';
 
 export interface FilterDrawerProps {
   isOpen: boolean;
@@ -380,22 +381,24 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
           {/* Drawer Sticky Footer Actions */}
           <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[var(--border-color)] bg-slate-50 flex items-center justify-between gap-3">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onResetAll}
-              className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              icon={<RotateCcw className="w-3.5 h-3.5" />}
+              className="text-slate-600 hover:text-rose-600 hover:bg-rose-50 shrink-0"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>إعادة ضبط</span>
-            </button>
+              إعادة ضبط
+            </Button>
 
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={onClose}
-              className="flex-1 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all cursor-pointer text-center"
+              className="flex-1 text-center"
             >
-              <span>عرض {resultsCount} نشاطاً</span>
-            </button>
+              عرض {resultsCount} نشاطاً
+            </Button>
           </div>
 
         </div>

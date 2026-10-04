@@ -26,6 +26,7 @@ import { BusinessCard } from '../cards/BusinessCard';
 import { CategoryHierarchyFilter } from '../search/CategoryHierarchyFilter';
 import { getCategoryGroupById, getCategoryLabel, getSubcategoryById } from '../../data/categoryTaxonomy';
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
+import { Button, Chip } from '../../shared/ui';
 
 export interface SearchViewProps {
   filteredBusinesses: Business[];
@@ -502,14 +503,14 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 )}
               </div>
 
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleReturnToDiscovery}
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-black text-amber-900 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
+                icon={<RotateCcw className="w-3.5 h-3.5" />}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>العودة إلى صفحة الاكتشاف</span>
-              </button>
+                العودة إلى صفحة الاكتشاف
+              </Button>
             </div>
 
             {/* شرائح الفلاتر النشطة */}
@@ -609,14 +610,14 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 </p>
               </div>
 
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="md"
                 onClick={() => onNavigate('/for-business')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 group"
+                icon={<ArrowLeft className="w-4 h-4" />}
               >
-                <span>أضف نشاطك الآن</span>
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              </button>
+                أضف نشاطك الآن
+              </Button>
             </section>
           </div>
         )}

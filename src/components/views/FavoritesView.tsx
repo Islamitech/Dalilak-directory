@@ -3,6 +3,7 @@ import React from 'react';
 import { Business } from '../../types';
 import { BusinessCard } from '../cards/BusinessCard';
 import { Heart, Search, ArrowLeft } from 'lucide-react';
+import { EmptyState, Button } from '../../shared/ui';
 
 export interface FavoritesViewProps {
   businesses: Business[];
@@ -50,23 +51,20 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
       </div>
 
       {favoriteBusinesses.length === 0 && (directoryLoad.pending || directoryLoad.error) ? <p role="status">{directoryLoad.pending?'جارٍ تحميل الأنشطة المحفوظة…':'تعذر تحميل الأنشطة المحفوظة؛ قائمتك ما زالت محفوظة على الجهاز.'}</p> : favoriteBusinesses.length === 0 ? (
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto">
-            <Heart className="w-8 h-8" />
-          </div>
-          <h3 className="font-black text-base text-slate-800">قائمة المفضلة فارغة حالياً</h3>
-          <p className="text-xs text-slate-500 leading-relaxed font-medium">
-            انقر على علامة القلب في أي بطاقة نشاط لحفظها هنا والوصول إليها لاحقاً بضغطة زر.
-          </p>
-          <button
-            type="button"
+        <EmptyState
+          icon={<Heart className="w-8 h-8 text-rose-500 fill-rose-500" />}
+          title="قائمة المفضلة فارغة حالياً"
+          description="انقر على علامة القلب في أي بطاقة نشاط لحفظها هنا والوصول إليها لاحقاً بضغطة زر."
+        >
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => onNavigate('/search')}
-            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-6 py-3 rounded-xl transition-all shadow-xs cursor-pointer"
+            icon={<Search className="w-4 h-4" />}
           >
-            <Search className="w-4 h-4" />
-            <span>تصفح الأنشطة الآن</span>
-          </button>
-        </div>
+            تصفح الأنشطة الآن
+          </Button>
+        </EmptyState>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {favoriteBusinesses.map((biz) => (

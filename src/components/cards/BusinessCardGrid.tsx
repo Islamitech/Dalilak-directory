@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Business } from '../../types';
 import { BusinessCard } from './BusinessCard';
 import { Search, RotateCcw, Sparkles } from 'lucide-react';
+import { EmptyState, Skeleton, Button } from '../../shared/ui';
 
 export interface BusinessCardGridProps {
   businesses: Business[];
@@ -56,24 +57,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in py-2">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={`skel-${i}`}
-            className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl overflow-hidden shadow-xs animate-pulse flex flex-col justify-between"
-          >
-            <div className="aspect-[4/3] bg-slate-200" />
-            <div className="p-4 sm:p-5 space-y-3">
-              <div className="space-y-2">
-                <div className="h-3 bg-slate-200 rounded-md w-1/3" />
-                <div className="h-4 bg-slate-200 rounded-md w-3/4" />
-                <div className="h-3 bg-slate-200 rounded-md w-1/2" />
-              </div>
-              <div className="pt-3 border-t border-slate-100 grid grid-cols-3 gap-1.5">
-                <div className="h-8 bg-slate-200 rounded-xl" />
-                <div className="h-8 bg-slate-200 rounded-xl" />
-                <div className="h-8 bg-slate-200 rounded-xl" />
-              </div>
-            </div>
-          </div>
+          <Skeleton key={`skel-${i}`} variant="card" className="h-72" />
         ))}
       </div>
     );
@@ -84,18 +68,11 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
   // 2. Empty State
   if (!loading && businesses.length === 0) {
     return (
-      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-sm max-w-lg mx-auto animate-fade-in">
-        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
-          <Search className="w-7 h-7" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="font-black text-base text-[var(--text-primary)]">
-            لم نجد أنشطة مطابقة لخيارات بحثك
-          </h3>
-          <p className="text-xs text-[var(--text-muted)] font-medium leading-relaxed">
-            جرّب توسيع النطاق الجغرافي، أو تغيير التصنيف المختار، أو إزالة بعض الفلاتر.
-          </p>
-        </div>
+      <EmptyState
+        icon={<Search className="w-7 h-7 text-amber-600" />}
+        title="لم نجد أنشطة مطابقة لخيارات بحثك"
+        description="جرّب توسيع النطاق الجغرافي، أو تغيير التصنيف المختار، أو إزالة بعض الفلاتر."
+      >
         <button
           type="button"
           onClick={onResetFilters}
@@ -104,7 +81,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
           <RotateCcw className="w-3.5 h-3.5" />
           <span>إعادة ضبط كافة الفلاتر</span>
         </button>
-      </div>
+      </EmptyState>
     );
   }
 

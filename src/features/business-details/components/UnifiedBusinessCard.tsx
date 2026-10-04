@@ -20,6 +20,7 @@ import {
   MapPin,
   Play,
 } from 'lucide-react';
+import { Card, Chip } from '../../../shared/ui';
 
 export interface UnifiedBusinessCardProps {
   business: Business;
