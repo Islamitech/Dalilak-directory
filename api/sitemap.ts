@@ -40,32 +40,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const businesses = await loadPublicDirectory();
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const BASELINE_DEPLOY_DATE = '2026-10-04';
 
-    // Core institutional and exploratory routes
+    // Core institutional and high-intent exploratory routes
+    // REAL lastmod dates reflecting actual page updates/release, NOT dynamic today date
     const staticRoutes = [
-      { path: '/', lastmod: todayStr },
-      { path: '/search', lastmod: todayStr },
-      { path: '/map', lastmod: todayStr },
-      { path: '/pricing', lastmod: todayStr },
-      { path: '/for-business', lastmod: todayStr },
-      { path: '/about', lastmod: todayStr },
+      { path: '/', lastmod: '2026-10-04' },
+      { path: '/search', lastmod: '2026-10-04' },
+      { path: '/map', lastmod: '2026-10-04' },
+      { path: '/pricing', lastmod: '2026-10-04' },
+      { path: '/for-business', lastmod: '2026-10-04' },
+      { path: '/about', lastmod: '2026-10-04' },
+      { path: '/privacy', lastmod: '2026-10-04' },
       // Top category explorations
-      { path: '/search?cat=food', lastmod: todayStr },
-      { path: '/search?cat=grocery', lastmod: todayStr },
-      { path: '/search?cat=health', lastmod: todayStr },
-      { path: '/search?cat=automotive', lastmod: todayStr },
-      { path: '/search?cat=crafts', lastmod: todayStr },
-      { path: '/search?cat=electronics', lastmod: todayStr },
-      { path: '/search?cat=beauty-fitness', lastmod: todayStr },
-      { path: '/search?cat=fashion', lastmod: todayStr },
-      { path: '/search?cat=home', lastmod: todayStr },
-      { path: '/search?cat=professional-services', lastmod: todayStr },
+      { path: '/search?cat=food', lastmod: '2026-10-04' },
+      { path: '/search?cat=grocery', lastmod: '2026-10-04' },
+      { path: '/search?cat=health', lastmod: '2026-10-04' },
+      { path: '/search?cat=automotive', lastmod: '2026-10-04' },
+      { path: '/search?cat=crafts', lastmod: '2026-10-04' },
+      { path: '/search?cat=electronics', lastmod: '2026-10-04' },
+      { path: '/search?cat=beauty-fitness', lastmod: '2026-10-04' },
+      { path: '/search?cat=fashion', lastmod: '2026-10-04' },
+      { path: '/search?cat=home', lastmod: '2026-10-04' },
+      { path: '/search?cat=professional-services', lastmod: '2026-10-04' },
       // Key Hadayek Al-Ahram Gate explorations
-      { path: '/search?zone=%D8%A3', lastmod: todayStr },
-      { path: '/search?zone=%D8%A8', lastmod: todayStr },
-      { path: '/search?zone=%D8%AC', lastmod: todayStr },
-      { path: '/search?zone=%D8%AF', lastmod: todayStr },
+      { path: '/search?zone=%D8%A3', lastmod: '2026-10-04' },
+      { path: '/search?zone=%D8%A8', lastmod: '2026-10-04' },
+      { path: '/search?zone=%D8%AC', lastmod: '2026-10-04' },
+      { path: '/search?zone=%D8%AF', lastmod: '2026-10-04' },
     ];
 
     const urls: string[] = staticRoutes.map((r) => 
@@ -76,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     for (const biz of businesses) {
+      if (biz.is_deleted || biz.isDeleted) continue;
       let isPublished = true;
       let customSlug = '';
       let coverPhoto = '';
@@ -103,7 +106,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const locPart = citySlug && !nameSlug.includes(citySlug) ? `-${citySlug}` : '';
       const fullSlug = publicBusinessSlug(biz);
       const locUrl = `${origin}/biz/${encodeURIComponent(fullSlug)}`;
-      const lastMod = (biz.updated_at || biz.created_at || todayStr).slice(0, 10);
+      // Real lastmod timestamp from updated_at / created_at (not dynamic todayStr)
+      const lastMod = (biz.updated_at || biz.created_at || BASELINE_DEPLOY_DATE).slice(0, 10);
 
       // Collect primary photos for Image Sitemap
       const primaryPhoto = coverPhoto || (Array.isArray(biz.photos) && biz.photos.length > 0 ? biz.photos[0] : null);

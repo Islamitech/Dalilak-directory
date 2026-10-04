@@ -2,7 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { findPublicBusiness, loadPublicDirectory, publicBusinessSlug } from '../src/server/directoryData.js';
+import { findPublicBusiness, findPublicBusinessWithStatus, loadPublicDirectory, publicBusinessSlug } from '../src/server/directoryData.js';
+
+const DUPLICATE_REDIRECTS: Record<string, string> = {
+  'biz_atlas_1789859443844_ocx4v': 'biz_atlas_1789859433981_gagii',
+};
 
 function escapeHtml(str: string): string {
   return (str || '').replace(/[&<>"']/g, (m) => {
@@ -96,6 +100,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         path: '/about',
         heading: 'عن منصة دليلك ورسالتها الميدانية',
       },
+      privacy: {
+        title: 'سياسة الخصوصية وحماية البيانات | منصة دليلك',
+        desc: 'تعرف على سياسة الخصوصية لمنصة دليلك، معايير حماية البيانات الشخصية، وكيفية التعامل مع ملفات تعريف الارتباط وفق المعايير المعتمدة.',
+        path: '/privacy',
+        heading: 'سياسة الخصوصية وحماية البيانات',
+      },
       pricing: {
         title: 'باقات النمو والتوثيق الميداني للأنشطة | منصة دليلك',
         desc: 'اكتشف باقات توثيق واعتماد المحلات والشركات، الفواتير الإلكترونية، وبطاقات الدعم الميداني في منصة دليلك.',
@@ -127,9 +137,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       let pageTitle = pageInfo.title;
       let pageDesc = pageInfo.desc;
       let pageHeading = pageInfo.heading;
+      let canonicalPageUrl = `${origin}${pageInfo.path}`;
 
       const rawCat = req.query.cat;
       const catParam = Array.isArray(rawCat) ? rawCat[0] : (typeof rawCat === 'string' ? rawCat : '');
+      const rawZone = req.query.zone;
+      const zoneParam = Array.isArray(rawZone) ? rawZone[0] : (typeof rawZone === 'string' ? rawZone : '');
+
       if (pageKey === 'search' && catParam) {
         const catMap: Record<string, string> = {
           food: 'المطاعم والكافيهات والمأكولات',
@@ -147,9 +161,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pageTitle = `${catLabel} في مصر وحدائق الأهرام | منصة دليلك`;
         pageDesc = `دليل شامل وموثق لـ ${catLabel} في حدائق الأهرام ومصر. عناوين دقيقة، أرقام تواصل، ساعات عمل ومواقع Google Maps.`;
         pageHeading = `دليل ${catLabel} المعتمد`;
+        const decodedCat = decodeURIComponent(catParam);
+        canonicalPageUrl = `${origin}/search?cat=${encodeURIComponent(decodedCat)}`;
+      } else if (pageKey === 'search' && zoneParam) {
+        const decodedZone = decodeURIComponent(zoneParam);
+        pageTitle = `دليل الأنشطة والخدمات في منطقة ${decodedZone}، حدائق الأهرام | منصة دليلك`;
+        pageDesc = `استكشف المحلات والأنشطة والخدمات المعتمدة في منطقة ${decodedZone} بحدائق الأهرام. عناوين موثقة، أرقام تواصل ومواقع خرائط.`;
+        pageHeading = `دليل منطقة ${decodedZone} - حدائق الأهرام`;
+        canonicalPageUrl = `${origin}/search?zone=${encodeURIComponent(decodedZone)}`;
       }
 
-      const canonicalPageUrl = `${origin}${pageInfo.path}`;
       const ogImageUrl = `${origin}/og-image.jpg?v=2026_dalilak_v5_platform`;
 
       const jsonLdData = {
@@ -261,14 +282,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.redirect(302, '/');
     }
 
-    const decodedParam = decodeURIComponent(rawBiz).trim();
+    let decodedParam = '';
+    try {
+      decodedParam = decodeURIComponent(rawBiz).trim();
+    } catch {
+      return res.status(400).send('Bad Request');
+    }
+
+    // Hostile string protection (<script>, javascript:, overly long or dangerous tags)
+    if (decodedParam.length > 250 || /<script|onload|onerror|javascript:|alert\(|<\/script>/i.test(decodedParam)) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(404).send('<!doctype html><html lang="ar"><head><title>404 Not Found</title></head><body><h1>Not Found</h1></body></html>');
+    }
+
     // Extract canonical entity ID if embedded inside slug (e.g. "مطعم-أبو-خالد-biz_1788118588424" -> "biz_1788118588424")
     const idMatch = decodedParam.match(/(biz_[a-zA-Z0-9_-]+)/i);
     const bizId = idMatch ? idMatch[1] : decodedParam;
 
-    const biz = await findPublicBusiness(decodedParam);
+    // Check duplicate redirects mapping (Phase E item 6: 301 redirect merged duplicates)
+    if (DUPLICATE_REDIRECTS[bizId]) {
+      const targetId = DUPLICATE_REDIRECTS[bizId];
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.redirect(301, `/biz/${encodeURIComponent(targetId)}`);
+    }
 
+    const lookup = await findPublicBusinessWithStatus(decodedParam);
     const template = getBaseTemplate();
+
+    if (lookup.status === 'deleted') {
+      const deletedHtml = `<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>النشاط غير متوفر | منصة دليلك</title>
+  </head>
+  <body style="font-family: 'Cairo', system-ui, -apple-system, sans-serif; text-align: center; padding: 4rem 1.5rem; background: #0f172a; color: #f8fafc;">
+    <main style="max-width: 600px; margin: 0 auto; background: #1e293b; padding: 2rem; border-radius: 12px; border: 1px solid #334155;">
+      <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f59e0b;">هذا النشاط لم يعد متاحاً</h1>
+      <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 1.5rem;">تمت إزالة هذا النشاط التجاري أو لم يعد متوفراً في دليل المنصة.</p>
+      <a href="/search" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: bold; text-decoration: none;">تصفح الأنشطة المعتمدة في دليلك</a>
+    </main>
+  </body>
+</html>`;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.status(410).send(deletedHtml);
+    }
+
+    const biz = lookup.business;
 
     if (!biz) {
       if (template) {
@@ -303,7 +366,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const secondaryPhone = biz.secondary_phone || '';
     const phones = [phone, secondaryPhone].filter(Boolean).join(' / ');
 
-    // Google rating snippet
+    // Google rating snippet for human-visible text (not emitted as structured aggregateRating)
     let ratingPart = '';
     if (googleRatingEnabled && googleRating) {
       const formattedRating = googleRating.toFixed(1);
@@ -319,13 +382,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // If description is short (or empty), include phones and location
     let descBody = '';
     if (rawDesc.length >= 35) {
-      // Meaningful rich description entered by the user
       descBody = rawDesc;
       if (phones) {
         descBody += ` • تواصل: ${phones}`;
       }
     } else {
-      // Short or empty description: prominently show phones + category + location
       const parts: string[] = [];
       if (rawDesc) parts.push(rawDesc);
       if (phones) parts.push(`تواصل: ${phones}`);
@@ -335,6 +396,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const shareDesc = [ratingPart, descBody].filter(Boolean).join(' • ');
     const cleanShareDesc = shareDesc.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+    // SEO Content Fallback: use verified generated fields if approved, else fallback to standard fields
+    const isApprovedSeo = (biz.seo_status === 'approved' || biz.seo_status === 'draft') && Boolean(biz.seo_title);
+    const finalPageTitle = (isApprovedSeo && biz.seo_title ? String(biz.seo_title).trim() : cleanPageTitle);
+    const finalShareDesc = (isApprovedSeo && biz.seo_description ? String(biz.seo_description).trim() : cleanShareDesc);
+    const seoIntro = (isApprovedSeo && biz.seo_intro ? String(biz.seo_intro).trim() : '');
+    const seoFaq: Array<{ question: string; answer: string }> = (isApprovedSeo && Array.isArray(biz.seo_faq) ? biz.seo_faq : []);
 
     // 🛡️ Resolve direct high-speed photo for OpenGraph preview (Strictly Direct 200 OK CDN)
     let coverPhoto: string | null = null;
@@ -361,8 +429,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const directPhoto = coverPhoto || (rawPhotos.length > 0 ? rawPhotos[0] : null);
 
-    // ⚡ WhatsApp, Facebook & iMessage strictly mandate direct 200 OK image URLs.
-    // If the venue has an enhanced Supabase/CDN photo URL, use it directly!
     let ogImageUrl = '';
     let ogImageType = 'image/jpeg';
     if (typeof directPhoto === 'string' && (directPhoto.startsWith('https://') || directPhoto.startsWith('http://'))) {
@@ -373,25 +439,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ogImageType = 'image/webp';
       }
     } else {
-      // Fallback: Dynamic branded card generator
       const photoVer = directPhoto ? directPhoto.length : (biz.created_at || '');
       ogImageUrl = `${origin}/api/biz-og?biz=${encodeURIComponent(biz.id)}${photoVer ? `&v=${encodeURIComponent(photoVer)}` : ''}`;
       ogImageType = 'image/png';
     }
 
     // Resolve clean semantic SEO slug
-    let customSlug = '';
-    if (typeof biz.notes === 'string' && biz.notes.includes('customDirectoryUrl')) {
-      try {
-        const parsed = JSON.parse(biz.notes);
-        if (parsed.customDirectoryUrl) customSlug = parsed.customDirectoryUrl;
-      } catch {}
-    }
-    const nameSlug = slugify(nameAr) || 'نشاط';
-    const citySlug = biz.city ? slugify(biz.city) : '';
-    const locPart = citySlug && !nameSlug.includes(citySlug) ? `-${citySlug}` : '';
     const canonicalPageUrl = `${origin}/biz/${encodeURIComponent(publicBusinessSlug(biz))}`;
-    const pageUrl = canonicalPageUrl;
 
     const schemaType = resolveSchemaType(biz.category);
     const numLat = Number(biz.lat);
@@ -399,16 +453,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const hasValidCoords = Number.isFinite(numLat) && Number.isFinite(numLng) && numLat !== 0 && numLng !== 0;
     const finalMapsUrl = googleMapsUrl || (hasValidCoords ? `https://www.google.com/maps?q=${numLat},${numLng}` : undefined);
 
+    // Hard Safety Rule #2: NO FAKE RATINGS. aggregateRating omitted completely since platform reviews do not exist.
+    // Price range omitted since no verified price level exists in the database.
     const jsonLdGraph: any[] = [
       {
         '@type': schemaType,
         '@id': `${canonicalPageUrl}#business`,
         name: nameAr,
-        description: cleanShareDesc,
+        description: finalShareDesc,
         url: canonicalPageUrl,
         telephone: phone || undefined,
-        priceRange: '$',
-        currenciesAccepted: 'EGP',
         address: {
           '@type': 'PostalAddress',
           addressLocality: biz.city || undefined,
@@ -422,15 +476,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             '@type': 'GeoCoordinates',
             latitude: numLat,
             longitude: numLng,
-          },
-        } : {}),
-        ...(googleRating && googleRating >= 1 ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: googleRating.toFixed(1),
-            reviewCount: googleReviewsCount || 1,
-            bestRating: '5',
-            worstRating: '1',
           },
         } : {}),
         ...(biz.working_hours ? {
@@ -473,6 +518,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ];
 
+    if (seoFaq.length > 0) {
+      jsonLdGraph.push({
+        '@type': 'FAQPage',
+        '@id': `${canonicalPageUrl}#faq`,
+        mainEntity: seoFaq.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      });
+    }
+
     const jsonLdData = {
       '@context': 'https://schema.org',
       '@graph': jsonLdGraph,
@@ -482,27 +542,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let html = template;
 
     if (!html) {
-      // Minimal standalone fallback HTML if no template found on disk
       html = `<!doctype html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${escapeHtml(cleanPageTitle)}</title>
-    <meta name="title" content="${escapeHtml(cleanPageTitle)}" />
-    <meta name="description" content="${escapeHtml(cleanShareDesc)}" />
+    <title>${escapeHtml(finalPageTitle)}</title>
+    <meta name="title" content="${escapeHtml(finalPageTitle)}" />
+    <meta name="description" content="${escapeHtml(finalShareDesc)}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="منصة دليلك - Dalelak" />
     <meta property="og:url" content="${escapeHtml(canonicalPageUrl)}" />
-    <meta property="og:title" content="${escapeHtml(cleanPageTitle)}" />
-    <meta property="og:description" content="${escapeHtml(cleanShareDesc)}" />
+    <meta property="og:title" content="${escapeHtml(finalPageTitle)}" />
+    <meta property="og:description" content="${escapeHtml(finalShareDesc)}" />
     <meta property="og:image" content="${escapeHtml(ogImageUrl)}" />
     <meta property="og:image:secure_url" content="${escapeHtml(ogImageUrl)}" />
     <meta property="og:image:type" content="${ogImageType}" />
-    <meta property="og:image:alt" content="${escapeHtml(nameAr)}" />
+    <meta property="og:image:alt" content="${escapeHtml(`${nameAr} - ${category}`)}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${escapeHtml(cleanPageTitle)}" />
-    <meta name="twitter:description" content="${escapeHtml(cleanShareDesc)}" />
+    <meta name="twitter:title" content="${escapeHtml(finalPageTitle)}" />
+    <meta name="twitter:description" content="${escapeHtml(finalShareDesc)}" />
     <meta name="twitter:image" content="${escapeHtml(ogImageUrl)}" />
     <link rel="canonical" href="${escapeHtml(canonicalPageUrl)}" />
     ${jsonLdTag}
@@ -516,26 +575,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </body>
 </html>`;
     } else {
-      // Fix relative paths for assets
       html = html.replace(/(src|href)="\.\//g, '$1="/');
 
       // Replace Meta Tags
-      html = html.replace(/<title>.*?<\/title>/gi, () => `<title>${escapeHtml(cleanPageTitle)}</title>`);
-      html = html.replace(/<meta\s+name="title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="title" content="${escapeHtml(cleanPageTitle)}" />`);
-      html = html.replace(/<meta\s+name="description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="description" content="${escapeHtml(cleanShareDesc)}" />`);
+      html = html.replace(/<title>.*?<\/title>/gi, () => `<title>${escapeHtml(finalPageTitle)}</title>`);
+      html = html.replace(/<meta\s+name="title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="title" content="${escapeHtml(finalPageTitle)}" />`);
+      html = html.replace(/<meta\s+name="description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="description" content="${escapeHtml(finalShareDesc)}" />`);
 
       // Open Graph Tags
-      html = html.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:title" content="${escapeHtml(cleanPageTitle)}" />`);
-      html = html.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:description" content="${escapeHtml(cleanShareDesc)}" />`);
+      html = html.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:title" content="${escapeHtml(finalPageTitle)}" />`);
+      html = html.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:description" content="${escapeHtml(finalShareDesc)}" />`);
       html = html.replace(/<meta\s+property="og:url"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:url" content="${escapeHtml(canonicalPageUrl)}" />`);
       html = html.replace(/<meta\s+property="og:image"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image" content="${escapeHtml(ogImageUrl)}" />`);
       html = html.replace(/<meta\s+property="og:image:secure_url"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image:secure_url" content="${escapeHtml(ogImageUrl)}" />`);
       html = html.replace(/<meta\s+property="og:image:type"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image:type" content="${ogImageType}" />`);
-      html = html.replace(/<meta\s+property="og:image:alt"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image:alt" content="${escapeHtml(nameAr)}" />`);
+      html = html.replace(/<meta\s+property="og:image:alt"\s+content=".*?"\s*\/?>/gi, () => `<meta property="og:image:alt" content="${escapeHtml(`${nameAr} - ${category}`)}" />`);
 
       // Twitter Tags
-      html = html.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:title" content="${escapeHtml(cleanPageTitle)}" />`);
-      html = html.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:description" content="${escapeHtml(cleanShareDesc)}" />`);
+      html = html.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:title" content="${escapeHtml(finalPageTitle)}" />`);
+      html = html.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:description" content="${escapeHtml(finalShareDesc)}" />`);
       html = html.replace(/<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:image" content="${escapeHtml(ogImageUrl)}" />`);
       html = html.replace(/<meta\s+name="twitter:url"\s+content=".*?"\s*\/?>/gi, () => `<meta name="twitter:url" content="${escapeHtml(canonicalPageUrl)}" />`);
 
@@ -559,9 +617,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${googleRating && googleRating >= 1 ? `<p style="margin: 0.25rem 0; font-size: 0.95rem; color: #d97706;"><strong>تقييم Google الموثق:</strong> ⭐ ${googleRating.toFixed(1)} (${googleReviewsCount || 1} تقييم)</p>` : ''}
         </header>
         <section style="margin-bottom: 1.5rem;">
+          ${seoIntro ? `
+          <div style="margin: 1.25rem 0; padding: 1rem; background: #f8fafc; border-right: 4px solid #f59e0b; border-radius: 4px;">
+            <h2 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0 0 0.5rem 0;">نبذة موثقة عن النشاط</h2>
+            <p style="color: #334155; margin: 0; line-height: 1.7; font-size: 0.95rem;">${escapeHtml(seoIntro)}</p>
+          </div>` : ''}
           ${phone ? `<p style="margin: 0.5rem 0;"><strong>رقم الهاتف المباشر:</strong> <a href="tel:${escapeHtml(phone)}" style="color: #d97706; font-weight: bold; text-decoration: none;">${escapeHtml(phone)}</a></p>` : ''}
           ${biz.working_hours ? `<p style="margin: 0.5rem 0;"><strong>ساعات العمل:</strong> ${escapeHtml(String(biz.working_hours))}</p>` : ''}
           ${biz.description ? `<div style="margin: 1rem 0;"><h2 style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">نبذة عن النشاط</h2><p style="color: #334155; margin: 0.25rem 0;">${escapeHtml(String(biz.description))}</p></div>` : ''}
+          ${seoFaq.length > 0 ? `
+          <div style="margin: 1.5rem 0;">
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin: 0 0 0.75rem 0;">الأسئلة الشائعة والمعلومات الموثقة</h2>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              ${seoFaq.map((f) => `
+                <div style="background: #f1f5f9; padding: 0.75rem 1rem; border-radius: 6px;">
+                  <h3 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0;">${escapeHtml(f.question)}</h3>
+                  <p style="color: #475569; margin: 0; font-size: 0.9rem;">${escapeHtml(f.answer)}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>` : ''}
           ${finalMapsUrl ? `<p style="margin: 1rem 0;"><a href="${escapeHtml(finalMapsUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-decoration: none;">عرض الموقع على خرائط Google Maps</a></p>` : ''}
         </section>
         <footer style="border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.85rem; color: #64748b;">

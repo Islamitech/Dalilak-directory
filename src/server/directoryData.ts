@@ -11,7 +11,7 @@ if (!rawUrl || !rawKey) {
 
 export const SUPABASE_URL = rawUrl;
 export const SUPABASE_ANON_KEY = rawKey;
-const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at';
+const fields='id,name_ar,name_en,category,governorate,city,street,phone,secondary_phone,working_hours,description,photos,cover_photo,notes,lat,lng,verification_status,package_id,created_at,updated_at,is_deleted';
 export function publicBusinessSlug(row:any):string {return getBusinessSlug({id:row.id,nameAr:row.name_ar,nameEn:row.name_en,city:row.city,customDirectoryUrl:businessMetadata(row).customDirectoryUrl});}
 export async function fetchDirectoryRows(query:URLSearchParams,range?:string):Promise<{rows:any[];total:number}> {
  const response=await fetch(SUPABASE_URL+'/rest/v1/businesses?'+query,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY,Accept:'application/json',...(range?{Range:range,'Range-Unit':'items',Prefer:'count=exact'}:{})},signal:AbortSignal.timeout(8000)});
@@ -28,12 +28,39 @@ export async function loadPublicDirectory():Promise<any[]> {
  }
  throw new Error('Directory pagination limit exceeded');
 }
+
+export interface BusinessLookupResult {
+  business: any | null;
+  status: 'found' | 'deleted' | 'not_found';
+}
+
+export async function findPublicBusinessWithStatus(raw: string): Promise<BusinessLookupResult> {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(raw).trim();
+  } catch {
+    return { business: null, status: 'not_found' };
+  }
+  const match = decoded.match(/(biz_[a-zA-Z0-9_-]+)/i);
+  const id = match ? match[1] : decoded;
+  const { rows } = await fetchDirectoryRows(new URLSearchParams({ select: fields, id: 'eq.' + id, limit: '1' }));
+  if (rows.length) {
+    const row = rows[0];
+    if (row.is_deleted || row.isDeleted) {
+      return { business: row, status: 'deleted' };
+    }
+    if (isPublicBusiness(row)) {
+      return { business: row, status: 'found' };
+    }
+    return { business: null, status: 'not_found' };
+  }
+  if (match) return { business: null, status: 'not_found' };
+  const catalog = await loadPublicDirectory();
+  const found = catalog.find(row => publicBusinessSlug(row) === decoded || businessMetadata(row).customDirectoryUrl === decoded) || null;
+  return { business: found, status: found ? 'found' : 'not_found' };
+}
+
 export async function findPublicBusiness(raw:string):Promise<any|null>{
- let decoded:string;try{decoded=decodeURIComponent(raw).trim();}catch{return null;}
- const match=decoded.match(/(biz_[a-zA-Z0-9_-]+)/i);const id=match?match[1]:decoded;
- const {rows}=await fetchDirectoryRows(new URLSearchParams({select:fields,id:'eq.'+id,limit:'1'}));
- if(rows.length)return isPublicBusiness(rows[0])?rows[0]:null;
- if(match)return null;
- const catalog=await loadPublicDirectory();
- return catalog.find(row=>publicBusinessSlug(row)===decoded||businessMetadata(row).customDirectoryUrl===decoded)||null;
+  const res = await findPublicBusinessWithStatus(raw);
+  return res.status === 'found' ? res.business : null;
 }
