@@ -5,7 +5,7 @@ import { getMapBusinessSearchMatches } from '../../../utils/mapSearch';
 import { isBusinessInHadayekZone } from '../../../utils/hadayekZoneHelper';
 import { Business } from '../../../types';
 import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
-import { searchBuildingCoordinatesExact, estimateBuildingCoordinates, getRecommendedGateForZone } from '../../../data/hadayekAtlasData';
+import { searchBuildingCoordinatesExact, getRecommendedGateForZone } from '../../../data/hadayekAtlasData';
 import { getDistrictByLetter } from '../../../data/hadayekDistrictsGeoData';
 import { MAP_QUICK_CATEGORIES } from '../../../components/map/constants/mapConstants';
 

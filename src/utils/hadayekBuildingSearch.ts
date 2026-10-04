@@ -2,7 +2,6 @@ import { Business } from '../types';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
 import {
   searchBuildingCoordinatesExact,
-  estimateBuildingCoordinates,
   getHadayekZone,
   getRecommendedGateForZone,
   calculateDirectDistanceMeters,
@@ -92,9 +91,10 @@ export async function searchInsideHadayekZone(
     }
 
     for (const bldgNum of candidateNumbers.slice(0, 5)) {
-      let coords = await searchBuildingCoordinatesExact(zoneLetter, bldgNum);
+      const coords = await searchBuildingCoordinatesExact(zoneLetter, bldgNum);
       if (!coords) {
-        coords = estimateBuildingCoordinates(zoneLetter, bldgNum);
+        // Unknown building: do not fabricate or estimate fake coordinates
+        continue;
       }
 
       // Count registered businesses at this building

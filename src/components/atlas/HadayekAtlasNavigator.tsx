@@ -4,7 +4,7 @@ import {
   HadayekZone,
   getHadayekZone,
   getRecommendedGateForZone,
-  estimateBuildingCoordinates,
+  searchBuildingCoordinatesExact,
 } from '../../data/hadayekAtlasData';
 import {
   Compass,
@@ -36,6 +36,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
   const [selectedZoneLetter, setSelectedZoneLetter] = useState<string>('ل');
   const [buildingInput, setBuildingInput] = useState<string>('');
   const [isNavigating, setIsNavigating] = useState<boolean>(false);
+  const [bldgNotFound, setBldgNotFound] = useState<boolean>(false);
 
   // 2. Active Zone & Gate Inference
   const currentZone = useMemo(() => {
@@ -46,20 +47,29 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
     return getRecommendedGateForZone(selectedZoneLetter);
   }, [selectedZoneLetter]);
 
-  // 3. Coordinate Estimation for the Building
-  const estimatedCoords = useMemo(() => {
-    return estimateBuildingCoordinates(selectedZoneLetter, buildingInput || '1');
-  }, [selectedZoneLetter, buildingInput]);
-
   // Handle Search Submission
-  const handleExecuteNavigation = (e?: React.FormEvent) => {
+  const handleExecuteNavigation = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsNavigating(true);
+    setBldgNotFound(false);
+
+    const bldg = buildingInput.trim();
+    let coords: { lat: number; lng: number } | null = null;
+    if (bldg) {
+      coords = await searchBuildingCoordinatesExact(selectedZoneLetter, bldg);
+      if (!coords) {
+        setIsNavigating(false);
+        setBldgNotFound(true);
+        return;
+      }
+    } else {
+      coords = { lat: currentZone.centerLat, lng: currentZone.centerLng };
+    }
 
     onSelectTarget({
       zone: currentZone,
-      buildingNumber: buildingInput.trim(),
-      coords: { lat: estimatedCoords.lat, lng: estimatedCoords.lng },
+      buildingNumber: bldg,
+      coords,
     });
 
     setTimeout(() => {
@@ -68,13 +78,17 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
   };
 
   // Direct Google Maps Route
-  const handleOpenGoogleMapsRoute = () => {
-    const lat = estimatedCoords.lat;
-    const lng = estimatedCoords.lng;
-    const query = buildingInput.trim()
-      ? `عمارة ${buildingInput.trim()} منطقة ${currentZone.letterAr} حدائق الأهرام`
+  const handleOpenGoogleMapsRoute = async () => {
+    const bldg = buildingInput.trim();
+    let coords: { lat: number; lng: number } | null = null;
+    if (bldg) {
+      coords = await searchBuildingCoordinatesExact(selectedZoneLetter, bldg);
+    }
+    const finalCoords = coords || { lat: currentZone.centerLat, lng: currentZone.centerLng };
+    const query = bldg
+      ? `عمارة ${bldg} منطقة ${currentZone.letterAr} حدائق الأهرام`
       : `${currentZone.nameAr} حدائق الأهرام`;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&query=${encodeURIComponent(query)}`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${finalCoords.lat},${finalCoords.lng}&query=${encodeURIComponent(query)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

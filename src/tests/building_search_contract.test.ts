@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseHadayekBuildingAddress, normalizeHadayekZoneLetter } from '../utils/hadayekBuildingSearch';
+import { parseHadayekBuildingAddress, normalizeHadayekZoneLetter, searchInsideHadayekZone } from '../utils/hadayekBuildingSearch';
 import { searchBuildingCoordinatesExact } from '../data/hadayekAtlasData';
 
 describe('Hadayek Building Number Search Contract (A2)', () => {
@@ -89,6 +89,19 @@ describe('Hadayek Building Number Search Contract (A2)', () => {
     it('unknown building 999 ح returns null (never a fake centroid)', async () => {
       const coords = await searchBuildingCoordinatesExact('ح', '999');
       expect(coords).toBeNull();
+    });
+
+    it('searchInsideHadayekZone omits fake/estimated coordinates for unknown building 999', async () => {
+      const results = await searchInsideHadayekZone('ح', '999', []);
+      const buildingResults = results.filter((r) => r.type === 'building');
+      expect(buildingResults).toHaveLength(0);
+    });
+
+    it('searchInsideHadayekZone resolves exact coordinates for known building 265', async () => {
+      const results = await searchInsideHadayekZone('ح', '265', []);
+      const buildingResults = results.filter((r) => r.type === 'building');
+      expect(buildingResults.length).toBeGreaterThan(0);
+      expect((buildingResults[0] as any).lat).toBeCloseTo(29.969, 1);
     });
   });
 

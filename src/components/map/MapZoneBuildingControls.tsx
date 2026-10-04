@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../../data/hadayekDistrictsGeoData';
-import { searchBuildingCoordinatesExact, estimateBuildingCoordinates } from '../../data/hadayekAtlasData';
+import { searchBuildingCoordinatesExact } from '../../data/hadayekAtlasData';
 
 export interface MapZoneBuildingControlsProps {
   selectedZone: string;
@@ -20,9 +20,8 @@ export const MapZoneBuildingControls: React.FC<MapZoneBuildingControlsProps> = (
     e.preventDefault();
     if (!selectedZone || !buildingQuery) return;
 
-    const coords =
-      (await searchBuildingCoordinatesExact(selectedZone, buildingQuery)) ||
-      estimateBuildingCoordinates(selectedZone, buildingQuery);
+    const coords = await searchBuildingCoordinatesExact(selectedZone, buildingQuery);
+    if (!coords) return;
 
     if (mapInstance?.leafletMapRef?.current && window.L) {
       const map = mapInstance.leafletMapRef.current;
