@@ -27,7 +27,13 @@ session/
 sessions/
 whatsapp-auth/
 
-# Verification artifacts and caches
+# Verification artifacts, source copies, and caches
+verification/baseline/
+verification/mutation-copy/
 verification/vite-cache/
 verification/evidence/
+
+# Evidence screenshots (binary files kept outside git tracking)
+reports/evidence/*.png
+screenshots/
 
