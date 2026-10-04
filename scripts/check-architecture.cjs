@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const SRC = path.join(ROOT, 'src');
+const SRC = process.env.ARCH_CHECK_SRC_DIR ? path.resolve(process.env.ARCH_CHECK_SRC_DIR) : path.join(ROOT, 'src');
 
 let errors = [];
 
@@ -156,6 +156,7 @@ sourceFiles.forEach((filePath) => {
           break;
         }
       }
+      resolved = path.normalize(resolved);
       if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
         imports.push(resolved);
       }

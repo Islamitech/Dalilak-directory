@@ -315,28 +315,59 @@ Generated artifacts, baseline backups, temporary cache directories, and local ev
 
 ## 3. Bundle Size Comparison: Baseline vs. Current (Item e)
 
-The baseline monolithic entry bundle was compared against current code-split and optimized chunks:
+### Total First-Load Comparison (Computed from `dist/index.html`):
 
-| Asset / Chunk | Baseline Size | Current Raw Size | Current Gzip Size | Budget Limit | Status |
-|---------------|---------------|------------------|-------------------|--------------|--------|
-| **Main Entry JS** (`index-*.js`) | ~621.40 kB | **111.48 kB** | 34.72 kB | 128.00 kB | **PASS (-82.06%)** |
-| **Global Stylesheet** (`index-*.css`) | ~175.10 kB | **133.99 kB** | 21.02 kB | 156.00 kB | **PASS (-23.48%)** |
-| **React Vendor** (`react-vendor-*.js`) | — | **220.45 kB** | 66.36 kB | 243.00 kB | **PASS** |
-| **Supabase Vendor** (`supabase-vendor-*.js`) | — | **217.26 kB** | 56.81 kB | 239.00 kB | **PASS** |
-| **Interactive Map** (`InteractiveMap-*.js`) | — | **139.54 kB** | 37.29 kB | 154.00 kB | **PASS** |
-| **Search View** (`SearchView-*.js`) | — | **38.62 kB** | 9.50 kB | 42.00 kB | **PASS** |
-| **Unified Business Card** (`UnifiedBusinessCard-*.js`) | — | **36.91 kB** | 8.42 kB | 40.00 kB | **PASS** |
-| **Home View Lazy Chunk** (`HomeView-*.js`) | — | **27.92 kB** | 7.96 kB | 31.00 kB | **PASS** |
-| **Activity Detail Modal** (`ActivityDetailModal-*.js`) | — | **13.26 kB** | 4.30 kB | 15.00 kB | **PASS** |
-| **Atlas Geodata** (`atlas-geodata-*.js`) | — | **12.15 kB** | 3.63 kB | 31.00 kB | **PASS** |
+The initial page load fetches the main entry script and all declared `<link rel="modulepreload">` chunks and stylesheets. Third-party Google Analytics script (`gtag.js`, `https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR`) is also loaded asynchronously in `<head>`.
+
+#### Per-File Sizes for First-Load Assets:
+
+| First-Load Asset | Type / Role | Raw Size | Gzip Size | Budget Limit |
+|------------------|-------------|----------|-----------|--------------|
+| `assets/index-DsbbNEGE.js` | Main entry script | 111.76 kB | 34.02 kB | 128.00 kB |
+| `assets/react-vendor-B8Sg-KJK.js` | Modulepreload: React / ReactDOM | 221.84 kB | 66.66 kB | 243.00 kB |
+| `assets/supabase-vendor-C5o0XR4z.js` | Modulepreload: Supabase SDK | 217.26 kB | 56.81 kB | 239.00 kB |
+| `assets/HomeView-DfriOFv7.js` | Modulepreload: Initial Home View | 27.91 kB | 7.97 kB | 31.00 kB |
+| `assets/index-TEgOQUFc.css` | Global Stylesheet | 142.53 kB | 22.24 kB | 156.00 kB |
+
+#### First-Load Totals vs. Monolithic Baseline:
+
+- **First-Load JS Only:**
+  - **Current Total JS:** **578.77 kB raw** / **165.45 kB gzip**
+  - **Baseline Monolithic JS:** **621.40 kB raw**
+  - **Net Reduction:** -42.63 kB (-6.86% raw reduction in total initial JavaScript executed, with heavy non-initial views decoupled into lazy chunks).
+- **First-Load Total (JS + CSS):**
+  - **Current Total:** **721.30 kB raw** / **187.70 kB gzip**
+  - **Baseline Total (621.40 kB JS + 175.10 kB CSS):** **796.50 kB raw**
+  - **Net Reduction:** -75.20 kB (-9.44% raw reduction).
+- **Third-Party External Scripts:**
+  - `https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR` (Google Tag / Analytics) loaded asynchronously in `<head>`.
+
+### Complete Chunk Budget Status (11 Budgeted Chunks in `scripts/check-bundle.cjs`):
+
+| Asset / Chunk | Role | Current Raw | Current Gzip | Budget Limit | Status |
+|---------------|------|-------------|--------------|--------------|--------|
+| **Main Entry JS** (`index-*.js`) | Entry | **111.76 kB** | 34.02 kB | 128.00 kB | **PASS** |
+| **Global Stylesheet** (`index-*.css`) | Styles | **142.53 kB** | 22.24 kB | 156.00 kB | **PASS** |
+| **React Vendor** (`react-vendor-*.js`) | Vendor | **221.84 kB** | 66.66 kB | 243.00 kB | **PASS** |
+| **Supabase Vendor** (`supabase-vendor-*.js`) | Vendor | **217.26 kB** | 56.81 kB | 239.00 kB | **PASS** |
+| **Interactive Map** (`InteractiveMap-*.js`) | Lazy | **141.54 kB** | 38.15 kB | 154.00 kB | **PASS** |
+| **Search View** (`SearchView-*.js`) | Lazy | **38.62 kB** | 9.50 kB | 42.00 kB | **PASS** |
+| **Unified Business Card** (`UnifiedBusinessCard-*.js`) | Lazy | **36.91 kB** | 8.42 kB | 40.00 kB | **PASS** |
+| **Home View Lazy Chunk** (`HomeView-*.js`) | Preload | **27.91 kB** | 7.97 kB | 31.00 kB | **PASS** |
+| **Activity Detail Modal** (`ActivityDetailModal-*.js`) | Lazy | **13.27 kB** | 4.30 kB | 15.00 kB | **PASS** |
+| **Atlas Geodata** (`atlas-geodata-*.js`) | Lazy | **12.15 kB** | 3.63 kB | 31.00 kB | **PASS** |
+| **Hadayek Buildings Coordinates** (`hadayekBuildingsCoords-*.js`) | Lazy | **915.89 kB** | 95.18 kB | 1032.00 kB | **PASS** |
+
+> [!NOTE]
+> `hadayekBuildingsCoords` is a large dataset chunk containing cadastral coordinate lookup tables for all Hadayek Al-Ahram building numbers (~916 kB raw / ~95 kB gzip). It was previously an unbudgeted lazy chunk; per audit instructions, it is now formally guarded with a dedicated budget limit of **1032.00 kB** (current size + 10%) in `scripts/check-bundle.cjs`.
 
 ### Critical Preload Decoupling Verification:
 - `dist/index.html` modulepreload directives:
-  - `<link rel="modulepreload" crossorigin href="/assets/react-vendor-CXtCNjzJ.js">`
+  - `<link rel="modulepreload" crossorigin href="/assets/react-vendor-B8Sg-KJK.js">`
   - `<link rel="modulepreload" crossorigin href="/assets/supabase-vendor-C5o0XR4z.js">`
-  - `<link rel="modulepreload" crossorigin href="/assets/HomeView-DnSEX9gE.js">`
-- `atlas-geodata` (31 kB boundary polygon data) is **NOT** present in `dist/index.html`'s `<link rel="modulepreload">` list. It is loaded purely on demand when the atlas or interactive map is activated.
-- `HomeView` is preloaded via modulepreload, completely eliminating the secondary paint waterfall on mobile clients.
+  - `<link rel="modulepreload" crossorigin href="/assets/HomeView-DfriOFv7.js">`
+- `atlas-geodata` (31 kB boundary polygon data) and `hadayekBuildingsCoords` (916 kB coordinates) are **NOT** in `dist/index.html`'s `<link rel="modulepreload">` list. They are strictly loaded on demand when the user activates building search or cadastral map layers.
+- `HomeView` is preloaded via modulepreload, completely eliminating the secondary paint waterfall on initial landing.
 
 ---
 
@@ -433,7 +464,8 @@ All commits were executed with explicit file staging (`git add <file1> <file2>`)
 6. `171e36d` - `refactor(p0-06): expand physical direction check in architecture guard`
 7. `3238398` - `fix(p0-07): remove hardcoded supabase credentials fallback and enforce secrets guard`
 8. `25bcba5` - `refactor(p0-08): dynamic import atlas geodata and preload HomeView`
-9. `fix(p0-10)` - `fix(p0-10): eliminate circular dependency in atlas feature barrel and correct preflight report`
+9. `1dc15c4` - `fix(p0-10): eliminate circular dependency in atlas feature barrel and correct preflight report`
+10. `fix(p0-11)` - `fix(p0-11): make architecture guard path resolution OS-independent, add guard regression test, and add CI workflow`
 
 ---
 

@@ -20,6 +20,7 @@ const BUDGETS = [
   { pattern: /^assets\/atlas-geodata-.*\.js$/, maxKb: 31, name: 'Atlas Geodata Chunk' },
   { pattern: /^assets\/HomeView-.*\.js$/, maxKb: 31, name: 'Home View Lazy Chunk' },
   { pattern: /^assets\/UnifiedBusinessCard-.*\.js$/, maxKb: 40, name: 'Unified Business Card Chunk' },
+  { pattern: /^assets\/hadayekBuildingsCoords-.*\.js$/, maxKb: 1032, name: 'Hadayek Buildings Coordinates Lazy Chunk' },
 ];
 
 function getFiles(dir) {
