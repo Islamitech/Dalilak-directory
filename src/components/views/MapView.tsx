@@ -1,18 +1,15 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Radar } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Business } from '../../types';
 import { InteractiveMap, MAP_QUICK_CATEGORIES } from '../InteractiveMap';
 import { getAvailableQuickCategoriesInZone } from '../../utils/hadayekZoneHelper';
 import {
-  HadayekZone,
-  HADAYEK_ZONES,
   getHadayekZone,
   getRecommendedGateForZone,
   estimateBuildingCoordinates,
-  searchBuildingCoordinatesExact,
 } from '../../data/hadayekAtlasData';
 import { ProximityRadarDrawer } from '../atlas/ProximityRadarDrawer';
 import { HadayekGatesModal } from '../atlas/HadayekGatesModal';
+import { useMapViewUrlState } from '../../features/map/hooks/useMapViewUrlState';
 
 export interface MapViewProps {
   searchQuery?: string;
@@ -61,75 +58,20 @@ export const MapView: React.FC<MapViewProps> = ({
   focusedBusiness,
   onClearFocusedBusiness,
 }) => {
-  const [isGatesModalOpen, setIsGatesModalOpen] = useState<boolean>(false);
-  const [isRadarOpen, setIsRadarOpen] = useState<boolean>(false);
+  const [isGatesModalOpen, setIsGatesModalOpen] = useState(false);
+  const [isRadarOpen, setIsRadarOpen] = useState(false);
 
-  // 1. Read URL params (?zone=...&bldg=...)
-  const [activeZoneLetter, setActiveZoneLetter] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    const params = new URLSearchParams(window.location.search);
-    return params.get('zone') || '';
-  });
+  const {
+    activeZoneLetter,
+    setActiveZoneLetter,
+    activeBuildingNumber,
+    setActiveBuildingNumber,
+    exactBuildingCoords,
+    selectZone,
+    clearTarget,
+    clearBuilding,
+  } = useMapViewUrlState(focusedBusiness, selectedZone, onZoneChange);
 
-  const [activeBuildingNumber, setActiveBuildingNumber] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    const params = new URLSearchParams(window.location.search);
-    return params.get('bldg') || '';
-  });
-
-  const [exactBuildingCoords, setExactBuildingCoords] = useState<{ lat: number; lng: number } | null>(null);
-
-  // Keep state synced if URL changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const z = params.get('zone') || '';
-    const b = params.get('bldg') || '';
-    if (z !== activeZoneLetter) setActiveZoneLetter(z);
-    if (b !== activeBuildingNumber) setActiveBuildingNumber(b);
-  }, []);
-
-  // When a focused business is passed (e.g. from modal "الموقع على الخريطة"), clear any building search state
-  useEffect(() => {
-    if (focusedBusiness) {
-      setActiveBuildingNumber('');
-      setExactBuildingCoords(null);
-      setIsRadarOpen(false);
-    }
-  }, [focusedBusiness]);
-
-  const buildingSearchReqIdRef = useRef(0);
-
-  // Whenever activeZoneLetter and activeBuildingNumber change, resolve exact cadastral coordinates
-  useEffect(() => {
-    if (!activeZoneLetter || !activeBuildingNumber) {
-      setExactBuildingCoords(null);
-      return;
-    }
-
-    const currentReqId = ++buildingSearchReqIdRef.current;
-    searchBuildingCoordinatesExact(activeZoneLetter, activeBuildingNumber).then((coords) => {
-      if (buildingSearchReqIdRef.current === currentReqId && coords) {
-        setExactBuildingCoords(coords);
-      }
-    });
-
-    return () => {
-      // Invalidate currentReqId
-    };
-  }, [activeZoneLetter, activeBuildingNumber]);
-
-  // Sync state if selectedZone prop changes from parent
-  useEffect(() => {
-    if (selectedZone !== undefined) {
-      const cleanZone = selectedZone === 'all' ? '' : selectedZone;
-      if (cleanZone !== activeZoneLetter) {
-        setActiveZoneLetter(cleanZone);
-      }
-    }
-  }, [selectedZone]);
-
-  // Compute zone-scoped available quick categories and activity counts
   const quickCategories = useMemo(() => {
     return getAvailableQuickCategoriesInZone(businesses, activeZoneLetter, MAP_QUICK_CATEGORIES);
   }, [businesses, activeZoneLetter]);
@@ -144,7 +86,6 @@ export const MapView: React.FC<MapViewProps> = ({
     };
   }, [categoryFilter, quickCategories]);
 
-  // 2. Compute Target Building / Zone (Only if an explicit building number is requested)
   const targetBuilding = useMemo(() => {
     if (!activeZoneLetter || !activeBuildingNumber) return null;
     const zone = getHadayekZone(activeZoneLetter);
@@ -160,60 +101,19 @@ export const MapView: React.FC<MapViewProps> = ({
     };
   }, [activeZoneLetter, activeBuildingNumber, exactBuildingCoords]);
 
-  // Recommended gate for current target
   const gateInfo = useMemo(() => {
     if (!activeZoneLetter) return null;
     return getRecommendedGateForZone(activeZoneLetter);
   }, [activeZoneLetter]);
 
-  const handleSelectZoneJump = useCallback((zoneLetter: string) => {
-    const nextZone = zoneLetter === 'all' || !zoneLetter ? '' : zoneLetter;
-    setActiveZoneLetter(nextZone);
-    setActiveBuildingNumber('');
-    setExactBuildingCoords(null);
+  const handleSelectZoneJump = useCallback((letter: string) => {
     setIsRadarOpen(false);
-    if (onZoneChange) onZoneChange(nextZone || 'all');
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      if (nextZone) {
-        newUrl.searchParams.set('zone', nextZone);
-      } else {
-        newUrl.searchParams.delete('zone');
-      }
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
-  }, [onZoneChange]);
-
-  const handleClearTarget = useCallback(() => {
-    setActiveZoneLetter('');
-    setActiveBuildingNumber('');
-    setExactBuildingCoords(null);
-    setIsRadarOpen(false);
-    if (onZoneChange) onZoneChange('all');
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('zone');
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
-  }, [onZoneChange]);
-
-  const handleClearBuilding = useCallback(() => {
-    setActiveBuildingNumber('');
-    setExactBuildingCoords(null);
-    setIsRadarOpen(false);
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
-  }, []);
+    selectZone(letter);
+  }, [selectZone]);
 
   return (
-    <div className="relative w-full h-full flex-1 min-h-0 overflow-hidden flex flex-col bg-slate-100 select-none font-['Cairo',sans-serif]" dir="rtl">
-      {/* 🗺️ Screen-Integrated Map Canvas */}
-      <div className="relative w-full h-full flex-1 min-h-0 overflow-hidden z-0">
+    <div className="space-y-4">
+      <div className="relative w-full h-[calc(100vh-8.5rem)] min-h-[480px] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
         <InteractiveMap
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
@@ -229,21 +129,19 @@ export const MapView: React.FC<MapViewProps> = ({
           showHadayekGates={true}
           selectedZone={activeZoneLetter}
           onSelectZone={handleSelectZoneJump}
-          onSelectBusiness={(biz) => {
-            onOpenBusiness(biz);
-          }}
+          onSelectBusiness={onOpenBusiness}
           onSelectBuilding={(bldg) => {
             setActiveZoneLetter(bldg.zoneLetter);
             setActiveBuildingNumber(bldg.buildingNumber);
-            if (typeof bldg.lat === 'number' && typeof bldg.lng === 'number' && bldg.lat !== 0) {
-              setExactBuildingCoords({ lat: bldg.lat, lng: bldg.lng });
+            setIsRadarOpen(true);
+            if (typeof window !== 'undefined') {
+              const newUrl = new URL(window.location.href);
+              newUrl.searchParams.set('zone', bldg.zoneLetter);
+              newUrl.searchParams.set('bldg', bldg.buildingNumber);
+              window.history.replaceState({}, '', newUrl.toString());
             }
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.set('zone', bldg.zoneLetter);
-            newUrl.searchParams.set('bldg', bldg.buildingNumber);
-            window.history.replaceState({}, '', newUrl.toString());
           }}
-          onClearBuilding={handleClearBuilding}
+          onClearBuilding={clearBuilding}
           onOpenRadar={() => setIsRadarOpen(true)}
           heightClass="h-full"
           defaultExpanded={false}
@@ -254,7 +152,6 @@ export const MapView: React.FC<MapViewProps> = ({
           onClearFocusedBusiness={onClearFocusedBusiness}
         />
 
-        {/* 📡 Proximity Radar Floating Drawer */}
         {targetBuilding && isRadarOpen && (
           <ProximityRadarDrawer
             target={targetBuilding}
@@ -265,11 +162,10 @@ export const MapView: React.FC<MapViewProps> = ({
         )}
       </div>
 
-      {/* Gates Modal */}
       <HadayekGatesModal
         isOpen={isGatesModalOpen}
         onClose={() => setIsGatesModalOpen(false)}
-        onSelectZone={(z) => handleSelectZoneJump(z)}
+        onSelectZone={handleSelectZoneJump}
       />
     </div>
   );

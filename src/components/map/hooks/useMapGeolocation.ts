@@ -1,4 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  GEO_ERRORS,
+  startGeolocationWatch,
+} from '../../../features/map/model/geolocationUtils';
 
 export interface UseMapGeolocationProps {
   updateSelectedPosition: (lat: number, lng: number, flyTo?: boolean, customZoom?: number) => Promise<void>;
@@ -11,14 +15,11 @@ export const useMapGeolocation = ({
 }: UseMapGeolocationProps) => {
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [geoError, setGeoError] = useState<string | null>(null);
-  const watchIdRef = useRef<number | null>(null);
-  const timeoutIdRef = useRef<any>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const updateSelectedPositionRef = useRef(updateSelectedPosition);
   const setGpsAccuracyRef = useRef(setGpsAccuracy);
 
-  const clearGeoError = useCallback(() => {
-    setGeoError(null);
-  }, []);
+  const clearGeoError = useCallback(() => setGeoError(null), []);
 
   useEffect(() => {
     updateSelectedPositionRef.current = updateSelectedPosition;
@@ -26,128 +27,33 @@ export const useMapGeolocation = ({
   }, [updateSelectedPosition, setGpsAccuracy]);
 
   const clearPending = useCallback(() => {
-    if (watchIdRef.current !== null && 'geolocation' in navigator) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    if (timeoutIdRef.current) {
-      clearTimeout(timeoutIdRef.current);
-      timeoutIdRef.current = null;
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
     }
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      clearPending();
-    };
-  }, [clearPending]);
+  useEffect(() => () => clearPending(), [clearPending]);
 
-  // 🎯 Ultra-Precision Satellite GPS Locator (Multi-Sample Convergence)
   const handleGetLocation = useCallback(() => {
     clearPending();
     setGeoError(null);
     setIsLocating(true);
     setGpsAccuracyRef.current(null);
 
-    if (!('geolocation' in navigator)) {
-      setIsLocating(false);
-      setGeoError('خدمة تحديد الموقع GPS غير مدعومة على هذا المتصفح.');
-      return;
-    }
-
-    let isFinalized = false;
-    let bestPosition: GeolocationPosition | null = null;
-    let sampleCount = 0;
-
-    const finalizePosition = (pos: GeolocationPosition) => {
-      if (isFinalized) return;
-      isFinalized = true;
-      clearPending();
-      setIsLocating(false);
-      setGeoError(null);
-
-      const uLat = Number(pos.coords.latitude.toFixed(6));
-      const uLng = Number(pos.coords.longitude.toFixed(6));
-      const acc = Math.round(pos.coords.accuracy);
-
-      setGpsAccuracyRef.current(acc);
-      updateSelectedPositionRef.current(uLat, uLng, true, 17);
-    };
-
-    // Watch Position convergence over up to 3.5 seconds
-    try {
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          if (isFinalized) return;
-          sampleCount++;
-          if (!bestPosition || position.coords.accuracy < bestPosition.coords.accuracy) {
-            bestPosition = position;
-          }
-
-          // If satellite lock achieved high precision (<= 8 meters) or sampled enough
-          if (position.coords.accuracy <= 8 || sampleCount >= 4) {
-            finalizePosition(bestPosition || position);
-          } else if (sampleCount === 1) {
-            // Start a 4.5s convergence timer only after the first position arrives
-            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
-            timeoutIdRef.current = setTimeout(() => {
-              if (!isFinalized && bestPosition) {
-                finalizePosition(bestPosition);
-              }
-            }, 4500);
-          }
-        },
-        (error) => {
-          if (isFinalized) return;
-          console.warn('High precision GPS error, falling back:', error);
-          if (bestPosition) {
-            finalizePosition(bestPosition);
-          } else {
-            // Last single attempt
-            navigator.geolocation.getCurrentPosition(
-              (pos) => finalizePosition(pos),
-              () => {
-                if (isFinalized) return;
-                isFinalized = true;
-                clearPending();
-                setIsLocating(false);
-                setGeoError('تعذر الوصول إلى إشارة GPS دقيقة. يرجى تفعيل خدمة الموقع على جهازك أو التحديد يدوياً على الخريطة.');
-              },
-              { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-            );
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 12000,
-        }
-      );
-    } catch {
-      setIsLocating(false);
-      setGeoError('حدث خطأ أثناء محاولة تشغيل خدمة الموقع.');
-    }
-
-    // Safety timeout to abort if geolocation never resolves (longer than 12s watchPosition + 8s fallback = 20s)
-    timeoutIdRef.current = setTimeout(() => {
-      if (!isFinalized) {
-        if (bestPosition) {
-          finalizePosition(bestPosition);
-        } else {
-          isFinalized = true;
-          clearPending();
-          setIsLocating(false);
-          setGeoError('انتهت مهلة البحث عن إشارة GPS دون الحصول على إشارة دقيقة. يرجى المحاولة مرة أخرى أو التحديد على الخريطة.');
-        }
-      }
-    }, 21000);
+    cleanupRef.current = startGeolocationWatch({
+      onSuccess: ({ lat, lng, accuracy }) => {
+        setIsLocating(false);
+        setGeoError(null);
+        setGpsAccuracyRef.current(accuracy);
+        updateSelectedPositionRef.current(lat, lng, true, 17);
+      },
+      onError: (errMsg) => {
+        setIsLocating(false);
+        setGeoError(errMsg);
+      },
+    });
   }, [clearPending]);
 
-  return {
-    isLocating,
-    geoError,
-    clearGeoError,
-    handleGetLocation,
-  };
+  return { isLocating, geoError, clearGeoError, handleGetLocation };
 };

@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="دليلك — دليل الأنشطة التجارية والخدمية في مصر">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>دليلك | Dalilak</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+/* ================================================================
+   1. المتغيرات — الوضع النهاري
+================================================================ */
+:root {
+  --bg: #f5f7fa;
+  --bg-2: #eef1f6;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --border: #e8ecf2;
+  --border-2: #dde3ea;
+
+  --text: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+
+  --primary: #f59e0b;
+  --primary-2: #fbbf24;
+  --primary-dark: #d97706;
+  --primary-soft: #fef3c7;
+  --primary-ring: rgba(245, 158, 11, 0.15);
+
+  --accent: #10b981;
+  --accent-soft: #d1fae5;
+  --danger: #ef4444;
+  --danger-soft: #fee2e2;
+  --info: #3b82f6;
+  --info-soft: #dbeafe;
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --shadow-primary: 0 8px 24px rgba(245, 158, 11, 0.28);
+
+  --r-sm: 10px;
+  --r: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --t: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-spring: 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 64px;
+  --cat-h: 58px;
+  --switch-h: 68px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*::selection { background: var(--primary-soft); color: var(--primary-dark); }
+html, body { overscroll-behavior-y: none; }
+body {
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ================================================================
+   2. الحاوية الرئيسية
+================================================================ */
+.app-shell {
+  max-width: 100%;
+  min-height: 100vh;
+  position: relative;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .app-shell {
+    max-width: 480px;
+    margin: 24px auto;
+    height: calc(100vh - 48px);
+    min-height: 0;
+    border-radius: 36px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    border: 8px solid #0f172a;
+  }
+  body { background: #e2e8f0; }
+}
+
+/* ================================================================
+   3. الهيدر
+================================================================ */
+.header {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  padding: calc(12px + var(--safe-top)) 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.brand-logo {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 1.05rem;
+  box-shadow: var(--shadow-primary);
+}
+.brand-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.top-actions {
+  display: flex;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+.mini-btn {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.92rem;
+  transition: all var(--t-fast);
+  position: relative;
+}
+.mini-btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.mini-btn:active { transform: scale(0.94); }
+.mini-btn .dot {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 7px; height: 7px;
+  background: var(--danger);
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.search-field {
+  flex: 1;
+  position: relative;
+}
+.search-field i.s-icon {
+  position: absolute;
+  right: 16px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 0.95rem;
+  pointer-events: none;
+  transition: color var(--t-fast);
+}
+.search-field:focus-within i.s-icon { color: var(--primary); }
+.search-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px 0 44px;
+  background: var(--bg-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--r);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text);
+  transition: all var(--t-fast);
+}
+.search-input::placeholder { color: var(--text-3); font-weight: 400; }
+.search-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-ring);
+}
+.search-clear {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--border-2);
+  color: var(--text-2);
+  display: none;
+  align-items: center; justify-content: center;
+  font-size: 0.7rem;
+  transition: all var(--t-fast);
+}
+.search-clear.show { display: flex; }
+.search-clear:hover { background: var(--danger); color: #fff; }
+
+/* ================================================================
+   4. شريط التصنيفات
+================================================================ */
+.categories {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: relative;
+  z-index: 90;
+}
+.categories::-webkit-scrollbar { display: none; }
+.cat {
+  flex-shrink: 0;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.84rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+.cat i { font-size: 0.82rem; opacity: 0.8; }
+.cat:hover { border-color: var(--primary); color: var(--primary-dark); }
+.cat.active {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.cat.active i { opacity: 1; }
+
+/* ================================================================
+   5. حاويات الصفحات
+================================================================ */
+.pages {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 320ms ease, transform 320ms ease, visibility 0s linear 320ms;
+  pointer-events: none;
+}
+.page.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: opacity 320ms ease, transform 320ms ease, visibility 0s;
+}
+
+/* ================================================================
+   6. صفحة الخريطة
+================================================================ */
+.map-page {
+  position: relative;
+  height: 100%;
+}
+#map {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: var(--bg-2);
+}
+.leaflet-container {
+  font-family: 'Cairo', sans-serif !important;
+  background: #eef1f6 !important;
+}
+
+.map-floating {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 400;
+}
+.map-floating.top-right { top: 14px; right: 14px; }
+.map-floating.bottom-right { bottom: 100px; right: 14px; }
+
+.map-btn {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-md);
+  transition: all var(--t-fast);
+}
+.map-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+.map-btn:active { transform: scale(0.94); }
+
+.map-stats {
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 400;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-md);
+}
+.map-stats .dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.map-sheet {
+  position: absolute;
+  bottom: 14px; left: 14px; right: 14px;
+  z-index: 450;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  padding: 12px;
+  display: none;
+  animation: sheetUp 340ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.map-sheet.show { display: block; }
+@keyframes sheetUp {
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.map-sheet .handle {
+  width: 40px; height: 4px;
+  background: var(--border-2);
+  border-radius: 4px;
+  margin: 0 auto 12px;
+}
+.sheet-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.sheet-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-primary);
+}
+.sheet-info { flex: 1; min-width: 0; }
+.sheet-info h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sheet-info .cat-line {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+.sheet-info .meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  align-items: center;
+}
+.sheet-info .rating {
+  color: var(--primary-dark);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.sheet-info .status {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+.sheet-info .status.open { background: var(--accent-soft); color: #047857; }
+.sheet-info .status.closed { background: var(--danger-soft); color: #b91c1c; }
+.sheet-btn {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  transition: all var(--t-fast);
+  flex-shrink: 0;
+}
+.sheet-btn.primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+.sheet-btn:hover { transform: translateY(-2px); }
+
+.marker-pin {
+  width: 40px; height: 40px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.marker-pin .pin {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  transition: all var(--t-fast);
+}
+.marker-pin .pin i {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 0.85rem;
+}
+.marker-pin.active .pin {
+  background: linear-gradient(135deg, var(--text), #1e293b);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4);
+  transform: rotate(-45deg) scale(1.1);
+}
+
+/* ================================================================
+   7. صفحة الأنشطة
+================================================================ */
+.list-page {
+  padding: 16px;
+  padding-bottom: calc(100px + var(--safe-bottom));
+  overflow-y: auto;
+  height: 100%;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.list-header h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.list-header .count {
+  padding: 3px 10px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.list-tools { display: flex; gap: 6px; }
+.tool-btn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--t-fast);
+}
+.tool-btn i { font-size: 0.72rem; }
+.tool-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+.tool-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.card:active { transform: translateY(0) scale(0.995); }
+
+.card-icon {
+  width: 60px; height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffbeb, var(--primary-soft));
+  color: var(--primary-dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+.card-icon i { filter: drop-shadow(0 1px 2px rgba(245,158,11,0.2)); }
+
+.card-body { flex: 1; min-width: 0; }
+.card-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-name .verified {
+  color: var(--info);
+  font-size: 0.8rem;
+}
+.card-cat {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.card-meta .rating {
+  color: var(--primary-dark);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.card-meta .rating i { font-size: 0.72rem; }
+.card-meta .reviews { color: var(--text-3); }
+.card-meta .status {
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+.card-meta .status.open { background: var(--accent-soft); color: #047857; }
+.card-meta .status.closed { background: var(--danger-soft); color: #b91c1c; }
+
+.card-fav {
+  position: absolute;
+  top: 12px; left: 12px;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem;
+  transition: all var(--t-fast);
+}
+.card-fav:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  transform: scale(1.1);
+}
+.card-fav.active {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.card-offer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: linear-gradient(135deg, var(--primary-soft), #fef9c3);
+  color: var(--primary-dark);
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px dashed rgba(245, 158, 11, 0.5);
+}
+.card-offer i { font-size: 0.68rem; }
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-3);
+}
+.empty-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  background: var(--bg-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  color: var(--text-3);
+}
+.empty h3 { font-size: 1rem; color: var(--text-2); margin-bottom: 6px; }
+.empty p { font-size: 0.85rem; }
+
+/* ================================================================
+   8. زر التبديل الرئيسي
+================================================================ */
+.view-switch {
+  position: fixed;
+  bottom: calc(20px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--r-pill);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+@media (min-width: 900px) {
+  .view-switch { position: absolute; }
+}
+
+.switch-btn {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: var(--r-pill);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: color var(--t) 100ms;
+  white-space: nowrap;
+}
+.switch-btn i { font-size: 0.88rem; }
+.switch-btn.active { color: var(--text); }
+
+.switch-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  border-radius: var(--r-pill);
+  background: var(--primary);
+  transition: right 340ms cubic-bezier(0.34, 1.4, 0.64, 1),
+              width 340ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+}
+
+/* ================================================================
+   9. نافذة التفاصيل
+================================================================ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  animation: fadeIn 200ms ease;
+}
+.overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (min-width: 900px) {
+  .overlay { align-items: center; padding: 24px; }
+}
+
+.sheet-modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 0;
+  animation: slideUpSheet 380ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  padding-bottom: var(--safe-bottom);
+}
+@media (min-width: 900px) {
+  .sheet-modal { border-radius: var(--r-xl); }
+  @keyframes slideUpSheet {
+    from { transform: translateY(40px) scale(0.94); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+}
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-hero {
+  position: relative;
+  padding: 28px 20px 22px;
+  background: linear-gradient(135deg, #fffbeb, var(--primary-soft));
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+@media (min-width: 900px) {
+  .sheet-hero { border-radius: var(--r-xl) var(--r-xl) 0 0; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  transition: all var(--t-fast);
+}
+.close-btn:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.fav-btn {
+  position: absolute;
+  top: 16px; left: 16px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  transition: all var(--t-fast);
+}
+.fav-btn.active { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.sheet-icon-lg {
+  width: 84px; height: 84px;
+  margin: 0 auto 14px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  box-shadow: var(--shadow-primary);
+}
+
+.sheet-modal h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.sheet-modal h2 .verified {
+  color: var(--info);
+  font-size: 1rem;
+}
+.sheet-cat {
+  display: inline-block;
+  padding: 5px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.sheet-body { padding: 20px; }
+
+.rating-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border-radius: var(--r);
+  margin-bottom: 18px;
+}
+.rating-box .big-score {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  line-height: 1;
+}
+.rating-box .stars { color: var(--primary); font-size: 0.92rem; letter-spacing: 2px; }
+.rating-box .count { font-size: 0.78rem; color: var(--text-3); }
+
+.info-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border-radius: var(--r);
+  transition: background var(--t-fast);
+}
+.info-row:hover { background: var(--border); }
+.info-row .ico {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--primary-dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.info-row .text { flex: 1; min-width: 0; }
+.info-row .lbl { font-size: 0.72rem; color: var(--text-3); margin-bottom: 1px; }
+.info-row .val { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.info-row .val.status-open { color: #047857; }
+.info-row .val.status-closed { color: #b91c1c; }
+
+.offer-card {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--primary-soft), #fef9c3);
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.offer-card i {
+  font-size: 1.2rem;
+  color: var(--primary-dark);
+}
+.offer-card .offer-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  margin-top: 20px;
+}
+.act-btn {
+  padding: 14px 16px;
+  border-radius: var(--r);
+  font-weight: 700;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--t-fast);
+}
+.act-btn.primary {
+  background: var(--primary);
+  color: #fff;
+  grid-column: span 2;
+  box-shadow: var(--shadow-primary);
+}
+.act-btn.primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+.act-btn.outline {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text-2);
+}
+.act-btn.outline:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  transform: translateY(-2px);
+}
+.act-btn:active { transform: scale(0.96); }
+
+/* ================================================================
+   10. Toast
+================================================================ */
+.toast-wrap {
+  position: fixed;
+  top: calc(80px + var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 20px;
+}
+.toast {
+  padding: 12px 18px;
+  background: var(--text);
+  color: #fff;
+  border-radius: var(--r-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+  max-width: 100%;
+}
+.toast i { font-size: 0.9rem; }
+.toast.success { background: var(--accent); }
+.toast.error { background: var(--danger); }
+@keyframes toastIn {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast.removing { animation: toastOut 260ms forwards; }
+@keyframes toastOut { to { transform: translateY(-30px); opacity: 0; } }
+
+/* ================================================================
+   11. شريط الاتصال
+================================================================ */
+.connection-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  padding: calc(10px + var(--safe-top)) 20px 10px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  z-index: 5000;
+  transform: translateY(-100%);
+  transition: transform 380ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.connection-banner.show { transform: translateY(0); }
+.connection-banner.offline { background: var(--danger); }
+.connection-banner.online { background: var(--accent); }
+
+/* ================================================================
+   12. تحسينات Leaflet
+================================================================ */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  margin: 14px !important;
+}
+.leaflet-control-zoom a {
+  width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  font-size: 1.1rem !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+.leaflet-control-attribution {
+  background: rgba(255,255,255,0.85) !important;
+  color: var(--text-3) !important;
+  font-size: 0.62rem !important;
+  backdrop-filter: blur(8px);
+}
+.leaflet-control-attribution a { color: var(--primary-dark) !important; }
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--border) !important;
+  padding: 4px !important;
+}
+.leaflet-popup-content { margin: 10px 12px !important; font-size: 0.85rem !important; }
+.leaflet-popup-tip { box-shadow: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- شريط الاتصال -->
+  <div class="connection-banner" id="connBanner"></div>
+
+  <!-- ================================================================
+       الهيدر
+  ================================================================= -->
+  <header class="header">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-logo"><i class="fas fa-location-dot"></i></div>
+        <div class="brand-name">دليلك</div>
+      </div>
+      <div class="top-actions">
+        <button class="mini-btn" onclick="showToast('قريباً: الإشعارات')" title="الإشعارات">
+          <i class="fas fa-bell"></i>
+          <span class="dot"></span>
+        </button>
+        <button class="mini-btn" onclick="showToast('قريباً: حسابك')" title="حسابي">
+          <i class="fas fa-user"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-field">
+        <i class="fas fa-magnifying-glass s-icon"></i>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="ابحث عن مطعم، صيدلية، أو خدمة..."
+          autocomplete="off"
+        >
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       التصنيفات
+  ================================================================= -->
+  <nav class="categories" id="catBar"></nav>
+
+  <!-- ================================================================
+       الصفحات
+  ================================================================= -->
+  <div class="pages">
+
+    <!-- صفحة الخريطة -->
+    <section class="page map-page active" id="pageMap">
+      <div id="map"></div>
+
+      <div class="map-stats">
+        <span class="dot"></span>
+        <span id="mapStats">جاري التحميل...</span>
+      </div>
+
+      <div class="map-floating top-right">
+        <button class="map-btn" onclick="locateMe()" title="موقعي">
+          <i class="fas fa-location-crosshairs"></i>
+        </button>
+      </div>
+
+      <div class="map-floating bottom-right">
+        <button class="map-btn" onclick="fitAll()" title="عرض الكل">
+          <i class="fas fa-expand"></i>
+        </button>
+      </div>
+
+      <div class="map-sheet" id="mapSheet">
+        <div class="handle"></div>
+        <div class="sheet-card">
+          <div class="sheet-icon" id="sheetIcon"><i class="fas fa-store"></i></div>
+          <div class="sheet-info">
+            <h4 id="sheetName">—</h4>
+            <div class="cat-line" id="sheetCat">—</div>
+            <div class="meta">
+              <span class="rating"><i class="fas fa-star"></i> <span id="sheetRating">0</span></span>
+              <span class="status open" id="sheetStatus">مفتوح</span>
+            </div>
+          </div>
+          <button class="sheet-btn primary" onclick="openDetails()" title="التفاصيل">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحة القائمة -->
+    <section class="page list-page" id="pageList">
+      <div class="list-header">
+        <h3>
+          الأنشطة
+          <span class="count" id="listCount">0</span>
+        </h3>
+        <div class="list-tools">
+          <button class="tool-btn" id="favToolBtn" onclick="toggleFavFilter()">
+            <i class="fas fa-heart"></i>
+            المفضلة
+          </button>
+          <button class="tool-btn" onclick="cycleSort()" id="sortBtn">
+            <i class="fas fa-arrow-down-wide-short"></i>
+            <span id="sortLabel">الافتراضي</span>
+          </button>
+        </div>
+      </div>
+      <div class="cards" id="cardsList"></div>
+    </section>
+
+  </div>
+
+  <!-- ================================================================
+       زر التبديل
+  ================================================================= -->
+  <div class="view-switch" id="viewSwitch">
+    <div class="switch-indicator" id="switchIndicator"></div>
+    <button class="switch-btn active" data-view="map" onclick="setView('map')">
+      <i class="fas fa-map"></i> الخريطة
+    </button>
+    <button class="switch-btn" data-view="list" onclick="setView('list')">
+      <i class="fas fa-list"></i> الأنشطة
+    </button>
+  </div>
+
+</div>
+
+<!-- ================================================================
+     نافذة التفاصيل
+================================================================= -->
+<div class="overlay" id="overlay" onclick="closeDetails(event)">
+  <div class="sheet-modal" onclick="event.stopPropagation()">
+    <div class="sheet-hero">
+      <button class="close-btn" onclick="closeDetails()"><i class="fas fa-times"></i></button>
+      <button class="fav-btn" id="modalFavBtn" onclick="toggleFavFromModal()">
+        <i class="fas fa-heart"></i>
+      </button>
+      <div class="sheet-icon-lg" id="modalIcon"><i class="fas fa-store"></i></div>
+      <h2 id="modalName">اسم النشاط</h2>
+      <span class="sheet-cat" id="modalCat">التصنيف</span>
+    </div>
+    <div class="sheet-body">
+      <div class="rating-box">
+        <div class="big-score" id="modalScore">0.0</div>
+        <div>
+          <div class="stars" id="modalStars"></div>
+          <div class="count" id="modalReviews"></div>
+        </div>
+      </div>
+      <div class="info-list" id="modalInfo"></div>
+      <div id="modalOffer"></div>
+      <div class="actions-grid">
+        <button class="act-btn primary" onclick="callNow()">
+          <i class="fas fa-phone"></i> اتصال
+        </button>
+        <button class="act-btn outline" onclick="openDirections()" title="الاتجاهات">
+          <i class="fas fa-diamond-turn-right"></i>
+        </button>
+        <button class="act-btn outline" onclick="shareNow()" title="مشاركة">
+          <i class="fas fa-share-nodes"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+
+/* ================================================================
+   البيانات
+================================================================ */
+const BUSINESSES = [
+  { id:1, nameAr:'مطعم البيك', category:'مطاعم', icon:'fa-utensils', rating:4.8, reviews:1240, phone:'+201001234567', address:'شارع الملك فيصل، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9600, lng:31.0500, open:true, verified:true, offer:'خصم 20% على العائلات' },
+  { id:2, nameAr:'صيدلية النهدي', category:'صيدليات', icon:'fa-prescription-bottle-medical', rating:4.5, reviews:850, phone:'+201001234568', address:'شارع التحرير، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9650, lng:31.0550, open:true, verified:true, offer:'' },
+  { id:3, nameAr:'عيادة د. سارة للأسنان', category:'عيادات', icon:'fa-tooth', rating:4.9, reviews:320, phone:'+201001234569', address:'شارع النصر، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9700, lng:31.0400, open:false, verified:true, offer:'جلسة أولى مجاناً' },
+  { id:4, nameAr:'سوبر ماركت الدانوب', category:'سوبر ماركت', icon:'fa-cart-shopping', rating:4.3, reviews:2100, phone:'+201001234570', address:'شارع الهرم، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9550, lng:31.0600, open:true, verified:true, offer:'' },
+  { id:5, nameAr:'مدرسة المستقبل الدولية', category:'مدارس', icon:'fa-school', rating:4.7, reviews:180, phone:'+201001234571', address:'شارع الأمل، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9750, lng:31.0450, open:true, verified:true, offer:'' },
+  { id:6, nameAr:'كهربائي أبو أحمد', category:'حرفيين', icon:'fa-wrench', rating:4.6, reviews:95, phone:'+201001234572', address:'شارع السلام، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9500, lng:31.0700, open:true, verified:false, offer:'فحص مجاني' },
+  { id:7, nameAr:'كافيه لافيستا', category:'مطاعم', icon:'fa-mug-hot', rating:4.4, reviews:620, phone:'+201001234573', address:'كورنيش النيل، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9450, lng:31.0480, open:true, verified:true, offer:'مشروب مجاني' },
+  { id:8, nameAr:'صيدلية العزبي', category:'صيدليات', icon:'fa-capsules', rating:4.6, reviews:1400, phone:'+201001234574', address:'شارع الجيش، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9680, lng:31.0620, open:true, verified:true, offer:'' },
+  { id:9, nameAr:'مطعم أبو طارق كشري', category:'مطاعم', icon:'fa-bowl-food', rating:4.7, reviews:3400, phone:'+201001234575', address:'ترعة الزمر، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9520, lng:31.0380, open:true, verified:true, offer:'' },
+  { id:10, nameAr:'مركز صيانة الموبايل', category:'حرفيين', icon:'fa-mobile-screen', rating:4.2, reviews:145, phone:'+201001234576', address:'شارع الجمهورية، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9580, lng:31.0530, open:false, verified:false, offer:'تغيير شاشة في 30 دقيقة' },
+  { id:11, nameAr:'بقالة أبو خليل', category:'سوبر ماركت', icon:'fa-store', rating:4.1, reviews:78, phone:'+201001234577', address:'شارع المدارس، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9620, lng:31.0460, open:true, verified:false, offer:'' },
+  { id:12, nameAr:'مدرسة النيل الابتدائية', category:'مدارس', icon:'fa-graduation-cap', rating:4.5, reviews:220, phone:'+201001234578', address:'شارع التربية، حدائق الأهرام', area:'حدائق الأهرام', lat:29.9720, lng:31.0680, open:true, verified:true, offer:'' }
+];
+
+const CATEGORIES = [
+  { id:'all', label:'الكل', icon:'fa-border-all' },
+  { id:'مطاعم', label:'مطاعم', icon:'fa-utensils' },
+  { id:'صيدليات', label:'صيدليات', icon:'fa-prescription-bottle-medical' },
+  { id:'عيادات', label:'عيادات', icon:'fa-stethoscope' },
+  { id:'سوبر ماركت', label:'سوبر ماركت', icon:'fa-cart-shopping' },
+  { id:'مدارس', label:'مدارس', icon:'fa-school' },
+  { id:'حرفيين', label:'حرفيين', icon:'fa-wrench' }
+];
+
+/* ================================================================
+   الحالة
+================================================================ */
+const state = {
+  view: 'map',
+  category: 'all',
+  query: '',
+  sortBy: 'default',
+  favFilter: false,
+  favorites: new Set(),
+  filtered: [...BUSINESSES],
+  map: null,
+  markers: new Map(),
+  selectedId: null
+};
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+/* ================================================================
+   أدوات
+================================================================ */
+function showToast(msg, type = 'info') {
+  const wrap = $('#toastWrap');
+  const icons = { info:'fa-circle-info', success:'fa-circle-check', error:'fa-circle-exclamation' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
+  wrap.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('removing');
+    setTimeout(() => t.remove(), 260);
+  }, 2600);
+}
+
+function sanitize(s) {
+  return String(s).replace(/[<>"'&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]));
+}
+
+/* ================================================================
+   التصنيفات
+================================================================ */
+function renderCategories() {
+  $('#catBar').innerHTML = CATEGORIES.map(c => `
+    <button class="cat ${state.category === c.id ? 'active' : ''}" data-cat="${c.id}" onclick="setCategory('${c.id}')">
+      <i class="fas ${c.icon}"></i>
+      <span>${c.label}</span>
+    </button>
+  `).join('');
+}
+
+function setCategory(id) {
+  state.category = id;
+  $$('.cat').forEach(el => el.classList.toggle('active', el.dataset.cat === id));
+  applyFilters();
+}
+
+/* ================================================================
+   البحث
+================================================================ */
+let searchTimer;
+$('#searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  const val = e.target.value;
+  $('#searchClear').classList.toggle('show', val.length > 0);
+  searchTimer = setTimeout(() => {
+    state.query = val.trim().toLowerCase();
+    applyFilters();
+  }, 200);
+});
+
+function clearSearch() {
+  $('#searchInput').value = '';
+  state.query = '';
+  $('#searchClear').classList.remove('show');
+  applyFilters();
+}
+
+/* ================================================================
+   التصفية والترتيب
+================================================================ */
+function applyFilters() {
+  let list = [...BUSINESSES];
+
+  if (state.favFilter) list = list.filter(b => state.favorites.has(b.id));
+  if (state.category !== 'all') list = list.filter(b => b.category === state.category);
+  if (state.query) {
+    const q = state.query;
+    list = list.filter(b =>
+      b.nameAr.toLowerCase().includes(q) ||
+      b.category.includes(q) ||
+      b.address.includes(q) ||
+      b.area.includes(q)
+    );
+  }
+
+  switch (state.sortBy) {
+    case 'rating': list.sort((a,b) => b.rating - a.rating); break;
+    case 'reviews': list.sort((a,b) => b.reviews - a.reviews); break;
+    case 'name': list.sort((a,b) => a.nameAr.localeCompare(b.nameAr, 'ar')); break;
+    default:
+      list.sort((a,b) => (b.open - a.open) || (b.rating - a.rating));
+  }
+
+  state.filtered = list;
+  renderCards();
+  renderMarkers();
+  updateStats();
+}
+
+const SORT_LABELS = { default:'الافتراضي', rating:'الأعلى تقييماً', reviews:'الأكثر مراجعات', name:'أبجدي' };
+const SORT_CYCLE = ['default','rating','reviews','name'];
+
+function cycleSort() {
+  const idx = SORT_CYCLE.indexOf(state.sortBy);
+  state.sortBy = SORT_CYCLE[(idx + 1) % SORT_CYCLE.length];
+  $('#sortLabel').textContent = SORT_LABELS[state.sortBy];
+  $('#sortBtn').classList.toggle('active', state.sortBy !== 'default');
+  applyFilters();
+}
+
+function toggleFavFilter() {
+  state.favFilter = !state.favFilter;
+  $('#favToolBtn').classList.toggle('active', state.favFilter);
+  if (state.favFilter && state.favorites.size === 0) {
+    showToast('لا توجد أنشطة في المفضلة');
+  }
+  applyFilters();
+}
+
+/* ================================================================
+   المفضلة
+================================================================ */
+function loadFavorites() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dalilak_favs') || '[]');
+    state.favorites = new Set(saved);
+  } catch(e) { state.favorites = new Set(); }
+}
+
+function saveFavorites() {
+  localStorage.setItem('dalilak_favs', JSON.stringify([...state.favorites]));
+}
+
+function toggleFav(id, e) {
+  if (e) e.stopPropagation();
+  if (state.favorites.has(id)) {
+    state.favorites.delete(id);
+    showToast('تم الحذف من المفضلة');
+  } else {
+    state.favorites.add(id);
+    showToast('تمت الإضافة إلى المفضلة', 'success');
+  }
+  saveFavorites();
+  renderCards();
+  updateModalFav();
+}
+
+function toggleFavFromModal() {
+  if (state.selectedId) toggleFav(state.selectedId);
+}
+
+function updateModalFav() {
+  const btn = $('#modalFavBtn');
+  if (btn && state.selectedId) {
+    btn.classList.toggle('active', state.favorites.has(state.selectedId));
+  }
+}
+
+/* ================================================================
+   عرض البطاقات
+================================================================ */
+function renderCards() {
+  const wrap = $('#cardsList');
+  $('#listCount').textContent = state.filtered.length;
+
+  if (state.filtered.length === 0) {
+    wrap.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon"><i class="fas fa-magnifying-glass"></i></div>
+        <h3>لا توجد نتائج</h3>
+        <p>جرّب تغيير كلمة البحث أو التصنيف</p>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = state.filtered.map(b => {
+    const isFav = state.favorites.has(b.id);
+    return `
+      <article class="card" onclick="openDetails(${b.id})">
+        <button class="card-fav ${isFav ? 'active' : ''}" onclick="toggleFav(${b.id}, event)" title="المفضلة">
+          <i class="fas fa-heart"></i>
+        </button>
+        <div class="card-icon"><i class="fas ${b.icon}"></i></div>
+        <div class="card-body">
+          <h4 class="card-name">
+            ${sanitize(b.nameAr)}
+            ${b.verified ? '<i class="fas fa-circle-check verified" title="موثّق"></i>' : ''}
+          </h4>
+          <div class="card-cat">${sanitize(b.category)} · ${sanitize(b.area)}</div>
+          <div class="card-meta">
+            <span class="rating"><i class="fas fa-star"></i> ${b.rating}</span>
+            <span class="reviews">(${b.reviews.toLocaleString('ar-EG')})</span>
+            <span class="status ${b.open ? 'open' : 'closed'}">${b.open ? 'مفتوح' : 'مغلق'}</span>
+          </div>
+          ${b.offer ? `<div class="card-offer"><i class="fas fa-tag"></i> ${sanitize(b.offer)}</div>` : ''}
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+/* ================================================================
+   الخريطة
+================================================================ */
+function initMap() {
+  if (!document.getElementById('map')) return;
+
+  state.map = L.map('map', {
+    zoomControl: false,
+    attributionControl: true
+  }).setView([29.9600, 31.0500], 14);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap · © CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  }).addTo(state.map);
+
+  L.control.zoom({ position: 'bottomleft' }).addTo(state.map);
+}
+
+function createPin(b, active = false) {
+  return L.divIcon({
+    className: 'marker-pin' + (active ? ' active' : ''),
+    html: `
+      <div class="pin">
+        <i class="fas ${b.icon}"></i>
+      </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
+  });
+}
+
+function renderMarkers() {
+  if (!state.map) return;
+
+  state.markers.forEach(m => state.map.removeLayer(m));
+  state.markers.clear();
+
+  if (state.filtered.length === 0) return;
+
+  state.filtered.forEach(b => {
+    const marker = L.marker([b.lat, b.lng], {
+      icon: createPin(b, b.id === state.selectedId)
+    });
+
+    marker.on('click', () => {
+      state.selectedId = b.id;
+      updateSheet(b);
+      highlightMarker(b.id);
+    });
+
+    marker.addTo(state.map);
+    state.markers.set(b.id, marker);
+  });
+}
+
+function highlightMarker(id) {
+  state.markers.forEach((m, mid) => {
+    const biz = BUSINESSES.find(x => x.id === mid);
+    if (biz) m.setIcon(createPin(biz, mid === id));
+  });
+}
+
+function updateSheet(b) {
+  $('#sheetIcon').innerHTML = `<i class="fas ${b.icon}"></i>`;
+  $('#sheetName').textContent = b.nameAr;
+  $('#sheetCat').textContent = `${b.category} · ${b.area}`;
+  $('#sheetRating').textContent = b.rating;
+  const st = $('#sheetStatus');
+  st.textContent = b.open ? 'مفتوح' : 'مغلق';
+  st.className = `status ${b.open ? 'open' : 'closed'}`;
+  $('#mapSheet').classList.add('show');
+}
+
+function updateStats() {
+  const open = state.filtered.filter(b => b.open).length;
+  $('#mapStats').textContent = `${state.filtered.length} نشاط · ${open} مفتوح`;
+}
+
+function locateMe() {
+  if (!state.map) return;
+  showToast('جاري تحديد موقعك...');
+  state.map.locate({ setView: true, maxZoom: 16 });
+  state.map.once('locationfound', (e) => {
+    L.circleMarker(e.latlng, {
+      radius: 8, fillColor: '#3b82f6', color: '#fff', weight: 3, fillOpacity: 1
+    }).addTo(state.map).bindPopup('موقعك الحالي').openPopup();
+    showToast('تم تحديد موقعك', 'success');
+  });
+  state.map.once('locationerror', () => showToast('تعذّر تحديد الموقع', 'error'));
+}
+
+function fitAll() {
+  if (!state.map || state.markers.size === 0) return;
+  const bounds = L.latLngBounds([...state.markers.values()].map(m => m.getLatLng()));
+  state.map.flyToBounds(bounds, { padding: [60, 60], duration: 0.8 });
+}
+
+/* ================================================================
+   التبديل بين الخريطة والقائمة
+================================================================ */
+function setView(view) {
+  state.view = view;
+
+  $$('.page').forEach(p => p.classList.remove('active'));
+  $(`#page${view === 'map' ? 'Map' : 'List'}`).classList.add('active');
+
+  $$('.switch-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  updateSwitchIndicator();
+
+  if (view === 'map' && state.map) {
+    setTimeout(() => state.map.invalidateSize(), 320);
+  }
+}
+
+function updateSwitchIndicator() {
+  const btns = $$('.switch-btn');
+  const active = [...btns].find(b => b.classList.contains('active'));
+  if (!active) return;
+
+  const ind = $('#switchIndicator');
+  const parent = $('#viewSwitch');
+  const parentRect = parent.getBoundingClientRect();
+  const rect = active.getBoundingClientRect();
+
+  ind.style.width = rect.width + 'px';
+  ind.style.right = (parentRect.right - rect.right) + 'px';
+}
+
+window.addEventListener('resize', updateSwitchIndicator);
+
+/* ================================================================
+   نافذة التفاصيل
+================================================================ */
+function openDetails(id) {
+  const b = id ? BUSINESSES.find(x => x.id === id) : BUSINESSES.find(x => x.id === state.selectedId);
+  if (!b) return;
+
+  state.selectedId = b.id;
+
+  $('#modalIcon').innerHTML = `<i class="fas ${b.icon}"></i>`;
+  $('#modalName').innerHTML = `${sanitize(b.nameAr)}${b.verified ? ' <i class="fas fa-circle-check verified"></i>' : ''}`;
+  $('#modalCat').textContent = `${b.category} · ${b.area}`;
+  $('#modalScore').textContent = b.rating.toFixed(1);
+  $('#modalStars').textContent = '★'.repeat(Math.round(b.rating)) + '☆'.repeat(5 - Math.round(b.rating));
+  $('#modalReviews').textContent = `${b.reviews.toLocaleString('ar-EG')} مراجعة`;
+
+  $('#modalInfo').innerHTML = `
+    <div class="info-row">
+      <div class="ico"><i class="fas fa-location-dot"></i></div>
+      <div class="text">
+        <div class="lbl">العنوان</div>
+        <div class="val">${sanitize(b.address)}</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="ico"><i class="fas fa-phone"></i></div>
+      <div class="text">
+        <div class="lbl">الهاتف</div>
+        <div class="val" dir="ltr">${sanitize(b.phone)}</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="ico"><i class="fas fa-clock"></i></div>
+      <div class="text">
+        <div class="lbl">الحالة الآن</div>
+        <div class="val ${b.open ? 'status-open' : 'status-closed'}">${b.open ? 'مفتوح' : 'مغلق'}</div>
+      </div>
+    </div>
+  `;
+
+  $('#modalOffer').innerHTML = b.offer ? `
+    <div class="offer-card">
+      <i class="fas fa-tag"></i>
+      <div class="offer-text">${sanitize(b.offer)}</div>
+    </div>
+  ` : '';
+
+  updateModalFav();
+  $('#overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetails(e) {
+  if (e && e.target !== e.currentTarget) return;
+  $('#overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function callNow() {
+  const b = BUSINESSES.find(x => x.id === state.selectedId);
+  if (b) window.location.href = `tel:${b.phone}`;
+}
+
+function openDirections() {
+  const b = BUSINESSES.find(x => x.id === state.selectedId);
+  if (!b) return;
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}`, '_blank');
+}
+
+async function shareNow() {
+  const b = BUSINESSES.find(x => x.id === state.selectedId);
+  if (!b) return;
+  const data = {
+    title: b.nameAr,
+    text: `${b.nameAr} — ${b.category}\n${b.address}\n${b.phone}`,
+    url: location.href
+  };
+  if (navigator.share) {
+    try { await navigator.share(data); } catch(e) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(`${data.text}\n${data.url}`);
+      showToast('تم نسخ التفاصيل', 'success');
+    } catch(e) { showToast('تعذّر النسخ', 'error'); }
+  }
+}
+
+/* ================================================================
+   حالة الاتصال
+================================================================ */
+function updateConn() {
+  const b = $('#connBanner');
+  if (navigator.onLine) {
+    b.className = 'connection-banner online show';
+    b.innerHTML = '<i class="fas fa-wifi"></i> تم استعادة الاتصال';
+    setTimeout(() => b.classList.remove('show'), 2500);
+  } else {
+    b.className = 'connection-banner offline show';
+    b.innerHTML = '<i class="fas fa-wifi"></i> غير متصل';
+  }
+}
+
+/* ================================================================
+   التهيئة
+================================================================ */
+function init() {
+  loadFavorites();
+  renderCategories();
+  initMap();
+  applyFilters();
+  setView('map');
+
+  requestAnimationFrame(() => {
+    updateSwitchIndicator();
+  });
+
+  window.addEventListener('online', updateConn);
+  window.addEventListener('offline', updateConn);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDetails();
+  });
+
+  console.log('✅ Dalilak ready');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

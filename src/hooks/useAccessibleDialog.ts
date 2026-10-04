@@ -82,17 +82,13 @@ export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }:
 
         const first = currentFocusables[0];
         const last = currentFocusables[currentFocusables.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === first || document.activeElement === curContainer || !curContainer.contains(document.activeElement)) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (document.activeElement === last || document.activeElement === curContainer || !curContainer.contains(document.activeElement)) {
-            e.preventDefault();
-            first.focus();
-          }
+        const active = document.activeElement;
+        if (e.shiftKey && (active === first || active === curContainer || !curContainer.contains(active))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (active === last || active === curContainer || !curContainer.contains(active))) {
+          e.preventDefault();
+          first.focus();
         }
       }
     };

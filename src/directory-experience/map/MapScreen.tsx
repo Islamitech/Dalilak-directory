@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { MapPin, DoorOpen, Search, RotateCcw, X, ArrowLeft, SlidersHorizontal, List, Info } from 'lucide-react';
+import { MapPin, DoorOpen, ArrowLeft, SlidersHorizontal, List, Info, X, Search } from 'lucide-react';
+import { CategoryIcon } from '../discovery/CategoryIcon';
 import { DiscoveryProps } from '../discovery/HomeScreen';
 import { useDirectoryCatalog } from '../contracts/DirectoryCatalogProvider';
-import { Dialog } from '../design-system/Dialog';
 import { ScreenState } from '../design-system/ScreenState';
-import { CategoryIcon } from '../discovery/CategoryIcon';
 import { GeographicCanvas } from './GeographicCanvas';
 import { MapActivityCards } from './MapActivityCards';
+import { MapFloatingPanel } from './MapFloatingPanel';
+import { MapScreenDialogs } from './MapScreenDialogs';
+import { MapGateDetailOverlay } from './MapGateDetailOverlay';
 import type { ActionKind, DirectoryPlace } from '../contracts/directory';
 import './map.css';
 
@@ -163,84 +165,33 @@ export function MapScreen(p: DiscoveryProps) {
 
             {/* ── Floating panel (filters or results) ── */}
             {panel && (
-              <section
-                className="hm-floating-panel"
-                id="hm-floating-panel"
-                aria-label={panel === 'filters' ? 'فلاتر الخريطة' : 'نتائج الخريطة'}
-              >
-                <div className="hm-panel-title">
-                  <h2>{panel === 'filters' ? 'خصص استكشافك' : `${places.length} نتيجة على الخريطة`}</h2>
-                  <button aria-label="إغلاق لوحة الخريطة" onClick={() => setPanel(null)}>
-                    <X size={19} />
-                  </button>
-                </div>
-
-                {panel === 'filters' ? (
-                  <>
-                    <div id="hadayek-map-filters" className="hm-floating-fields">
-                      <label>
-                        المنطقة
-                        <select value={area} onChange={e => changeArea(e.target.value)}>
-                          <option value="all">كل مناطق الحدائق</option>
-                          {catalog.districts.map(d => (
-                            <option key={d.id} value={d.nameAr}>{d.nameAr}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        نوع النشاط
-                        <select value={category} onChange={e => { setCategory(e.target.value); clearSelection(); }}>
-                          <option value="all">كل الأنشطة</option>
-                          {catalog.categories.map(c => <option key={c}>{c}</option>)}
-                        </select>
-                      </label>
-                    </div>
-                    <div className="hm-panel-layers">
-                      <label>
-                        <input type="checkbox" checked={showGates} onChange={e => { setShowGates(e.target.checked); if (!e.target.checked) setSelectedGate(null); }} />
-                        إظهار البوابات
-                      </label>
-                      <label>
-                        <input type="checkbox" checked={showNames} onChange={e => setShowNames(e.target.checked)} />
-                        أسماء المناطق
-                      </label>
-                    </div>
-                    <div className="hm-panel-actions">
-                      <button className="directory-button" onClick={() => setPanel(null)}>
-                        عرض {places.length} نتيجة
-                      </button>
-                      <button className="hm-reset" onClick={reset}>
-                        <RotateCcw size={15} />إعادة ضبط
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="hm-floating-results">
-                    {places.length ? places.map(place => (
-                      <button
-                        key={place.id}
-                        className="hm-result-item"
-                        onClick={() => { selectPlace(place.id); setPanel(null); }}
-                        aria-pressed={selected === place.id}
-                      >
-                        <CategoryIcon category={place.category} size={22} />
-                        <span className="hm-result-text">
-                          <strong>{place.name}</strong>
-                          <small>{place.category} · {place.area}</small>
-                        </span>
-                        <ArrowLeft size={16} />
-                      </button>
-                    )) : (
-                      <div className="hm-no-results">
-                        <Search size={28} />
-                        <h3>لا توجد نتائج بهذه الخيارات</h3>
-                        <p>جرّب اسمًا آخر أو وسّع نطاق البحث.</p>
-                        <button className="directory-button secondary" onClick={reset}>مسح الفلاتر</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </section>
+              <MapFloatingPanel
+                panel={panel}
+                places={places}
+                districts={catalog.districts}
+                categories={catalog.categories}
+                area={area}
+                category={category}
+                showGates={showGates}
+                showNames={showNames}
+                selected={selected}
+                onClose={() => setPanel(null)}
+                onChangeArea={changeArea}
+                onChangeCategory={(cat) => {
+                  setCategory(cat);
+                  clearSelection();
+                }}
+                onToggleGates={(checked) => {
+                  setShowGates(checked);
+                  if (!checked) setSelectedGate(null);
+                }}
+                onToggleNames={setShowNames}
+                onReset={reset}
+                onSelectPlace={(id) => {
+                  selectPlace(id);
+                  setPanel(null);
+                }}
+              />
             )}
           </div>
 
@@ -263,29 +214,14 @@ export function MapScreen(p: DiscoveryProps) {
           )}
 
           {/* ── Gate detail overlay ── */}
-          {gate && (
-            <section
-              className="hm-gate-overlay"
-              data-map-ui="true"
-              onPointerDown={e => e.stopPropagation()}
-            >
-              <button className="hm-cards-back" onClick={() => { clearSelection(); setCardsOpen(true); }}>
-                الرجوع للأنشطة<ArrowLeft size={16} />
-              </button>
-              <h2><DoorOpen size={22} />{gate.name}</h2>
-              <p>{gate.road}</p>
-              <p>المناطق المرتبطة: {gate.areas}</p>
-              {/* Real directions link for the gate */}
-              <button type="button" onClick={()=>p.onAction('directions')} 
-                className="directory-button"
-                
-                
-                
-              >
-                الاتجاهات للبوابة
-              </button>
-            </section>
-          )}
+          <MapGateDetailOverlay
+            gate={gate ?? null}
+            onBack={() => {
+              clearSelection();
+              setCardsOpen(true);
+            }}
+            onDirections={() => p.onAction('directions')}
+          />
 
           <button
             className="hm-map-info"
@@ -298,37 +234,14 @@ export function MapScreen(p: DiscoveryProps) {
         </GeographicCanvas>
       </ScreenState>
 
-      {/* ── Gates list dialog ── */}
-      {gatesOpen && (
-        <Dialog title="بوابات حدائق الأهرام" onClose={() => setGatesOpen(false)}>
-          <p className="directory-form-help">اختر بوابة لتقريب الخريطة وإظهار معلوماتها.</p>
-          <div className="hm-gates-grid">
-            {catalog.gates.map(item => (
-              <article className="hm-gate-card" key={item.id}>
-                <DoorOpen size={25} />
-                <h3>{item.name}</h3>
-                <p>{item.road}</p>
-                <small>المناطق: {item.areas}</small>
-                <button
-                  className="directory-button secondary"
-                  onClick={() => { setArea('all'); selectGate(item.id); setGatesOpen(false); }}
-                >
-                  عرض على الخريطة<ArrowLeft size={16} />
-                </button>
-              </article>
-            ))}
-          </div>
-        </Dialog>
-      )}
-
-      {/* ── Map info dialog ── */}
-      {infoOpen && (
-        <Dialog title="عن هذه الخريطة" onClose={() => setInfoOpen(false)}>
-          <p>١٦ منطقة و٦ بوابات من بيانات المشروع المحلية. الحدود إرشادية وليست مساحية معتمدة. أسماء الأنشطة ومواقعها بيانات عرض افتراضية.</p>
-          <p className="mt-4">اسحب للتحريك، واستخدم أزرار التكبير أو Ctrl مع عجلة الفأرة، أو إصبعين على الهاتف. لوحة المفاتيح: الأسهم و+ و− وHome.</p>
-          <p className="mt-4">أبرز الأنشطة مرتبة في بيانات العرض، وليست توصيات أو ترتيبًا تجاريًا حقيقيًا. ربط أرقام العمارات الدقيقة متروك لمصدر بيانات معتمد عند الدمج.</p>
-        </Dialog>
-      )}
+      <MapScreenDialogs
+        gatesOpen={gatesOpen}
+        infoOpen={infoOpen}
+        gates={catalog.gates}
+        onCloseGates={() => setGatesOpen(false)}
+        onCloseInfo={() => setInfoOpen(false)}
+        onSelectGate={(id) => { setArea('all'); selectGate(id); setGatesOpen(false); }}
+      />
     </div>
   );
-}
+};

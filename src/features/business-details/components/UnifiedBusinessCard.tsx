@@ -8,19 +8,15 @@ import {
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
 import { PhotoWatermarkBadge } from '../../../components/PhotoWatermarkBadge';
-import { getWhatsAppUrl } from '../../../shared/lib/whatsapp';
-import { getGoogleMapsDirectionsUrl } from '../../../shared/lib/directions';
 import {
   ShieldCheck,
   Heart,
   Star,
-  Navigation,
-  MessageCircle,
-  Phone,
   MapPin,
   Play,
 } from 'lucide-react';
 import { Card, Chip } from '../../../shared/ui';
+import { BusinessActionButtons } from './BusinessActionButtons';
 
 export interface UnifiedBusinessCardProps {
   business: Business;
@@ -52,22 +48,6 @@ export const UnifiedBusinessCard: React.FC<UnifiedBusinessCardProps> = ({
   const distanceKm = userCoords && business.lat && business.lng
     ? calculateDistanceKm(userCoords.lat, userCoords.lng, business.lat, business.lng)
     : null;
-
-  // Directions URL via shared safe helper
-  const directionsUrl = getGoogleMapsDirectionsUrl({
-    lat: business.lat,
-    lng: business.lng,
-    destinationAddress: `${business.city || ''} ${business.street || ''}`,
-    query: business.nameAr,
-  });
-
-  // WhatsApp URL via shared helper
-  const whatsAppUrl = getWhatsAppUrl(
-    business.whatsapp || business.phone,
-    `مرحباً ${business.nameAr}، وجدتك عبر منصة دليلك وأود الاستفسار عن خدماتكم.`
-  );
-
-  const cleanPhone = (business.phone || '').replace(/[^\d+]/g, '');
 
   if (variant === 'compact') {
     return (
@@ -242,66 +222,7 @@ export const UnifiedBusinessCard: React.FC<UnifiedBusinessCardProps> = ({
         )}
 
         {/* 3. Action Buttons (Strict Order: Call -> WhatsApp -> Directions) */}
-        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
-          {/* Action 1: Call */}
-          {cleanPhone ? (
-            <a
-              href={`tel:${cleanPhone}`}
-              onClick={(e) => e.stopPropagation()}
-              className="min-h-[44px] py-2 px-2 rounded-xl text-xs font-black bg-slate-50 hover:bg-amber-50 text-slate-800 hover:text-amber-900 border border-slate-200 hover:border-amber-300 flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
-              title="اتصال هاتفي فوري"
-            >
-              <Phone className="w-3.5 h-3.5 text-slate-700 shrink-0" />
-              <span>اتصال</span>
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="min-h-[44px] py-2 px-2 rounded-xl text-xs bg-slate-50 text-slate-400 border border-slate-200 font-bold flex items-center justify-center gap-1 opacity-50 cursor-not-allowed"
-            >
-              <Phone className="w-3.5 h-3.5 shrink-0" />
-              <span>اتصال</span>
-            </button>
-          )}
-
-          {/* Action 2: WhatsApp */}
-          {whatsAppUrl ? (
-            <a
-              href={whatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="min-h-[44px] py-2 px-2 rounded-xl text-xs font-black bg-emerald-50/80 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
-              title="محادثة واتساب مباشرة"
-            >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>واتساب</span>
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="min-h-[44px] py-2 px-2 rounded-xl text-xs bg-slate-50 text-slate-400 border border-slate-200 font-bold flex items-center justify-center gap-1 opacity-50 cursor-not-allowed"
-            >
-              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>واتساب</span>
-            </button>
-          )}
-
-          {/* Action 3: Directions */}
-          <a
-            href={directionsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="min-h-[44px] py-2 px-2 rounded-xl text-xs font-black bg-blue-50/80 hover:bg-blue-100 text-blue-900 border border-blue-200/90 flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
-            title="الاتجاهات على خرائط Google"
-          >
-            <Navigation className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <span>اتجاهات</span>
-          </a>
-        </div>
+        <BusinessActionButtons business={business} />
       </div>
     </div>
   );

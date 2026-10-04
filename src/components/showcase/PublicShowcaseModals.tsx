@@ -1,0 +1,105 @@
+import React from 'react';
+import { Business } from '../../types';
+
+const ActivityDetailModal = React.lazy(() =>
+  import('../activity/ActivityDetailModal').then((m) => ({ default: m.ActivityDetailModal }))
+);
+const VideoPlayerModal = React.lazy(() =>
+  import('../VideoPlayerModal').then((m) => ({ default: m.VideoPlayerModal }))
+);
+
+export interface PublicShowcaseModalsProps {
+  selectedBiz: Business | null;
+  routingToken?: string | null;
+  directoryLoad: { pending: boolean; error: unknown };
+  handleCloseBusiness: () => void;
+  favorites: string[];
+  toggleFavorite: (id: string) => void;
+  setSelectedVideoBiz: (biz: Business | null) => void;
+  publicBusinesses: Business[];
+  handleOpenBusiness: (biz: Business) => void;
+  handleShowBusinessOnMap: (biz: Business) => void;
+  handleNavigate: (path: string) => void;
+  selectedVideoBiz: Business | null;
+  toastMessage: string | null;
+}
+
+export const PublicShowcaseModals: React.FC<PublicShowcaseModalsProps> = ({
+  selectedBiz,
+  routingToken,
+  directoryLoad,
+  handleCloseBusiness,
+  favorites,
+  toggleFavorite,
+  setSelectedVideoBiz,
+  publicBusinesses,
+  handleOpenBusiness,
+  handleShowBusinessOnMap,
+  handleNavigate,
+  selectedVideoBiz,
+  toastMessage,
+}) => {
+  return (
+    <>
+      {routingToken && !selectedBiz && (
+        <section
+          role="status"
+          className="fixed inset-x-4 top-24 z-50 bg-white border rounded-2xl shadow-xl p-6 text-center"
+        >
+          <h2>
+            {directoryLoad.pending
+              ? 'جارٍ تحميل النشاط…'
+              : directoryLoad.error
+              ? 'تعذر تحميل النشاط'
+              : 'النشاط غير متاح'}
+          </h2>
+          <p>قد يكون الرابط قديمًا أو النشاط غير منشور.</p>
+          {directoryLoad.error && (
+            <button onClick={() => window.dispatchEvent(new Event('directory:retry'))}>
+              إعادة المحاولة
+            </button>
+          )}
+          <button className="min-h-11 underline" onClick={handleCloseBusiness}>
+            العودة للدليل
+          </button>
+        </section>
+      )}
+
+      {selectedBiz && (
+        <React.Suspense fallback={null}>
+          <ActivityDetailModal
+            key={selectedBiz.id}
+            business={selectedBiz}
+            onClose={handleCloseBusiness}
+            isFavorite={favorites.includes(selectedBiz.id)}
+            onToggleFavorite={toggleFavorite}
+            onOpenVideoModal={(b) => setSelectedVideoBiz(b)}
+            allBusinesses={publicBusinesses}
+            onSelectBusiness={handleOpenBusiness}
+            onNavigateToBusinessClaim={() => {
+              handleCloseBusiness();
+              handleNavigate('/for-business');
+            }}
+            onShowOnMap={handleShowBusinessOnMap}
+          />
+        </React.Suspense>
+      )}
+
+      {selectedVideoBiz && (
+        <React.Suspense fallback={null}>
+          <VideoPlayerModal
+            business={selectedVideoBiz}
+            onClose={() => setSelectedVideoBiz(null)}
+          />
+        </React.Suspense>
+      )}
+
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-black shadow-2xl border border-amber-500/30 animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+    </>
+  );
+};

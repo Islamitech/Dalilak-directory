@@ -1,37 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LocationAddressData, fetchLocationAddress } from '../../../utils/geocoding';
+import { fetchLocationAddress } from '../../../utils/geocoding';
 import { MapTileLayerType } from '../constants/mapConstants';
-import { preloadHadayekTiles, cancelHadayekTilePreload, HADAYEK_BOUNDS_COORDS } from '../../../utils/hadayekTilePreloader';
+import { preloadHadayekTiles, cancelHadayekTilePreload } from '../../../utils/hadayekTilePreloader';
 import { loadLeafletScript } from '../utils/leafletLoader';
 import { CameraController } from '../controllers/CameraController';
+import { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS } from '../../../features/map/model/mapBounds';
+import { applyTileLayer } from '../../../features/map/model/mapTileLayers';
+import { createLeafletMapInstance, calculatePanOffset, UseMapInstanceProps } from '../../../features/map/model/mapFactory';
 
-export const HADAYEK_BOUNDS: [[number, number], [number, number]] = [
-  HADAYEK_BOUNDS_COORDS.sw,
-  HADAYEK_BOUNDS_COORDS.ne,
-];
-
-// Tight visual frame around the official district polygons. Navigation can
-// still use the wider HADAYEK_BOUNDS, but the first paint should not waste
-// most of a phone screen on surrounding desert and roads.
-export const HADAYEK_VIEW_BOUNDS: [[number, number], [number, number]] = [
-  [29.9465, 31.0865],
-  [29.9902, 31.1140],
-];
-
-export const HADAYEK_TILE_BOUNDS: [[number, number], [number, number]] = [
-  [29.9100, 31.0400],
-  [30.0250, 31.1550],
-];
-
-export interface UseMapInstanceProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  mode?: 'picker' | 'view';
-  lat?: number;
-  lng?: number;
-  zoomLevel?: number;
-  isExpanded?: boolean;
-  onLocationSelect?: (lat: number, lng: number, addressDetails?: LocationAddressData) => void;
-}
+export { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS };
+export type { UseMapInstanceProps };
 
 export const useMapInstance = ({
   containerRef,
@@ -42,19 +20,14 @@ export const useMapInstance = ({
   isExpanded = false,
   onLocationSelect,
 }: UseMapInstanceProps) => {
-  const [currentLat, setCurrentLat] = useState<number>(lat);
-  const [currentLng, setCurrentLng] = useState<number>(lng);
-  const [zoomLevel, setZoomLevel] = useState<number>(initialZoom);
+  const [currentLat, setCurrentLat] = useState(lat);
+  const [currentLng, setCurrentLng] = useState(lng);
+  const [zoomLevel, setZoomLevel] = useState(initialZoom);
   const [tileLayer, setTileLayer] = useState<MapTileLayerType>('dalelak-clean');
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [isMapReady, setIsMapReady] = useState<boolean>(false);
+  const [isMapReady, setIsMapReady] = useState(false);
   const [mapScriptError, setMapScriptError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState<number>(0);
-
-  const retryLoadMap = useCallback(() => {
-    setMapScriptError(null);
-    setReloadKey((k) => k + 1);
-  }, []);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const leafletMapRef = useRef<any>(null);
   const cameraControllerRef = useRef<CameraController | null>(null);
@@ -62,413 +35,75 @@ export const useMapInstance = ({
   const markersGroupRef = useRef<any>(null);
   const pickerMarkerRef = useRef<any>(null);
   const accuracyCircleRef = useRef<any>(null);
+  const liveCenterRef = useRef({ lat, lng, zoom: zoomLevel });
 
-  // Live geographic viewport tracker (locks view 100% during expand/collapse/resize - commit 3471e21)
-  const liveCenterRef = useRef<{ lat: number; lng: number; zoom: number }>({
-    lat,
-    lng,
-    zoom: zoomLevel,
-  });
-  const prevPropsCoordRef = useRef<{ lat: number; lng: number }>({ lat, lng });
-
-  // Only respond to prop coordinate changes if they actually changed from the outside
-  useEffect(() => {
-    if (prevPropsCoordRef.current.lat === lat && prevPropsCoordRef.current.lng === lng) {
-      return;
-    }
-    prevPropsCoordRef.current = { lat, lng };
-    setCurrentLat(lat);
-    setCurrentLng(lng);
-    liveCenterRef.current.lat = lat;
-    liveCenterRef.current.lng = lng;
-
-    if (leafletMapRef.current && isMapReady) {
-      try {
-        const cur = leafletMapRef.current.getCenter();
-        if (Math.abs(cur.lat - lat) > 0.0005 || Math.abs(cur.lng - lng) > 0.0005) {
-          if (mode === 'picker') {
-          cameraControllerRef.current?.request({ kind: 'flyTo', center: [lat, lng], zoom: 17, options: { duration: 0.8 } }, 'locate');
-          }
-        }
-      } catch {}
-    }
-  }, [lat, lng, isMapReady, mode]);
-
-  // Tile layer URL resolver with high-performance tile caching options strictly bounded to Hadayek
-  const getTileLayerConfig = useCallback((type: MapTileLayerType) => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-    const commonOptions = {
-      keepBuffer: isMobile ? 8 : 12,
-      updateWhenIdle: false,
-      updateWhenZooming: true,
-      bounds: HADAYEK_TILE_BOUNDS,
-      crossOrigin: true,
-    };
-
-    switch (type) {
-      case 'google-streets':
-        return {
-          url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-          maxZoom: 20,
-          maxNativeZoom: 20,
-          subdomains: ['0', '1', '2', '3'],
-          attribution: 'Map data © Google',
-          ...commonOptions,
-        };
-      case 'google-hybrid':
-        return {
-          url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-          maxZoom: 20,
-          maxNativeZoom: 20,
-          subdomains: ['0', '1', '2', '3'],
-          attribution: 'Map data © Google',
-          ...commonOptions,
-        };
-      case 'dalelak-clean':
-      default:
-        // 🗺️ الخريطة المساحية التخطيطية الصفراء الصماء مع أرقام المباني والقطع بدقة
-        return {
-          url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-          maxZoom: 20,
-          maxNativeZoom: 19,
-          subdomains: ['a', 'b', 'c'],
-          attribution: '© خريطة دليلك المساحية / OpenStreetMap contributors / Humanitarian OSM',
-          ...commonOptions,
-        };
-    }
-  }, []);
-
-  // Switch Tile Layer
+  const retryLoadMap = useCallback(() => { setMapScriptError(null); setReloadKey((k) => k + 1); }, []);
   const switchTileLayer = useCallback((newType: MapTileLayerType) => {
     setTileLayer(newType);
-    if (!leafletMapRef.current || !window.L) return;
+    applyTileLayer(leafletMapRef.current, tileLayerRef, newType);
+  }, []);
 
-    const previousLayer = tileLayerRef.current;
-
-    const cfg = getTileLayerConfig(newType);
-    const newLayer = window.L.tileLayer(cfg.url, {
-      maxZoom: cfg.maxZoom,
-      maxNativeZoom: cfg.maxNativeZoom,
-      subdomains: cfg.subdomains,
-      attribution: cfg.attribution,
-      keepBuffer: cfg.keepBuffer,
-      updateWhenIdle: cfg.updateWhenIdle,
-      updateWhenZooming: cfg.updateWhenZooming,
-      bounds: cfg.bounds,
-      crossOrigin: cfg.crossOrigin,
-    });
-
-    newLayer.addTo(leafletMapRef.current);
-    tileLayerRef.current = newLayer;
-
-    // Keep the previous tiles visible until the replacement has painted.
-    // This avoids the white flash that used to make layer switching feel broken.
-    if (previousLayer && previousLayer !== newLayer) {
-      let finalized = false;
-      const removePreviousLayer = () => {
-        if (finalized) return;
-        finalized = true;
-        try {
-          if (leafletMapRef.current?.hasLayer(previousLayer)) {
-            leafletMapRef.current.removeLayer(previousLayer);
-          }
-        } catch {}
-      };
-      newLayer.once('load', removePreviousLayer);
-      window.setTimeout(removePreviousLayer, 2500);
+  const updateSelectedPosition = useCallback(async (newLat: number, newLng: number, fly = true, customZoom?: number) => {
+    setCurrentLat(newLat); setCurrentLng(newLng);
+    liveCenterRef.current.lat = newLat; liveCenterRef.current.lng = newLng;
+    if (fly) cameraControllerRef.current?.request({ kind: 'flyTo', center: [newLat, newLng], zoom: customZoom || 17, options: { duration: 1.0 } }, 'locate');
+    if (pickerMarkerRef.current) pickerMarkerRef.current.setLatLng([newLat, newLng]);
+    if (onLocationSelect) {
+      const addr = await fetchLocationAddress(newLat, newLng);
+      onLocationSelect(newLat, newLng, addr);
     }
+  }, [onLocationSelect]);
 
-    // Trigger pre-warming for the newly selected tile provider
-    preloadHadayekTiles(newType);
-  }, [getTileLayerConfig]);
-
-  // Move marker and trigger callback safely without shaking viewport
-  const updateSelectedPosition = useCallback(
-    async (newLat: number, newLng: number, flyTo: boolean = false, customZoom?: number) => {
-      if (!Number.isFinite(newLat) || !Number.isFinite(newLng) || (Math.abs(newLat) < 0.0001 && Math.abs(newLng) < 0.0001)) {
-        console.warn('Map navigation rejected Null Island / invalid coordinates:', { newLat, newLng });
-        return;
-      }
-
-      const precisionLat = Number(newLat.toFixed(6));
-      const precisionLng = Number(newLng.toFixed(6));
-
-      setCurrentLat(precisionLat);
-      setCurrentLng(precisionLng);
-
-      if (leafletMapRef.current && flyTo) {
-        cameraControllerRef.current?.request({ kind: 'flyTo', center: [precisionLat, precisionLng], zoom: customZoom || 17, options: { duration: 1.0 } }, 'locate');
-      }
-
-      if (pickerMarkerRef.current) {
-        pickerMarkerRef.current.setLatLng([precisionLat, precisionLng]);
-      }
-
-      if (onLocationSelect) {
-        const addrDetails = await fetchLocationAddress(precisionLat, precisionLng);
-        onLocationSelect(precisionLat, precisionLng, addrDetails);
-      }
-    },
-    [onLocationSelect]
-  );
-
-  const updateSelectedPositionRef = useRef(updateSelectedPosition);
-  updateSelectedPositionRef.current = updateSelectedPosition;
-  const getTileLayerConfigRef = useRef(getTileLayerConfig);
-  getTileLayerConfigRef.current = getTileLayerConfig;
-
-  // Initialize Map
   useEffect(() => {
+    if (!containerRef.current) return;
     let isSubscribed = true;
-
-    const initMap = () => {
-      if (!containerRef.current || !window.L || leafletMapRef.current) return;
-
-      try {
-        if ((containerRef.current as any)._leaflet_id) {
-          (containerRef.current as any)._leaflet_id = null;
-        }
-      } catch {}
-
-      const centerToUse = liveCenterRef.current || { lat: currentLat, lng: currentLng, zoom: zoomLevel };
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-
-      const map = window.L.map(containerRef.current, {
-        center: [centerToUse.lat, centerToUse.lng],
-        zoom: centerToUse.zoom || zoomLevel,
-        zoomControl: false,
-        attributionControl: false,
-        zoomSnap: 0.5,
-        zoomDelta: 0.5,
-        wheelPxPerZoomLevel: 80,
-        zoomAnimation: true,
-        fadeAnimation: true,
-        markerZoomAnimation: true,
-        inertia: true,
-        inertiaDeceleration: 3500,
-        inertiaMaxSpeed: 1600,
-        easeLinearity: 0.25,
-        bounceAtZoomLimits: false,
-        maxBoundsViscosity: 0.75, // Natural elastic damping instead of rigid slam
-      });
-      const cameraController = new CameraController(map);
-      cameraControllerRef.current = cameraController;
-
-      if (mode === 'view') {
-        map.setMaxBounds(HADAYEK_BOUNDS);
-        map.options.minZoom = isMobile ? 12.8 : 13.2;
-        map.options.maxZoom = 19.5;
-
-        // Resolve the final overview before adding the tile layer. Previously
-        // tiles were requested once for the constructor zoom and again after
-        // fitBounds, doubling first-map network and producing a visible snap.
-        try {
-          cameraController.request({ kind: 'fitBounds', bounds: HADAYEK_VIEW_BOUNDS, options: { padding: [12, 12], maxZoom: 14.5, animate: false } }, 'initial');
-          const fittedCenter = map.getCenter();
-          liveCenterRef.current = {
-            lat: fittedCenter.lat,
-            lng: fittedCenter.lng,
-            zoom: map.getZoom(),
-          };
-        } catch {}
-      } else {
-        map.options.minZoom = 6;
-        map.options.maxZoom = 19.5;
-      }
-
-      const cfg = getTileLayerConfigRef.current(tileLayer);
-      const layer = window.L.tileLayer(cfg.url, {
-        maxZoom: cfg.maxZoom,
-        maxNativeZoom: cfg.maxNativeZoom,
-        subdomains: cfg.subdomains,
-        attribution: cfg.attribution,
-        keepBuffer: cfg.keepBuffer,
-        updateWhenIdle: cfg.updateWhenIdle,
-        updateWhenZooming: cfg.updateWhenZooming,
-        bounds: cfg.bounds,
-        crossOrigin: cfg.crossOrigin,
-      }).addTo(map);
-
-      tileLayerRef.current = layer;
-      markersGroupRef.current = window.L.layerGroup().addTo(map);
-      leafletMapRef.current = map;
-      setIsMapReady(true);
-      if (containerRef.current) {
-        (containerRef.current as any)._leaflet_map = map;
-      }
-
-      // 🚀 Background pre-warming of all Hadayek Al-Ahram tiles into cache
-      preloadHadayekTiles(tileLayer);
-
-      // Update zoom and center state on user navigation
-      let zoomUpdateFrame: number | null = null;
-      map.on('zoomend', () => {
-        if (!isSubscribed) return;
-        if (zoomUpdateFrame !== null) cancelAnimationFrame(zoomUpdateFrame);
-        zoomUpdateFrame = requestAnimationFrame(() => {
-          zoomUpdateFrame = null;
-          if (!isSubscribed) return;
-          const currentZ = map.getZoom();
-          setZoomLevel((prev) => (Math.abs(prev - currentZ) > 0.05 ? currentZ : prev));
-        });
-        try {
-          const c = map.getCenter();
-          const z = map.getZoom();
-          if (c && typeof c.lat === 'number' && !isNaN(c.lat)) {
-            liveCenterRef.current = { lat: c.lat, lng: c.lng, zoom: z };
-          }
-        } catch {}
-      });
-
-      map.on('moveend', () => {
-        if (!isSubscribed) return;
-        try {
-          const c = map.getCenter();
-          const z = map.getZoom();
-          if (c && typeof c.lat === 'number' && !isNaN(c.lat)) {
-            liveCenterRef.current = { lat: c.lat, lng: c.lng, zoom: z };
-          }
-        } catch {}
-      });
-
-      // Handle map click in picker mode
-      map.on('click', (e: any) => {
-        if (mode !== 'picker') return;
-        updateSelectedPositionRef.current(e.latlng.lat, e.latlng.lng, false);
-      });
-    };
-
     const cleanupLoader = loadLeafletScript({
       onSuccess: () => {
-        if (isSubscribed) {
-          setMapScriptError(null);
-          initMap();
-        }
+        if (!isSubscribed || !containerRef.current || !window.L || leafletMapRef.current) return;
+        setMapScriptError(null);
+        const { map, cameraController } = createLeafletMapInstance({ container: containerRef.current, center: liveCenterRef.current, zoomLevel, mode });
+        cameraControllerRef.current = cameraController;
+        applyTileLayer(map, tileLayerRef, tileLayer);
+        markersGroupRef.current = window.L.layerGroup().addTo(map);
+        leafletMapRef.current = map;
+        (containerRef.current as any)._leaflet_map = map;
+        setIsMapReady(true);
+        preloadHadayekTiles(tileLayer);
+        map.on('zoomend moveend', () => {
+          if (!isSubscribed) return;
+          try {
+            const c = map.getCenter(); const z = map.getZoom();
+            if (c && typeof c.lat === 'number') liveCenterRef.current = { lat: c.lat, lng: c.lng, zoom: z };
+            setZoomLevel(z);
+          } catch {}
+        });
+        map.on('click', (e: any) => { if (mode === 'picker') updateSelectedPosition(e.latlng.lat, e.latlng.lng, false); });
       },
-      onError: () => {
-        if (isSubscribed) {
-          setMapScriptError('تعذر تحميل محرك الخريطة من المصدر. يرجى التحقق من الاتصال بالإنترنت.');
-        }
-      },
+      onError: () => { if (isSubscribed) setMapScriptError('تعذر تحميل محرك الخريطة من المصدر. يرجى التحقق من الاتصال بالإنترنت.'); },
     });
-
     return () => {
-      isSubscribed = false;
-      cleanupLoader();
-      cancelHadayekTilePreload();
-      setIsMapReady(false);
-      if (leafletMapRef.current) {
-        cameraControllerRef.current?.destroy();
-        cameraControllerRef.current = null;
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
-      }
-      if (containerRef.current) {
-        try {
-          (containerRef.current as any)._leaflet_map = null;
-        } catch {}
-      }
+      isSubscribed = false; cleanupLoader(); cancelHadayekTilePreload(); setIsMapReady(false);
+      cameraControllerRef.current?.destroy(); cameraControllerRef.current = null;
+      leafletMapRef.current?.remove(); leafletMapRef.current = null;
     };
   }, [mode, reloadKey]);
 
-  // Handle container expansion/collapse without destroying Leaflet instance
   useEffect(() => {
     if (leafletMapRef.current && isMapReady) {
-      const timer = setTimeout(() => {
-        if (leafletMapRef.current) {
-          leafletMapRef.current.invalidateSize({ animate: false, pan: false });
-        }
-      }, 150);
+      const timer = setTimeout(() => leafletMapRef.current?.invalidateSize({ animate: false, pan: false }), 150);
       return () => clearTimeout(timer);
     }
   }, [isExpanded, isMapReady]);
 
-  // Handle Resize & Fullscreen Invalidation (Zero Center Drift - commit 3471e21)
-  useEffect(() => {
-    let resizeFrame: number | null = null;
-    const handleResize = () => {
-      if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => {
-        resizeFrame = null;
-        if (!leafletMapRef.current) return;
-        if (containerRef.current && !containerRef.current.classList.contains('leaflet-container')) {
-          containerRef.current.classList.add('leaflet-container');
-        }
-        leafletMapRef.current.invalidateSize({ animate: false, pan: false });
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-      if (resizeObserver) resizeObserver.disconnect();
-    };
-  }, [containerRef]);
-
-  // Directional Pan Controls
-  const handlePan = (direction: 'up' | 'down' | 'left' | 'right') => {
-    if (!leafletMapRef.current) return;
-    const offset = 140;
-    const panMap: Record<string, [number, number]> = {
-      up: [0, -offset],
-      down: [0, offset],
-      left: [-offset, 0],
-      right: [offset, 0],
-    };
-    cameraControllerRef.current?.request({ kind: 'panBy', offset: panMap[direction], options: { animate: true, duration: 0.25 } }, 'user');
-  };
-
-  // Zoom Controls
-  const handleZoomIn = () => cameraControllerRef.current?.request({ kind: 'zoom', delta: 1 }, 'user');
-  const handleZoomOut = () => cameraControllerRef.current?.request({ kind: 'zoom', delta: -1 }, 'user');
-
-  // Reset Position to default
-  const handleResetPosition = () => {
-    if (leafletMapRef.current) {
-      cameraControllerRef.current?.request({ kind: 'flyTo', center: [lat, lng], zoom: 16, options: { duration: 0.8 } }, 'user');
-    }
-  };
-
-  const handlePinCenterOfMap = () => {
-    if (!leafletMapRef.current) return;
-    const center = leafletMapRef.current.getCenter();
-    updateSelectedPosition(center.lat, center.lng, false);
-  };
-
   return {
-    leafletMapRef,
-    cameraController: cameraControllerRef.current,
-    isMapReady,
-    mapScriptError,
-    retryLoadMap,
-    markersGroupRef,
-    pickerMarkerRef,
-    accuracyCircleRef,
-    liveCenterRef,
-    currentLat,
-    currentLng,
-    zoomLevel,
-    tileLayer,
-    gpsAccuracy,
-    setGpsAccuracy,
-    switchTileLayer,
-    updateSelectedPosition,
-    handlePan,
-    handleZoomIn,
-    handleZoomOut,
-    handleResetPosition,
-    handlePinCenterOfMap,
+    leafletMapRef, cameraController: cameraControllerRef.current, isMapReady, mapScriptError,
+    retryLoadMap, markersGroupRef, pickerMarkerRef, accuracyCircleRef, liveCenterRef,
+    currentLat, currentLng, zoomLevel, tileLayer, gpsAccuracy, setGpsAccuracy,
+    switchTileLayer, updateSelectedPosition,
+    handlePan: (dir: 'up' | 'down' | 'left' | 'right') => cameraControllerRef.current?.request({ kind: 'panBy', offset: calculatePanOffset(dir), options: { animate: true, duration: 0.25 } }, 'user'),
+    handleZoomIn: () => cameraControllerRef.current?.request({ kind: 'zoom', delta: 1 }, 'user'),
+    handleZoomOut: () => cameraControllerRef.current?.request({ kind: 'zoom', delta: -1 }, 'user'),
+    handleResetPosition: () => cameraControllerRef.current?.request({ kind: 'flyTo', center: [lat, lng], zoom: 16, options: { duration: 0.8 } }, 'user'),
+    handlePinCenterOfMap: () => { if (leafletMapRef.current) { const c = leafletMapRef.current.getCenter(); updateSelectedPosition(c.lat, c.lng, false); } },
   };
 };
