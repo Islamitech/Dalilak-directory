@@ -5,15 +5,16 @@ import { DirectoryStatus } from './DirectoryStatus';
 import { isPublicBusiness } from '../shared/publicBusiness';
 import { parseActivitySearchIntent } from '../utils/activitySearchIntent';
 import { Business } from '../types';
-import { getDirectoryPath, getBusinessSlug } from '../utils/directoryUrl';
+import { getBusinessSlug } from '../utils/directoryUrl';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
 import { MobileBottomNav } from './layout/MobileBottomNav';
-import { MessageCircle } from 'lucide-react';
+import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
 import { useShowcaseFavorites } from './showcase/hooks/useShowcaseFavorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
 import { useShowcaseGeolocation } from './showcase/hooks/useShowcaseGeolocation';
+import { useShowcaseBusinessSelection } from './showcase/hooks/useShowcaseBusinessSelection';
 import { computeFilteredBusinesses } from './showcase/model/showcaseFilterModel';
 import { PublicShowcaseViews } from './showcase/PublicShowcaseViews';
 import { PublicShowcaseModals } from './showcase/PublicShowcaseModals';
@@ -83,29 +84,22 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     [businesses, routing.token]
   );
 
-  const [selectedVideoBiz, setSelectedVideoBiz] = useState<Business | null>(null);
-  const [pinnedDirectBizId, setPinnedDirectBizId] = useState<string | null>(null);
-  const [focusedMapBiz, setFocusedMapBiz] = useState<Business | null>(null);
-  const isDirectLinkOpenRef = React.useRef(Boolean(initialBizId));
-
-  React.useEffect(() => {
-    if (isDirectLinkOpenRef.current && selectedBiz) {
-      isDirectLinkOpenRef.current = false;
-      setPinnedDirectBizId(selectedBiz.id);
-      filterState.handleCategoryChange(selectedBiz.category);
-    }
-  }, [selectedBiz, filterState]);
-
-  const handleShowBusinessOnMap = (biz: Business) => {
-    filterState.setHadayekZoneFilter('all');
-    setFocusedMapBiz(biz);
-    handleNavigate('/map');
-  };
-  const handleOpenBusiness = (biz: Business) => {
-    isDirectLinkOpenRef.current = false;
-    routing.open(getDirectoryPath(biz));
-  };
-  const handleCloseBusiness = routing.close;
+  const {
+    selectedVideoBiz,
+    setSelectedVideoBiz,
+    pinnedDirectBizId,
+    focusedMapBiz,
+    setFocusedMapBiz,
+    handleShowBusinessOnMap,
+    handleOpenBusiness,
+    handleCloseBusiness,
+  } = useShowcaseBusinessSelection({
+    selectedBiz,
+    initialBizId,
+    filterState,
+    routing,
+    handleNavigate,
+  });
 
   useShowcaseMetadata(selectedBiz, currentPath, filterState.categoryFilter, filterState.hadayekZoneFilter);
 
@@ -226,18 +220,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         toastMessage={toastMessage}
       />
 
-      <a
-        href={`https://wa.me/201556221141?text=${encodeURIComponent(
-          'مرحباً دليلك، أود الاستفسار عن خدمة في الدليل' + (referralCode ? ` (كود: ${referralCode})` : '')
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hidden md:flex fixed bottom-6 start-6 z-30 w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-        title="تواصل معنا عبر واتساب"
-        aria-label="WhatsApp"
-      >
-        <MessageCircle className="w-5 h-5" />
-      </a>
+      <WhatsAppFloatingButton referralCode={referralCode} />
 
       <MobileBottomNav
         currentPath={currentPath}

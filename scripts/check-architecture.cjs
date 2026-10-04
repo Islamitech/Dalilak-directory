@@ -106,7 +106,7 @@ if (deepImportViolations === 0) {
 }
 
 // 5. No forbidden physical-direction classes (RTL enforcement)
-const PHYSICAL_DIRECTION_REGEX = /\b(ml-\d+|mr-\d+|pl-\d+|pr-\d+|border-l(-\d+)?|border-r(-\d+)?|text-left\b|text-right\b)\b/g;
+const PHYSICAL_DIRECTION_REGEX = /\b(ml-\d+|mr-\d+|pl-\d+|pr-\d+|border-l(-\d+)?|border-r(-\d+)?|rounded-l(-\w+)?|rounded-r(-\w+)?|left-\d+|right-\d+|left-0\b|right-0\b|text-left\b|text-right\b)\b/g;
 let rtlViolations = 0;
 sourceFiles.forEach((filePath) => {
   const rel = path.relative(SRC, filePath).replace(/\\/g, '/');

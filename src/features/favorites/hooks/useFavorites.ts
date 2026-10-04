@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const FAVORITES_STORAGE_KEY = 'dalelak_favorites';
+const FAVORITES_STORAGE_KEY = 'dalelak_user_favorites';
 
 export function useFavorites() {
   const [favorites, setFavorites] = useState<string[]>(() => {
