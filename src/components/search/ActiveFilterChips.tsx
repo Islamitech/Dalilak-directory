@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { Chip } from '../../shared/ui';
 
 export interface ActiveFilterChipsProps {
   categoryFilter: string;
@@ -51,109 +52,80 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
       <span className="text-[11px] font-bold text-slate-500 me-1">الفلاتر المطبقة:</span>
 
       {categoryFilter !== 'all' && (
-        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>التصنيف: {categoryLabel || categoryFilter}</span>
-          <button
-            type="button"
-            onClick={onClearCategory}
-            className="w-4 h-4 rounded-full hover:bg-amber-200 flex items-center justify-center cursor-pointer transition-colors"
-            title="إلغاء هذا الفلتر"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
+        <Chip
+          variant="gold"
+          onClear={onClearCategory}
+          aria-label={`إلغاء فلتر التصنيف: ${categoryLabel || categoryFilter}`}
+        >
+          التصنيف: {categoryLabel || categoryFilter}
+        </Chip>
       )}
 
       {subcategoryFilter !== 'all' && (
-        <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-900 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>النوع: {subcategoryLabel || subcategoryFilter}</span>
-          {onClearSubcategory && (
-            <button type="button" onClick={onClearSubcategory} className="w-4 h-4 rounded-full hover:bg-slate-200 flex items-center justify-center" title="إلغاء النوع الفرعي">
-              <X className="w-2.5 h-2.5" />
-            </button>
-          )}
-        </span>
+        <Chip
+          variant="default"
+          onClear={onClearSubcategory}
+          aria-label={`إلغاء فلتر النوع: ${subcategoryLabel || subcategoryFilter}`}
+        >
+          النوع: {subcategoryLabel || subcategoryFilter}
+        </Chip>
       )}
 
       {selectedGov !== 'all' && (
-        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>المحافظة: {selectedGov}</span>
-          <button
-            type="button"
-            onClick={onClearGov}
-            className="w-4 h-4 rounded-full hover:bg-blue-200 flex items-center justify-center cursor-pointer transition-colors"
-            title="إلغاء هذا الفلتر"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
+        <Chip
+          variant="default"
+          onClear={onClearGov}
+          aria-label={`إلغاء فلتر المحافظة: ${selectedGov}`}
+        >
+          المحافظة: {selectedGov}
+        </Chip>
       )}
 
       {selectedCity !== 'all' && (
-        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>المنطقة: {selectedCity}</span>
-          <button
-            type="button"
-            onClick={onClearCity}
-            className="w-4 h-4 rounded-full hover:bg-blue-200 flex items-center justify-center cursor-pointer transition-colors"
-            title="إلغاء هذا الفلتر"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
+        <Chip
+          variant="default"
+          onClear={onClearCity}
+          aria-label={`إلغاء فلتر المنطقة: ${selectedCity}`}
+        >
+          المنطقة: {selectedCity}
+        </Chip>
       )}
 
       {openNowOnly && (
-        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>مفتوح الآن</span>
-          <button
-            type="button"
-            onClick={onClearOpenNow}
-            className="w-4 h-4 rounded-full hover:bg-emerald-200 flex items-center justify-center cursor-pointer transition-colors"
-            title="إلغاء هذا الفلتر"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
+        <Chip
+          variant="success"
+          onClear={onClearOpenNow}
+          aria-label="إلغاء فلتر مفتوح الآن"
+        >
+          مفتوح الآن
+        </Chip>
       )}
 
       {hasVideoOnly && (
-        <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-900 border border-purple-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>يحتوي على فيديو</span>
-          {onClearHasVideo && (
-            <button
-              type="button"
-              onClick={onClearHasVideo}
-              className="w-4 h-4 rounded-full hover:bg-purple-200 flex items-center justify-center cursor-pointer transition-colors"
-              title="إلغاء هذا الفلتر"
-            >
-              <X className="w-2.5 h-2.5" />
-            </button>
-          )}
-        </span>
+        <Chip
+          variant="default"
+          onClear={onClearHasVideo}
+          aria-label="إلغاء فلتر يحتوي على فيديو"
+        >
+          يحتوي على فيديو
+        </Chip>
       )}
 
       {sortBy !== 'default' && (
-        <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-800 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
-          <span>
-            ترتيب:{' '}
-            {sortBy === 'nearest'
-              ? 'الأقرب أولاً'
-              : sortBy === 'newest'
-              ? 'الأحدث'
-              : sortBy === 'open_now'
-              ? 'المفتوح أولاً'
-              : sortBy}
-          </span>
-          <button
-            type="button"
-            onClick={onClearSort}
-            className="w-4 h-4 rounded-full hover:bg-slate-200 flex items-center justify-center cursor-pointer transition-colors"
-            title="إلغاء الترتيب"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
-        </span>
+        <Chip
+          variant="default"
+          onClear={onClearSort}
+          aria-label="إلغاء الترتيب المخصص"
+        >
+          ترتيب:{' '}
+          {sortBy === 'nearest'
+            ? 'الأقرب أولاً'
+            : sortBy === 'newest'
+            ? 'الأحدث'
+            : sortBy === 'open_now'
+            ? 'المفتوح أولاً'
+            : sortBy}
+        </Chip>
       )}
 
       {!hideResetButton && (

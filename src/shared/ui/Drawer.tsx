@@ -8,6 +8,12 @@ export interface DrawerProps {
   title?: string;
   children: React.ReactNode;
   position?: 'bottom' | 'right' | 'left';
+  className?: string;
+  overlayClassName?: string;
+  contentClassName?: string;
+  headerContent?: React.ReactNode;
+  hideDefaultHeader?: boolean;
+  'aria-label'?: string;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -16,6 +22,12 @@ export const Drawer: React.FC<DrawerProps> = ({
   title,
   children,
   position = 'bottom',
+  className = '',
+  overlayClassName = '',
+  contentClassName = '',
+  headerContent,
+  hideDefaultHeader = false,
+  'aria-label': ariaLabel,
 }) => {
   const { containerRef } = useAccessibleDialog({ isOpen, onClose });
 
@@ -32,7 +44,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end animate-fade-in"
+      className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end animate-fade-in ${overlayClassName}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -42,30 +54,36 @@ export const Drawer: React.FC<DrawerProps> = ({
         ref={containerRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title || 'لوحة خيارات'}
+        aria-label={ariaLabel || title || 'لوحة خيارات'}
         tabIndex={-1}
-        className={`fixed ${positionClasses[position]} bg-white shadow-2xl flex flex-col overflow-hidden focus:outline-none`}
+        className={`fixed ${positionClasses[position]} bg-white shadow-2xl flex flex-col overflow-hidden focus:outline-none ${className}`}
         style={{ direction: 'rtl' }}
       >
         {/* Grab Handle for bottom sheet */}
-        {position === 'bottom' && (
+        {!hideDefaultHeader && position === 'bottom' && (
           <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-3 shrink-0" />
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-slate-100 bg-slate-50/50 shrink-0">
-          <h2 className="text-base font-black text-slate-800">{title}</h2>
-          <IconButton
-            aria-label="إغلاق"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            icon={<span className="text-lg leading-none">✕</span>}
-          />
-        </div>
+        {!hideDefaultHeader && (
+          <div className="flex items-center justify-between px-6 py-3 border-b border-slate-100 bg-slate-50/50 shrink-0">
+            {headerContent ? (
+              headerContent
+            ) : (
+              <h2 className="text-base font-black text-slate-800">{title}</h2>
+            )}
+            <IconButton
+              aria-label="إغلاق"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              icon={<span className="text-lg leading-none">✕</span>}
+            />
+          </div>
+        )}
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        <div className={`overflow-y-auto flex-1 ${contentClassName || 'p-6'}`}>{children}</div>
       </div>
     </div>
   );

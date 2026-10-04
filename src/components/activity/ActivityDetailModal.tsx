@@ -9,7 +9,7 @@ import {
 import { getPublicDirectoryUrl, getDisplayDirectoryUrl } from '../../utils/directoryUrl';
 import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../services/supabaseClient';
 import { PhotoWatermarkBadge } from '../PhotoWatermarkBadge';
-import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
+import { Modal, IconButton } from '../../shared/ui';
 import {
   X,
   ShieldCheck,
@@ -64,7 +64,6 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
-  const { containerRef } = useAccessibleDialog({ isOpen: !!business, onClose });
   const [previewPhotoIndex, setPreviewPhotoIndex] = useState<number | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [vCardSaved, setVCardSaved] = useState(false);
@@ -74,8 +73,14 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   // Handle Suspended / Rejected businesses (Institutional Safety)
   if (business.verificationStatus === 'rejected') {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-        <div className="bg-white border border-rose-200 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+      <Modal
+        isOpen={!!business}
+        onClose={onClose}
+        maxWidth="sm"
+        hideDefaultHeader
+        aria-label="نشاط غير متاح"
+      >
+        <div className="text-center space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
             <Lock className="w-7 h-7" />
           </div>
@@ -91,7 +96,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
             العودة للدليل
           </button>
         </div>
-      </div>
+      </Modal>
     );
   }
 
@@ -217,21 +222,20 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
     .slice(0, 3);
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 overflow-y-auto overscroll-contain animate-fade-in pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]"
-    >
-      <div
-        ref={containerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="activity-detail-modal-title"
-        onClick={(e) => e.stopPropagation()}
-        className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl sm:rounded-3xl max-w-2xl w-full max-h-[calc(100dvh-0.75rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] sm:max-h-[92dvh] flex flex-col text-right shadow-2xl overflow-hidden my-auto animate-fade-in-scale"
-        style={{ direction: 'rtl' }}
+    <>
+      <Modal
+        isOpen={!!business}
+        onClose={onClose}
+        maxWidth="2xl"
+        hideDefaultHeader
+        aria-label={business.nameAr}
+        className="!bg-[var(--bg-card)] !border-[var(--border-color)] !rounded-2xl sm:!rounded-3xl !max-h-[calc(100dvh-0.75rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] sm:!max-h-[92dvh] overflow-hidden"
+        overlayClassName="!bg-slate-900/60 !backdrop-blur-xs pt-[max(0.375rem,env(safe-area-inset-top))] pb-[max(0.375rem,env(safe-area-inset-bottom))]"
+        contentClassName="p-0 flex flex-col flex-1 min-h-0 overflow-hidden"
       >
+        <div className="flex flex-col h-full overflow-hidden text-right">
         {/* Modal Top Bar */}
-        <div className="p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white">
+        <div className="p-3.5 sm:p-4 border-b border-[var(--border-color)] flex items-center justify-between gap-3 bg-white shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="inline-flex items-center gap-1 text-[10.5px] font-black px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shrink-0">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -269,14 +273,14 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
             </button>
 
             {/* Close */}
-            <button
-              type="button"
+            <IconButton
+              aria-label="إغلاق"
               onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
-              title="إغلاق"
-            >
-              <X className="w-4 h-4" />
-            </button>
+              size="sm"
+              variant="ghost"
+              className="!w-8 !h-8 !rounded-xl !bg-slate-100 hover:!bg-slate-200 !text-slate-600"
+              icon={<X className="w-4 h-4" />}
+            />
           </div>
         </div>
 
@@ -733,21 +737,22 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
           ) : null}
         </div>
       </div>
+    </Modal>
 
-      {/* Lightbox for photo inspection */}
-      <ShowcasePhotoLightbox
-        photos={photos}
-        previewPhotoIndex={previewPhotoIndex}
-        setPreviewPhotoIndex={setPreviewPhotoIndex}
-        handlePrevPhoto={() => {
-          if (photos.length === 0) return;
-          setPreviewPhotoIndex((prev) => (prev === null ? 0 : (prev - 1 + photos.length) % photos.length));
-        }}
-        handleNextPhoto={() => {
-          if (photos.length === 0) return;
-          setPreviewPhotoIndex((prev) => (prev === null ? 0 : (prev + 1) % photos.length));
-        }}
-      />
-    </div>
-  );
+    {/* Lightbox for photo inspection */}
+    <ShowcasePhotoLightbox
+      photos={photos}
+      previewPhotoIndex={previewPhotoIndex}
+      setPreviewPhotoIndex={setPreviewPhotoIndex}
+      handlePrevPhoto={() => {
+        if (photos.length === 0) return;
+        setPreviewPhotoIndex((prev) => (prev === null ? 0 : (prev - 1 + photos.length) % photos.length));
+      }}
+      handleNextPhoto={() => {
+        if (photos.length === 0) return;
+        setPreviewPhotoIndex((prev) => (prev === null ? 0 : (prev + 1) % photos.length));
+      }}
+    />
+  </>
+);
 };

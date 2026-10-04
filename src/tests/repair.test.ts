@@ -52,7 +52,7 @@ assert.equal(extractBusinessIdFromSlug('%broken'),'');assert.equal(extractBusine
 console.log('PASS: malformed and semantic links');
 
 // Stage 5 assertions: Phone normalization and Egyptian format validation
-import {isValidEgyptianPhone, normalizePhone} from '../utils/phone';
+import {isValidEgyptianPhone, normalizePhone} from '../shared/lib/phone';
 assert.equal(isValidEgyptianPhone('01012345678'), true);
 assert.equal(isValidEgyptianPhone('٠١١١٢٣٤٥٦٧٨'), true);
 assert.equal(isValidEgyptianPhone('+201212345678'), true);

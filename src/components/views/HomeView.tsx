@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Business } from '../../types';
 import { SmartSearchBar } from '../search/SmartSearchBar';
-import { BusinessCard } from '../cards/BusinessCard';
+import { BusinessCard } from '../../features/business-details';
 import { shuffleBusinessesWithSeed } from '../../utils/directoryEnhancements';
 import {
   HadayekAtlasNavigator,

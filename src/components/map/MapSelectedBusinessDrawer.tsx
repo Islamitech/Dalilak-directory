@@ -5,6 +5,7 @@ import {
   getBusinessMapDetails,
   getSmartWhatsAppUrl,
 } from '../../utils/directoryEnhancements';
+import { Drawer, IconButton } from '../../shared/ui';
 
 export interface MapSelectedBusinessDrawerProps {
   selectedBiz: Business | null;
@@ -26,16 +27,27 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
   const phone = selectedBiz.phone || selectedBiz.ownerPhone;
 
   return (
-    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-0 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
+    <Drawer
+      isOpen={!!selectedBiz}
+      onClose={() => setSelectedBiz(null)}
+      position="bottom"
+      hideDefaultHeader
+      aria-label={`إجراءات ${selectedBiz.nameAr}`}
+      className="!border-2 !border-slate-200/90 !rounded-t-2xl sm:!rounded-3xl sm:bottom-4 sm:inset-x-4 max-w-2xl mx-auto shadow-2xl !max-h-[80vh]"
+      contentClassName="p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3 flex flex-col gap-2 font-['Cairo',sans-serif]"
+    >
       <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => setSelectedBiz(null)}
-          className="text-slate-400 hover:text-slate-700 text-xs font-black min-w-11 min-h-11 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
+        <span className="text-xs font-black text-slate-800 truncate">
+          {selectedBiz.nameAr}
+        </span>
+        <IconButton
           aria-label={`إغلاق إجراءات ${selectedBiz.nameAr}`}
-        >
-          ✕
-        </button>
+          onClick={() => setSelectedBiz(null)}
+          size="sm"
+          variant="ghost"
+          className="!w-8 !h-8 !rounded-full !bg-slate-100 hover:!bg-slate-200 !text-slate-500"
+          icon={<span className="text-sm font-black">✕</span>}
+        />
       </div>
 
       {/* Direct Seeker Action Buttons */}
@@ -130,6 +142,6 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
           <span className="text-[11px]">تفاصيل</span>
         </button>
       </div>
-    </div>
+    </Drawer>
   );
 };

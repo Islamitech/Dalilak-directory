@@ -10,9 +10,20 @@ interface DialogEntry {
   id: number;
 }
 
-// Module-level stack of active dialogs
 const dialogStack: DialogEntry[] = [];
 let nextDialogId = 0;
+let originalBodyOverflow: string | null = null;
+
+const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+function getFocusables(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (el) =>
+      !el.hasAttribute('disabled') &&
+      el.getAttribute('aria-hidden') !== 'true' &&
+      (el.offsetWidth > 0 || el.offsetHeight > 0 || el.offsetParent !== null)
+  );
+}
 
 export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }: UseAccessibleDialogOptions) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,43 +31,27 @@ export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }:
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  const initialFocusRefInternal = useRef(initialFocusRef);
-  initialFocusRefInternal.current = initialFocusRef;
-
   const idRef = useRef<number | null>(null);
-  if (idRef.current === null) {
-    idRef.current = ++nextDialogId;
-  }
+  if (idRef.current === null) idRef.current = ++nextDialogId;
   const id = idRef.current;
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Capture element that had focus prior to opening
     previousActiveElement.current = document.activeElement as HTMLElement | null;
-
-    // Push this dialog onto the module-level stack
     dialogStack.push({ id });
 
-    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    if (dialogStack.length === 1 && typeof document !== 'undefined') {
+      originalBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
 
-    const getFocusables = (root: HTMLElement): HTMLElement[] => {
-      return Array.from(root.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-        (el) =>
-          !el.hasAttribute('disabled') &&
-          el.getAttribute('aria-hidden') !== 'true' &&
-          (el.offsetWidth > 0 || el.offsetHeight > 0 || el.offsetParent !== null)
-      );
-    };
-
-    // Focus initial or first focusable element
     const timer = setTimeout(() => {
       const container = containerRef.current;
       if (!container) return;
       const focusables = getFocusables(container);
-
-      if (initialFocusRefInternal.current?.current) {
-        initialFocusRefInternal.current.current.focus();
+      if (initialFocusRef?.current) {
+        initialFocusRef.current.focus();
       } else if (focusables.length > 0) {
         focusables[0].focus();
       } else {
@@ -65,7 +60,6 @@ export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }:
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // ONLY the top-most dialog reacts to Escape and Tab
       const isTopMost = dialogStack.length > 0 && dialogStack[dialogStack.length - 1].id === id;
       if (!isTopMost) return;
 
@@ -79,7 +73,6 @@ export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }:
       if (e.key === 'Tab') {
         const curContainer = containerRef.current;
         if (!curContainer) return;
-
         const currentFocusables = getFocusables(curContainer);
         if (currentFocusables.length === 0) {
           e.preventDefault();
@@ -109,21 +102,21 @@ export function useAccessibleDialog({ isOpen = true, onClose, initialFocusRef }:
     return () => {
       clearTimeout(timer);
       window.removeEventListener('keydown', handleKeyDown, true);
-
-      // Remove from stack
       const index = dialogStack.findIndex((entry) => entry.id === id);
-      if (index !== -1) {
-        dialogStack.splice(index, 1);
+      if (index !== -1) dialogStack.splice(index, 1);
+
+      if (dialogStack.length === 0 && typeof document !== 'undefined') {
+        document.body.style.overflow = originalBodyOverflow || '';
+        originalBodyOverflow = null;
       }
 
-      // Restore focus to previous active element
       if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
         try {
           previousActiveElement.current.focus();
         } catch {}
       }
     };
-  }, [isOpen]);
+  }, [isOpen, id, initialFocusRef]);
 
   return { containerRef };
 }

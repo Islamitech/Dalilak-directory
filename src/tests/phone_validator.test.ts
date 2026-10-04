@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { isValidEgyptianPhone, normalizePhone } from '../utils/phone';
+import { isValidEgyptianPhone, normalizePhone } from '../shared/lib/phone';
 
 console.log('=== RUNNING REAL PHONE VALIDATOR TESTS ===\n');
 

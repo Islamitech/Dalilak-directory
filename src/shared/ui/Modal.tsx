@@ -7,8 +7,14 @@ export interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
   showCloseButton?: boolean;
+  className?: string;
+  overlayClassName?: string;
+  contentClassName?: string;
+  headerContent?: React.ReactNode;
+  hideDefaultHeader?: boolean;
+  'aria-label'?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,6 +24,12 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'lg',
   showCloseButton = true,
+  className = '',
+  overlayClassName = '',
+  contentClassName = '',
+  headerContent,
+  hideDefaultHeader = false,
+  'aria-label': ariaLabel,
 }) => {
   const { containerRef } = useAccessibleDialog({ isOpen, onClose });
 
@@ -29,12 +41,13 @@ export const Modal: React.FC<ModalProps> = ({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '3xl': 'max-w-3xl',
     full: 'max-w-4xl',
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-xs animate-fade-in"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-xs animate-fade-in ${overlayClassName}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -44,15 +57,17 @@ export const Modal: React.FC<ModalProps> = ({
         ref={containerRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title || 'نافذة منبثقة'}
+        aria-label={ariaLabel || title || 'نافذة منبثقة'}
         tabIndex={-1}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90vh] flex flex-col focus:outline-none`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90vh] flex flex-col focus:outline-none ${className}`}
         style={{ direction: 'rtl' }}
       >
         {/* Modal Header */}
-        {(title || showCloseButton) && (
+        {!hideDefaultHeader && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
-            {title ? (
+            {headerContent ? (
+              headerContent
+            ) : title ? (
               <h2 className="text-base font-black text-slate-800">{title}</h2>
             ) : (
               <div />
@@ -70,7 +85,7 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Modal Content */}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        <div className={`overflow-y-auto flex-1 ${contentClassName || 'p-6'}`}>{children}</div>
       </div>
     </div>
   );

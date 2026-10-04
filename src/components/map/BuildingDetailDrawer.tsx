@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Building2, Navigation, MapPin, ExternalLink, X, Compass, Store, Radar, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Navigation, ExternalLink, Compass, Store, Radar, ChevronDown, ChevronUp } from 'lucide-react';
 import { Business } from '../../types';
 import { getHadayekZone, getRecommendedGateForZone } from '../../data/hadayekAtlasData';
 import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
 import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
+import { Drawer, IconButton } from '../../shared/ui';
 
 export interface BuildingDetailData {
   buildingNumber: string;
@@ -37,7 +38,6 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
   const zoneName = zone ? zone.nameAr : `منطقة ${building.zoneLetter}`;
   const gateInfo = getRecommendedGateForZone(building.zoneLetter);
 
-  // Find registered businesses at this building
   const matchingBusinesses = businesses.filter((b) =>
     isBusinessInHadayekZone(b, building.zoneLetter) &&
     isBusinessAssociatedWithBuilding(b, building.buildingNumber, building.zoneLetter, building)
@@ -62,11 +62,16 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
   };
 
   return (
-    <div
-      className="absolute bottom-2.5 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]"
-      dir="rtl"
+    <Drawer
+      isOpen={!!building}
+      onClose={onClose}
+      position="bottom"
+      hideDefaultHeader
+      aria-label={`تفاصيل عمارة ${building.buildingNumber}`}
+      className="!border-2 !border-slate-200/90 !rounded-t-3xl sm:!rounded-3xl sm:bottom-4 sm:inset-x-4 max-w-2xl mx-auto shadow-2xl !max-h-[85vh]"
+      contentClassName="p-4 sm:p-5 overflow-y-auto space-y-4 font-['Cairo',sans-serif]"
     >
-      {/* Header */}
+      {/* Drawer Top Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 shadow-sm shrink-0">
@@ -87,14 +92,14 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-slate-400 hover:text-slate-700 text-xs font-black w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
+        <IconButton
           aria-label="إغلاق"
-        >
-          <X className="w-4 h-4" />
-        </button>
+          onClick={onClose}
+          size="sm"
+          variant="ghost"
+          className="!w-8 !h-8 !rounded-full !bg-slate-100 hover:!bg-slate-200 !text-slate-500"
+          icon={<span className="text-sm font-black">✕</span>}
+        />
       </div>
 
       {/* Gate & Landmark Info */}
@@ -110,7 +115,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
         </span>
       </div>
 
-      {/* Associated Businesses Collapsible Dropdown (Hidden results by default) */}
+      {/* Associated Businesses Collapsible */}
       {matchingBusinesses.length > 0 && (
         <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/70 transition-all">
           <button
@@ -172,7 +177,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
         </div>
       )}
 
-      {/* 📡 Proximity Radar Trigger Button */}
+      {/* Proximity Radar Trigger Button */}
       {onOpenRadar && (
         <button
           type="button"
@@ -204,6 +209,6 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
           <span>خرائط Google</span>
         </button>
       </div>
-    </div>
+    </Drawer>
   );
 };

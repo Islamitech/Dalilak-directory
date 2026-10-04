@@ -22,7 +22,6 @@ import { FilterBar } from '../search/FilterBar';
 import { ActiveFilterChips } from '../search/ActiveFilterChips';
 import { FilterDrawer } from '../search/FilterDrawer';
 import { BusinessCardGrid } from '../cards/BusinessCardGrid';
-import { BusinessCard } from '../cards/BusinessCard';
 import { CategoryHierarchyFilter } from '../search/CategoryHierarchyFilter';
 import { getCategoryGroupById, getCategoryLabel, getSubcategoryById } from '../../data/categoryTaxonomy';
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';

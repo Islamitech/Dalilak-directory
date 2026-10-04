@@ -15,6 +15,7 @@ import {
 import { HADAYEK_OFFICIAL_GATES, HadayekOfficialGate } from '../../data/hadayekDistrictsGeoData';
 import { calculateDirectDistanceMeters, formatHadayekDistance } from '../../data/hadayekAtlasData';
 import { fetchRealRoadRoute, RealRoadRouteResult } from '../../utils/hadayekRouting';
+import { Drawer, IconButton } from '../../shared/ui';
 
 export interface NavigationTarget {
   title: string;
@@ -195,9 +196,14 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
   };
 
   return (
-    <div
-      className="absolute bottom-2.5 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3.5 animate-slide-up text-slate-900 select-none font-['Cairo',sans-serif]"
-      dir="rtl"
+    <Drawer
+      isOpen={!!target}
+      onClose={handleEndNavigation}
+      position="bottom"
+      hideDefaultHeader
+      aria-label={`التوجيه إلى ${target.title}`}
+      className="!border-2 !border-slate-200/90 !rounded-t-2xl sm:!rounded-3xl sm:bottom-4 sm:inset-x-4 max-w-2xl mx-auto shadow-2xl !max-h-[85vh] sm:!max-h-[80vh]"
+      contentClassName="p-4 sm:p-5 overflow-y-auto space-y-3.5 font-['Cairo',sans-serif]"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
@@ -220,14 +226,14 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
+        <IconButton
+          aria-label="إنهاء الملاحة"
           onClick={handleEndNavigation}
-          className="text-slate-400 hover:text-slate-700 text-xs font-black w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
-          title="إنهاء الملاحة"
-        >
-          <X className="w-4 h-4" />
-        </button>
+          size="sm"
+          variant="ghost"
+          className="!w-8 !h-8 !rounded-full !bg-slate-100 hover:!bg-slate-200 !text-slate-500"
+          icon={<span className="text-sm font-black">✕</span>}
+        />
       </div>
 
       {/* Origin Selection: GPS vs Manual Gate */}
@@ -345,6 +351,6 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
           <span>إنهاء الملاحة</span>
         </button>
       </div>
-    </div>
+    </Drawer>
   );
 };

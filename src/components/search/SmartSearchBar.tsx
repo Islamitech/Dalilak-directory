@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, MapPin, Compass, X, History, Sparkles } from 'lucide-react';
 import { Business } from '../../types';
 import { EGYPT_GOVERNORATES } from '../../data/mockData';
+import { SearchField } from '../../shared/ui';
 
 export interface SmartSearchBarProps {
   searchQuery: string;
@@ -93,31 +94,18 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
       >
         {/* Field 1: What? (ماذا تبحث عنه؟) + Action Button on Mobile */}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <div className="relative flex-1 flex items-center min-w-0">
-            <Search className="w-4 h-4 text-amber-500 absolute start-3 pointer-events-none shrink-0" />
-            <input
-              type="search"
-              enterKeyHint="search"
-              aria-label="ابحث عن نشاط أو خدمة"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onKeyDown={(e) => { if (e.key === 'Escape') setIsFocused(false); }}
-              placeholder="ابحث عن مطعم، طبيب، صيدلية، خدمة..."
-              className="directory-search-input w-full min-h-11 bg-transparent ps-9 pe-11 py-2 text-base sm:text-sm font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => onSearchChange('')}
-                className="absolute end-0 w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
-                title="مسح"
-                aria-label="مسح البحث"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
+          <SearchField
+            aria-label="ابحث عن نشاط أو خدمة"
+            placeholder="ابحث عن مطعم، طبيب، صيدلية، خدمة..."
+            value={searchQuery}
+            onChange={onSearchChange}
+            onFocus={() => setIsFocused(true)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setIsFocused(false); }}
+            onSubmit={() => handleSubmit()}
+            className="flex-1 min-w-0"
+            inputClassName="!bg-transparent !border-none !shadow-none !h-11 !text-base sm:!text-sm !font-bold !text-[var(--text-primary)] focus:!ring-0"
+            icon={<Search className="w-4 h-4 text-amber-500" />}
+          />
 
           {/* Submit Button on Mobile (visible only on small screens for ultra-quick tap) */}
           <button

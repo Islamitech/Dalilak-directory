@@ -1,7 +1,7 @@
 import { useDirectoryLoad } from '../../contexts/DirectoryLoadContext';
 import React from 'react';
 import { Business } from '../../types';
-import { BusinessCard } from '../cards/BusinessCard';
+import { BusinessCard } from '../../features/business-details';
 import { Heart, Search, ArrowLeft } from 'lucide-react';
 import { EmptyState, Button } from '../../shared/ui';
 

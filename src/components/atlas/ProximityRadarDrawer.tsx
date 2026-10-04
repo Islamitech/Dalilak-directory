@@ -15,6 +15,7 @@ import {
   Store,
   X,
 } from 'lucide-react';
+import { Drawer, IconButton } from '../../shared/ui';
 
 export interface ProximityRadarDrawerProps {
   target: {
@@ -143,9 +144,14 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
     }
 
     return (
-      <div
-        className={`absolute bottom-3 inset-x-3 sm:inset-x-6 max-w-3xl mx-auto z-[1150] bg-white border-2 border-amber-400 rounded-2xl sm:rounded-3xl shadow-2xl p-3.5 sm:p-5 text-slate-900 select-none font-['Cairo',sans-serif] animate-slide-up flex flex-col max-h-[62vh] transition-all overflow-hidden ${className}`}
-        dir="rtl"
+      <Drawer
+        isOpen={!!target}
+        onClose={onClose || (() => setIsCollapsed(true))}
+        position="bottom"
+        hideDefaultHeader
+        aria-label="رادار الخدمات والأنشطة المحيطة"
+        className={`!border-2 !border-amber-400 !rounded-t-2xl sm:!rounded-3xl sm:bottom-3 sm:inset-x-6 max-w-3xl mx-auto shadow-2xl !max-h-[62vh] ${className}`}
+        contentClassName="p-3.5 sm:p-5 flex flex-col font-['Cairo',sans-serif] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 shrink-0">
@@ -179,15 +185,14 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
               <span className="text-[11px]">تصغير</span>
             </button>
             {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+              <IconButton
                 aria-label="إغلاق الرادار"
-                title="إغلاق الرادار"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                onClick={onClose}
+                size="sm"
+                variant="ghost"
+                className="!w-7 !h-7 !rounded-xl !bg-slate-100 hover:!bg-rose-50 hover:!text-rose-600 !text-slate-500"
+                icon={<X className="w-4 h-4" />}
+              />
             )}
           </div>
         </div>
@@ -335,6 +340,6 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </Drawer>
     );
   };

@@ -3,6 +3,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { Business } from '../../types';
 import { normalizeBuildingQuery } from '../../utils/hadayekBuildingSearch';
 import { getDistrictByLetter, isPointInPolygon } from '../../data/hadayekDistrictsGeoData';
+import { SearchField } from '../../shared/ui';
 
 export interface ZoneScopedSearchBarProps {
   selectedZone: string;
@@ -13,19 +14,22 @@ export interface ZoneScopedSearchBarProps {
   onClearBuilding?: () => void;
   onClearZone?: () => void;
 }
+
 export const ZoneScopedSearchBar: React.FC<ZoneScopedSearchBarProps> = ({ selectedZone, onSelectBuilding, onClearBuilding }) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const requestRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     requestRef.current++;
     setQuery(''); setMessage(''); setLoading(false);
     return () => { requestRef.current++; };
   }, [selectedZone]);
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
+
+  const submit = async (event?: React.FormEvent) => {
+    if (event) event.preventDefault();
     const number = normalizeBuildingQuery(query);
     if (!/^\d+$/.test(number)) { setMessage('اكتب رقم العمارة فقط.'); return; }
     const request = ++requestRef.current;
@@ -46,19 +50,40 @@ export const ZoneScopedSearchBar: React.FC<ZoneScopedSearchBarProps> = ({ select
     } catch { if (request === requestRef.current) setMessage('تعذّر تحميل بيانات المباني. حاول مجدداً.'); }
     finally { if (request === requestRef.current) setLoading(false); }
   };
+
   if (!selectedZone || selectedZone === 'all') return null;
+
   return (
     <div dir="rtl" className="w-full font-['Cairo',sans-serif]">
-      <form onSubmit={submit} className="flex min-w-0 items-center rounded-lg focus-within:ring-2 focus-within:ring-amber-400">
-        <input ref={inputRef} type="text" inputMode="numeric" enterKeyHint="search" autoComplete="off"
-          aria-label={`رقم العمارة في منطقة ${selectedZone}`} placeholder="رقم المبنى" value={query}
-          onChange={e => { requestRef.current++; setLoading(false); setQuery(e.target.value); setMessage(''); }}
-          className="directory-search-input min-w-0 flex-1 bg-transparent px-2 text-base h-10 text-slate-800" />
-        <button type="submit" disabled={!query.trim() || loading} aria-label="اذهب إلى المبنى" className="h-10 w-8 shrink-0 rounded-lg text-amber-600 disabled:opacity-50 flex items-center justify-center gap-1 text-xs font-bold">
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+      <form onSubmit={submit} className="flex min-w-0 items-center gap-1">
+        <SearchField
+          ref={inputRef}
+          inputMode="numeric"
+          aria-label={`رقم العمارة في منطقة ${selectedZone}`}
+          placeholder="رقم المبنى"
+          value={query}
+          onChange={(val) => { requestRef.current++; setLoading(false); setQuery(val); setMessage(''); }}
+          onClear={() => { requestRef.current++; setLoading(false); setQuery(''); setMessage(''); }}
+          onSubmit={() => submit()}
+          className="flex-1"
+          inputClassName="!h-9 !text-sm text-slate-800 !rounded-xl"
+          icon={<Search size={14} className="text-amber-600" />}
+          disabled={loading}
+        />
+        <button
+          type="submit"
+          disabled={!query.trim() || loading}
+          aria-label="اذهب إلى المبنى"
+          className="h-9 w-8 shrink-0 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 disabled:opacity-40 flex items-center justify-center transition-colors cursor-pointer"
+        >
+          {loading ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
         </button>
       </form>
-      {message && <p role="status" className="absolute top-full inset-x-0 mt-2 rounded-xl bg-white p-3 text-xs text-slate-700 shadow">{message}</p>}
+      {message && (
+        <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-1.5 mt-1 animate-fade-in">
+          {message}
+        </div>
+      )}
     </div>
   );
 };

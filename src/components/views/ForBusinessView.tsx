@@ -15,7 +15,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { isValidEgyptianPhone, normalizePhone } from '../../utils/phone';
+import { isValidEgyptianPhone, normalizePhone } from '../../shared/lib/phone';
 
 export interface ForBusinessViewProps {
   onNavigate: (path: string) => void;
