@@ -316,6 +316,7 @@ export function isValidGoogleMapsUrl(urlStr: string): boolean {
       host === '::1' ||
       host.startsWith('10.') ||
       host.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host) ||
       host.startsWith('169.254.') ||
       host.endsWith('.internal') ||
       host.endsWith('.local')
@@ -338,10 +339,33 @@ export function isValidGoogleMapsUrl(urlStr: string): boolean {
   }
 }
 
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+async function safeReadResponseText(response: Response, maxBytes = MAX_RESPONSE_BYTES): Promise<string> {
+  const contentLength = Number(response.headers.get('content-length') || 0);
+  if (contentLength > maxBytes) {
+    throw new Error('Response body exceeds maximum allowed size');
+  }
+  const text = await response.text();
+  if (text.length > maxBytes) {
+    throw new Error('Response text exceeds maximum allowed size');
+  }
+  return text;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = (req.headers.origin as string) || '';
+  const ALLOWED_ORIGINS = new Set([
+    'https://www.dalilaak.com',
+    'https://dalilaak.com',
+    'https://dalilak.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ]);
+  const corsOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://www.dalilaak.com';
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -409,7 +433,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       destinationUrl = currentHopUrl;
-      htmlContent = await desktopResponse.text();
+      htmlContent = await safeReadResponseText(desktopResponse);
 
       // Check if place has preload link for detailed hours & multi-photos
       const preloadMatch = htmlContent.match(/<link\s+href="(\/maps\/preview\/place[^"]+)"\s+as="fetch"/i);
@@ -426,7 +450,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             signal: controller.signal,
           });
           if (pRes.ok) {
-            preloadPayload = await pRes.text();
+            preloadPayload = await safeReadResponseText(pRes);
           }
         } catch {
           // Preload fetch failed, fallback to main HTML
@@ -444,7 +468,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             signal: controller.signal,
           });
           if (botResponse.ok) {
-            const botHtml = await botResponse.text();
+            const botHtml = await safeReadResponseText(botResponse);
             htmlContent += '\n' + botHtml;
           }
         } catch {
