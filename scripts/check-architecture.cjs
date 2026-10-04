@@ -106,16 +106,30 @@ if (deepImportViolations === 0) {
 }
 
 // 5. No forbidden physical-direction classes (RTL enforcement)
-const PHYSICAL_DIRECTION_REGEX = /\b(ml-\d+|mr-\d+|pl-\d+|pr-\d+|border-l(-\d+)?|border-r(-\d+)?|rounded-l(-\w+)?|rounded-r(-\w+)?|left-\d+|right-\d+|left-0\b|right-0\b|text-left\b|text-right\b)\b/g;
+// Extended per Phase 0-f to ml-auto, mr-auto, ml-[..], mr-[..], left-[..], right-[..],
+// left-full, right-full, float-left, float-right, rounded-tl/tr/bl/br, space-x-, divide-x-.
+// Centering idioms (left-1/2 with -translate-x-1/2) and explicit comments are allowlisted.
+const PHYSICAL_DIRECTION_REGEX = /\b(ml-(?:\d+|auto|\[[^\]]+\])|mr-(?:\d+|auto|\[[^\]]+\])|pl-\d+|pr-\d+|border-[lr](?:-\d+)?|rounded-[lr](?:-\w+)?|rounded-(?:tl|tr|bl|br)(?:-\w+)?|left-(?:\d+|full|\[[^\]]+\])|right-(?:\d+|full|\[[^\]]+\])|left-0\b|right-0\b|float-(?:left|right)|space-x-(?:reverse|\d+|\[[^\]]+\])?|divide-x-(?:reverse|\d+|\[[^\]]+\])?|text-(?:left|right))\b/g;
+
 let rtlViolations = 0;
 sourceFiles.forEach((filePath) => {
   const rel = path.relative(SRC, filePath).replace(/\\/g, '/');
   const content = fs.readFileSync(filePath, 'utf8');
-  const matches = content.match(PHYSICAL_DIRECTION_REGEX);
-  if (matches) {
-    errors.push(`Forbidden physical-direction class in "${rel}": ${matches.join(', ')}. Use logical utilities (ms-, me-, ps-, pe-, border-s, border-e, text-start, text-end).`);
-    rtlViolations++;
-  }
+  const lines = content.split(/\r?\n/);
+
+  lines.forEach((line, idx) => {
+    // Allowlist: Centering idiom (left-1/2 with -translate-x-1/2)
+    const isCenteringIdiom = (line.includes('left-1/2') || line.includes('left-[50%]')) && line.includes('-translate-x-1/2');
+    // Allowlist: Explicit comment allowlist
+    const hasAllowlistComment = line.includes('rtl-allow') || line.includes('allowlist: centering');
+    if (isCenteringIdiom || hasAllowlistComment) return;
+
+    const matches = line.match(PHYSICAL_DIRECTION_REGEX);
+    if (matches) {
+      errors.push(`Forbidden physical-direction class in "${rel}:${idx + 1}": ${matches.join(', ')}. Use logical utilities (ms-, me-, ps-, pe-, border-s, border-e, text-start, text-end, inset-inline-start).`);
+      rtlViolations++;
+    }
+  });
 });
 if (rtlViolations === 0) {
   console.log(`✅ Zero forbidden physical-direction classes detected. RTL logical utilities strictly used.`);
