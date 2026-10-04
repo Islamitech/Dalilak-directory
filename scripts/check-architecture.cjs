@@ -200,6 +200,22 @@ sharedLibFiles.forEach((f) => {
 });
 console.log(`✅ shared/lib purity verified (${sharedLibFiles.length} pure utility files).`);
 
+// 8. Sandbox isolation: directory-experience must never be imported into production application
+let sandboxLeakViolations = 0;
+sourceFiles.forEach((filePath) => {
+  const rel = path.relative(SRC, filePath).replace(/\\/g, '/');
+  if (!rel.startsWith('directory-experience/')) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (/['"][^'"]*directory-experience/.test(content)) {
+      errors.push(`Production file "${rel}" illegally imports from sandbox "directory-experience".`);
+      sandboxLeakViolations++;
+    }
+  }
+});
+if (sandboxLeakViolations === 0) {
+  console.log(`✅ Sandbox isolation verified: 0 production files import from directory-experience.`);
+}
+
 console.log('========================================\n');
 
 if (errors.length > 0) {
