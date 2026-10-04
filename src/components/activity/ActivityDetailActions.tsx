@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MessageCircle, Navigation } from 'lucide-react';
+import { Phone, MessageCircle, Navigation, Share2, CheckCheck } from 'lucide-react';
 import { Business } from '../../types';
 
 export interface ActivityDetailQuickActionsProps {
@@ -7,6 +7,8 @@ export interface ActivityDetailQuickActionsProps {
   effectiveUrl: string | null;
   smartWhatsAppUrl: string;
   onShowOnMap?: (biz: Business) => void;
+  onShare?: (e: React.MouseEvent) => void;
+  copied?: boolean;
 }
 
 export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProps> = ({
@@ -14,58 +16,89 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
   effectiveUrl,
   smartWhatsAppUrl,
   onShowOnMap,
+  onShare,
+  copied = false,
 }) => {
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <div className="actions-grid grid grid-cols-4 gap-2">
+      {/* Primary Call CTA (spans 2 columns) */}
       {business.phone ? (
         <a
           href={`tel:${business.phone}`}
-          className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs py-3 px-2 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+          className="act-btn primary col-span-2 min-h-[44px] py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all"
         >
           <Phone className="w-4 h-4 shrink-0" />
           <span>اتصال مباشر</span>
         </a>
       ) : (
-        <button disabled className="opacity-50 bg-slate-100 text-slate-400 font-bold text-xs py-3 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5">
-          <Phone className="w-4 h-4" />
+        <button
+          disabled
+          className="act-btn primary col-span-2 min-h-[44px] py-3 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
+        >
+          <Phone className="w-4 h-4 shrink-0" />
           <span>لا يوجد هاتف</span>
         </button>
       )}
 
+      {/* WhatsApp CTA */}
       <a
         href={smartWhatsAppUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 active:scale-95 font-black text-xs py-3 px-2 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+        aria-label="محادثة واتساب"
+        className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+        title="محادثة واتساب"
       >
-        <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-        <span>محادثة واتساب</span>
+        <MessageCircle className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <span className="hidden sm:inline">واتساب</span>
       </a>
 
+      {/* Directions CTA */}
       {business.lat && business.lng && onShowOnMap ? (
         <button
           type="button"
           onClick={() => onShowOnMap(business)}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 px-2 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center cursor-pointer border border-amber-400"
-          title="عرض النشاط على خريطة دليلك وتحديد موقعه بدقة"
+          aria-label="عرض على الخريطة"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          title="الاتجاهات على الخريطة"
         >
-          <Navigation className="w-4 h-4 text-slate-950 shrink-0" />
-          <span>الموقع على الخريطة</span>
+          <Navigation className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="hidden sm:inline">الاتجاهات</span>
         </button>
       ) : effectiveUrl ? (
         <a
           href={effectiveUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 active:scale-95 font-black text-xs py-3 px-2 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+          aria-label="الاتجاهات عبر Google Maps"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+          title="الاتجاهات"
         >
-          <Navigation className="w-4 h-4 text-blue-600 shrink-0" />
-          <span>الاتجاهات</span>
+          <Navigation className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="hidden sm:inline">الاتجاهات</span>
         </a>
+      ) : onShare ? (
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label="مشاركة النشاط"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          title="مشاركة رابط النشاط"
+        >
+          {copied ? (
+            <CheckCheck className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <Share2 className="w-4 h-4 shrink-0 text-slate-600 dark:text-slate-300" />
+          )}
+          <span className="hidden sm:inline">{copied ? 'تم النسخ' : 'مشاركة'}</span>
+        </button>
       ) : (
-        <button disabled className="opacity-50 bg-slate-100 text-slate-400 font-bold text-xs py-3 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-1.5">
-          <Navigation className="w-4 h-4" />
-          <span>لا يوجد موقع</span>
+        <button
+          disabled
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
+        >
+          <Navigation className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">لا يوجد موقع</span>
         </button>
       )}
     </div>

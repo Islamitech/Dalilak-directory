@@ -32,10 +32,24 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
 }) => {
   return (
     <>
+      {/* Save Contact vCard CTA */}
+      <button
+        type="button"
+        onClick={onSaveContact}
+        className={`w-full min-h-[44px] text-xs py-3 px-3 rounded-xl flex items-center justify-center gap-2 font-black transition-all cursor-pointer border ${
+          vCardSaved
+            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700'
+            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-750'
+        }`}
+      >
+        <UserPlus className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+        <span>{vCardSaved ? 'تم حفظ جهة الاتصال' : 'حفظ جهة الاتصال (vCard)'}</span>
+      </button>
+
       {/* Similar Places */}
       {similarPlaces.length > 0 && (
-        <div className="space-y-2.5 pt-3 border-t border-slate-100">
-          <h4 className="font-black text-slate-900 text-xs">أنشطة مشابهة في نفس المنطقة</h4>
+        <div className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <h4 className="font-black text-slate-900 dark:text-slate-100 text-xs">أنشطة مشابهة في نفس المنطقة</h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {similarPlaces.map((sim) => (
               <button
@@ -44,7 +58,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                 onClick={() => {
                   if (onSelectBusiness) onSelectBusiness(sim);
                 }}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 text-start flex items-center gap-2.5 transition-all cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-200 hover:border-amber-300 dark:border-slate-750 text-start flex items-center gap-2.5 transition-all cursor-pointer"
               >
                 <img
                   src={sim.coverPhoto || (sim.photos && sim.photos[0]) || `/api/biz-og?biz=${sim.id}`}
@@ -52,10 +66,10 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                   className="w-10 h-10 rounded-lg object-cover shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="font-black text-slate-900 text-xs truncate">
+                  <p className="font-black text-slate-900 dark:text-white text-xs truncate">
                     <bdi dir="auto">{sim.nameAr}</bdi>
                   </p>
-                  <p className="text-[10px] text-slate-500 truncate">{sim.category}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{sim.category}</p>
                 </div>
               </button>
             ))}
@@ -64,12 +78,12 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
       )}
 
       {/* Official Canonical Directory Permalink Bar */}
-      <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between gap-2.5">
+      <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/50 flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Link2 className="w-4 h-4 text-amber-700 shrink-0" />
+          <Link2 className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
           <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-black text-amber-900 block">رابط صفحة المنشأة على الدليل العام (SEO):</span>
-            <span className="text-xs font-mono text-slate-700 truncate block select-all" dir="ltr">
+            <span className="text-[10px] font-black text-amber-900 dark:text-amber-300 block">رابط صفحة المنشأة على الدليل العام (SEO):</span>
+            <span className="text-xs font-mono text-slate-700 dark:text-slate-300 truncate block select-all" dir="ltr">
               {getDisplayDirectoryUrl(business)}
             </span>
           </div>
@@ -78,13 +92,13 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
           <button
             type="button"
             onClick={onShare}
-            className="py-1.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+            className="min-h-[44px] py-1.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-amber-300 dark:border-amber-700/60 text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
             title="نسخ رابط صفحة النشاط"
           >
             {copied ? (
               <>
-                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700">تم النسخ</span>
+                <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-emerald-700 dark:text-emerald-400">تم النسخ</span>
               </>
             ) : copyError ? (
               <>
@@ -93,7 +107,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-amber-700" />
+                <Copy className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                 <span>نسخ الرابط</span>
               </>
             )}
@@ -102,7 +116,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
       </div>
 
       {/* Discreet Claim & Report Footer */}
-      <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-500 font-bold">
+      <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-bold">
         <button
           type="button"
           onClick={() => {
@@ -116,7 +130,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
               );
             }
           }}
-          className="text-amber-700 hover:text-amber-800 flex items-center gap-1 cursor-pointer transition-colors"
+          className="text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer transition-colors"
         >
           <Store className="w-3.5 h-3.5" />
           <span>هل أنت صاحب هذا النشاط؟ اطلب إدارته وتحديثه</span>
@@ -128,7 +142,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors"
+          className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1 transition-colors"
         >
           <AlertTriangle className="w-3.5 h-3.5" />
           <span>إبلاغ عن خطأ</span>
@@ -146,17 +160,17 @@ export const ActivityDetailStickyBar: React.FC<{
   vCardSaved: boolean;
 }> = ({ business, effectiveUrl, onShowOnMap, onSaveContact, vCardSaved }) => {
   return (
-    <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5">
+    <div className="p-3 sm:p-4 bg-slate-50 dark:bg-slate-850 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2.5">
       <button
         type="button"
         onClick={onSaveContact}
-        className={`flex-1 text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 font-black transition-all cursor-pointer border ${
+        className={`flex-1 min-h-[44px] text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 font-black transition-all cursor-pointer border ${
           vCardSaved
-            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700'
+            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'
         }`}
       >
-        <UserPlus className="w-4 h-4 text-slate-600" />
+        <UserPlus className="w-4 h-4 text-slate-600 dark:text-slate-300" />
         <span>{vCardSaved ? 'تم حفظ جهة الاتصال' : 'حفظ جهة الاتصال'}</span>
       </button>
 
@@ -164,7 +178,7 @@ export const ActivityDetailStickyBar: React.FC<{
         <button
           type="button"
           onClick={() => onShowOnMap(business)}
-          className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center cursor-pointer border border-amber-400"
+          className="flex-1 min-h-[44px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center cursor-pointer border border-amber-400"
           title="عرض النشاط على خريطة دليلك وتحديد موقعه بدقة"
         >
           <Navigation className="w-4 h-4 text-slate-950" />
@@ -175,7 +189,7 @@ export const ActivityDetailStickyBar: React.FC<{
           href={effectiveUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+          className="flex-1 min-h-[44px] bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
         >
           <Navigation className="w-4 h-4" />
           <span>الموقع على الخريطة</span>

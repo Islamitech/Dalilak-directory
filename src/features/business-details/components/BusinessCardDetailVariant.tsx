@@ -13,6 +13,9 @@ export const BusinessCardDetailVariant: React.FC<BusinessCardVariantProps> = ({
   onShowOnMap,
   photos: propPhotos,
   onPreviewPhoto,
+  onClose,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const fetchedPhotos = useActivityPhotos(business);
   const photos = propPhotos || fetchedPhotos;
@@ -20,26 +23,31 @@ export const BusinessCardDetailVariant: React.FC<BusinessCardVariantProps> = ({
   const smartWhatsAppUrl = getSmartWhatsAppUrl(business);
 
   return (
-    <div className="space-y-6 text-start font-['Cairo',sans-serif]">
+    <div className="sheet-modal-content text-start font-['Cairo',sans-serif]">
       <ActivityDetailHeader
         business={business}
         photos={photos}
         onPreviewPhoto={onPreviewPhoto || (() => {})}
         onOpenVideoModal={onOpenVideoModal}
+        onClose={onClose}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
       />
 
-      <ActivityDetailQuickActions
-        business={business}
-        effectiveUrl={effectiveUrl}
-        smartWhatsAppUrl={smartWhatsAppUrl}
-        onShowOnMap={onShowOnMap}
-      />
+      <div className="sheet-body p-4 sm:p-5 space-y-4">
+        <ActivityDetailQuickActions
+          business={business}
+          effectiveUrl={effectiveUrl}
+          smartWhatsAppUrl={smartWhatsAppUrl}
+          onShowOnMap={onShowOnMap}
+        />
 
-      <ActivityDetailInfo
-        business={business}
-        effectiveUrl={effectiveUrl}
-        onShowOnMap={onShowOnMap}
-      />
+        <ActivityDetailInfo
+          business={business}
+          effectiveUrl={effectiveUrl}
+          onShowOnMap={onShowOnMap}
+        />
+      </div>
     </div>
   );
 };

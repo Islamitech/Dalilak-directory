@@ -15,6 +15,7 @@ export interface ModalProps {
   headerContent?: React.ReactNode;
   hideDefaultHeader?: boolean;
   'aria-label'?: string;
+  'aria-labelledby'?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -30,6 +31,7 @@ export const Modal: React.FC<ModalProps> = ({
   headerContent,
   hideDefaultHeader = false,
   'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
 }) => {
   const { containerRef } = useAccessibleDialog({ isOpen, onClose });
 
@@ -57,7 +59,8 @@ export const Modal: React.FC<ModalProps> = ({
         ref={containerRef}
         role="dialog"
         aria-modal="true"
-        aria-label={ariaLabel || title || 'نافذة منبثقة'}
+        aria-labelledby={ariaLabelledBy}
+        aria-label={!ariaLabelledBy ? (ariaLabel || title || 'نافذة منبثقة') : undefined}
         tabIndex={-1}
         className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90vh] flex flex-col focus:outline-none ${className}`}
         style={{ direction: 'rtl' }}
