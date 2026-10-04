@@ -25,9 +25,9 @@ export const Drawer: React.FC<DrawerProps> = ({
     bottom:
       'bottom-0 inset-x-0 max-h-[85dvh] rounded-t-3xl border-t border-slate-200/80',
     right:
-      'top-0 bottom-0 right-0 w-full max-w-md border-s border-slate-200/80 shadow-2xl',
+      'top-0 bottom-0 end-0 w-full max-w-md border-s border-slate-200/80 shadow-2xl',
     left:
-      'top-0 bottom-0 left-0 w-full max-w-md border-e border-slate-200/80 shadow-2xl',
+      'top-0 bottom-0 start-0 w-full max-w-md border-e border-slate-200/80 shadow-2xl',
   };
 
   return (

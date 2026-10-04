@@ -120,7 +120,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
       />
 
       {/* 2. Responsive Container: Mobile Bottom Sheet / Desktop Side Drawer */}
-      <div className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md z-10 flex flex-col justify-end sm:justify-start pointer-events-none">
+      <div className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:end-0 sm:start-auto sm:w-full sm:max-w-md z-10 flex flex-col justify-end sm:justify-start pointer-events-none">
         <div
           ref={containerRef}
           role="dialog"

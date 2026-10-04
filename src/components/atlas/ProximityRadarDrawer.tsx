@@ -97,7 +97,7 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
     if (isCollapsed) {
       return (
         <div
-          className={`absolute bottom-3 right-3 left-3 sm:right-6 sm:left-6 max-w-xl mx-auto z-[1150] bg-white border-2 border-amber-400 rounded-2xl shadow-2xl p-2.5 sm:p-3 text-slate-900 select-none font-['Cairo',sans-serif] animate-slide-up flex items-center justify-between gap-3 ${className}`}
+          className={`absolute bottom-3 inset-x-3 sm:inset-x-6 max-w-xl mx-auto z-[1150] bg-white border-2 border-amber-400 rounded-2xl shadow-2xl p-2.5 sm:p-3 text-slate-900 select-none font-['Cairo',sans-serif] animate-slide-up flex items-center justify-between gap-3 ${className}`}
           dir="rtl"
         >
           <div className="flex items-center gap-2.5 min-w-0">
@@ -144,7 +144,7 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
 
     return (
       <div
-        className={`absolute bottom-3 right-3 left-3 sm:right-6 sm:left-6 max-w-3xl mx-auto z-[1150] bg-white border-2 border-amber-400 rounded-2xl sm:rounded-3xl shadow-2xl p-3.5 sm:p-5 text-slate-900 select-none font-['Cairo',sans-serif] animate-slide-up flex flex-col max-h-[62vh] transition-all overflow-hidden ${className}`}
+        className={`absolute bottom-3 inset-x-3 sm:inset-x-6 max-w-3xl mx-auto z-[1150] bg-white border-2 border-amber-400 rounded-2xl sm:rounded-3xl shadow-2xl p-3.5 sm:p-5 text-slate-900 select-none font-['Cairo',sans-serif] animate-slide-up flex flex-col max-h-[62vh] transition-all overflow-hidden ${className}`}
         dir="rtl"
       >
         {/* Header */}
@@ -224,7 +224,7 @@ export const ProximityRadarDrawer: React.FC<ProximityRadarDrawerProps> = ({
         )}
 
         {/* Scrollable Cards List */}
-        <div className="mt-2.5 overflow-y-auto flex-1 pr-0.5 space-y-2.5 scrollbar-thin">
+        <div className="mt-2.5 overflow-y-auto flex-1 pe-0.5 space-y-2.5 scrollbar-thin">
           {displayList.length === 0 ? (
             <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
               <Store className="w-8 h-8 text-slate-400 mx-auto mb-2" />

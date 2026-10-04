@@ -94,7 +94,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
         {/* Field 1: What? (ماذا تبحث عنه؟) + Action Button on Mobile */}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <div className="relative flex-1 flex items-center min-w-0">
-            <Search className="w-4 h-4 text-amber-500 absolute right-3 pointer-events-none shrink-0" />
+            <Search className="w-4 h-4 text-amber-500 absolute start-3 pointer-events-none shrink-0" />
             <input
               type="search"
               enterKeyHint="search"
@@ -104,13 +104,13 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
               onFocus={() => setIsFocused(true)}
               onKeyDown={(e) => { if (e.key === 'Escape') setIsFocused(false); }}
               placeholder="ابحث عن مطعم، طبيب، صيدلية، خدمة..."
-              className="directory-search-input w-full min-h-11 bg-transparent pr-9 pl-11 py-2 text-base sm:text-sm font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
+              className="directory-search-input w-full min-h-11 bg-transparent ps-9 pe-11 py-2 text-base sm:text-sm font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => onSearchChange('')}
-                className="absolute left-0 w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+                className="absolute end-0 w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
                 title="مسح"
                 aria-label="مسح البحث"
               >
@@ -208,7 +208,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
 
       {/* Autocomplete & Suggestions Dropdown */}
       {isFocused && (
-        <div className="absolute top-full right-0 left-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
+        <div className="absolute top-full inset-x-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
           <div className="p-3 space-y-3 max-h-[min(18rem,40dvh)] overflow-y-auto overscroll-contain text-right">
             {/* Matching Businesses */}
             {suggestions.length > 0 && (

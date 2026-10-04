@@ -28,7 +28,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
         {/* Search Icon */}
         <span
           aria-hidden="true"
-          className="absolute right-4 text-slate-400 pointer-events-none select-none text-base"
+          className="absolute start-4 text-slate-400 pointer-events-none select-none text-base"
         >
           🔍
         </span>
@@ -56,7 +56,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
               onChange('');
               onClear?.();
             }}
-            className="absolute left-2.5 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+            className="absolute end-2.5 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
           >
             ✕
           </button>

@@ -63,7 +63,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
 
   return (
     <div
-      className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]"
+      className="absolute bottom-2.5 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]"
       dir="rtl"
     >
       {/* Header */}
@@ -137,7 +137,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-1 text-slate-600 font-bold text-[11px] shrink-0 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs mr-2">
+            <div className="flex items-center gap-1 text-slate-600 font-bold text-[11px] shrink-0 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs ms-2">
               <span>{isBusinessesOpen ? 'إخفاء' : 'عرض'}</span>
               {isBusinessesOpen ? <ChevronUp className="w-3.5 h-3.5 text-emerald-600" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
             </div>

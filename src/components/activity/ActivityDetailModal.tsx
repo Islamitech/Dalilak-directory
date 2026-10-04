@@ -312,7 +312,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
 
-                <div className="absolute bottom-3.5 right-4 left-4 text-white space-y-1 z-10 pointer-events-none">
+                <div className="absolute bottom-3.5 inset-x-4 text-white space-y-1 z-10 pointer-events-none">
                   <h1 className="text-xl sm:text-2xl font-black leading-tight drop-shadow-md">
                     {business.nameAr}
                   </h1>
@@ -335,7 +335,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                 </div>
               </button>
 
-              <div className="absolute top-3 right-3 left-3 flex items-center justify-between gap-2 z-10 pointer-events-none">
+              <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 z-10 pointer-events-none">
                 {/* Right (RTL Start): Clean Category Pill Only */}
                 <div className="flex items-center gap-1.5 min-w-0 pointer-events-auto">
                   <span className="bg-slate-950/80 backdrop-blur-md text-amber-300 text-[11px] font-black px-3 py-1 rounded-xl border border-amber-400/30 shadow-xs whitespace-nowrap truncate max-w-[220px] sm:max-w-xs">
@@ -516,7 +516,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${business.lng - 0.008}%2C${business.lat - 0.006}%2C${business.lng + 0.008}%2C${business.lat + 0.006}&layer=mapnik&marker=${business.lat}%2C${business.lng}`}
                   className="w-full h-full"
                 />
-                <div className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-xs px-2 py-1 rounded-lg text-[10px] font-mono text-slate-700 shadow-sm border border-slate-200 flex items-center gap-1 pointer-events-none">
+                <div className="absolute bottom-2 end-2 bg-white/95 backdrop-blur-xs px-2 py-1 rounded-lg text-[10px] font-mono text-slate-700 shadow-sm border border-slate-200 flex items-center gap-1 pointer-events-none">
                   <MapPin className="w-3 h-3 text-rose-500" />
                   <span>{business.lat.toFixed(4)}, {business.lng.toFixed(4)}</span>
                 </div>
@@ -586,7 +586,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   </span>
                 </div>
 
-                <div className="flex-1 text-[11px] text-slate-600 font-medium leading-relaxed border-r border-slate-200 pr-4">
+                <div className="flex-1 text-[11px] text-slate-600 font-medium leading-relaxed border-s border-slate-200 ps-4">
                   هذا التقييم صادر من عملاء وزوار حقيقيين على خرائط Google الرسمية ومربوط مباشرة بحساب النشاط المعتمد.
                 </div>
               </div>

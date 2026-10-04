@@ -229,7 +229,7 @@ export const MapSandboxView: React.FC<MapSandboxViewProps> = ({ onNavigate }) =>
 
         {/* Selected Business Floating Card Overlay */}
         {selectedMapBiz && (
-          <div className="absolute bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-[1000] animate-slide-up">
+          <div className="absolute bottom-4 inset-x-4 sm:start-auto sm:end-4 sm:w-96 z-[1000] animate-slide-up">
             <div className="bg-slate-950/95 backdrop-blur-md border border-amber-500/40 rounded-2xl p-4 shadow-2xl space-y-3 text-right text-white">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">

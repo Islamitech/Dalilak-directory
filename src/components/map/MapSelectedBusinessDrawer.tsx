@@ -26,7 +26,7 @@ export const MapSelectedBusinessDrawer: React.FC<MapSelectedBusinessDrawerProps>
   const phone = selectedBiz.phone || selectedBiz.ownerPhone;
 
   return (
-    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-0 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
+    <div role="group" aria-label={`إجراءات ${selectedBiz.nameAr}`} className="absolute bottom-0 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl mx-auto bg-white border-2 border-slate-200/90 p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-2 animate-fade-in-scale text-slate-900 select-none font-['Cairo',sans-serif]">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"

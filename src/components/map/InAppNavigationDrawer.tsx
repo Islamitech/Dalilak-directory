@@ -196,7 +196,7 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
 
   return (
     <div
-      className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3.5 animate-slide-up text-slate-900 select-none font-['Cairo',sans-serif]"
+      className="absolute bottom-2.5 sm:bottom-4 inset-x-2.5 sm:inset-x-4 max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto overscroll-contain mx-auto bg-white border-2 border-slate-200/90 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl z-[1100] flex flex-col gap-3.5 animate-slide-up text-slate-900 select-none font-['Cairo',sans-serif]"
       dir="rtl"
     >
       {/* Header */}
@@ -278,7 +278,7 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
             <select
               value={selectedGateId}
               onChange={(e) => setSelectedGateId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl pr-3 pl-8 py-2.5 outline-none cursor-pointer"
+              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl ps-3 pe-8 py-2.5 outline-none cursor-pointer"
               style={{ colorScheme: 'light' }}
             >
               {HADAYEK_OFFICIAL_GATES.map((gate) => (
@@ -287,7 +287,7 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 absolute left-2.5 top-3 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2.5 top-3 pointer-events-none" />
           </div>
         )}
 

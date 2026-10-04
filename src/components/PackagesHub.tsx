@@ -588,7 +588,7 @@ export const PackagesHub: React.FC<PackagesHubProps> = ({
             </div>
 
             {/* Modal Body */}
-            <div className="overflow-y-auto flex-1 space-y-4 pr-1 custom-scrollbar text-xs">
+            <div className="overflow-y-auto flex-1 space-y-4 pe-1 custom-scrollbar text-xs">
               {/* Target Persona */}
               <div className="p-3 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-color)]">
                 <span className="font-black text-amber-700 block mb-0.5">

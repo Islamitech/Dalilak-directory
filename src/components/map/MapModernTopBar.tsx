@@ -220,7 +220,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             className="relative shrink-0 min-w-11 min-h-11 flex items-center justify-center text-amber-600 cursor-pointer"
           >
             <SlidersHorizontal size={20} />
-            {hasFilters && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500" />}
+            {hasFilters && <span className="absolute top-2 end-2 w-2 h-2 rounded-full bg-amber-500" />}
           </button>
 
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-0 flex items-center gap-1.5 px-2">
@@ -291,7 +291,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             </label>
             <p className="text-sm font-bold text-slate-700 mb-2">نوع النشاط</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="نوع النشاط">
-              {categories.filter(c => c.id !== 'all').map(cat => <button key={cat.id} type="button" aria-pressed={categoryFilter === cat.id} onClick={() => { onCategoryChange?.(categoryFilter === cat.id ? 'all' : cat.id); onSearchModeChange('browse'); }} className={`min-h-11 text-sm rounded-xl border px-3 py-2 text-right ${categoryFilter === cat.id ? 'bg-amber-50 border-amber-500 text-amber-900' : 'bg-white border-slate-200 text-slate-700'}`}>{cat.icon} {cat.name}{typeof cat.count === 'number' && <span className="text-xs mr-1">({cat.count})</span>}</button>)}
+              {categories.filter(c => c.id !== 'all').map(cat => <button key={cat.id} type="button" aria-pressed={categoryFilter === cat.id} onClick={() => { onCategoryChange?.(categoryFilter === cat.id ? 'all' : cat.id); onSearchModeChange('browse'); }} className={`min-h-11 text-sm rounded-xl border px-3 py-2 text-right ${categoryFilter === cat.id ? 'bg-amber-50 border-amber-500 text-amber-900' : 'bg-white border-slate-200 text-slate-700'}`}>{cat.icon} {cat.name}{typeof cat.count === 'number' && <span className="text-xs me-1">({cat.count})</span>}</button>)}
             </div>
             <p className="text-xs text-slate-500 mt-3" role="status">{categoryFilter === 'all' ? 'اختر نوع النشاط لعرض مواقعه على الخريطة' : `${filteredBusinessesCount ?? 0} نشاط مطابق`}</p>
             <div className="flex items-center justify-between gap-2 mt-4">
@@ -351,7 +351,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
                     <span className="font-bold text-slate-800">عمارة {dm.buildingNumber}</span>
                     <span className="text-slate-500 mx-1.5">•</span>
                     <span className="text-slate-600 font-semibold">منطقة {dm.zoneLetter}</span>
-                    <span className="text-slate-400 text-[11px] mr-2">({dm.gate})</span>
+                    <span className="text-slate-400 text-[11px] me-2">({dm.gate})</span>
                   </div>
                 </div>
                 <span className="text-[11px] text-amber-600 font-bold group-hover:translate-x-[-3px] transition-transform">انتقال</span>

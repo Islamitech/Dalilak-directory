@@ -135,7 +135,7 @@ export const UnifiedBusinessCard: React.FC<UnifiedBusinessCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 
         {/* Top-Right: Official Verification Badge */}
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 start-3 z-10">
           <span
             className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow-xs backdrop-blur-md"
             title="منشأة معتمدة في دليلك"
@@ -146,7 +146,7 @@ export const UnifiedBusinessCard: React.FC<UnifiedBusinessCardProps> = ({
         </div>
 
         {/* Top-Left: Open / Closed Status Badge */}
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
+        <div className="absolute top-3 end-3 z-10 flex items-center gap-1.5">
           <span
             className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full backdrop-blur-md border shadow-sm ${
               openStatus.isOpen
@@ -191,7 +191,7 @@ export const UnifiedBusinessCard: React.FC<UnifiedBusinessCardProps> = ({
               onOpenVideoModal(business);
             }}
             aria-label={`مشاهدة فيديو ${business.nameAr}`}
-            className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full bg-rose-600/90 hover:bg-rose-600 text-white shadow-md border border-rose-400/40 backdrop-blur-md transition-transform active:scale-95"
+            className="absolute bottom-3 end-3 z-10 inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full bg-rose-600/90 hover:bg-rose-600 text-white shadow-md border border-rose-400/40 backdrop-blur-md transition-transform active:scale-95"
           >
             <Play className="w-3 h-3 fill-current" />
             <span>فيديو</span>

@@ -177,7 +177,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
             <select
               value={selectedZone || ''}
               onChange={(e) => handleDistrictChange(e.target.value)}
-              className="bg-slate-800/90 hover:bg-slate-700/90 border border-amber-500/50 text-amber-300 font-black text-[10px] sm:text-xs rounded-md px-2 py-1 focus:outline-none focus:border-amber-400 cursor-pointer appearance-none pl-5 pr-2 transition-colors shadow-xs"
+              className="bg-slate-800/90 hover:bg-slate-700/90 border border-amber-500/50 text-amber-300 font-black text-[10px] sm:text-xs rounded-md px-2 py-1 focus:outline-none focus:border-amber-400 cursor-pointer appearance-none pe-5 ps-2 transition-colors shadow-xs"
               title="انتقال للمنطقة"
             >
               <option value="">🧭 كل المناطق (أ - ن)</option>
@@ -187,7 +187,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3 h-3 text-amber-400/90 absolute left-1.5 pointer-events-none" />
+            <ChevronDown className="w-3 h-3 text-amber-400/90 absolute end-1.5 pointer-events-none" />
           </div>
 
           {/* 🏢 Building Search (Visible if Zone is selected) */}
@@ -198,12 +198,12 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                 placeholder="عمارة رقم..."
                 value={buildingQuery}
                 onChange={(e) => setBuildingQuery(e.target.value)}
-                className="bg-slate-800/90 hover:bg-slate-700/90 border border-sky-500/40 text-sky-300 font-bold text-[10px] sm:text-xs rounded-md px-1.5 py-0.5 focus:outline-none focus:border-sky-400 placeholder:text-sky-300/50 w-20 sm:w-24 transition-colors pr-1.5 pl-6"
+                className="bg-slate-800/90 hover:bg-slate-700/90 border border-sky-500/40 text-sky-300 font-bold text-[10px] sm:text-xs rounded-md px-1.5 py-0.5 focus:outline-none focus:border-sky-400 placeholder:text-sky-300/50 w-20 sm:w-24 transition-colors pe-1.5 ps-6"
                 title="ابحث برقم العمارة داخل المنطقة المحددة"
               />
               <button
                 type="submit"
-                className="absolute left-1 text-sky-400 hover:text-sky-300 pointer-events-auto cursor-pointer"
+                className="absolute end-1 text-sky-400 hover:text-sky-300 pointer-events-auto cursor-pointer"
                 title="بحث"
               >
                 <Search className="w-3.5 h-3.5" />
@@ -214,7 +214,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
         </div>
 
         {/* Action Buttons: Filters + Explore + Fullscreen */}
-        <div className="flex items-center gap-1.5 flex-wrap shrink-0 w-full sm:w-auto mr-0 sm:mr-auto justify-start">
+        <div className="flex items-center gap-1.5 flex-wrap shrink-0 w-full sm:w-auto ms-0 sm:ms-auto justify-start">
           {/* 🚪 Gates Toggle */}
           {showHadayekGates && (
             <label className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200 font-bold cursor-pointer text-[10px] sm:text-xs transition-colors shrink-0 px-1 border-r border-slate-700/50">
@@ -229,7 +229,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
           )}
 
           {/* 🗺️ Districts Toggle */}
-          <label className="inline-flex items-center gap-1 text-indigo-300 hover:text-indigo-200 font-bold cursor-pointer text-[10px] sm:text-xs transition-colors shrink-0 pr-1 border-l border-slate-700/50 pl-1 mr-1">
+          <label className="inline-flex items-center gap-1 text-indigo-300 hover:text-indigo-200 font-bold cursor-pointer text-[10px] sm:text-xs transition-colors shrink-0 pe-1 border-e border-slate-700/50 ps-1 me-1">
             <input
               type="checkbox"
               checked={showDistrictsOverlay}
@@ -327,7 +327,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                             </span>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+                        <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto pe-1 scrollbar-thin scrollbar-thumb-slate-800">
                           <button
                             key="all"
                             type="button"

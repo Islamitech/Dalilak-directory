@@ -70,7 +70,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
             e.stopPropagation();
             handlePrevPhoto();
           }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
+          className="absolute start-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
           title="الصورة السابقة"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -102,7 +102,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
         <PhotoWatermarkBadge
           position="bottom-right"
           size="xl"
-          className="!bottom-4 !right-4 sm:!bottom-6 sm:!right-6 shadow-2xl z-20"
+          className="!bottom-4 !end-4 sm:!bottom-6 sm:!end-6 shadow-2xl z-20"
         />
       </div>
 
@@ -113,7 +113,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
             e.stopPropagation();
             handleNextPhoto();
           }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
+          className="absolute end-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
           title="الصورة التالية"
         >
           <ChevronRight className="w-5 h-5" />
@@ -123,7 +123,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
       <button
         type="button"
         onClick={() => setPreviewPhotoIndex(null)}
-        className="absolute top-4 left-4 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-rose-600 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95"
+        className="absolute top-4 start-4 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-rose-600 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95"
         title="إغلاق"
       >
         <X className="w-5 h-5" />
@@ -147,7 +147,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
         </div>
       )}
 
-      <span className="absolute bottom-4 right-4 text-white/70 text-xs font-bold">
+      <span className="absolute bottom-4 end-4 text-white/70 text-xs font-bold">
         {previewPhotoIndex + 1} / {photos.length}
       </span>
     </div>

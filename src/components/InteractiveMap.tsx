@@ -416,7 +416,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
         {/* ⚠️ Network / Connection Error Toast Banner (QW-05 / UX-09) */}
         {directoryLoad.error && (
-          <div className="absolute top-20 left-4 right-4 sm:left-auto sm:right-4 z-[950] pointer-events-auto transition-all animate-bounce-in">
+          <div className="absolute top-20 inset-x-4 sm:inset-x-auto sm:end-4 z-[950] pointer-events-auto transition-all animate-bounce-in">
             <div className="bg-red-950/90 backdrop-blur-md text-red-200 border border-red-500/50 rounded-xl px-4 py-2.5 text-xs font-bold shadow-2xl flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-red-400 text-sm">⚠️</span>
@@ -435,7 +435,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
         {/* ⚠️ Empty Category Notice Banner (Non-intrusive lightweight pill) */}
         {mode === 'view' && activeCategory && activeCategory !== 'all' && !directoryLoad.pending && !searchPending && !directoryLoad.error && matchingBusinessesCount === 0 && (
-          <div className="absolute bottom-5 left-3 right-16 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
+          <div className="absolute bottom-5 start-16 end-3 sm:start-1/2 sm:end-auto sm:-translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
               <span>لا توجد أنشطة مسجلة في تصنيف &quot;{activeCategory}&quot; {activeZone && activeZone !== 'all' ? `بمنطقة ${activeZone}` : 'حالياً'}</span>

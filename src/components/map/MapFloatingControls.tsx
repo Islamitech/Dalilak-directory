@@ -64,7 +64,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* FLOATING CONTROLS TOOLBAR OVER MAP */}
       {/* 1. Zoom, Center Pin, & Reset Controls (Top Right Overlay) */}
-      <div className="map-icon-controls absolute top-[7.5rem] right-2 sm:top-20 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[1010]">
+      <div className="map-icon-controls absolute top-[7.5rem] end-2 sm:top-20 sm:end-5 flex flex-col gap-1.5 sm:gap-2 z-[1010]">
         {mode === 'view' && onLocate && (
           <button type="button" onClick={onLocate} disabled={isLocating} aria-label="تحديد موقعي الحالي" aria-busy={isLocating} className="min-w-11 min-h-11 bg-white/95 text-amber-700 rounded-2xl border border-slate-200 shadow-lg flex items-center justify-center disabled:opacity-60" title="تحديد موقعي الحالي">
             {isLocating ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : <LocateFixed className="w-5 h-5" />}
@@ -126,7 +126,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* 2. D-PAD Directional Pan Movement Controls (Only for Picker Mode) */}
       {mode === 'picker' && (
-        <div className="absolute top-20 left-3 bg-white/95 border border-slate-200 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-[900] flex flex-col items-center gap-1">
+        <div className="absolute top-20 start-3 bg-white/95 border border-slate-200 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-[900] flex flex-col items-center gap-1">
           <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">تحريك دقيق</span>
 
           <button

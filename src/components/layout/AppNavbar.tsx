@@ -129,7 +129,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             {/* Floating Location Selection Popover */}
             {isLocationMenuOpen && (
               <div
-                className="fixed top-[calc(4rem+env(safe-area-inset-top))] right-3 left-3 w-auto sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-auto sm:w-80 bg-white/98 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 z-50 p-2.5 animate-scale-in text-slate-800"
+                className="fixed top-[calc(4rem+env(safe-area-inset-top))] inset-x-3 w-auto sm:absolute sm:top-full sm:mt-2 sm:end-0 sm:start-auto sm:w-80 bg-white/98 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 z-50 p-2.5 animate-scale-in text-slate-800"
                 dir="rtl"
               >
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
@@ -140,13 +140,13 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 </div>
 
                 <div className="relative mb-2">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute start-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     placeholder="ابحث عن منطقة أو مدينة..."
                     value={locationSearchQuery}
                     onChange={(e) => setLocationSearchQuery(e.target.value)}
-                    className="w-full pr-8 pl-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
+                    className="w-full ps-8 pe-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                     autoFocus
                   />
                 </div>

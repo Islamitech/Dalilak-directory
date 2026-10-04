@@ -86,7 +86,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
       dir="rtl"
     >
       {/* Decorative Brand Accent Gradient */}
-      <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
+      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
 
       {/* Header: Identity & Gates Guide Link */}
       <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
@@ -141,7 +141,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
                   </option>
                 ))}
               </select>
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <div className="absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                 <MapPin className="w-4 h-4" />
               </div>
             </div>
@@ -160,7 +160,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
                 placeholder="مثال: 240 أو 185"
                 className="w-full h-12 bg-slate-50 dark:bg-slate-900 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-black text-[var(--text-primary)] placeholder:text-slate-400 outline-none transition-all font-mono"
               />
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <div className="absolute end-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <Building2 className="w-4 h-4" />
               </div>
             </div>
@@ -181,7 +181,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
 
         {/* Popular Zone Chips for 1-Click Jumping */}
         <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-          <span className="text-[11px] font-bold text-[var(--text-secondary)] ml-1">
+          <span className="text-[11px] font-bold text-[var(--text-secondary)] me-1">
             مناطق شائعة:
           </span>
           {popularZoneLetters.map((letter) => {

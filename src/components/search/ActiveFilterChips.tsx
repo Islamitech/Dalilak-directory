@@ -48,7 +48,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 py-1 text-xs">
-      <span className="text-[11px] font-bold text-slate-500 ml-1">الفلاتر المطبقة:</span>
+      <span className="text-[11px] font-bold text-slate-500 me-1">الفلاتر المطبقة:</span>
 
       {categoryFilter !== 'all' && (
         <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-lg text-xs font-bold animate-fade-in">
