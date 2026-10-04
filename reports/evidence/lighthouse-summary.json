@@ -1,0 +1,23 @@
+{
+  "home": {
+    "url": "/",
+    "performance": 98,
+    "accessibility": 100,
+    "bestPractices": 92,
+    "seo": 100
+  },
+  "search": {
+    "url": "/search",
+    "performance": 78,
+    "accessibility": 100,
+    "bestPractices": 96,
+    "seo": 100
+  },
+  "map": {
+    "url": "/map",
+    "performance": 98,
+    "accessibility": 100,
+    "bestPractices": 92,
+    "seo": 100
+  }
+}
