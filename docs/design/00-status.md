@@ -18,10 +18,44 @@
 | **Audit Remediation (Step 0)** | `fix(p0-14)` | PASS | "Fix whatever fails, then continue. Commit as fix(p0-14)." |
 | **Phase 3 (Core Views & Interactive Components)** | `2bd07dc`, `e5027e4`, `f89fb3e`, `10b65ce`, `1e0503d`, `163ea3c` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
 | **Phase 4 (Integration & Advanced Behaviors)** | `6f66a81`, `a3a0b30`, `4ddefd0`, `e6361b3`, `0a21aaa` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
+| **Phase 5 (Process Remediation & Final Acceptance)** | `d3d941b`, `769eeb7`, `cdc67be`, `ce58134` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
 
 ## Formal Authorization Record
 
 > "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app."
+
+---
+
+## Phase 5 Completion Report (Final Process Verification & Acceptance)
+
+### 1. Scope & Execution
+- **Task 5-1 (`fix(p5-01)`, `d3d941b`):** Addressed all WCAG AA color contrast and accessible dialog attributes identified by automated axe-core and dialog harness.
+- **Task 5-2 (`test(p5-02)`, `769eeb7`):** Integrated automated `@axe-core/playwright` accessibility test suite (`scripts/verify-axe.cjs`) and comprehensive 7-contract behavioral assertion suite (`scripts/verify-behavioral-assertions.cjs`).
+- **Task 5-3 (`test(p5-03)`, `cdc67be`):** Committed Lighthouse mobile audit runner (`scripts/run-lighthouse-audit.cjs`) and captured audit summary across Home, Search, and Map routes.
+- **Task 5-4 (`docs(p5-04)`, `ce58134`):** Reconciled port plan and verification status matrix.
+
+### 2. Quality Gates in Clean Export (`git archive HEAD`)
+- `node scripts/check-architecture.cjs`: PASS (exit code 0)
+- `npx tsc --noEmit`: PASS (exit code 0)
+- `npm run build`: PASS (exit code 0)
+- `npm test`: PASS (exit code 0, 42/42 tests passing)
+- `npm run check:bundle`: PASS (exit code 0, all 11 chunks within budgets)
+- `npm run check:secrets`: PASS (exit code 0, 0 secrets detected)
+- `npm run test:guard`: PASS (exit code 0, path normalization + cycle prevention)
+- `npm run test:ux:e2e`: PASS (exit code 0, 5/5 tests + 20 responsive assertions passing)
+- `node src/tests/dialog_accessibility.playwright.cjs`: PASS (exit code 0, 5/5 tests passing)
+- `npm run test:axe`: PASS (exit code 0, 0 serious/critical violations)
+- `npm run test:behavioral`: PASS (exit code 0, 7/7 contracts passing)
+
+### 3. Lighthouse Mobile Audit Scores
+- **Home (`/`):** Performance: 98 | Accessibility: 100 | Best Practices: 92 | SEO: 100
+- **Search (`/search`):** Performance: 78 | Accessibility: 100 | Best Practices: 96 | SEO: 100
+- **Map (`/map`):** Performance: 98 | Accessibility: 100 | Best Practices: 92 | SEO: 100
+
+### 4. First-Load JS Budget Measurement
+- Measured from `dist/index.html` (entry script + all 3 `modulepreload` JS chunks, kB=1000):
+  - Total Raw: **600.12 kB** (Baseline: 592.66 kB, Delta: **+1.26%**, Budget: <= +5.0%)
+  - Total Gzip: **170.59 kB** (Baseline: 169.42 kB, Delta: **+0.69%**)
 
 ---
 
