@@ -118,9 +118,18 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       <AppNavbar
         currentPath={currentPath}
         onNavigate={handleNavigate}
+        searchQuery={filterState.searchQuery}
+        onSearchChange={filterState.setSearchQuery}
         favoritesCount={favorites.length}
         activeLocation={filterState.cityFilter}
         onLocationChange={geo.handleLocationChange}
+        onLocateMe={geo.handleRequestLocation}
+        onFitAll={() => {
+          window.dispatchEvent(new CustomEvent('map:fitAll'));
+        }}
+        onOpenAtlas={() => {
+          window.dispatchEvent(new CustomEvent('atlas:open'));
+        }}
       />
 
       <DirectoryStatus />

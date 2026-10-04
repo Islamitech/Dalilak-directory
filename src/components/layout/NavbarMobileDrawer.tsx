@@ -50,11 +50,11 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         );
       })}
 
-      <div className="pt-2 border-t border-slate-100 space-y-2">
+      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <a
           href="/for-business"
           onClick={(e) => onAnchorClick(e, '/for-business')}
-          className="w-full px-4 py-3 rounded-xl bg-amber-500 text-slate-950 text-xs font-black flex items-center justify-between transition-all cursor-pointer"
+          className="w-full px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center justify-between transition-all cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <Store className="w-4 h-4" />
@@ -66,13 +66,29 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         <a
           href="/pricing"
           onClick={(e) => onAnchorClick(e, '/pricing')}
-          className="w-full px-4 py-3 rounded-xl bg-slate-50 hover:bg-amber-50 text-slate-800 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200"
+          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
         >
           <div className="flex items-center gap-2">
-            <BadgeDollarSign className="w-4 h-4 text-amber-600" />
-            <span>باقات النمو والظهور المميز</span>
+            <BadgeDollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>باقات النمو والتوثيق</span>
           </div>
         </a>
+
+        <div className="flex items-center gap-2 pt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <a
+            href="/about"
+            onClick={(e) => onAnchorClick(e, '/about')}
+            className="flex-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-center hover:text-amber-600 transition-colors"
+          >
+            عن دليلك
+          </a>
+          <a
+            href="/offline.html"
+            className="flex-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-center hover:text-amber-600 transition-colors"
+          >
+            دليل الأوفلاين
+          </a>
+        </div>
       </div>
     </div>
   );
