@@ -1,4 +1,14 @@
-const {chromium}=require('C:/Users/Ahmed/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+let chromium;
+try {
+  ({ chromium } = require('@playwright/test'));
+} catch {
+  try {
+    ({ chromium } = require('playwright'));
+  } catch {
+    const custom = process.env.PLAYWRIGHT_MODULE || 'playwright';
+    ({ chromium } = require(custom));
+  }
+}
 const fs=require('fs');
 const base={category:'صيدلية',governorate:'الجيزة',city:'حدائق الأهرام',street:'منطقة ب',phone:'01012345678',lat:29.979184,lng:31.106863,verification_status:'verified',package_id:'pkg_basic',created_at:'2026-09-01T00:00:00Z',description:'وصف الاختبار',notes:'{}'};
 const rows=[{...base,id:'biz_alpha',name_ar:'صيدلية ألفا',working_hours:'24 ساعة',photos:['https://fixture.test/a.svg'],cover_photo:'https://fixture.test/a.svg',notes:JSON.stringify({videos:['https://fixture.test/video.mp4'],googleRatingEnabled:true,googleRating:4.5,googleReviewsCount:12})},{...base,id:'biz_beta',name_ar:'صيدلية بيتا',working_hours:'مغلق',photos:[],created_at:'2026-08-01T00:00:00Z'}];
