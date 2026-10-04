@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Logo } from '../Logo';
 import {
   MoreHorizontal,
@@ -38,6 +38,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   onOpenAtlas,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
   const { theme, toggleTheme } = useTheme();
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
   const isMapRoute = cleanRoute === '/' || cleanRoute === '/map';
@@ -172,6 +173,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 
             {/* More Menu (...) Button (D3) */}
             <button
+              ref={moreButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all"
@@ -203,6 +205,9 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
           cleanRoute={cleanRoute}
           onLinkClick={handleLinkClick}
           onAnchorClick={handleAnchorClick}
+          onClose={() => setMobileMenuOpen(false)}
+          onOpenAtlas={onOpenAtlas}
+          triggerRef={moreButtonRef}
         />
       )}
     </header>
