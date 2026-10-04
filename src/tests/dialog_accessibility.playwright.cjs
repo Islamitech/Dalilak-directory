@@ -1,9 +1,31 @@
 const path = require('path');
 const assert = require('node:assert/strict');
+const net = require('node:net');
 const { chromium, setup } = require('../../verification/browser-harness.cjs');
+
+async function isPortOpen(port) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(800);
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('timeout', () => { socket.destroy(); resolve(false); });
+    socket.once('error', () => { socket.destroy(); resolve(false); });
+    socket.connect(port, '127.0.0.1');
+  });
+}
 
 async function runTests() {
   console.log('=== RUNNING DIALOG ACCESSIBILITY TESTS (TASK 2) ===\n');
+
+  const port = 5291;
+  let server = null;
+  const running = await isPortOpen(port);
+  if (!running) {
+    const { preview } = await import('vite');
+    server = await preview({
+      preview: { port, host: '127.0.0.1' },
+    });
+  }
 
   const browser = await chromium.launch({
     executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -199,6 +221,14 @@ async function runTests() {
 
     const videoModal = s.page.locator('[role="dialog"][aria-labelledby="video-modal-title"]');
     await videoModal.waitFor({ timeout: 4000 });
+    await s.page.waitForTimeout(150);
+
+    const activeEl = await s.page.evaluate(() => ({
+      tag: document.activeElement?.tagName,
+      className: document.activeElement?.className,
+      ariaLabel: document.activeElement?.getAttribute('aria-label')
+    }));
+    console.log('VideoModal active element:', activeEl);
 
     // Initial focus must be inside VideoModal
     const initialFocusInside = await videoModal.evaluate((d) => d.contains(document.activeElement));
@@ -313,6 +343,9 @@ async function runTests() {
   }
 
   await browser.close();
+  if (server && server.httpServer) {
+    await new Promise((r) => server.httpServer.close(r));
+  }
 
   console.log('===================================================');
   console.log(`TOTAL TESTS RUN: 5, FAILURES: ${failures.length}`);

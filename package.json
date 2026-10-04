@@ -22,6 +22,8 @@
     "test:repair": "node scripts/verify-repair.mjs",
     "test:repair:browser": "node src/tests/mutation_browser.playwright.cjs",
     "test:ux:e2e": "node src/tests/e2e/ux_round2.playwright.cjs",
+    "test:axe": "node scripts/verify-axe.cjs",
+    "test:behavioral": "node scripts/verify-behavioral-assertions.cjs",
     "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts",
     "test:security": "vitest run src/tests/serverless_security.test.ts",
     "test:unit": "vitest run src/tests/shared_lib.test.ts",
@@ -36,6 +38,7 @@
     "react-dom": "^19.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.1.14",
     "@types/node": "^26.6.4",
