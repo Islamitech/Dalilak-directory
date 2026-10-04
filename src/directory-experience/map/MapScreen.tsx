@@ -9,6 +9,7 @@ import { MapActivityCards } from './MapActivityCards';
 import { MapFloatingPanel } from './MapFloatingPanel';
 import { MapScreenDialogs } from './MapScreenDialogs';
 import { MapGateDetailOverlay } from './MapGateDetailOverlay';
+import { SearchField } from '../../shared/ui';
 import type { ActionKind, DirectoryPlace } from '../contracts/directory';
 import './map.css';
 
@@ -97,29 +98,23 @@ export function MapScreen(p: DiscoveryProps) {
               }}
             >
               <MapPin size={22} />
-              <label>
-                <span className="sr-only">ابحث في أنشطة الخريطة</span>
-                <input
-                  type="search"
-                  value={query}
-                  onChange={e => {
-                    setQuery(e.target.value);
-                    clearSelection();
-                    setPanel(e.target.value ? 'results' : null);
-                  }}
-                  placeholder={area === 'all' ? 'ابحث في حدائق الأهرام…' : `ابحث في ${area}…`}
-                />
-              </label>
-              {query.trim() && (
-                <button
-                  type="button"
-                  className="hm-search-clear"
-                  aria-label="مسح البحث"
-                  onClick={() => { setQuery(''); clearSelection(); setPanel(null); }}
-                >
-                  <X size={16} />
-                </button>
-              )}
+              <SearchField
+                value={query}
+                onChange={(val) => {
+                  setQuery(val);
+                  clearSelection();
+                  setPanel(val ? 'results' : null);
+                }}
+                onClear={() => {
+                  setQuery('');
+                  clearSelection();
+                  setPanel(null);
+                }}
+                placeholder={area === 'all' ? 'ابحث في حدائق الأهرام…' : `ابحث في ${area}…`}
+                aria-label="البحث في أنشطة الخريطة"
+                className="flex-1"
+                inputClassName="!h-10 !bg-transparent !border-none !text-sm !font-bold focus:!ring-0"
+              />
               <button type="submit" aria-label="عرض نتائج البحث على الخريطة">
                 <Search size={21} />
               </button>

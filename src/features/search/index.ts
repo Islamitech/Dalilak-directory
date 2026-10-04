@@ -15,3 +15,4 @@ export { SearchHeroHeader } from './components/SearchHeroHeader';
 export { SearchDiscoveryCategories } from './components/SearchDiscoveryCategories';
 export { SearchSuggestionsDropdown } from './components/SearchSuggestionsDropdown';
 export { SearchResultsSection } from './components/SearchResultsSection';
+export { useUnifiedSearch, type UseUnifiedSearchOptions } from './hooks/useUnifiedSearch';

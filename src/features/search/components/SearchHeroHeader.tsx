@@ -1,5 +1,6 @@
 import React from 'react';
 import { Compass, MapPin, ArrowLeft, Search, LocateFixed } from 'lucide-react';
+import { SearchField } from '../../../shared/ui';
 
 interface SearchHeroHeaderProps {
   categoryFilter: string;
@@ -96,15 +97,15 @@ export const SearchHeroHeader: React.FC<SearchHeroHeaderProps> = ({
           }}
           className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-2.5 transition-all"
         >
-          <div className="flex items-center gap-2.5 px-3 py-2 border-b md:border-b-0 md:border-inline-end border-slate-100 flex-1 min-w-0 bg-white">
-            <input
-              type="search"
+          <div className="flex-1 min-w-0 bg-white">
+            <SearchField
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={onSearchChange}
               placeholder="مطعم، طبيب، خدمة… ماذا تحتاج؟"
-              className="w-full bg-white outline-none text-sm font-bold text-slate-900 placeholder:text-slate-400"
+              aria-label="البحث في الدليل"
+              onClear={() => onSearchChange('')}
+              onSubmit={onSearchSubmit}
             />
-            <Search className="w-5 h-5 text-amber-600 shrink-0" />
           </div>
 
           <div className="flex items-center gap-2.5 px-3 py-2 border-b md:border-b-0 md:border-inline-end border-slate-100 shrink-0 bg-white">

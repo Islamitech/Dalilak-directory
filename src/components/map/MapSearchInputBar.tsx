@@ -1,5 +1,6 @@
 import React, { RefObject } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
+import { SearchField } from '../../shared/ui';
 
 export interface MapSearchInputBarProps {
   inputRef: RefObject<HTMLInputElement | null>;
@@ -20,28 +21,17 @@ export const MapSearchInputBar: React.FC<MapSearchInputBarProps> = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className="flex-1 min-w-0 flex items-center gap-1.5 px-2">
-      <input
-        ref={inputRef as any}
-        type="search"
+      <SearchField
+        ref={inputRef}
         value={searchQuery}
-        onChange={(e) => onSearchQueryChange?.(e.target.value)}
+        onChange={(val) => onSearchQueryChange?.(val)}
         onFocus={onFocus}
+        onClear={() => onSearchQueryChange?.('')}
         placeholder="على ماذا تبحث ..."
         aria-label="البحث عن نشاط أو مبنى"
-        className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-bold text-slate-800 placeholder-slate-400 h-11"
-        enterKeyHint="search"
-        autoComplete="off"
+        className="flex-1"
+        inputClassName="!h-11 !bg-transparent !border-none !text-base sm:!text-sm font-bold text-slate-800 placeholder-slate-400 focus:!ring-0"
       />
-      {searchQuery.trim() && (
-        <button
-          type="button"
-          onClick={() => onSearchQueryChange?.('')}
-          className="min-w-11 min-h-11 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer shrink-0"
-          title="مسح"
-        >
-          <X size={15} />
-        </button>
-      )}
       <button
         type="submit"
         disabled={isExecutingSearch || !searchQuery.trim()}
