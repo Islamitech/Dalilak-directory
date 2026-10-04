@@ -1,0 +1,41 @@
+[
+  {
+    "name": "mobile-360",
+    "width": 360,
+    "height": 740,
+    "isMobile": true,
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "hasHorizontalScroll": false,
+    "dir": "rtl",
+    "lang": "ar",
+    "title": "الخريطة التفاعلية والمواقع الموثقة | منصة دليلك",
+    "screenshotPath": "C:\\Users\\karee\\OneDrive\\Desktop\\Dalilak-directory-AUDIT\\reports\\evidence\\mobile-360.png"
+  },
+  {
+    "name": "tablet-768",
+    "width": 768,
+    "height": 1024,
+    "isMobile": false,
+    "scrollWidth": 768,
+    "clientWidth": 768,
+    "hasHorizontalScroll": false,
+    "dir": "rtl",
+    "lang": "ar",
+    "title": "الخريطة التفاعلية والمواقع الموثقة | منصة دليلك",
+    "screenshotPath": "C:\\Users\\karee\\OneDrive\\Desktop\\Dalilak-directory-AUDIT\\reports\\evidence\\tablet-768.png"
+  },
+  {
+    "name": "desktop-1280",
+    "width": 1280,
+    "height": 800,
+    "isMobile": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "hasHorizontalScroll": false,
+    "dir": "rtl",
+    "lang": "ar",
+    "title": "الخريطة التفاعلية والمواقع الموثقة | منصة دليلك",
+    "screenshotPath": "C:\\Users\\karee\\OneDrive\\Desktop\\Dalilak-directory-AUDIT\\reports\\evidence\\desktop-1280.png"
+  }
+]
