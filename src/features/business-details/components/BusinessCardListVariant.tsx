@@ -33,16 +33,7 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
 
   return (
     <div className="group relative bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      {/* Primary card link/button: accessible full surface with no nested buttons */}
-      <button
-        type="button"
-        role="button"
-        aria-label={business.nameAr}
-        onClick={() => onOpenBusiness(business)}
-        className="absolute inset-0 z-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-      />
-
-      <div className="flex items-center gap-3 min-w-0 flex-1 pointer-events-none relative z-[1]">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-900">
           <img
             src={getOptimizedImageUrl(mainPhoto, 160, 160)}
@@ -56,7 +47,7 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
         </div>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap relative z-10">
             <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 truncate max-w-[180px]">
               {business.category}
             </span>
@@ -75,8 +66,16 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
             </span>
           </div>
 
-          <h3 className="text-sm sm:text-base font-black text-slate-900 truncate group-hover:text-amber-600 transition-colors">
-            <bdi dir="auto">{business.nameAr}</bdi>
+          <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">
+            <button
+              type="button"
+              role="button"
+              aria-label={business.nameAr}
+              onClick={() => onOpenBusiness(business)}
+              className="text-start font-black text-slate-900 group-hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-md after:absolute after:inset-0 after:z-0 cursor-pointer"
+            >
+              <bdi dir="auto">{business.nameAr}</bdi>
+            </button>
           </h3>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
