@@ -188,22 +188,22 @@
 | 7 | Mini Header Buttons (`.mini-btn`) | `src/shared/ui/IconButton.tsx`, `AppNavbar.tsx` | **done** | 38–44px square mini buttons (D3) |
 | 8 | Header "More" Button (`...`) | `src/components/layout/NavbarMobileDrawer.tsx` | **done** | Accessible slide-over sheet for secondary actions (D3) |
 | 9 | Category Bar (`.categories`, `.cat`) | `src/components/layout/CategoryBar.tsx` | **done** | Snap scroll, edge fades, taxonomy synchronized (D5) |
-| 10 | Unified Business Card Presentation | `src/features/business-details/components/UnifiedBusinessCard.tsx` | **pending** | Phase 3 Task 3-1 |
-| 11 | Card Stretched-Link Pattern | `UnifiedBusinessCard.tsx` | **pending** | Phase 3 Task 3-1 (Zero nested interactive elements) |
-| 12 | Map Selected Bottom Sheet (`.map-sheet`) | `src/components/map/MapSelectedBusinessDrawer.tsx` | **pending** | Phase 3 Task 3-2 |
-| 13 | Business Detail Modal / Bottom Sheet | `src/components/activity/ActivityDetailModal.tsx` | **pending** | Phase 3 Task 3-3 |
-| 14 | Detail Rating Box (`.rating-box`) | `ActivityDetailModal.tsx` | **pending** | Phase 3 Task 3-3 (Real verified data only) |
-| 15 | Detail Info Rows (`.info-list`) | `ActivityDetailModal.tsx` | **pending** | Phase 3 Task 3-3 |
-| 16 | Detail Offer Card (`.offer-card`) | `ActivityDetailModal.tsx` | **pending** | Phase 3 Task 3-3 (Shown only if offer exists) |
-| 17 | Detail Action Grid (Call, WhatsApp, Dir, Share) | `ActivityDetailModal.tsx` | **pending** | Phase 3 Task 3-3 |
-| 18 | Teardrop Marker Pins (`.marker-pin`) | `src/components/map/badgeMarkers.ts` | **pending** | Phase 3 Task 3-4 |
-| 19 | Map Floating Controls (<1024px) | `src/components/map/MapControlOverlay.tsx` | **pending** | Phase 3 Task 3-4 |
+| 10 | Unified Business Card Presentation | `src/features/business-details/components/UnifiedBusinessCard.tsx` | **done** | Phase 3 Task 3-1 |
+| 11 | Card Stretched-Link Pattern | `UnifiedBusinessCard.tsx` | **done** | Phase 3 Task 3-1 (Zero nested interactive elements) |
+| 12 | Map Selected Bottom Sheet (`.map-sheet`) | `src/components/map/MapSelectedBusinessDrawer.tsx` | **done** | Phase 3 Task 3-2 |
+| 13 | Business Detail Modal / Bottom Sheet | `src/components/activity/ActivityDetailModal.tsx` | **done** | Phase 3 Task 3-3 |
+| 14 | Detail Rating Box (`.rating-box`) | `ActivityDetailModal.tsx` | **done** | Phase 3 Task 3-3 (Real verified data only) |
+| 15 | Detail Info Rows (`.info-list`) | `ActivityDetailModal.tsx` | **done** | Phase 3 Task 3-3 |
+| 16 | Detail Offer Card (`.offer-card`) | `ActivityDetailModal.tsx` | **done** | Phase 3 Task 3-3 (Shown only if offer exists) |
+| 17 | Detail Action Grid (Call, WhatsApp, Dir, Share) | `ActivityDetailModal.tsx` | **done** | Phase 3 Task 3-3 |
+| 18 | Teardrop Marker Pins (`.marker-pin`) | `src/components/map/badgeMarkers.ts` | **done** | Phase 3 Task 3-4 |
+| 19 | Map Floating Controls (<1024px) | `src/components/map/MapControlOverlay.tsx` | **done** | Phase 3 Task 3-4 |
 | 20 | Map Docked Controls (>=1024px) | `src/components/layout/AppNavbar.tsx` | **done** | Requirement E1 |
-| 21 | Map Stats Badge (`.map-stats`) | `src/components/map/MapStatsBadge.tsx` | **pending** | Phase 3 Task 3-4 |
-| 22 | Business List Header & Counter | `src/components/views/SearchView.tsx` | **pending** | Phase 3 Task 3-5 |
-| 23 | Favorites Filter Chip (`#favToolBtn`) | `src/components/views/SearchView.tsx` | **pending** | Phase 3 Task 3-5 |
-| 24 | Sort Cycle Button (`#sortBtn`) | `src/components/views/SearchView.tsx` | **pending** | Phase 3 Task 3-5 |
-| 25 | Empty Search State (`.empty`) | `src/shared/ui/EmptyState.tsx` | **pending** | Phase 3 Task 3-5 |
+| 21 | Map Stats Badge (`.map-stats`) | `src/components/map/MapStatsBadge.tsx` | **done** | Phase 3 Task 3-4 |
+| 22 | Business List Header & Counter | `src/components/views/SearchView.tsx` | **done** | Phase 3 Task 3-5 |
+| 23 | Favorites Filter Chip (`#favToolBtn`) | `src/components/views/SearchView.tsx` | **done** | Phase 3 Task 3-5 |
+| 24 | Sort Cycle Button (`#sortBtn`) | `src/components/views/SearchView.tsx` | **done** | Phase 3 Task 3-5 |
+| 25 | Empty Search State (`.empty`) | `src/shared/ui/EmptyState.tsx` | **done** | Phase 3 Task 3-5 |
 | 26 | Search Input Field (`.search-field`) | `src/shared/ui/SearchField.tsx` | **pending** | Phase 4 Task 4-1 |
 | 27 | Cadastral Building & Street Search | `src/utils/hadayekBuildingSearch.ts` | **pending** | Phase 4 Task 4-1 (Preserved production feature) |
 | 28 | Hadayek Atlas & Proximity Radar | `src/features/atlas/` | **done** | Preserved production feature (D5) |
