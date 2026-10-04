@@ -28,3 +28,7 @@ ALTER TABLE public.businesses
 -- Create index on seo_status for efficient filtering
 CREATE INDEX IF NOT EXISTS idx_businesses_seo_status ON public.businesses(seo_status)
     WHERE seo_status = 'approved';
+
+-- Notify PostgREST to reload its schema cache immediately
+NOTIFY pgrst, 'reload schema';
+

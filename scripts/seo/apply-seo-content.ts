@@ -77,13 +77,27 @@ async function main() {
     fs.mkdirSync(proposedDir, { recursive: true });
   }
 
-  // 1. Generate Batch SQL file (004_apply_seo_content.sql)
+  // 1. Generate Batch SQL file (004_apply_seo_content.sql) + Chunked parts
   const sqlApplyPath = path.join(proposedDir, '004_apply_seo_content.sql');
   const sqlRollbackPath = path.join(proposedDir, '005_rollback_seo_content.sql');
+  const sqlVerifyPath = path.join(proposedDir, '006_verify_seo_content.sql');
+
+  const createUpdateStatement = (item: any) =>
+    `UPDATE public.businesses SET ` +
+    `seo_title = ${sqlEscape(item.seo_title)}, ` +
+    `seo_description = ${sqlEscape(item.seo_description)}, ` +
+    `seo_intro = ${sqlEscape(item.seo_intro)}, ` +
+    `seo_keywords_internal = ${sqlEscape(item.seo_keywords_internal)}, ` +
+    `seo_faq = ${sqlEscape(item.seo_faq)}, ` +
+    `seo_status = 'approved', ` +
+    `seo_source_fields = ${sqlEscape(item.seo_source_fields)}, ` +
+    `seo_generated_at = ${sqlEscape(item.seo_generated_at)}, ` +
+    `seo_reviewed_by = ${sqlEscape(item.seo_reviewed_by)} ` +
+    `WHERE id = ${sqlEscape(item.id)};`;
 
   const sqlStatements: string[] = [
     '--',
-    '-- DALILAK SEO CONTENT - BATCH APPLICATION SCRIPT',
+    '-- DALILAK SEO CONTENT - BATCH APPLICATION SCRIPT (FULL)',
     `-- Generated: ${new Date().toISOString()}`,
     `-- Total Approved Records: ${approved.length}`,
     '-- Safety: Only updates seo_* columns; original description and name fields are strictly preserved.',
@@ -93,24 +107,35 @@ async function main() {
   ];
 
   for (const item of approved) {
-    sqlStatements.push(
-      `UPDATE public.businesses SET ` +
-      `seo_title = ${sqlEscape(item.seo_title)}, ` +
-      `seo_description = ${sqlEscape(item.seo_description)}, ` +
-      `seo_intro = ${sqlEscape(item.seo_intro)}, ` +
-      `seo_keywords_internal = ${sqlEscape(item.seo_keywords_internal)}, ` +
-      `seo_faq = ${sqlEscape(item.seo_faq)}, ` +
-      `seo_status = 'approved', ` +
-      `seo_source_fields = ${sqlEscape(item.seo_source_fields)}, ` +
-      `seo_generated_at = ${sqlEscape(item.seo_generated_at)}, ` +
-      `seo_reviewed_by = ${sqlEscape(item.seo_reviewed_by)} ` +
-      `WHERE id = ${sqlEscape(item.id)};`
-    );
+    sqlStatements.push(createUpdateStatement(item));
   }
 
   sqlStatements.push('', 'COMMIT;', '');
   fs.writeFileSync(sqlApplyPath, sqlStatements.join('\n'), 'utf8');
   console.log(`Generated proposed SQL apply script: ${sqlApplyPath} (${approved.length} updates)`);
+
+  // Generate 4 chunked parts (~500 records each) for easy browser pasting
+  const chunkSize = 500;
+  const numParts = Math.ceil(approved.length / chunkSize);
+  for (let partIdx = 0; partIdx < numParts; partIdx++) {
+    const chunkStart = partIdx * chunkSize;
+    const chunkItems = approved.slice(chunkStart, chunkStart + chunkSize);
+    const partPath = path.join(proposedDir, `004_apply_seo_content_part${partIdx + 1}.sql`);
+    const partStatements = [
+      '--',
+      `-- DALILAK SEO CONTENT - PART ${partIdx + 1} OF ${numParts} (Records ${chunkStart + 1} to ${chunkStart + chunkItems.length})`,
+      `-- Generated: ${new Date().toISOString()}`,
+      '--',
+      'BEGIN;',
+      ''
+    ];
+    for (const item of chunkItems) {
+      partStatements.push(createUpdateStatement(item));
+    }
+    partStatements.push('', 'COMMIT;', '');
+    fs.writeFileSync(partPath, partStatements.join('\n'), 'utf8');
+    console.log(`Generated chunk part ${partIdx + 1}/${numParts}: ${partPath} (${chunkItems.length} updates)`);
+  }
 
   // 2. Generate Rollback SQL file
   const rollbackSql = [
@@ -138,6 +163,38 @@ async function main() {
   ].join('\n');
   fs.writeFileSync(sqlRollbackPath, rollbackSql, 'utf8');
   console.log(`Generated proposed SQL rollback script: ${sqlRollbackPath}`);
+
+  // 3. Generate Verification SQL file
+  const verifySql = [
+    '--',
+    '-- DALILAK SEO CONTENT - POST-APPLY VERIFICATION QUERIES',
+    '-- Run this in Supabase SQL Editor after applying to verify counts and inspect sample rows.',
+    '--',
+    '-- 1. Counts Summary (Expect: ~1,952 approved_seo)',
+    'SELECT ',
+    '    count(*) AS total_businesses,',
+    '    count(seo_title) AS businesses_with_seo,',
+    "    count(*) FILTER (WHERE seo_status = 'approved') AS approved_seo,",
+    "    count(*) FILTER (WHERE seo_status = 'draft') AS draft_seo,",
+    "    count(*) FILTER (WHERE seo_status = 'rejected') AS rejected_seo",
+    'FROM public.businesses;',
+    '',
+    '-- 2. Sample 10 Approved Businesses',
+    'SELECT ',
+    '    id,',
+    '    name_ar,',
+    '    category,',
+    '    seo_title,',
+    '    seo_description,',
+    '    seo_status,',
+    '    seo_generated_at',
+    'FROM public.businesses',
+    "WHERE seo_status = 'approved'",
+    'LIMIT 10;',
+    ''
+  ].join('\n');
+  fs.writeFileSync(sqlVerifyPath, verifySql, 'utf8');
+  console.log(`Generated proposed SQL verification script: ${sqlVerifyPath}`);
 
   // -------------------------------------------------------------
   // Pre-flight Schema Check against Remote Database

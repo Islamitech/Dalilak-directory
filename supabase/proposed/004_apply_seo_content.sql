@@ -1,6 +1,6 @@
 --
--- DALILAK SEO CONTENT - BATCH APPLICATION SCRIPT
--- Generated: 2026-10-04T17:25:23.838Z
+-- DALILAK SEO CONTENT - BATCH APPLICATION SCRIPT (FULL)
+-- Generated: 2026-10-04T17:33:10.425Z
 -- Total Approved Records: 1952
 -- Safety: Only updates seo_* columns; original description and name fields are strictly preserved.
 --
