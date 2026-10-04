@@ -24,9 +24,10 @@
     "test:ux:e2e": "node src/tests/e2e/ux_round2.playwright.cjs",
     "test:axe": "node scripts/verify-axe.cjs",
     "test:behavioral": "node scripts/verify-behavioral-assertions.cjs",
+    "test:cadastral": "node scripts/verify-cadastral-search.playwright.cjs",
     "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts",
     "test:security": "vitest run src/tests/serverless_security.test.ts",
-    "test:unit": "vitest run src/tests/shared_lib.test.ts",
+    "test:unit": "vitest run src/tests/shared_lib.test.ts src/tests/building_search_contract.test.ts",
     "test:map:e2e": "playwright test -c playwright.map.config.ts",
     "test:seo": "tsx scripts/test-seo-endpoints.ts"
   },
