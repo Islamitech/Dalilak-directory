@@ -29,14 +29,12 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
       : null;
 
   return (
-    <div
-      onClick={() => onOpenBusiness(business)}
+    <button
+      type="button"
       role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpenBusiness(business);
-      }}
-      className="flex items-center gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      aria-label={business.nameAr}
+      onClick={() => onOpenBusiness(business)}
+      className="w-full text-start flex items-center gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
     >
       <img
         src={getOptimizedImageUrl(mainPhoto, 120, 120)}
@@ -59,6 +57,6 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
           </span>
         </div>
       </div>
-    </div>
+    </button>
   );
 };

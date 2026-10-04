@@ -32,17 +32,17 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
       : null;
 
   return (
-    <div
-      onClick={() => onOpenBusiness(business)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpenBusiness(business);
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={business.nameAr}
-      className="group bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-    >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <div className="group relative bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Primary card link/button: accessible full surface with no nested buttons */}
+      <button
+        type="button"
+        role="button"
+        aria-label={business.nameAr}
+        onClick={() => onOpenBusiness(business)}
+        className="absolute inset-0 z-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      />
+
+      <div className="flex items-center gap-3 min-w-0 flex-1 pointer-events-none relative z-[1]">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-900">
           <img
             src={getOptimizedImageUrl(mainPhoto, 160, 160)}
@@ -93,7 +93,7 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 relative z-10 pointer-events-auto">
         <BusinessActionButtons business={business} />
 
         {onToggleFavorite && (

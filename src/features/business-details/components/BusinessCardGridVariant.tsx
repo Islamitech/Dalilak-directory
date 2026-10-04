@@ -45,19 +45,19 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
       : null;
 
   return (
-    <div
-      onClick={() => onOpenBusiness(business)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpenBusiness(business);
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={business.nameAr}
-      className="group bg-white border border-slate-200/90 hover:border-amber-400/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between hover:-translate-y-0.5 cursor-pointer protected-asset-shield focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-    >
+    <div className="group relative bg-white border border-slate-200/90 hover:border-amber-400/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between hover:-translate-y-0.5 protected-asset-shield">
+      {/* Primary card link/button: accessible clickable surface with zero nested buttons */}
+      <button
+        type="button"
+        role="button"
+        aria-label={business.nameAr}
+        onClick={() => onOpenBusiness(business)}
+        className="absolute inset-0 z-0 w-full h-full cursor-pointer rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      />
+
       {/* 1. Visual Anchor: 16:10 Photo with anti-extraction shield */}
       <div
-        className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden select-none"
+        className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden select-none pointer-events-none"
         onContextMenu={(e) => e.preventDefault()}
       >
         <img
@@ -148,7 +148,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
       </div>
 
       {/* 2. Body Details */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between pointer-events-none relative z-[1]">
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200/60 truncate max-w-[70%]">
@@ -182,7 +182,9 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
           </div>
         )}
 
-        <BusinessActionButtons business={business} />
+        <div className="relative z-10 pointer-events-auto">
+          <BusinessActionButtons business={business} />
+        </div>
       </div>
     </div>
   );
