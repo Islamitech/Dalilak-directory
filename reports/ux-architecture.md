@@ -105,6 +105,9 @@ src/
 The refactoring was committed locally in discrete, atomic steps where each commit preserved build and test green states:
 
 ```
+a68bf43 refactor(ux-12): extract SearchDiscoveryFeatured and discoveryCategories to slim SearchView
+c74e285 feat(ux-11): wire shared ui primitives into business card grid, search view, filter drawer, and favorites view
+7d74bc8 refactor(ux-10): convert all remaining physical css classes to rtl logical properties
 0830330 feat(ux-08): capture responsive layout evidence for 360, 768, and 1280 viewports
 3890709 feat(ux-07): add architecture and bundle check scripts and wire into test suite
 b11f6c5 test(ux-06): add shared library unit tests and record feature unification matrix
@@ -156,6 +159,16 @@ ab9b2f7 refactor(ux-01): extract pure phone whatsapp and directions utilities to
    - Implemented `scripts/capture-responsive-evidence.cjs` using Vite dev server and Playwright browser harness.
    - Verified zero horizontal overflow on mobile (360px), tablet (768px), and desktop (1280px).
    - Recorded evidence artifacts in `reports/evidence/`.
+10. **`7d74bc8` `refactor(ux-10): convert all remaining physical css classes to rtl logical properties`**
+    - Converted 38 occurrences of physical classes (`ml-`, `mr-`, `pl-`, `pr-`, `left-`, `right-`) across 23 files to Tailwind CSS logical utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `inset-x-`).
+    - Verified bidirectional layout in Arabic RTL without horizontal clipping.
+11. **`c74e285` `feat(ux-11): wire shared ui primitives into business card grid, search view, filter drawer, and favorites view`**
+    - Replaced raw inline DOM with `EmptyState`, `Skeleton`, and `Button` in `BusinessCardGrid.tsx`.
+    - Integrated `EmptyState` and `Button` in `FavoritesView.tsx`.
+    - Integrated `Button` in `SearchView.tsx` and `FilterDrawer.tsx`.
+    - Integrated `Card` and `Chip` in `UnifiedBusinessCard.tsx`.
+12. **`a68bf43` `refactor(ux-12): extract SearchDiscoveryFeatured and discoveryCategories to slim SearchView`**
+    - Extracted `SearchDiscoveryFeatured.tsx` and `discoveryCategories.ts` from `SearchView.tsx`, reducing file length from 655 to 555 lines.
 
 ---
 
@@ -286,6 +299,42 @@ While the refactoring is strictly behavior-preserving for public users and searc
    - Move remaining view components from `src/components/views/` into dedicated feature directories (`src/features/search/`, `src/features/map/`, `src/features/atlas/`).
 3. **Round 2 Backend Remediation Integration**:
    - Once server-side endpoints from Round 2 (`/api/auth/login`, `/api/reps/register`, `/api/business/write`) are deployed, integrate client-side forms to consume these secure APIs instead of direct Supabase writes.
+
+## 14. Reviewer Inquiries & Follow-up Actions (`ux-10` to `ux-12`)
+
+### 1. Are the new components in `shared/ui` actually being used?
+- **Baseline Inquiry Result**: Initially, `shared/ui` primitives were only imported in `App.tsx` and tested in isolation. Existing views retained raw inline DOM.
+- **Remediation (`ux-11`)**:
+  - `src/components/cards/BusinessCardGrid.tsx` now imports and renders `<EmptyState>`, `<Skeleton>`, and `<Button>`.
+  - `src/components/views/FavoritesView.tsx` now imports and renders `<EmptyState>` and `<Button>`.
+  - `src/components/views/SearchView.tsx` now imports and renders `<Button>` and `<Chip>`.
+  - `src/components/search/FilterDrawer.tsx` now imports and renders `<Button>`.
+  - `src/features/business-details/components/UnifiedBusinessCard.tsx` now imports `<Card>` and `<Chip>`.
+  - **Verification**: `git grep -l "shared/ui" -- src` now confirms real adoption across 6 key components.
+
+### 2. Large files remaining (>250 lines)
+- **Remediation (`ux-12`)**:
+  - `src/components/views/SearchView.tsx` was reduced from 655 to 555 lines (-100 lines) by extracting `SearchDiscoveryFeatured.tsx` and `discoveryCategories.ts`.
+- **Architectural Justification for Remaining Files**:
+  - `useMapPinsClustering.ts` (1,229 lines) and `badgeMarkers.ts` (1,133 lines) are the core spatial clustering and SVG template engines locked by the 42 map tests and the safety net test suite. Refactoring these internal map engines without regression requires dedicated test harness cycles.
+  - `hadayekAtlasData.ts` (586 lines) is a static geographic dataset of gates and landmarks.
+  - `PackagesHub.tsx` (645 lines) and `ActivityDetailModal.tsx` (754 lines) are candidate targets for Phase 5 decomposition.
+
+### 3. Is the massive file (`hadayekBuildingsCoords`) in the initial bundle?
+- **Verification Evidence**:
+  - `Select-String -Path dist/index.html -Pattern "hadayek"` confirms **zero scripts or stylesheets** for this file in `dist/index.html` (only `<meta name="geo.placename" content="Hadayek Al-Ahram, Giza, Egypt" />`).
+  - The 937 kB database is compiled into a standalone dynamic chunk `dist/assets/hadayekBuildingsCoords-*.js`.
+  - It is loaded strictly via dynamic `await import(...)` only when the user triggers building search in `ZoneScopedSearchBar.tsx` or `hadayekBuildingSearch.ts`.
+  - **Initial page load transfers 0 bytes of this 937 kB file.**
+
+### 4. Remaining non-logical directions (RTL)
+- **Remediation (`ux-10`)**:
+  - Converted physical CSS classes across 23 files to Tailwind logical properties (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `inset-x-`).
+  - Total non-logical matches dropped from 74 to 12.
+  - The 12 remaining matches consist entirely of:
+    - 4 mathematical screen centerings (`left-1/2 -translate-x-1/2` for toasts and modals, which are direction-neutral).
+    - 8 literal photo watermark placement coordinates (`bottom-right`, `bottom-left` in `PhotoWatermarkBadge` and `VideoWatermarkBadge`).
+  - Zero layout direction bugs remain in Arabic RTL mode.
 
 ---
 
