@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { CATEGORY_GROUPS } from '../../shared/data/categories';
+import { CATEGORY_TAXONOMY } from '../../data/categoryTaxonomy';
 
 export interface CategoryBarProps {
   activeCategory: string;
-  onSelectCategory: (categoryId: string) => void;
+  onSelectCategory: (category: string) => void;
   className?: string;
 }
 
@@ -64,9 +64,9 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
 
   const items = [
     { id: 'all', label: 'كافة الأنشطة', icon: '✨' },
-    ...CATEGORY_GROUPS.map((g) => ({
-      id: g.group,
-      label: g.group,
+    ...CATEGORY_TAXONOMY.map((g) => ({
+      id: g.id,
+      label: g.label,
       icon: g.icon,
     })),
   ];
@@ -98,7 +98,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
         className="flex items-center gap-2 px-3 min-[380px]:px-4 sm:px-6 lg:px-8 py-2.5 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth"
       >
         {items.map((cat) => {
-          const isActive = activeCategory === cat.id;
+          const isActive = activeCategory === cat.id || activeCategory === cat.label;
           return (
             <button
               key={cat.id}

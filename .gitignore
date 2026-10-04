@@ -33,7 +33,10 @@ verification/mutation-copy/
 verification/vite-cache/
 verification/evidence/
 
-# Evidence screenshots (binary files kept outside git tracking)
+# Evidence screenshots (binary files kept outside git tracking except phase evidence)
 reports/evidence/*.png
+!reports/evidence/category_bar_360px_scrolled.png
+!reports/evidence/*/*.png
+!reports/evidence/*/*/*.png
 screenshots/
 
