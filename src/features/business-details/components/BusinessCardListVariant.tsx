@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Business } from '../../../types';
 import {
   calculateDistanceKm,
@@ -6,8 +6,7 @@ import {
   getBusinessOpenStatus,
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
-import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
-import { ShieldCheck, Heart, Star, MapPin } from 'lucide-react';
+import { ShieldCheck, Heart, Star, Tag, Store } from 'lucide-react';
 import { BusinessActionButtons } from './BusinessActionButtons';
 import type { BusinessCardVariantProps } from './BusinessCardGridVariant';
 
@@ -18,12 +17,8 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
   isFavorite = false,
   userCoords = null,
 }) => {
-  const fallbackCover = getCategoryFallbackCover(business.category);
-  const mainPhoto =
-    business.coverPhoto ||
-    (business.photos && business.photos.length > 0
-      ? business.photos[0]
-      : fallbackCover);
+  const [photoError, setPhotoError] = useState(false);
+  const mainPhoto = business.coverPhoto || (business.photos && business.photos.length > 0 ? business.photos[0] : null);
 
   const openStatus = getBusinessOpenStatus(business.workingHours);
   const distanceKm =
@@ -31,86 +26,125 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
       ? calculateDistanceKm(userCoords.lat, userCoords.lng, business.lat, business.lng)
       : null;
 
+  const isVerified = business.verificationStatus === 'verified' || business.packageId?.includes('verified');
+  const hasRating = Boolean(business.googleRating && business.googleRating > 0);
+  const hasReviewCount = Boolean(business.googleReviewsCount && business.googleReviewsCount > 0);
+  const hasWorkingHours = Boolean(business.workingHours && business.workingHours.trim().length > 0);
+
+  const areaString = [business.city, business.street, distanceKm !== null ? formatDistanceString(distanceKm) : null]
+    .filter(Boolean)
+    .join(' · ');
+
+  let offerText: string | null = null;
+  if (business.notes) {
+    try {
+      const parsedNotes = JSON.parse(business.notes);
+      if (parsedNotes.offer) offerText = parsedNotes.offer;
+    } catch {}
+  }
+
   return (
-    <div className="group relative bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-900">
-          <img
-            src={getOptimizedImageUrl(mainPhoto, 160, 160)}
-            alt={business.nameAr}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
-          <div className="absolute top-1 start-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 fill-emerald-600" />
-          </div>
+    <article
+      data-biz-id={business.id}
+      className="card group relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 rounded-2xl p-3.5 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+    >
+      {/* Top-End: Favorite Button */}
+      {onToggleFavorite && (
+        <button
+          type="button"
+          aria-label={isFavorite ? `إزالة ${business.nameAr} من المفضلة` : `إضافة ${business.nameAr} إلى المفضلة`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(business.id);
+          }}
+          className={`card-fav absolute top-3 end-3 z-10 w-9 h-9 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all cursor-pointer border ${
+            isFavorite
+              ? 'bg-rose-500 border-rose-500 text-white shadow-xs'
+              : 'bg-white/90 dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-300'
+          }`}
+        >
+          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
+      )}
+
+      {/* Main Row: Avatar + Info */}
+      <div className="flex items-start gap-3.5 pe-10">
+        <div className="card-icon w-[60px] h-[60px] rounded-2xl shrink-0 overflow-hidden relative flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100/70 dark:from-slate-800 dark:to-slate-800/60 border border-amber-200/40 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 shadow-2xs">
+          {mainPhoto && !photoError ? (
+            <img
+              src={getOptimizedImageUrl(mainPhoto, 120, 120)}
+              alt=""
+              width="60"
+              height="60"
+              role="presentation"
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              onError={() => setPhotoError(true)}
+              className="w-full h-full object-cover select-none"
+            />
+          ) : (
+            <Store className="w-6 h-6 stroke-[1.75]" aria-hidden="true" />
+          )}
         </div>
 
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2 flex-wrap relative z-10">
-            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 truncate max-w-[180px]">
-              {business.category}
-            </span>
-            {business.googleRating && (
-              <span className="inline-flex items-center gap-0.5 text-xs font-black text-amber-600">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>{business.googleRating.toFixed(1)}</span>
-              </span>
-            )}
-            <span
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                openStatus.isOpen ? 'text-emerald-700 bg-emerald-50' : 'text-slate-500 bg-slate-100'
-              }`}
-            >
-              {openStatus.badgeText}
-            </span>
-          </div>
-
-          <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">
+        <div className="card-body min-w-0 flex-1">
+          <h3 className="card-name text-[15px] sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 leading-snug">
             <button
               type="button"
-              role="button"
-              aria-label={business.nameAr}
               onClick={() => onOpenBusiness(business)}
-              className="text-start font-black text-slate-900 group-hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-md after:absolute after:inset-0 after:z-0 cursor-pointer"
+              aria-label={business.nameAr}
+              className="text-start font-bold text-slate-900 dark:text-slate-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors after:absolute after:inset-0 after:z-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-md"
             >
               <bdi dir="auto">{business.nameAr}</bdi>
             </button>
+            {isVerified && (
+              <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 inline fill-blue-500/10" aria-label="موثق" />
+            )}
           </h3>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
-            <span className="flex items-center gap-1 truncate">
-              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-              <span>{[business.city, business.street].filter(Boolean).join('، ')}</span>
-            </span>
-            {distanceKm !== null && (
-              <span className="text-slate-400 font-medium shrink-0">
-                · {formatDistanceString(distanceKm)}
+          <div className="card-cat text-xs text-slate-500 dark:text-slate-400 mt-1 mb-2 font-medium truncate">
+            <span>{business.category}</span>
+            {areaString && <span> · {areaString}</span>}
+          </div>
+
+          <div className="card-meta flex items-center gap-2 flex-wrap text-xs">
+            {hasRating && (
+              <span className="rating inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{business.googleRating!.toFixed(1)}</span>
+              </span>
+            )}
+            {hasReviewCount && (
+              <span className="reviews text-slate-400 font-normal">
+                ({business.googleReviewsCount!.toLocaleString('ar-EG')})
+              </span>
+            )}
+            {hasWorkingHours && (
+              <span
+                className={`status px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                  openStatus.isOpen
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
+                }`}
+              >
+                {openStatus.badgeText}
               </span>
             )}
           </div>
+
+          {offerText && (
+            <div className="card-offer inline-flex items-center gap-1.5 mt-2.5 px-2.5 py-1 bg-gradient-to-r from-amber-50 to-amber-100/60 dark:from-amber-950/30 dark:to-amber-900/20 text-amber-800 dark:text-amber-300 rounded-full text-[11px] font-bold border border-dashed border-amber-300 dark:border-amber-700/60">
+              <Tag className="w-3 h-3 text-amber-600 shrink-0" />
+              <span>{offerText}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 relative z-10 pointer-events-auto">
+      <div className="relative z-10">
         <BusinessActionButtons business={business} />
-
-        {onToggleFavorite && (
-          <button
-            type="button"
-            aria-label={isFavorite ? `إزالة ${business.nameAr} من المفضلة` : `إضافة ${business.nameAr} إلى المفضلة`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(business.id);
-            }}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors shrink-0"
-          >
-            <Heart
-              className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`}
-            />
-          </button>
-        )}
       </div>
-    </div>
+    </article>
   );
 };
