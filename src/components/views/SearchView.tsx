@@ -27,6 +27,8 @@ import { CategoryHierarchyFilter } from '../search/CategoryHierarchyFilter';
 import { getCategoryGroupById, getCategoryLabel, getSubcategoryById } from '../../data/categoryTaxonomy';
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
 import { Button, Chip } from '../../shared/ui';
+import { SearchDiscoveryFeatured } from './search/SearchDiscoveryFeatured';
+import { DISCOVERY_CATEGORIES } from './search/discoveryCategories';
 
 export interface SearchViewProps {
   filteredBusinesses: Business[];
@@ -64,53 +66,6 @@ export interface SearchViewProps {
   onNavigate: (path: string) => void;
   onReshuffle?: () => void;
 }
-
-// 🏷️ الفئات الست الأساسية المتطابقة تماماً مع النسخة التجريبية وشاشة الموبايل
-const DISCOVERY_CATEGORIES: Array<{
-  id: string;
-  label: string;
-  groupId: string;
-  subcategoryId?: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-}> = [
-  {
-    id: 'food',
-    label: 'مطاعم ومأكولات',
-    groupId: 'food',
-    icon: Utensils,
-  },
-  {
-    id: 'health',
-    label: 'صحة ورعاية',
-    groupId: 'health',
-    icon: Stethoscope,
-  },
-  {
-    id: 'grocery',
-    label: 'تسوق وبقالة',
-    groupId: 'grocery',
-    icon: ShoppingBasket,
-  },
-  {
-    id: 'services',
-    label: 'خدمات منزلية',
-    groupId: 'crafts',
-    icon: Wrench,
-  },
-  {
-    id: 'cafes',
-    label: 'كافيهات',
-    groupId: 'food',
-    subcategoryId: 'cafe',
-    icon: Coffee,
-  },
-  {
-    id: 'auto',
-    label: 'خدمات سيارات',
-    groupId: 'automotive',
-    icon: Car,
-  },
-];
 
 export const SearchView: React.FC<SearchViewProps> = ({
   filteredBusinesses,
@@ -554,72 +509,17 @@ export const SearchView: React.FC<SearchViewProps> = ({
             />
           </div>
         ) : (
-          <div className="space-y-7 sm:space-y-10">
-            {/* ⭐ قسم الأنشطة المميزة والموثقة («وجهتك التالية تبدأ من هنا») */}
-            <section className="space-y-3 pt-2">
-              <div className="flex items-baseline justify-between px-0.5">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 text-xs font-black text-amber-600 mb-0.5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>اختيارات من الدليل</span>
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
-                    وجهتك التالية تبدأ من هنا
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                    تعرّف على المكان، واحفظ ما يعجبك
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAllManually(true)}
-                  className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <span>عرض الجميع ({allBusinesses.length})</span>
-                  <span>←</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {featuredBusinesses.map((biz) => (
-                  <BusinessCard
-                    key={biz.id}
-                    business={biz}
-                    onOpenBusiness={onOpenBusiness}
-                    onToggleFavorite={onToggleFavorite}
-                    isFavorite={favorites.includes(biz.id)}
-                    userCoords={userCoords}
-                    onOpenVideoModal={onOpenVideoModal}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* 💼 بانر أصحاب الأعمال («مكانك موجود. خلّي الناس توصله.») */}
-            <section className="bg-white border border-amber-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-5 shadow-2xs">
-              <div className="space-y-1 text-center md:text-right">
-                <div className="inline-flex items-center gap-1.5 text-xs font-black text-amber-700">
-                  <Store className="w-4 h-4" />
-                  <span>أصحاب المحلات والأنشطة</span>
-                </div>
-                <h2 className="text-base sm:text-xl font-black text-slate-900">
-                  مكانك موجود. خلّي الناس توصله.
-                </h2>
-                <p className="text-xs text-slate-600 font-medium max-w-lg">
-                  أضف نشاطك وعرّف عملاء منطقتك بخدماتك على مدار الساعة لتصل إلى عملائك المستهدفين.
-                </p>
-              </div>
-
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => onNavigate('/for-business')}
-                icon={<ArrowLeft className="w-4 h-4" />}
-              >
-                أضف نشاطك الآن
-              </Button>
-            </section>
-          </div>
+          <SearchDiscoveryFeatured
+            featuredBusinesses={featuredBusinesses}
+            allBusinessesCount={allBusinesses.length}
+            onShowAll={() => setShowAllManually(true)}
+            onOpenBusiness={onOpenBusiness}
+            onToggleFavorite={onToggleFavorite}
+            favorites={favorites}
+            userCoords={userCoords}
+            onOpenVideoModal={onOpenVideoModal}
+            onNavigate={onNavigate}
+          />
         )}
       </div>
 
