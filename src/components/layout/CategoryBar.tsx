@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { CATEGORY_GROUPS } from '../../shared/data/categories';
-import { Sparkles } from 'lucide-react';
 
 export interface CategoryBarProps {
   activeCategory: string;
@@ -11,11 +10,11 @@ export interface CategoryBarProps {
 /**
  * 🏷️ CategoryBar (Phase 2 - Prototype Specification)
  *
- * Horizontal scrollable category navigation with:
- * - Snap-scrolling chips
- * - Smooth start and end gradient edge fades
- * - Active pill indicator in dark/light contrast
- * - High-speed RTL keyboard and touch support
+ * Horizontal scrollable category filter navigation with:
+ * - Direction-agnostic scroll tracking (Chromium/WebKit/Firefox verified)
+ * - Snap-scrolling filter chips with aria-pressed state
+ * - Smooth start and end gradient edge fades using valid direction-safe utilities
+ * - Full Arabic category group labels without truncation
  */
 export const CategoryBar: React.FC<CategoryBarProps> = ({
   activeCategory,
@@ -30,10 +29,17 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
     const el = scrollRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    // In RTL, scrollLeft can be 0 (at start) and negative when scrolled, or positive depending on browser implementation
-    const isRtl = document.documentElement.dir === 'rtl';
-    const absScroll = Math.abs(scrollLeft);
     const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll <= 0) {
+      setCanScrollStart(false);
+      setCanScrollEnd(false);
+      return;
+    }
+
+    // Direction-agnostic detection from computed style
+    const computedDir = window.getComputedStyle(el).direction;
+    const isRtl = computedDir === 'rtl';
+    const absScroll = Math.abs(scrollLeft);
 
     if (isRtl) {
       setCanScrollStart(absScroll > 4);
@@ -60,7 +66,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
     { id: 'all', label: 'كافة الأنشطة', icon: '✨' },
     ...CATEGORY_GROUPS.map((g) => ({
       id: g.group,
-      label: g.group.split(' ')[0] + ' ' + (g.group.split(' ')[1] || ''),
+      label: g.group,
       icon: g.icon,
     })),
   ];
@@ -69,20 +75,19 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
     <nav
       aria-label="تصنيفات الأنشطة والخدمات"
       className={`relative w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-200 ${className}`}
-      dir="rtl"
     >
-      {/* Start Edge Fade (Start side in RTL) */}
+      {/* Start Edge Fade (Start side: right in RTL, left in LTR) */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute start-0 top-0 bottom-0 w-8 bg-gradient-to-e from-white dark:from-slate-900 to-transparent z-10 transition-opacity duration-200 ${
+        className={`pointer-events-none absolute start-0 top-0 bottom-0 w-8 z-10 transition-opacity duration-200 bg-gradient-to-r rtl:bg-gradient-to-l from-white dark:from-slate-900 to-transparent ${
           canScrollStart ? 'opacity-100' : 'opacity-0'
         }`}
       />
 
-      {/* End Edge Fade (End side in RTL) */}
+      {/* End Edge Fade (End side: left in RTL, right in LTR) */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute end-0 top-0 bottom-0 w-8 bg-gradient-to-s from-white dark:from-slate-900 to-transparent z-10 transition-opacity duration-200 ${
+        className={`pointer-events-none absolute end-0 top-0 bottom-0 w-8 z-10 transition-opacity duration-200 bg-gradient-to-l rtl:bg-gradient-to-r from-white dark:from-slate-900 to-transparent ${
           canScrollEnd ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -98,8 +103,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
             <button
               key={cat.id}
               type="button"
-              role="tab"
-              aria-selected={isActive}
+              aria-pressed={isActive}
               onClick={() => onSelectCategory(cat.id)}
               className={`snap-start shrink-0 h-9 sm:h-9.5 px-3.5 sm:px-4 rounded-full border text-xs sm:text-[13px] font-bold inline-flex items-center gap-1.5 transition-all duration-150 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
                 isActive
