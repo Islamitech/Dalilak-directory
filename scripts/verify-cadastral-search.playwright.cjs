@@ -35,7 +35,7 @@ async function run() {
   console.log('🏢 VERIFYING CADASTRAL BUILDING NUMBER SEARCH CONTRACT');
   console.log('===================================================================\n');
 
-  const port = 5294;
+  const port = 5296;
   let server = null;
   const running = await isPortOpen(port);
 
@@ -139,8 +139,10 @@ async function run() {
     const unknownCardTitle = page.locator('text=عمارة 999 — منطقة (ح)').first();
     await unknownCardTitle.waitFor({ timeout: 5000 });
     const notFoundText = page.locator('text=هذه العمارة غير مسجلة في قاعدة بيانات حدائق الأهرام المساحية').first();
+    await notFoundText.waitFor({ timeout: 5000 });
     assert.strictEqual(await notFoundText.isVisible(), true, 'Must display truthful not-found message for unknown building');
     const notFoundBadge = page.locator('text=غير مسجلة').first();
+    await notFoundBadge.waitFor({ timeout: 5000 });
     assert.strictEqual(await notFoundBadge.isVisible(), true, 'Must display "غير مسجلة" badge');
 
     // Action button must NOT exist for unknown building

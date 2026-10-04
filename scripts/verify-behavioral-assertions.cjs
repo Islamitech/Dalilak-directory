@@ -86,7 +86,7 @@ async function runBehavioralTests() {
   console.log('🧪 RUNNING DALILAK BEHAVIORAL ASSERTION TEST SUITE (7 CONTRACTS)');
   console.log('===================================================================\n');
 
-  const port = 5294;
+  const port = 5295;
   let server = null;
   const running = await isPortOpen(port);
 
