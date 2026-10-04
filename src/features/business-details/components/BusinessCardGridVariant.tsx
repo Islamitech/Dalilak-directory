@@ -47,9 +47,13 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
   return (
     <div
       onClick={() => onOpenBusiness(business)}
-      onContextMenu={(e) => e.preventDefault()}
-      role="article"
-      className="group bg-white border border-slate-200/90 hover:border-amber-400/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between hover:-translate-y-0.5 cursor-pointer protected-asset-shield"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onOpenBusiness(business);
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={business.nameAr}
+      className="group bg-white border border-slate-200/90 hover:border-amber-400/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between hover:-translate-y-0.5 cursor-pointer protected-asset-shield focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
     >
       {/* 1. Visual Anchor: 16:10 Photo with anti-extraction shield */}
       <div

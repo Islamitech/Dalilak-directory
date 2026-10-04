@@ -34,8 +34,13 @@ export const BusinessCardListVariant: React.FC<BusinessCardVariantProps> = ({
   return (
     <div
       onClick={() => onOpenBusiness(business)}
-      role="article"
-      className="group bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onOpenBusiness(business);
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={business.nameAr}
+      className="group bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-amber-400/80 rounded-2xl p-3 sm:p-4 transition-all duration-200 shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-900">
