@@ -251,35 +251,38 @@ EXIT_CODE: 0
 📦 DALILAK BUNDLE BUDGET ENFORCEMENT
 ========================================
 ✅ PASS [Main Entry Bundle (index-*.js)]
-   File: assets/index-Cdzmmdey.js
-   Raw: 111.76 kB / Budget: 128 kB (Gzip: 34.02 kB)
+   File: assets/index-DsbbNEGE.js
+   Raw: 114.44 kB / Budget: 126 kB (Gzip: 34.84 kB)
 ✅ PASS [Global Stylesheet (index-*.css)]
-   File: assets/index-BVq9GMgD.css
-   Raw: 142.52 kB / Budget: 156 kB (Gzip: 22.24 kB)
+   File: assets/index-TEgOQUFc.css
+   Raw: 145.96 kB / Budget: 161 kB (Gzip: 22.78 kB)
 ✅ PASS [React Vendor Chunk]
    File: assets/react-vendor-B8Sg-KJK.js
-   Raw: 221.84 kB / Budget: 243 kB (Gzip: 66.66 kB)
+   Raw: 227.16 kB / Budget: 250 kB (Gzip: 68.26 kB)
 ✅ PASS [Supabase Vendor Chunk]
    File: assets/supabase-vendor-C5o0XR4z.js
-   Raw: 217.26 kB / Budget: 239 kB (Gzip: 56.81 kB)
+   Raw: 222.47 kB / Budget: 245 kB (Gzip: 58.17 kB)
 ✅ PASS [Interactive Map Lazy Chunk]
-   File: assets/InteractiveMap-7Bg-1Hv4.js
-   Raw: 141.54 kB / Budget: 154 kB (Gzip: 38.15 kB)
+   File: assets/InteractiveMap-DgaqHIdj.js
+   Raw: 144.94 kB / Budget: 160 kB (Gzip: 39.07 kB)
 ✅ PASS [Search View Lazy Chunk]
-   File: assets/SearchView-yFfxWVAo.js
-   Raw: 38.62 kB / Budget: 42 kB (Gzip: 9.50 kB)
+   File: assets/SearchView-DFgNhw_H.js
+   Raw: 39.55 kB / Budget: 44 kB (Gzip: 9.73 kB)
 ✅ PASS [Activity Detail Modal Lazy Chunk]
-   File: assets/ActivityDetailModal-BlRUPbQr.js
-   Raw: 13.27 kB / Budget: 15 kB (Gzip: 4.30 kB)
+   File: assets/ActivityDetailModal-CUYu_LOF.js
+   Raw: 13.59 kB / Budget: 15 kB (Gzip: 4.41 kB)
 ✅ PASS [Atlas Geodata Chunk]
    File: assets/atlas-geodata-nFj78L1U.js
-   Raw: 12.15 kB / Budget: 31 kB (Gzip: 3.63 kB)
+   Raw: 12.44 kB / Budget: 14 kB (Gzip: 3.72 kB)
 ✅ PASS [Home View Lazy Chunk]
-   File: assets/HomeView-B63SB5pN.js
-   Raw: 27.91 kB / Budget: 31 kB (Gzip: 7.96 kB)
+   File: assets/HomeView-DfriOFv7.js
+   Raw: 28.58 kB / Budget: 32 kB (Gzip: 8.16 kB)
 ✅ PASS [Unified Business Card Chunk]
-   File: assets/UnifiedBusinessCard-BeZLUeTh.js
-   Raw: 36.91 kB / Budget: 40 kB (Gzip: 8.42 kB)
+   File: assets/UnifiedBusinessCard-B5TMtAeW.js
+   Raw: 37.79 kB / Budget: 42 kB (Gzip: 8.62 kB)
+✅ PASS [Hadayek Buildings Coordinates Lazy Chunk]
+   File: assets/hadayekBuildingsCoords-CqpYQDa_.js
+   Raw: 937.87 kB / Budget: 1032 kB (Gzip: 97.46 kB)
 ========================================
 
 🎉 All bundle chunks are strictly within their performance budgets!
@@ -315,58 +318,69 @@ Generated artifacts, baseline backups, temporary cache directories, and local ev
 
 ## 3. Bundle Size Comparison: Baseline vs. Current (Item e)
 
-### Total First-Load Comparison (Computed from `dist/index.html`):
+### Total First-Load Comparison (Computed from clean-export `dist/index.html`):
 
 The initial page load fetches the main entry script and all declared `<link rel="modulepreload">` chunks and stylesheets. Third-party Google Analytics script (`gtag.js`, `https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR`) is also loaded asynchronously in `<head>`.
 
+Unit definition: **1 kB = 1,000 bytes** strictly throughout (no binary KiB).
+
 #### Per-File Sizes for First-Load Assets:
 
-| First-Load Asset | Type / Role | Raw Size | Gzip Size | Budget Limit |
-|------------------|-------------|----------|-----------|--------------|
-| `assets/index-DsbbNEGE.js` | Main entry script | 111.76 kB | 34.02 kB | 128.00 kB |
-| `assets/react-vendor-B8Sg-KJK.js` | Modulepreload: React / ReactDOM | 221.84 kB | 66.66 kB | 243.00 kB |
-| `assets/supabase-vendor-C5o0XR4z.js` | Modulepreload: Supabase SDK | 217.26 kB | 56.81 kB | 239.00 kB |
-| `assets/HomeView-DfriOFv7.js` | Modulepreload: Initial Home View | 27.91 kB | 7.97 kB | 31.00 kB |
-| `assets/index-TEgOQUFc.css` | Global Stylesheet | 142.53 kB | 22.24 kB | 156.00 kB |
+| First-Load Asset | Type / Role | Exact Raw (Bytes) | Exact Gzip (Bytes) | Raw (kB = /1000) | Gzip (kB = /1000) | Budget Limit |
+|------------------|-------------|-------------------|--------------------|------------------|-------------------|--------------|
+| `assets/index-*.js` | Main entry script | 114,440 B | 34,835 B | 114.44 kB | 34.84 kB | 126.00 kB |
+| `assets/react-vendor-*.js` | Modulepreload: React / ReactDOM | 227,160 B | 68,259 B | 227.16 kB | 68.26 kB | 250.00 kB |
+| `assets/supabase-vendor-*.js` | Modulepreload: Supabase SDK | 222,475 B | 58,172 B | 222.48 kB | 58.17 kB | 245.00 kB |
+| `assets/HomeView-*.js` | Modulepreload: Initial Home View | 28,584 B | 8,157 B | 28.58 kB | 8.16 kB | 32.00 kB |
 
-#### First-Load Totals vs. Monolithic Baseline:
+#### First-Load JavaScript Totals vs. Monolithic Baseline:
 
-- **First-Load JS Only:**
-  - **Current Total JS:** **578.77 kB raw** / **165.45 kB gzip**
-  - **Baseline Monolithic JS:** **621.40 kB raw**
-  - **Net Reduction:** -42.63 kB (-6.86% raw reduction in total initial JavaScript executed, with heavy non-initial views decoupled into lazy chunks).
-- **First-Load Total (JS + CSS):**
-  - **Current Total:** **721.30 kB raw** / **187.70 kB gzip**
-  - **Baseline Total (621.40 kB JS + 175.10 kB CSS):** **796.50 kB raw**
-  - **Net Reduction:** -75.20 kB (-9.44% raw reduction).
-- **Third-Party External Scripts:**
-  - `https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR` (Google Tag / Analytics) loaded asynchronously in `<head>`.
+Baseline (JS Only, from `docs/design/MASTER-PROMPT.md` line 39): **621.40 kB raw / 175.10 kB gzip** (175.10 kB is baseline gzip JS, not CSS).
+
+- **Current Total First-Load JS:**
+  - **Raw JS:** **592,659 bytes** = **592.66 kB**
+  - **Gzip JS:** **169,423 bytes** = **169.42 kB**
+- **Baseline Monolithic JS:** **621.40 kB raw** / **175.10 kB gzip**
+- **Calculations vs Baseline:**
+  - **Raw JS Reduction:** `(592.659 kB - 621.40 kB) / 621.40 kB = -28.741 / 621.40 =` **-4.63%** (-28.74 kB reduction)
+  - **Gzip JS Reduction:** `(169.423 kB - 175.10 kB) / 175.10 kB = -5.677 / 175.10 =` **-3.24%** (-5.68 kB reduction)
+
+#### Stylesheet (Reported Separately, Never Merged with JS):
+
+- `assets/index-*.css` (Global Stylesheet):
+  - **Raw CSS:** **145,955 bytes** = **145.96 kB** (Budget: 161.00 kB)
+  - **Gzip CSS:** **22,780 bytes** = **22.78 kB**
+
+#### Third-Party External Scripts:
+- `https://www.googletagmanager.com/gtag/js?id=G-1EH17YQTVR` (Google Tag / Analytics) loaded asynchronously in `<head>`.
 
 ### Complete Chunk Budget Status (11 Budgeted Chunks in `scripts/check-bundle.cjs`):
 
-| Asset / Chunk | Role | Current Raw | Current Gzip | Budget Limit | Status |
-|---------------|------|-------------|--------------|--------------|--------|
-| **Main Entry JS** (`index-*.js`) | Entry | **111.76 kB** | 34.02 kB | 128.00 kB | **PASS** |
-| **Global Stylesheet** (`index-*.css`) | Styles | **142.53 kB** | 22.24 kB | 156.00 kB | **PASS** |
-| **React Vendor** (`react-vendor-*.js`) | Vendor | **221.84 kB** | 66.66 kB | 243.00 kB | **PASS** |
-| **Supabase Vendor** (`supabase-vendor-*.js`) | Vendor | **217.26 kB** | 56.81 kB | 239.00 kB | **PASS** |
-| **Interactive Map** (`InteractiveMap-*.js`) | Lazy | **141.54 kB** | 38.15 kB | 154.00 kB | **PASS** |
-| **Search View** (`SearchView-*.js`) | Lazy | **38.62 kB** | 9.50 kB | 42.00 kB | **PASS** |
-| **Unified Business Card** (`UnifiedBusinessCard-*.js`) | Lazy | **36.91 kB** | 8.42 kB | 40.00 kB | **PASS** |
-| **Home View Lazy Chunk** (`HomeView-*.js`) | Preload | **27.91 kB** | 7.97 kB | 31.00 kB | **PASS** |
-| **Activity Detail Modal** (`ActivityDetailModal-*.js`) | Lazy | **13.27 kB** | 4.30 kB | 15.00 kB | **PASS** |
-| **Atlas Geodata** (`atlas-geodata-*.js`) | Lazy | **12.15 kB** | 3.63 kB | 31.00 kB | **PASS** |
-| **Hadayek Buildings Coordinates** (`hadayekBuildingsCoords-*.js`) | Lazy | **915.89 kB** | 95.18 kB | 1032.00 kB | **PASS** |
+All budgets are derived as `Math.ceil(measured_kB * 1.10)` using 1,000 bytes per kB:
+
+| Asset / Chunk | Role | Measured Raw (B) | Current Raw (kB) | Current Gzip (kB) | Old Budget | New Budget (kB) | Status |
+|---------------|------|-------------------|------------------|-------------------|------------|-----------------|--------|
+| **Main Entry JS** (`index-*.js`) | Entry | 114,440 B | **114.44 kB** | 34.84 kB | 128 kB | **126 kB** | **PASS** |
+| **Global Stylesheet** (`index-*.css`) | Styles | 145,955 B | **145.96 kB** | 22.78 kB | 156 kB | **161 kB** | **PASS** |
+| **React Vendor** (`react-vendor-*.js`) | Vendor | 227,160 B | **227.16 kB** | 68.26 kB | 243 kB | **250 kB** | **PASS** |
+| **Supabase Vendor** (`supabase-vendor-*.js`) | Vendor | 222,475 B | **222.48 kB** | 58.17 kB | 239 kB | **245 kB** | **PASS** |
+| **Interactive Map** (`InteractiveMap-*.js`) | Lazy | 144,942 B | **144.94 kB** | 39.07 kB | 154 kB | **160 kB** | **PASS** |
+| **Search View** (`SearchView-*.js`) | Lazy | 39,546 B | **39.55 kB** | 9.73 kB | 42 kB | **44 kB** | **PASS** |
+| **Activity Detail Modal** (`ActivityDetailModal-*.js`) | Lazy | 13,586 B | **13.59 kB** | 4.41 kB | 15 kB | **15 kB** | **PASS** |
+| **Atlas Geodata** (`atlas-geodata-*.js`) | Lazy | 12,441 B | **12.44 kB** | 3.72 kB | 31 kB | **14 kB** | **PASS** |
+| **Home View Lazy Chunk** (`HomeView-*.js`) | Preload | 28,584 B | **28.58 kB** | 8.16 kB | 31 kB | **32 kB** | **PASS** |
+| **Unified Business Card** (`UnifiedBusinessCard-*.js`) | Lazy | 37,792 B | **37.79 kB** | 8.62 kB | 40 kB | **42 kB** | **PASS** |
+| **Hadayek Buildings Coordinates** (`hadayekBuildingsCoords-*.js`) | Lazy | 937,872 B | **937.87 kB** | 97.46 kB | 1032 kB | **1032 kB** | **PASS** |
 
 > [!NOTE]
-> `hadayekBuildingsCoords` is a large dataset chunk containing cadastral coordinate lookup tables for all Hadayek Al-Ahram building numbers (~916 kB raw / ~95 kB gzip). It was previously an unbudgeted lazy chunk; per audit instructions, it is now formally guarded with a dedicated budget limit of **1032.00 kB** (current size + 10%) in `scripts/check-bundle.cjs`.
+> `hadayekBuildingsCoords` is a large dataset chunk containing cadastral coordinate lookup tables for all Hadayek Al-Ahram building numbers (937.87 kB raw / 97.46 kB gzip). It was previously an unbudgeted lazy chunk; per audit instructions, it is now formally guarded with a dedicated budget limit of **1032 kB** (937.87 * 1.10 = 1031.66 -> Math.ceil = 1032 kB) in `scripts/check-bundle.cjs`.
 
 ### Critical Preload Decoupling Verification:
 - `dist/index.html` modulepreload directives:
-  - `<link rel="modulepreload" crossorigin href="/assets/react-vendor-B8Sg-KJK.js">`
-  - `<link rel="modulepreload" crossorigin href="/assets/supabase-vendor-C5o0XR4z.js">`
-  - `<link rel="modulepreload" crossorigin href="/assets/HomeView-DfriOFv7.js">`
-- `atlas-geodata` (31 kB boundary polygon data) and `hadayekBuildingsCoords` (916 kB coordinates) are **NOT** in `dist/index.html`'s `<link rel="modulepreload">` list. They are strictly loaded on demand when the user activates building search or cadastral map layers.
+  - `<link rel="modulepreload" crossorigin href="/assets/react-vendor-*.js">`
+  - `<link rel="modulepreload" crossorigin href="/assets/supabase-vendor-*.js">`
+  - `<link rel="modulepreload" crossorigin href="/assets/HomeView-*.js">`
+- `atlas-geodata` (~12.44 kB boundary polygon data) and `hadayekBuildingsCoords` (~937.87 kB coordinates) are **NOT** in `dist/index.html`'s `<link rel="modulepreload">` list. They are strictly loaded on demand when the user activates building search or cadastral map layers.
 - `HomeView` is preloaded via modulepreload, completely eliminating the secondary paint waterfall on initial landing.
 
 ---
