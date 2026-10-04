@@ -19,10 +19,14 @@
 | **Phase 3 (Core Views & Interactive Components)** | `2bd07dc`, `e5027e4`, `f89fb3e`, `10b65ce`, `1e0503d`, `163ea3c` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
 | **Phase 4 (Integration & Advanced Behaviors)** | `6f66a81`, `a3a0b30`, `4ddefd0`, `e6361b3`, `0a21aaa` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
 | **Phase 5 (Process Remediation & Final Acceptance)** | `d3d941b`, `769eeb7`, `cdc67be`, `ce58134` | PASS | "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app." |
+| **Cadastral Building Search (Owner Decision)** | `feat(cadastral-01)`, `test(cadastral-02)` | PASS | "Building-number search is available in the search box itself. Example: '265 ح' takes me to zone ح, building number 265." |
 
 ## Formal Authorization Record
 
 > "GO PHASE 2 THROUGH FINAL. I (the owner) authorize in writing: Phase 2 commits 02ad4f6, da4e30d, 0e0f59e, fc7a9f8, 8158107 and p1 commit 967cec4 are ACCEPTED into this branch, and you may now implement ALL remaining phases of the prototype port in order, until the full prototype (docs/design/prototype.html) is ported into the app."
+
+### Verbatim Owner Decision (Building-Number Search):
+> "Building-number search is available in the search box itself. Example: '265 ح' takes me to zone ح, building number 265."
 
 ---
 
@@ -125,4 +129,50 @@
 ### 4. Deviations & Preserved Features
 - Real business data rule strictly honored: No synthetic reviews, fake ratings, or fake offers fabricated.
 - Non-prototype domain features preserved: Hadayek cadastral search, WhatsApp direct links, turn-by-turn directions, offline IndexedDB sync, dark mode tokens.
+
+---
+
+## Cadastral Building Search Verification Report (Owner Decision)
+
+### 1. Formal Owner Authorization Quote (Verbatim)
+
+> "Building-number search is available in the search box itself. Example: '265 ح' takes me to zone ح, building number 265."
+
+This authoritative directive establishes that building-number search is **REQUIRED** across all search entry points, superseding the previous "NOT IN PROTOTYPE" rationale.
+
+### 2. Behavior Contracts & Implementations
+- **Single Shared Parser (`src/utils/hadayekBuildingSearch.ts`):** `parseHadayekBuildingAddress` powers all entry points (Home/Search view, Map search, Desktop two-pane).
+  - Handles canonical `"265 ح"`, inverted `"ح 265"`, Arabic-Indic digits `"٢٦٥ ح"`, glued `"265ح"`, `"ح265"`, hyphens `"ح-265"`, `"265-ح"`, and arbitrary whitespace.
+  - Normalizes sector zone variants (`ا/أ/إ/آ` -> `أ`, `ه/ة/هـ` -> `هـ`).
+  - Does NOT trigger on regular business queries (`صيدلية 24`, `مطعم 55`).
+  - Numbers alone (`"265"` alone without active zone filter) are ignored to allow normal directory search; within an active zone filter (`selectedZone = 'ح'`), it resolves to building 265 in that zone.
+  - Invalid zone letters (`265 خ`) are ignored, continuing normal text search.
+- **Truthful Database Lookups (`src/data/hadayekAtlasData.ts`):**
+  - Known building (`"265 ح"`): Resolves exact GPS coordinates via offline database.
+  - Unknown building (`"999 ح"`): Returns `null`. Never fabricates fake district centroid coordinates.
+  - Truthful not-found state rendered: "عمارة 999 — منطقة (ح)", "هذه العمارة غير مسجلة في قاعدة بيانات حدائق الأهرام المساحية" with "غير مسجلة" badge and zero fake actions.
+- **Deep Link & Reload Resilience (`src/main.tsx`, `useMapViewUrlState.ts`):**
+  - `/map?zone=%D8%AD&bldg=265` preserves `zone` and `bldg` params upon page reload (api/share routes untouched).
+- **UI & Accessibility:**
+  - Prototype card styling, RTL logical utilities, 44px min touch target on action button.
+  - Axe-core accessibility audit: 0 serious / critical violations.
+- **Performance Budget:**
+  - 937.87 kB `hadayekBuildingsCoords` chunk remains strictly LAZY (dynamically imported only when a building query is detected). Absent from `index.html` modulepreloads and first-paint JS.
+  - First-load JS: 601.49 kB raw / 171.18 kB gzip (+1.49% raw delta vs baseline 592.66 kB, strictly within <= 5% budget).
+- **Automated Test Evidence (Contract A2):**
+  - Unit tests (`src/tests/building_search_contract.test.ts`): 48/48 tests passing. Fully covers:
+    - Mandatory positive rows: `"265 ح"`, `"منطقة ح عمارة 213"`, `"منطقة ل مبنى 114"`, `"ا 412"` (bare alef mapping to `أ`).
+    - Order-independent variants: `"ح 265"`, `"عمارة 213 منطقة ح"`, `"مبنى 114 منطقة ل"`, `"412 ا"`.
+    - Normalization: Arabic-Indic digits (`"٢٦٥ ح"`), tatweel elongation (`"مـنـطـقـة حــــ عـمـارة 213"`), separators (`"ح-265"`, `"265/ح"`), glued combinations (`"265ح"`, `"ح265"`), and feminine filler words (`"عماره"`, `"منطقه"`, `"مبني"`).
+    - Scope protection (confirmed filler words only: `عمارة`, `عماره`, `مبنى`, `مبني`, `منطقة`, `منطقه`; unconfirmed `قطاع` and `رقم` excluded and logged in `open-questions.md`).
+    - Negative test rows: `"صيدلية 24"`, `"مطعم ا"`, `"24 ساعة"`, `"منطقة"`, `"مبنى"`, `"عمارة"`, `"مطعم 55"`, `"سوبرماركت 12"`, plain number alone `"265"` (without active zone filter), and invalid zone letters (`"265 خ"`, `"265 ث"`).
+    - Unknown building: `"999 ح"` correctly parses syntactically but database lookup returns `null` (never a fake centroid).
+  - Mutation proof: Dropping bare alef normalization (`cleaned === 'ا'`) in `normalizeHadayekZoneLetter` causes row `"ا 412"` to FAIL with `AssertionError: expected null to deeply equal { buildingNumber: '412', zoneLetter: 'أ' }` (exit code 1); restoring passes all 48 tests with exit code 0.
+  - Playwright test (`scripts/verify-cadastral-search.playwright.cjs`): Full multi-browser suite passing (exit code 0) across Chromium, Firefox, WebKit at 360px and 1280px with 0 serious/critical axe violations.
+  - Screenshots committed to `reports/evidence/cadastral/`:
+    - `cadastral_chromium_360_search.png`, `cadastral_chromium_360_map.png`
+    - `cadastral_chromium_1280_search.png`, `cadastral_chromium_1280_map.png`
+    - `cadastral_firefox_360_search.png`, `cadastral_firefox_1280_search.png`
+    - `cadastral_webkit_360_search.png`, `cadastral_webkit_1280_search.png`
+
 
