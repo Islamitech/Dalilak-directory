@@ -1,6 +1,7 @@
-import React from 'react';
-import { History, Sparkles } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { History, Sparkles, Building2 } from 'lucide-react';
 import { Business } from '../../../types';
+import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
 
 interface SearchSuggestionsDropdownProps {
   suggestions: Business[];
@@ -28,9 +29,44 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
   onSelectQuery,
   onClearRecent,
 }) => {
+  const buildingMatch = useMemo(() => {
+    return parseHadayekBuildingAddress(searchQuery);
+  }, [searchQuery]);
+
   return (
     <div className="absolute top-full inset-x-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
       <div className="p-3 space-y-3 max-h-[min(18rem,40dvh)] overflow-y-auto overscroll-contain text-start">
+        {buildingMatch && (
+          <div className="space-y-1 pb-2 border-b border-[var(--border-color)]">
+            <span className="text-[10.5px] font-black text-[var(--text-muted)] block px-2">
+              عمارة سكنية في أطلس حدائق الأهرام
+            </span>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onSelectQuery(searchQuery)}
+              className="w-full text-start p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-slate-900 dark:text-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-black text-xs truncate">
+                    عمارة {buildingMatch.buildingNumber} — منطقة ({buildingMatch.zoneLetter})
+                  </p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] truncate">
+                    بحث مساحي مباشر والانتقال إلى الخريطة
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shrink-0 font-black">
+                عرض
+              </span>
+            </button>
+          </div>
+        )}
+
         {suggestions.length > 0 && (
           <div className="space-y-1">
             <span className="text-[10.5px] font-black text-[var(--text-muted)] block px-2">

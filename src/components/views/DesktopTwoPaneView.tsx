@@ -5,6 +5,9 @@ import { UnifiedBusinessCard } from '../../features/business-details';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { MapPin, RotateCcw } from 'lucide-react';
 import { Button, LoadingSkeleton } from '../../shared/ui';
+import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
+import { getRecommendedGateForZone } from '../../data/hadayekAtlasData';
+import { CadastralBuildingCard } from '../../features/search';
 
 export interface DesktopTwoPaneViewProps {
   businesses: Business[];
@@ -71,6 +74,38 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
     });
   }, [filteredBusinesses, businesses, searchQuery, categoryFilter, selectedZone, openNowOnly, sortBy, userCoords]);
 
+  const cadastralBuilding = useMemo(() => {
+    if (!searchQuery) return null;
+    const match = parseHadayekBuildingAddress(searchQuery, selectedZone);
+    if (!match) return null;
+    const gateInfo = getRecommendedGateForZone(match.zoneLetter);
+    return {
+      buildingNumber: match.buildingNumber,
+      zoneLetter: match.zoneLetter,
+      nearestGateName: gateInfo?.primaryGate?.popularNameAr || 'البوابة الأولى',
+    };
+  }, [searchQuery, selectedZone]);
+
+  const [isBuildingFound, setIsBuildingFound] = React.useState<boolean>(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!cadastralBuilding) {
+      setIsBuildingFound(true);
+      return;
+    }
+    import('../../data/hadayekAtlasData').then(({ searchBuildingCoordinatesExact }) => {
+      searchBuildingCoordinatesExact(cadastralBuilding.zoneLetter, cadastralBuilding.buildingNumber).then((coords) => {
+        if (!cancelled) {
+          setIsBuildingFound(Boolean(coords));
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cadastralBuilding?.zoneLetter, cadastralBuilding?.buildingNumber]);
+
   // Bi-directional sync: When focusedBusiness changes (e.g. from map pin select), scroll list to card
   useEffect(() => {
     if (!focusedBusiness?.id || !listContainerRef.current) return;
@@ -88,7 +123,7 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
       {/* 1. Right Pane (RTL Start): 420px Scrollable Business List */}
       <aside aria-label="قائمة الأنشطة والنتائج" className="w-[400px] lg:w-[420px] shrink-0 h-full flex flex-col border-inline-end border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 shadow-xs overflow-hidden">
         {/* Results Header / Stats Bar */}
-        <div className="p-3.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <div className="list-header p-3.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20">
               {effectiveFilteredBusinesses.length} نشاط متاح
@@ -118,6 +153,19 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
           aria-label="قائمة الأنشطة والنتائج"
           className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0 divide-y divide-slate-100/50 dark:divide-slate-800/40 focus:outline-none"
         >
+          {cadastralBuilding && (
+            <div className="pb-2">
+              <CadastralBuildingCard
+                buildingNumber={cadastralBuilding.buildingNumber}
+                zoneLetter={cadastralBuilding.zoneLetter}
+                nearestGateName={cadastralBuilding.nearestGateName}
+                isFound={isBuildingFound}
+                onNavigateToMap={(z, b) => {
+                  onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`);
+                }}
+              />
+            </div>
+          )}
           {loading && businesses.length === 0 ? (
             <div className="p-4 space-y-3"><LoadingSkeleton variant="grid" count={4} /></div>
           ) : effectiveFilteredBusinesses.length === 0 ? (

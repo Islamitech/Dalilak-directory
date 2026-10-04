@@ -71,6 +71,8 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
     ? filteredBusinesses.filter((b) => favorites.includes(b.id))
     : filteredBusinesses;
 
+  const [isBuildingFound, setIsBuildingFound] = useState<boolean>(true);
+
   const cadastralBuilding = useMemo(() => {
     if (!searchQuery) return null;
     const match = parseHadayekBuildingAddress(searchQuery, selectedZone);
@@ -82,6 +84,24 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
       nearestGateName: gateInfo?.primaryGate?.popularNameAr || 'البوابة الأولى',
     };
   }, [searchQuery, selectedZone]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    if (!cadastralBuilding) {
+      setIsBuildingFound(true);
+      return;
+    }
+    import('../../../data/hadayekAtlasData').then(({ searchBuildingCoordinatesExact }) => {
+      searchBuildingCoordinatesExact(cadastralBuilding.zoneLetter, cadastralBuilding.buildingNumber).then((coords) => {
+        if (!cancelled) {
+          setIsBuildingFound(Boolean(coords));
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cadastralBuilding?.zoneLetter, cadastralBuilding?.buildingNumber]);
 
   return (
     <div className="space-y-5 pt-2">
@@ -176,9 +196,8 @@ export const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
           buildingNumber={cadastralBuilding.buildingNumber}
           zoneLetter={cadastralBuilding.zoneLetter}
           nearestGateName={cadastralBuilding.nearestGateName}
-          onNavigateToMap={(z, b) =>
-            onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`)
-          }
+          isFound={isBuildingFound}
+          onNavigateToMap={(z, b) => onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`)}
         />
       )}
 

@@ -544,12 +544,7 @@ export async function searchBuildingCoordinatesExact(
     }
   }
 
-  // 2. ZERO-NETWORK CADASTRAL FALLBACK
-  // Avoid querying external servers (e.g. overpass-api.de) which cause network stalls
-  // and consume mobile quota. Return district cadastral centroid if available.
-  if (district) {
-    return { lat: district.centerLat, lng: district.centerLng };
-  }
+  // Not found in cadastral database: return null (never fabricate fake centroid locations)
   return null;
 }
 

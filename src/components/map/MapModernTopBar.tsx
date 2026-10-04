@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { Business } from '../../types';
-import { searchBuildingCoordinatesExact, estimateBuildingCoordinates } from '../../data/hadayekAtlasData';
+import { searchBuildingCoordinatesExact } from '../../data/hadayekAtlasData';
 import { MapSearchInputBar } from './MapSearchInputBar';
 import { MapQuickCategoriesBar } from './MapQuickCategoriesBar';
 import { MapSearchSuggestionsDropdown } from './MapSearchSuggestionsDropdown';
@@ -60,16 +60,18 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
 
   const hasFilters = categoryFilter !== 'all' || Boolean(selectedZone && selectedZone !== 'all');
 
+  const [bldgError, setBldgError] = useState<string | null>(null);
+
   const handleSelectBuildingItem = async (zoneLetter: string, bldgNum: string) => {
     setIsExecutingSearch(true);
     setShowSuggestions(false);
+    setBldgError(null);
     try {
-      const coords =
-        (await searchBuildingCoordinatesExact(zoneLetter, bldgNum)) ||
-        estimateBuildingCoordinates(zoneLetter, bldgNum);
-
+      const coords = await searchBuildingCoordinatesExact(zoneLetter, bldgNum);
       if (coords && onSelectBuilding) {
         onSelectBuilding({ buildingNumber: bldgNum, zoneLetter, lat: coords.lat, lng: coords.lng });
+      } else if (!coords) {
+        setBldgError(`عمارة ${bldgNum} بمنطقة (${zoneLetter}) غير مسجلة في قاعدة البيانات المساحية`);
       }
     } finally {
       setIsExecutingSearch(false);
@@ -214,11 +216,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             onSelectBuildingItem={handleSelectBuildingItem}
             onSelectBusinessItem={handleSelectBusinessItem}
             onSelectZone={onSelectZone}
-            onSelectOutsideZoneBusiness={(biz) => {
-              onSelectZone?.('');
-              onSelectBusiness?.(biz);
-              setShowSuggestions(false);
-            }}
+            onSelectOutsideZoneBusiness={(biz) => { onSelectZone?.(''); onSelectBusiness?.(biz); setShowSuggestions(false); }}
             onSelectCategoryItem={(catId, zone) => {
               onSelectZone?.(zone || '');
               onCategoryChange?.(catId);
@@ -227,6 +225,13 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
               setShowSuggestions(false);
             }}
           />
+        )}
+
+        {bldgError && (
+          <div role="alert" className="mt-2 w-full rounded-xl bg-slate-900/90 text-white border border-slate-700 px-3.5 py-2 text-xs shadow-lg flex items-center justify-between gap-2 backdrop-blur-md">
+            <span>{bldgError}</span>
+            <button type="button" onClick={() => setBldgError(null)} className="text-slate-400 hover:text-white font-bold px-1.5 py-0.5 cursor-pointer">✕</button>
+          </div>
         )}
 
         {buildingNumber && (

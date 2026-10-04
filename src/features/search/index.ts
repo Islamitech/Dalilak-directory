@@ -15,6 +15,7 @@ export { SearchHeroHeader } from './components/SearchHeroHeader';
 export { SearchDiscoveryCategories } from './components/SearchDiscoveryCategories';
 export { SearchSuggestionsDropdown } from './components/SearchSuggestionsDropdown';
 export { SearchResultsSection } from './components/SearchResultsSection';
+export { CadastralBuildingCard, type CadastralBuildingCardProps } from './components/CadastralBuildingCard';
 export { useUnifiedSearch, type UseUnifiedSearchOptions } from './hooks/useUnifiedSearch';
 export {
   type SearchViewProps,

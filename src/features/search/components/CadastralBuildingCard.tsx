@@ -5,6 +5,7 @@ export interface CadastralBuildingCardProps {
   buildingNumber: string;
   zoneLetter: string;
   nearestGateName: string;
+  isFound?: boolean;
   onNavigateToMap: (zone: string, bldg: string) => void;
 }
 
@@ -12,8 +13,32 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
   buildingNumber,
   zoneLetter,
   nearestGateName,
+  isFound = true,
   onNavigateToMap,
 }) => {
+  if (!isFound) {
+    return (
+      <div className="bg-slate-50/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              عمارة {buildingNumber} — منطقة ({zoneLetter})
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              هذه العمارة غير مسجلة في قاعدة بيانات حدائق الأهرام المساحية
+            </p>
+          </div>
+        </div>
+        <span className="inline-flex items-center justify-center min-h-[36px] px-3.5 rounded-xl bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold shrink-0">
+          غير مسجلة
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
       <div className="flex items-center gap-3">
@@ -32,7 +57,8 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
       <button
         type="button"
         onClick={() => onNavigateToMap(zoneLetter, buildingNumber)}
-        className="inline-flex items-center justify-center min-h-[38px] px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+        aria-label={`عرض عمارة ${buildingNumber} منطقة ${zoneLetter} على الخريطة`}
       >
         عرض على الخريطة
       </button>

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Business } from '../../types';
 import {
-  FilterDrawer,
   SearchHeroHeader,
   SearchDiscoveryCategories,
   SearchResultsSection,
@@ -12,6 +11,10 @@ import {
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { SearchDiscoveryFeatured } from './search/SearchDiscoveryFeatured';
+
+const FilterDrawer = React.lazy(() =>
+  import('../../features/search/components/FilterDrawer').then((m) => ({ default: m.FilterDrawer }))
+);
 
 export type { SearchViewProps };
 
@@ -214,31 +217,19 @@ export const SearchView: React.FC<SearchViewProps> = ({
         )}
       </div>
 
-      <FilterDrawer
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        allBusinesses={allBusinesses}
-        selectedGov={selectedGov}
-        onGovChange={onGovChange}
-        selectedCity={selectedCity}
-        onCityChange={onCityChange}
-        selectedZone={selectedZone}
-        onZoneChange={onZoneChange}
-        categoryFilter={categoryFilter}
-        onCategoryChange={onCategoryChange}
-        subcategoryFilter={subcategoryFilter}
-        onSubcategoryChange={onSubcategoryChange}
-        openNowOnly={openNowOnly}
-        onToggleOpenNow={onToggleOpenNow}
-        hasRatingOnly={hasRatingOnly}
-        onToggleHasRating={onToggleHasRating}
-        hasVideoOnly={hasVideoOnly}
-        onToggleHasVideo={onToggleHasVideo}
-        sortBy={sortBy}
-        onSortChange={onSortChange}
-        onResetAll={onResetAllFilters}
-        resultsCount={effectiveFilteredBusinesses.length}
-      />
+      {drawerOpen && (
+        <React.Suspense fallback={null}>
+          <FilterDrawer
+            isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} allBusinesses={allBusinesses}
+            selectedGov={selectedGov} onGovChange={onGovChange} selectedCity={selectedCity} onCityChange={onCityChange}
+            selectedZone={selectedZone} onZoneChange={onZoneChange} categoryFilter={categoryFilter} onCategoryChange={onCategoryChange}
+            subcategoryFilter={subcategoryFilter} onSubcategoryChange={onSubcategoryChange}
+            openNowOnly={openNowOnly} onToggleOpenNow={onToggleOpenNow} hasRatingOnly={hasRatingOnly} onToggleHasRating={onToggleHasRating}
+            hasVideoOnly={hasVideoOnly} onToggleHasVideo={onToggleHasVideo} sortBy={sortBy} onSortChange={onSortChange}
+            onResetAll={onResetAllFilters} resultsCount={effectiveFilteredBusinesses.length}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 };

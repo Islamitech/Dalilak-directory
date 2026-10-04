@@ -41,10 +41,18 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       }
     };
 
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (onClear) {
+        onClear();
+      }
+      props.onClick?.(e);
+    };
+
     return (
       <button
         ref={ref}
         type={type}
+        onClick={handleClick}
         className={`${baseClasses} ${getVariantClasses()} ${className}`}
         {...props}
       >
@@ -52,20 +60,8 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
         <span>{children}</span>
         {onClear && (
           <span
-            role="button"
-            tabIndex={0}
-            aria-label="إزالة التصفية"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClear();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.stopPropagation();
-                onClear();
-              }
-            }}
-            className="ms-1 p-0.5 rounded-full hover:bg-black/10 transition-colors"
+            aria-hidden="true"
+            className="ms-1 w-4 h-4 rounded-full hover:bg-black/10 transition-colors inline-flex items-center justify-center text-[10px] leading-none"
           >
             ✕
           </span>

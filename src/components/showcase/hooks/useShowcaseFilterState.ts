@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { resolveCategorySelection } from '../../../utils/categoryMatcher';
 
 export function useShowcaseFilterState() {
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('q') || new URLSearchParams(window.location.search).get('search') || '';
+  });
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
@@ -41,6 +44,8 @@ export function useShowcaseFilterState() {
         setSubcategoryFilter(selection.subcategoryId);
       }
     }
+    const qParam = params.get('q') || params.get('search');
+    if (qParam) setSearchQuery(qParam);
   }, []);
 
   useEffect(() => {

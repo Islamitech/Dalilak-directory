@@ -6,7 +6,6 @@ import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel
 import {
   getHadayekZone,
   getRecommendedGateForZone,
-  estimateBuildingCoordinates,
 } from '../../data/hadayekAtlasData';
 import { ProximityRadarDrawer } from '../atlas/ProximityRadarDrawer';
 import { HadayekGatesModal } from '../atlas/HadayekGatesModal';
@@ -88,17 +87,16 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [categoryFilter, quickCategories]);
 
   const targetBuilding = useMemo(() => {
-    if (!activeZoneLetter || !activeBuildingNumber) return null;
+    if (!activeZoneLetter || !activeBuildingNumber || !exactBuildingCoords) return null;
     const zone = getHadayekZone(activeZoneLetter);
     if (!zone) return null;
-    const coords = exactBuildingCoords || estimateBuildingCoordinates(zone.letterAr, activeBuildingNumber);
     return {
       zone,
       zoneLetter: zone.letterAr,
       buildingNumber: activeBuildingNumber,
-      lat: coords.lat,
-      lng: coords.lng,
-      coords: { lat: coords.lat, lng: coords.lng },
+      lat: exactBuildingCoords.lat,
+      lng: exactBuildingCoords.lng,
+      coords: { lat: exactBuildingCoords.lat, lng: exactBuildingCoords.lng },
     };
   }, [activeZoneLetter, activeBuildingNumber, exactBuildingCoords]);
 
