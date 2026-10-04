@@ -1,0 +1,21 @@
+﻿GITLEAKS SCAN SUMMARY (209 commits, all branches, redacted)
+Total findings: 18
+==========================================================
+[c1f4e38] generic-api-key | File: verification/baseline/api/biz-og.ts:5 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[c1f4e38] generic-api-key | File: verification/baseline/api/sitemap.ts:4 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[c1f4e38] generic-api-key | File: verification/baseline/api/share.ts:6 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[c1f4e38] generic-api-key | File: verification/baseline/src/services/supabaseClient.ts:9 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[c1f4e38] generic-api-key | File: verification/mutation-copy/src/services/supabaseClient.ts:9 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[c1f4e38] generic-api-key | File: verification/source-before.json:6 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[dca2718] generic-api-key | File: src/services/supabaseClient.ts:9 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[e0c4f57] generic-api-key | File: src/components/activity/ActivityDetailModal.tsx:115 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[46a003d] generic-api-key | File: api/sitemap.ts:4 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[9089292] gcp-api-key | File: api/google-place-resolver.ts:184 | Desc: Uncovered a GCP API key, which could lead to unauthorized access to Google Cloud services and data breaches.
+[d4aa9b1] generic-api-key | File: src/components/PublicShowcase.tsx:237 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[3e20772] generic-api-key | File: src/components/PublicShowcase.tsx:228 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[8f3af09] generic-api-key | File: api/biz-og.ts:5 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[8f3af09] generic-api-key | File: api/share.ts:6 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[f7e080c] generic-api-key | File: src/App.tsx:8 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[f7e080c] generic-api-key | File: src/services/storage.ts:4 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[606122d] generic-api-key | File: src/services/storage.ts:4 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+[b774a17] generic-api-key | File: src/App.tsx:7 | Desc: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.

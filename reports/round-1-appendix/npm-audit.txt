@@ -1,0 +1,93 @@
+﻿# npm audit report
+
+@fastify/busboy  1.0.0 - 3.2.0
+Severity: high
+@fastify/busboy vulnerable to Denial of Service via prototype-named multipart part header - https://github.com/advisories/GHSA-x8mw-p69m-v3mx
+fix available via `npm audit fix --force`
+Will install @vercel/node@4.0.0, which is a breaking change
+node_modules/@fastify/busboy
+  undici  <=6.28.0
+  Depends on vulnerable versions of @fastify/busboy
+  node_modules/undici
+    @vercel/node  >=2.1.1-canary.0
+    Depends on vulnerable versions of @vercel/static-config
+    Depends on vulnerable versions of path-to-regexp
+    Depends on vulnerable versions of ts-morph
+    Depends on vulnerable versions of undici
+    node_modules/@vercel/node
+
+ajv  7.0.0-alpha.0 - 8.17.1
+Severity: moderate
+ajv has ReDoS when using `$data` option - https://github.com/advisories/GHSA-2g4f-4pwh-qvx6
+fix available via `npm audit fix --force`
+Will install @vercel/node@4.0.0, which is a breaking change
+node_modules/ajv
+  @vercel/static-config  *
+  Depends on vulnerable versions of ajv
+  Depends on vulnerable versions of ts-morph
+  node_modules/@vercel/static-config
+
+brace-expansion  <=1.1.20 || 4.0.0 - 5.0.11
+Severity: high
+brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service - https://github.com/advisories/GHSA-q2hr-2g5m-vwhr
+brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service - https://github.com/advisories/GHSA-q2hr-2g5m-vwhr
+brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion - https://github.com/advisories/GHSA-qhr7-859c-m2p7
+brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion - https://github.com/advisories/GHSA-qhr7-859c-m2p7
+brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion - https://github.com/advisories/GHSA-6j4f-fj2g-mc7p
+brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion - https://github.com/advisories/GHSA-6j4f-fj2g-mc7p
+fix available via `npm audit fix`
+node_modules/@ts-morph/common/node_modules/brace-expansion
+node_modules/brace-expansion
+
+braces  *
+Severity: high
+braces vulnerable to stack-exhaustion denial of service through deeply nested patterns - https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+fix available via `npm audit fix --force`
+Will install @vercel/node@4.0.0, which is a breaking change
+node_modules/braces
+  micromatch  >=0.2.0
+  Depends on vulnerable versions of braces
+  node_modules/micromatch
+    fast-glob  *
+    Depends on vulnerable versions of micromatch
+    node_modules/fast-glob
+      @ts-morph/common  0.2.0 - 0.24.0 || 0.26.0 - 0.27.0
+      Depends on vulnerable versions of fast-glob
+      node_modules/@ts-morph/common
+        ts-morph  6.0.1 - 23.0.0 || 25.0.0 - 26.0.0
+        Depends on vulnerable versions of @ts-morph/common
+        node_modules/ts-morph
+
+esbuild  0.27.3 - 0.28.0
+esbuild allows arbitrary file read when running the development server on Windows - https://github.com/advisories/GHSA-g7r4-m6w7-qqqr
+fix available via `npm audit fix`
+node_modules/tsx/node_modules/esbuild
+
+fflate  0.7.0 - 0.7.4
+Severity: moderate
+fflate unzipSync can enter an infinite loop when parsing malformed ZIP64 archives - https://github.com/advisories/GHSA-px8p-9vwx-vf98
+fix available via `npm audit fix --force`
+Will install @vercel/og@1.0.1, which is a breaking change
+node_modules/fflate
+  satori  >=0.33.0
+  Depends on vulnerable versions of fflate
+  node_modules/satori
+    @vercel/og  >=1.0.2
+    Depends on vulnerable versions of satori
+    node_modules/@vercel/og
+
+path-to-regexp  4.0.0 - 6.2.2
+Severity: high
+path-to-regexp outputs backtracking regular expressions - https://github.com/advisories/GHSA-9wv6-86v2-598j
+fix available via `npm audit fix --force`
+Will install @vercel/node@4.0.0, which is a breaking change
+node_modules/path-to-regexp
+
+
+16 vulnerabilities (1 low, 4 moderate, 11 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force

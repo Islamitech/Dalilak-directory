@@ -1,0 +1,29 @@
+﻿=== npm ci ===
+PASS (262 packages added, 263 audited)
+
+=== npx tsc --noEmit ===
+PASS (Exit code 0, 0 type errors)
+
+=== npm run build ===
+PASS (vite build succeeded in 8.43s, generated dist/)
+
+=== npm run test:map ===
+PASS (42/42 tests passed)
+
+=== npm run test:safety-net ===
+PASS (19/19 tests passed: 9 baseline regression + 10 repaired behaviors)
+
+=== npm run test:repair ===
+FAIL (Exit code 1: Cannot find module 'C:/Users/Ahmed/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright' at verification/browser-harness.cjs:1:18)
+
+=== npm run test:repair:browser ===
+FAIL (Exit code 1: Cannot find module 'C:/Users/Ahmed/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright' at verification/browser-harness.cjs:1:18)
+
+=== npm run test:map:unit ===
+PASS (4 test files, 11 tests passed in Vitest)
+
+=== npm run test:map:e2e ===
+PASS (5 tests passed in Chromium via Playwright in 14.4s)
+
+=== npm run test:seo ===
+PASS (Sitemap generation 200, static page share 200, category search SEO 200)
