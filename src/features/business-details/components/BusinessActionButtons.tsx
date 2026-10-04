@@ -83,9 +83,10 @@ export const BusinessActionButtons: React.FC<BusinessActionButtonsProps> = ({
         onClick={(e) => e.stopPropagation()}
         className="min-h-[44px] py-2 px-2 rounded-xl text-xs font-bold bg-blue-50/80 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-900 dark:text-blue-300 border border-blue-200/90 dark:border-blue-800 flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
         title="الاتجاهات على خرائط Google"
+        aria-label="الاتجاهات"
       >
         <Navigation className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-        <span>اتجاهات</span>
+        <span>الاتجاهات</span>
       </a>
     </div>
   );

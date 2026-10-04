@@ -88,7 +88,14 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Modal Content */}
-        <div className={`overflow-y-auto flex-1 ${contentClassName || 'p-6'}`}>{children}</div>
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label={title || 'محتوى النافذة'}
+          className={`overflow-y-auto flex-1 focus:outline-none ${contentClassName || 'p-6'}`}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -30,6 +30,10 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
   },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || 'https://fixture.supabase.co'),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key-dalilak'),
+  },
   plugins: [react(), tailwindcss(), preloadHomeViewPlugin()],
   build: {
     sourcemap: false,

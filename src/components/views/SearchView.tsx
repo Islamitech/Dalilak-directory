@@ -53,7 +53,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAllManually, setShowAllManually] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && window.location.search.includes('mode=all');
+    if (typeof window === 'undefined') return true;
+    return !window.location.search.includes('mode=discovery');
   });
 
   const isFilteringOrSearching = useMemo(() => {

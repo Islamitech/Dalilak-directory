@@ -113,6 +113,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
           <h3 className="card-name text-[15px] sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 leading-snug">
             <button
               type="button"
+              role="button"
               onClick={() => onOpenBusiness(business)}
               aria-label={business.nameAr}
               className="text-start font-bold text-slate-900 dark:text-slate-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors after:absolute after:inset-0 after:z-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-md"

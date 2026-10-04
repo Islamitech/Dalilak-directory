@@ -112,6 +112,7 @@ export const SearchHeroHeader: React.FC<SearchHeroHeaderProps> = ({
             <select
               value={selectedCity !== 'all' ? selectedCity : selectedGov !== 'all' ? selectedGov : 'all'}
               onChange={(e) => onLocationSelect(e.target.value)}
+              aria-label="تحديد النطاق الجغرافي أو المدينة"
               className="bg-white text-sm font-bold text-slate-800 cursor-pointer min-h-10 py-1 outline-none w-full"
               style={{ colorScheme: 'light' }}
             >

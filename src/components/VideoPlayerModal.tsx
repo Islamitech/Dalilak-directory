@@ -71,7 +71,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       onClose={onClose}
       maxWidth="lg"
       hideDefaultHeader
-      aria-label={`فيديو ${business.nameAr}`}
+      aria-labelledby="video-modal-title"
       className="!bg-slate-900 !border-amber-500/40 text-slate-100 !rounded-3xl !shadow-2xl overflow-hidden"
       overlayClassName="!bg-slate-950/90 !backdrop-blur-xl"
       contentClassName="p-0"
@@ -83,7 +83,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <Film className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-black text-sm text-white line-clamp-1 flex items-center gap-1.5">
+            <h3 id="video-modal-title" className="font-black text-sm text-white line-clamp-1 flex items-center gap-1.5">
               <span>{business.nameAr}</span>
               {isVerified && (
                 <span className="text-[9.5px] font-bold px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">

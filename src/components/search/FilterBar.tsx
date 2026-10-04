@@ -115,10 +115,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {/* Right: Sort Dropdown & View Mode Switcher */}
         <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
-            <span className="text-[11px] text-slate-400 shrink-0">ترتيب:</span>
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 font-medium shrink-0">ترتيب:</span>
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value as any)}
+              aria-label="ترتيب النتائج"
               className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
             >
               <option value="default">الترتيب المقترح (الافتراضي)</option>

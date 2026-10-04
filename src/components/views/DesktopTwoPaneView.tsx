@@ -111,7 +111,13 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
         </div>
 
         {/* Scrollable Cards Container */}
-        <div ref={listContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0 divide-y divide-slate-100/50 dark:divide-slate-800/40">
+        <div
+          ref={listContainerRef}
+          tabIndex={0}
+          role="region"
+          aria-label="قائمة الأنشطة والنتائج"
+          className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0 divide-y divide-slate-100/50 dark:divide-slate-800/40 focus:outline-none"
+        >
           {loading && businesses.length === 0 ? (
             <div className="p-4 space-y-3"><LoadingSkeleton variant="grid" count={4} /></div>
           ) : effectiveFilteredBusinesses.length === 0 ? (
