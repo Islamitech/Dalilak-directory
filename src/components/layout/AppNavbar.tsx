@@ -42,6 +42,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   const { theme, toggleTheme } = useTheme();
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
   const isMapRoute = cleanRoute === '/' || cleanRoute === '/map';
+  const isDirectoryRoute = isMapRoute || cleanRoute === '/search';
   const activeViewMode: DirectoryViewMode = isMapRoute ? 'map' : 'list';
 
   const handleSwitchView = (view: DirectoryViewMode) => {
@@ -77,6 +78,16 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
     >
       <div className="max-w-7xl mx-auto px-2.5 min-[360px]:px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
         <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-3">
+          {/* Floating Segmented Switch (.view-switch from prototype.html) */}
+          {isDirectoryRoute && (
+            <div className="lg:hidden fixed bottom-[calc(20px+env(safe-area-inset-bottom,0px))] start-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+              <ViewSegmentedSwitch
+                activeView={activeViewMode}
+                onViewChange={handleSwitchView}
+              />
+            </div>
+          )}
+
           {/* 1. Right (RTL Start): Brand Logo & Name (order-1) */}
           <div className="order-1 flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <a
@@ -97,23 +108,15 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             </a>
           </div>
 
-          {/* 2. Top-Row Icon-Only Segmented Switch (order-2 on mobile, hidden on desktop lg:hidden) */}
-          <div className="order-2 lg:hidden flex items-center justify-center shrink-0">
-            <ViewSegmentedSwitch
-              activeView={activeViewMode}
-              onViewChange={handleSwitchView}
-            />
-          </div>
-
-          {/* 3. Left (RTL End): Standardized Mini Buttons & More Menu (order-3 on mobile, order-4 on desktop) */}
-          <div className="order-3 lg:order-4 flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* 2. Left (RTL End): Standardized Mini Buttons & More Menu (order-2 on mobile, order-3 on desktop) */}
+          <div className="order-2 lg:order-4 flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* Desktop Map Actions (>= 1024px ALWAYS visible per E1) */}
             {onLocateMe && (
               <button
                 type="button"
                 onClick={onLocateMe}
                 className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
-                aria-label="تحديد موقعي على الخريطة"
+                aria-label="تحديد موقعي"
                 title="موقعي"
               >
                 <Navigation className="w-4 h-4 stroke-[2.2]" />
@@ -125,7 +128,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 type="button"
                 onClick={onFitAll}
                 className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
-                aria-label="عرض جميع الأنشطة على الخريطة"
+                aria-label="عرض جميع الأنشطة"
                 title="عرض الكل"
               >
                 <Maximize2 className="w-4 h-4 stroke-[2.2]" />
@@ -191,7 +194,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               <SearchField
                 value={searchQuery}
                 onChange={onSearchChange}
-                placeholder="ابحث عن نشاط أو خدمة أو عمارة أو شارع..."
+                placeholder="ابحث عن مطعم، صيدلية، أو خدمة..."
                 className="w-full"
               />
             </div>

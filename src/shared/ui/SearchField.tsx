@@ -33,7 +33,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
       className = '',
       inputClassName = '',
       autoFocus = false,
-      'aria-label': ariaLabel = 'حقل البحث في الدليل',
+      'aria-label': ariaLabel = 'البحث في الدليل',
       icon,
       inputMode = 'search',
       disabled = false,

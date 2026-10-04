@@ -140,37 +140,40 @@ export const SearchView: React.FC<SearchViewProps> = ({
   const handleLocationSelect = (val: string) => handleLocationSelection(val, onGovChange, onCityChange);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-7 sm:space-y-10 pb-8 bg-[#f8fafc]" dir="rtl">
-      <div className="space-y-7 sm:space-y-10">
-        <SearchHeroHeader
-          categoryFilter={categoryFilter}
-          selectedZone={selectedZone}
-          selectedCity={selectedCity}
-          selectedGov={selectedGov}
-          searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
-          onLocationSelect={handleLocationSelect}
-          onRequestLocation={onRequestLocation}
-          isLocatingUser={isLocatingUser}
-          userCoords={userCoords}
-          onNavigate={onNavigate}
-          onSearchSubmit={() => setShowAllManually(true)}
-        />
+    <div className="max-w-7xl mx-auto px-3 min-[380px]:px-4 sm:px-6 lg:px-8 py-3 sm:py-5 pb-[calc(100px+env(safe-area-inset-bottom,0px))] bg-[#f8fafc] dark:bg-slate-950 transition-colors" dir="rtl">
+      {!showAllManually && (
+        <div className="space-y-7 sm:space-y-10 mb-6">
+          <SearchHeroHeader
+            categoryFilter={categoryFilter}
+            selectedZone={selectedZone}
+            selectedCity={selectedCity}
+            selectedGov={selectedGov}
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange}
+            onLocationSelect={handleLocationSelect}
+            onRequestLocation={onRequestLocation}
+            isLocatingUser={isLocatingUser}
+            userCoords={userCoords}
+            onNavigate={onNavigate}
+            onSearchSubmit={() => setShowAllManually(true)}
+          />
 
-        <SearchDiscoveryCategories
-          categoryFilter={categoryFilter}
-          subcategoryFilter={subcategoryFilter}
-          onCategoryChange={onCategoryChange}
-          onSubcategoryChange={onSubcategoryChange}
-          categoryScopeBusinesses={categoryScopeBusinesses}
-          onShowAll={() => {
-            setShowAllManually(true);
-            onCategoryChange('all');
-            onSubcategoryChange('all');
-          }}
-        />
+          <SearchDiscoveryCategories
+            categoryFilter={categoryFilter}
+            subcategoryFilter={subcategoryFilter}
+            onCategoryChange={onCategoryChange}
+            onSubcategoryChange={onSubcategoryChange}
+            categoryScopeBusinesses={categoryScopeBusinesses}
+            onShowAll={() => {
+              setShowAllManually(true);
+              onCategoryChange('all');
+              onSubcategoryChange('all');
+            }}
+          />
+        </div>
+      )}
 
-        {isFilteringOrSearching ? (
+      {isFilteringOrSearching ? (
           <SearchResultsSection
             filteredBusinesses={effectiveFilteredBusinesses}
             loading={loading}
@@ -215,7 +218,6 @@ export const SearchView: React.FC<SearchViewProps> = ({
             onNavigate={onNavigate}
           />
         )}
-      </div>
 
       {drawerOpen && (
         <React.Suspense fallback={null}>

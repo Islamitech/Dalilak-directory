@@ -10,13 +10,13 @@ export interface ViewSegmentedSwitchProps {
 }
 
 /**
- * 🎛️ ViewSegmentedSwitch (Decision D2)
+ * 🎛️ ViewSegmentedSwitch
  *
- * Compact icon-only segmented control positioned in the top row.
- * - Icon-only, no text nodes.
- * - Preserves equal dimensions and positioning across both views.
- * - State-driven indicator with logical RTL positioning.
- * - Fully accessible radiogroup with >= 44x44px hit targets.
+ * Floating segmented control matching docs/design/prototype.html (.view-switch):
+ * - Dark frosted-glass container with subtle border and elevation
+ * - Dual icon + Arabic label buttons ('الخريطة' & 'الأنشطة')
+ * - State-driven sliding amber indicator with RTL logical positioning
+ * - Fully accessible radiogroup with >= 44px touch targets
  */
 export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
   activeView,
@@ -27,15 +27,15 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
     <div
       role="radiogroup"
       aria-label="طريقة العرض"
-      className={`relative inline-flex items-center p-0.5 sm:p-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 rounded-full select-none shadow-2xs ${className}`}
+      className={`view-switch relative inline-flex items-center p-1.5 bg-slate-900/92 dark:bg-slate-900/95 backdrop-blur-xl border border-white/10 dark:border-white/10 rounded-full select-none shadow-2xl ${className}`}
     >
       {/* Sliding Active Indicator (State-driven via RTL logical property) */}
       <div
         aria-hidden="true"
-        className={`absolute top-0.5 sm:top-1 bottom-0.5 sm:bottom-1 w-[calc(50%-4px)] sm:w-[calc(50%-6px)] rounded-full bg-gradient-to-r from-amber-500 to-amber-600 dark:from-amber-400 dark:to-amber-500 shadow-sm transition-all duration-200 ease-out pointer-events-none ${
+        className={`switch-indicator absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-full bg-gradient-to-r from-amber-500 to-amber-600 shadow-md transition-all duration-300 ease-out pointer-events-none ${
           activeView === 'map'
-            ? 'start-0.5 sm:start-1'
-            : 'start-[calc(50%+2px)] sm:start-[calc(50%+3px)]'
+            ? 'start-1.5'
+            : 'start-[calc(50%+1.5px)]'
         }`}
       />
 
@@ -47,13 +47,14 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
         aria-label="الخريطة التفاعلية"
         title="الخريطة"
         onClick={() => onViewChange('map')}
-        className={`relative z-10 min-w-11 min-h-11 sm:min-w-10 sm:min-h-10 px-2 sm:px-2.5 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
+        className={`switch-btn relative z-10 min-h-[44px] px-5 py-2.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 text-xs sm:text-sm font-bold whitespace-nowrap ${
           activeView === 'map'
-            ? 'text-slate-950 font-bold'
-            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            ? 'text-slate-950 font-black'
+            : 'text-white/60 hover:text-white'
         }`}
       >
-        <MapIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.2]" />
+        <MapIcon className="w-4 h-4 stroke-[2.2]" />
+        <span>الخريطة</span>
       </button>
 
       {/* List Option */}
@@ -62,15 +63,16 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
         role="radio"
         aria-checked={activeView === 'list'}
         aria-label="قائمة الأنشطة"
-        title="قائمة الأنشطة"
+        title="الأنشطة"
         onClick={() => onViewChange('list')}
-        className={`relative z-10 min-w-11 min-h-11 sm:min-w-10 sm:min-h-10 px-2 sm:px-2.5 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1 ${
+        className={`switch-btn relative z-10 min-h-[44px] px-5 py-2.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 text-xs sm:text-sm font-bold whitespace-nowrap ${
           activeView === 'list'
-            ? 'text-slate-950 font-bold'
-            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            ? 'text-slate-950 font-black'
+            : 'text-white/60 hover:text-white'
         }`}
       >
-        <ListIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.2]" />
+        <ListIcon className="w-4 h-4 stroke-[2.2]" />
+        <span>الأنشطة</span>
       </button>
     </div>
   );
