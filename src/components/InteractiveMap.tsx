@@ -205,6 +205,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           switchTileLayer={mapInstance.switchTileLayer}
           onLocate={mode === 'view' ? geolocation.handleGetLocation : undefined}
           isLocating={geolocation.isLocating}
+          businessesCount={matchingBusinessesCount}
         />
 
         <MapDrawersCoordinator

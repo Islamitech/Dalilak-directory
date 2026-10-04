@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Layers,
   LocateFixed,
   Loader2,
 } from 'lucide-react';
@@ -29,6 +28,7 @@ export interface MapFloatingControlsProps {
   switchTileLayer: (layer: MapTileLayerType) => void;
   onLocate?: () => void;
   isLocating?: boolean;
+  businessesCount?: number;
 }
 
 export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
@@ -40,14 +40,13 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
   handlePinCenterOfMap,
   handleResetPosition,
   handlePan,
-  tileLayer,
-  switchTileLayer,
   onLocate,
   isLocating = false,
+  businessesCount,
 }) => {
   return (
     <>
-      {/* 🎯 Precision Center Reticle Crosshair (Overlay in center of screen) */}
+      {/* 🎯 Precision Center Reticle Crosshair (Overlay in center of screen for Picker) */}
       {centerReticleActive && mode === 'picker' && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[1000]">
           <div className="relative flex items-center justify-center">
@@ -62,40 +61,73 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         </div>
       )}
 
+      {/* 📊 Live Map Stats Badge - Pulsing dot with live count */}
+      {mode === 'view' && businessesCount !== undefined && businessesCount > 0 && (
+        <div className="map-stats absolute top-28 start-3 sm:top-20 sm:start-5 z-[1010] pointer-events-auto bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-md flex items-center gap-2 select-none backdrop-blur-md">
+          <span className="dot w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.25)] animate-pulse" />
+          <span>{businessesCount} نشاط موثق</span>
+        </div>
+      )}
+
       {/* FLOATING CONTROLS TOOLBAR OVER MAP */}
-      {/* 1. Zoom, Center Pin, & Reset Controls (Top Right Overlay) */}
-      <div className="map-icon-controls absolute top-[7.5rem] end-2 sm:top-20 sm:end-5 flex flex-col gap-1.5 sm:gap-2 z-[1010]">
+      <div className="map-floating map-icon-controls absolute top-[7.5rem] end-2 sm:top-20 sm:end-5 lg:top-4 lg:end-4 flex flex-col gap-2 z-[1010]">
+        {/* 1. Locate Me Button (44px target) */}
         {mode === 'view' && onLocate && (
-          <button type="button" onClick={onLocate} disabled={isLocating} aria-label="تحديد موقعي الحالي" aria-busy={isLocating} className="min-w-11 min-h-11 bg-white/95 text-amber-700 rounded-2xl border border-slate-200 shadow-lg flex items-center justify-center disabled:opacity-60" title="تحديد موقعي الحالي">
+          <button
+            type="button"
+            onClick={onLocate}
+            disabled={isLocating}
+            aria-label="تحديد موقعي الحالي"
+            aria-busy={isLocating}
+            className="map-btn min-w-[44px] min-h-[44px] bg-white/95 dark:bg-slate-900/95 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md flex items-center justify-center disabled:opacity-60 transition-all cursor-pointer active:scale-95"
+            title="موقعي"
+          >
             {isLocating ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : <LocateFixed className="w-5 h-5" />}
           </button>
         )}
+
+        {/* 2. Fit All / Reset Position Button (44px target) */}
+        <button
+          type="button"
+          onClick={handleResetPosition}
+          aria-label="عرض الكل وإعادة ضبط موضع الخريطة"
+          className="map-btn min-w-[44px] min-h-[44px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-amber-500 hover:text-slate-950 text-slate-700 dark:text-slate-200 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md transition-all flex items-center justify-center active:scale-95 cursor-pointer"
+          title="عرض الكل"
+        >
+          <RotateCcw className="w-5 h-5" />
+        </button>
+
+        {/* 3. Zoom In (+) Button (44px target) */}
         <button
           type="button"
           onClick={handleZoomIn}
-          className="min-w-11 min-h-11 bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
+          aria-label="تكبير الخريطة"
+          className="map-btn min-w-[44px] min-h-[44px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 dark:text-slate-200 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md transition-all font-bold flex items-center justify-center active:scale-95 cursor-pointer"
           title="تكبير الخريطة (+)"
         >
-          <ZoomIn className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
+          <ZoomIn className="w-5 h-5 stroke-[2.5]" />
         </button>
 
+        {/* 4. Zoom Out (-) Button (44px target) */}
         <button
           type="button"
           onClick={handleZoomOut}
-          className="min-w-11 min-h-11 bg-white/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
+          aria-label="تصغير الخريطة"
+          className="map-btn min-w-[44px] min-h-[44px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-amber-500 text-slate-700 hover:text-slate-950 dark:text-slate-200 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md transition-all font-bold flex items-center justify-center active:scale-95 cursor-pointer"
           title="تصغير الخريطة (-)"
         >
-          <ZoomOut className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
+          <ZoomOut className="w-5 h-5 stroke-[2.5]" />
         </button>
 
         {mode === 'picker' && (
           <button
             type="button"
             onClick={handlePinCenterOfMap}
-            className="bg-white/95 backdrop-blur-md hover:bg-amber-500 text-amber-600 hover:text-slate-950 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
+            aria-label="تثبيت الدبوس في منتصف الخريطة"
+            className="min-w-[44px] min-h-[44px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-amber-500 text-amber-600 hover:text-slate-950 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md transition-all font-bold flex items-center justify-center active:scale-95 cursor-pointer"
             title="تثبيت الدبوس في منتصف شاشة الخريطة الحالية"
           >
-            <Target className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
+            <Target className="w-5 h-5 stroke-[2.5]" />
           </button>
         )}
 
@@ -103,36 +135,29 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
           <button
             type="button"
             onClick={() => setCenterReticleActive(!centerReticleActive)}
-            className={`p-2.5 sm:p-2 rounded-2xl border shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer ${
+            aria-label="تفعيل أو إلغاء علامة التصويب الدقيقة"
+            className={`min-w-[44px] min-h-[44px] p-2.5 rounded-2xl border shadow-md transition-all font-bold flex items-center justify-center active:scale-95 cursor-pointer ${
               centerReticleActive
                 ? 'bg-amber-500 text-slate-950 border-amber-400'
-                : 'bg-white/95 hover:bg-amber-50 text-amber-600 border-slate-200/90'
+                : 'bg-white/95 dark:bg-slate-900/95 hover:bg-amber-50 text-amber-600 border-slate-200 dark:border-slate-800'
             }`}
-            title="تفعيل/إلغاء علامة التصويب الدقيقة (Crosshair Target)"
+            title="تفعيل/إلغاء علامة التصويب الدقيقة"
           >
-            <Crosshair className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
+            <Crosshair className="w-5 h-5 stroke-[2.5]" />
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={handleResetPosition}
-          className="bg-white/95 backdrop-blur-md hover:bg-amber-50 text-amber-600 hover:text-amber-800 p-2.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-xl transition-all font-bold text-xs flex items-center justify-center active:scale-95 cursor-pointer"
-          title="إعادة ضبط الموضع لحدائق الأهرام"
-        >
-          <RotateCcw className="w-5 h-5 sm:w-4 sm:h-4" />
-        </button>
       </div>
 
-      {/* 2. D-PAD Directional Pan Movement Controls (Only for Picker Mode) */}
+      {/* D-PAD Directional Pan Movement Controls (Only for Picker Mode) */}
       {mode === 'picker' && (
-        <div className="absolute top-20 start-3 bg-white/95 border border-slate-200 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-[900] flex flex-col items-center gap-1">
+        <div className="absolute top-20 start-3 bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-xl backdrop-blur-md z-[900] flex flex-col items-center gap-1">
           <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">تحريك دقيق</span>
 
           <button
             type="button"
             onClick={() => handlePan('up')}
-            className="bg-slate-50 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            aria-label="تحريك لأعلى"
+            className="bg-slate-50 dark:bg-slate-800 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="تحريك لأعلى"
           >
             <ChevronUp className="w-4 h-4 stroke-[3]" />
@@ -142,7 +167,8 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
             <button
               type="button"
               onClick={() => handlePan('left')}
-              className="bg-slate-50 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+              aria-label="تحريك لليسار"
+              className="bg-slate-50 dark:bg-slate-800 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               title="تحريك لليسار"
             >
               <ChevronLeft className="w-4 h-4 stroke-[3]" />
@@ -155,7 +181,8 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
             <button
               type="button"
               onClick={() => handlePan('right')}
-              className="bg-slate-50 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+              aria-label="تحريك لليمين"
+              className="bg-slate-50 dark:bg-slate-800 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               title="تحريك لليمين"
             >
               <ChevronRight className="w-4 h-4 stroke-[3]" />
@@ -165,7 +192,8 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
           <button
             type="button"
             onClick={() => handlePan('down')}
-            className="bg-slate-50 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            aria-label="تحريك لأسفل"
+            className="bg-slate-50 dark:bg-slate-800 hover:bg-amber-500 text-slate-700 hover:text-slate-950 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="تحريك لأسفل"
           >
             <ChevronDown className="w-4 h-4 stroke-[3]" />

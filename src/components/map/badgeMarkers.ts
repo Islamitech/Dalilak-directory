@@ -206,23 +206,25 @@ export function createCompactActivityPinHtml(
 
   const rankBadgeHtml =
     isTopProminent && prominenceRank
-      ? `<span style="position: absolute; top: -5px; right: -5px; z-index: 5; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 8.5px; font-weight: 900; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); font-family: monospace;">#${prominenceRank}</span>`
+      ? `<span style="position: absolute; top: -5px; right: -5px; z-index: 5; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 8.5px; font-weight: 900; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); font-family: monospace; transform: rotate(45deg);">#${prominenceRank}</span>`
       : '';
 
   const verifiedDotHtml = isVerified
-    ? `<span style="position: absolute; top: -3px; left: -3px; z-index: 5; width: 12px; height: 12px; border-radius: 50%; background: #059669; border: 1.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
+    ? `<span style="position: absolute; top: -3px; left: -3px; z-index: 5; width: 12px; height: 12px; border-radius: 50%; background: #059669; border: 1.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transform: rotate(45deg);"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
     : '';
 
-  const pinBorderColor = isSelected ? '#d97706' : isTopProminent ? '#f59e0b' : categoryConfig.borderColor;
-  const pinBg = isSelected ? '#fffbeb' : '#ffffff';
+  const pinBorderColor = isSelected ? '#0f172a' : isTopProminent ? '#f59e0b' : '#d97706';
+  const pinBg = isSelected
+    ? 'linear-gradient(135deg, #0f172a, #334155)'
+    : 'linear-gradient(135deg, #f59e0b, #d97706)';
   const pinShadow = isSelected
-    ? 'box-shadow: 0 0 20px rgba(245, 158, 11, 0.95), 0 4px 12px rgba(0,0,0,0.35);'
+    ? 'box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.6), 0 6px 20px rgba(15, 23, 42, 0.5);'
     : isTopProminent
-    ? 'box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45), 0 2px 6px rgba(0,0,0,0.15);'
-    : 'box-shadow: 0 3px 10px rgba(15, 23, 42, 0.18), 0 1px 3px rgba(0,0,0,0.08);';
+    ? 'box-shadow: 0 0 0 2px #f59e0b, 0 4px 14px rgba(245, 158, 11, 0.45);'
+    : 'box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);';
 
   const html = `
-    <div class="activity-pin-wrapper ${isSelected ? 'selected-pin' : ''} ${isTopProminent ? 'top-prominent' : ''}" style="
+    <div class="activity-pin-wrapper marker-pin ${isSelected ? 'selected-pin active' : ''} ${isTopProminent ? 'top-prominent' : ''}" style="
       position: relative;
       display: flex;
       flex-direction: column;
@@ -232,25 +234,28 @@ export function createCompactActivityPinHtml(
       width: ${pinWidth}px;
       font-family: 'Cairo', system-ui, sans-serif;
     " title="${safeName} - ${safeCategory}">
-      <!-- Shield / Badge Icon Head -->
-      <div style="
+      <!-- Teardrop Pin Head (Rotated -45deg with inner counter-rotation) -->
+      <div class="pin" style="
         position: relative;
         width: ${pinWidth}px;
         height: ${pinWidth}px;
         background: ${pinBg};
-        border: 2px solid ${pinBorderColor};
-        border-radius: 50%;
+        border: 2.5px solid #ffffff;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
         display: flex;
         align-items: center;
         justify-content: center;
         ${pinShadow}
-        transition: transform 0.15s ease;
+        transition: all 0.15s ease;
       ">
         ${rankBadgeHtml}
         ${verifiedDotHtml}
-        <svg width="${isSelected ? 20 : 17}" height="${isSelected ? 20 : 17}" viewBox="0 0 24 24" fill="none" stroke="${categoryConfig.bg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
-          ${categoryConfig.iconSvg}
-        </svg>
+        <div style="transform: rotate(45deg); display: flex; align-items: center; justify-content: center;">
+          <svg width="${isSelected ? 20 : 17}" height="${isSelected ? 20 : 17}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));">
+            ${categoryConfig.iconSvg}
+          </svg>
+        </div>
       </div>
 
       <!-- Needle Downward Pointer -->
