@@ -10,6 +10,7 @@ import {
   handleLocationSelection,
 } from '../../features/search';
 import { getBusinessesInZone } from '../../utils/hadayekZoneHelper';
+import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { SearchDiscoveryFeatured } from './search/SearchDiscoveryFeatured';
 
 export type { SearchViewProps };
@@ -75,6 +76,41 @@ export const SearchView: React.FC<SearchViewProps> = ({
     selectedCity, selectedZone, openNowOnly, hasRatingOnly, hasVideoOnly, sortBy, hasActiveFilters,
   ]);
 
+  const effectiveFilteredBusinesses = useMemo(() => {
+    if (filteredBusinesses && filteredBusinesses.length > 0) return filteredBusinesses;
+    return computeFilteredBusinesses({
+      publicBusinesses: allBusinesses,
+      activityIntent: null,
+      deferredSearchQuery: searchQuery,
+      categoryFilter,
+      subcategoryFilter,
+      effectiveSearchZone: selectedZone,
+      govFilter: selectedGov,
+      cityFilter: selectedCity,
+      openNowOnly,
+      hasRatingOnly,
+      hasVideoOnly,
+      sortBy,
+      userCoords,
+      shuffleSeed: 1,
+      pinnedDirectBizId: null,
+    });
+  }, [
+    filteredBusinesses,
+    allBusinesses,
+    searchQuery,
+    categoryFilter,
+    subcategoryFilter,
+    selectedZone,
+    selectedGov,
+    selectedCity,
+    openNowOnly,
+    hasRatingOnly,
+    hasVideoOnly,
+    sortBy,
+    userCoords,
+  ]);
+
   const featuredBusinesses = useMemo(() => computeFeaturedBusinesses(allBusinesses), [allBusinesses]);
 
   const advancedFiltersCount = [
@@ -132,7 +168,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
 
         {isFilteringOrSearching ? (
           <SearchResultsSection
-            filteredBusinesses={filteredBusinesses}
+            filteredBusinesses={effectiveFilteredBusinesses}
             loading={loading}
             categoryFilter={categoryFilter}
             onCategoryChange={onCategoryChange}
@@ -198,7 +234,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
         sortBy={sortBy}
         onSortChange={onSortChange}
         onResetAll={onResetAllFilters}
-        resultsCount={filteredBusinesses.length}
+        resultsCount={effectiveFilteredBusinesses.length}
       />
     </div>
   );

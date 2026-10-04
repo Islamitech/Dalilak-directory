@@ -16,7 +16,7 @@ export interface PublicShowcaseViewsProps {
   currentPath: string;
   filterState: ReturnType<typeof useShowcaseFilterState>;
   publicBusinesses: Business[];
-  filteredBusinesses: Business[];
+  filteredBusinesses?: Business[];
   effectiveMapCategoryFilter: string;
   effectiveSearchZone: string;
   favorites: string[];

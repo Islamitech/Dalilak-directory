@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Business } from '../../types';
 import { InteractiveMap, MAP_QUICK_CATEGORIES } from '../InteractiveMap';
 import { getAvailableQuickCategoriesInZone } from '../../utils/hadayekZoneHelper';
+import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import {
   getHadayekZone,
   getRecommendedGateForZone,
@@ -15,7 +16,7 @@ export interface MapViewProps {
   searchQuery?: string;
   onSearchChange?: (q: string) => void;
   businesses: Business[];
-  filteredBusinesses: Business[];
+  filteredBusinesses?: Business[];
   categoryFilter: string;
   onCategoryChange: (cat: string) => void;
   selectedZone?: string;
@@ -111,13 +112,44 @@ export const MapView: React.FC<MapViewProps> = ({
     selectZone(letter);
   }, [selectZone]);
 
+  const effectiveFilteredBusinesses = useMemo(() => {
+    if (filteredBusinesses && filteredBusinesses.length > 0) return filteredBusinesses;
+    return computeFilteredBusinesses({
+      publicBusinesses: businesses,
+      activityIntent: null,
+      deferredSearchQuery: searchQuery || '',
+      categoryFilter,
+      subcategoryFilter: 'all',
+      effectiveSearchZone: activeZoneLetter || selectedZone || 'all',
+      govFilter: 'all',
+      cityFilter: 'all',
+      openNowOnly,
+      hasRatingOnly: false,
+      hasVideoOnly: false,
+      sortBy: sortBy || 'default',
+      userCoords,
+      shuffleSeed: 1,
+      pinnedDirectBizId: null,
+    });
+  }, [
+    filteredBusinesses,
+    businesses,
+    searchQuery,
+    categoryFilter,
+    activeZoneLetter,
+    selectedZone,
+    openNowOnly,
+    sortBy,
+    userCoords,
+  ]);
+
   return (
     <div className="space-y-4">
       <div className="relative w-full h-[calc(100vh-8.5rem)] min-h-[480px] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
         <InteractiveMap
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
-          businesses={filteredBusinesses}
+          businesses={effectiveFilteredBusinesses}
           searchableBusinesses={businesses}
           mode="view"
           lat={lat}

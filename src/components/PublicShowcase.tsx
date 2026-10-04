@@ -15,7 +15,6 @@ import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
 import { useShowcaseGeolocation } from './showcase/hooks/useShowcaseGeolocation';
 import { useShowcaseBusinessSelection } from './showcase/hooks/useShowcaseBusinessSelection';
-import { computeFilteredBusinesses } from './showcase/model/showcaseFilterModel';
 import { PublicShowcaseViews } from './showcase/PublicShowcaseViews';
 import { PublicShowcaseModals } from './showcase/PublicShowcaseModals';
 
@@ -105,42 +104,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   const publicBusinesses = useMemo(() => businesses.filter(isPublicBusiness), [businesses]);
 
-  const filteredBusinesses = useMemo(() => {
-    return computeFilteredBusinesses({
-      publicBusinesses,
-      activityIntent,
-      deferredSearchQuery: filterState.deferredSearchQuery,
-      categoryFilter: filterState.categoryFilter,
-      subcategoryFilter: filterState.subcategoryFilter,
-      effectiveSearchZone,
-      govFilter: filterState.govFilter,
-      cityFilter: filterState.cityFilter,
-      openNowOnly: filterState.openNowOnly,
-      hasRatingOnly: filterState.hasRatingOnly,
-      hasVideoOnly: filterState.hasVideoOnly,
-      sortBy: filterState.sortBy,
-      userCoords: geo.userCoords,
-      shuffleSeed: filterState.shuffleSeed,
-      pinnedDirectBizId,
-    });
-  }, [
-    publicBusinesses,
-    activityIntent,
-    filterState.deferredSearchQuery,
-    filterState.govFilter,
-    filterState.cityFilter,
-    effectiveSearchZone,
-    filterState.categoryFilter,
-    filterState.subcategoryFilter,
-    filterState.openNowOnly,
-    filterState.hasRatingOnly,
-    filterState.hasVideoOnly,
-    filterState.sortBy,
-    geo.userCoords,
-    filterState.shuffleSeed,
-    pinnedDirectBizId,
-  ]);
-
   const isMapRoute = currentPath === '/' || currentPath === '/map';
 
   return (
@@ -181,7 +144,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               currentPath={currentPath}
               filterState={filterState}
               publicBusinesses={publicBusinesses}
-              filteredBusinesses={filteredBusinesses}
               effectiveMapCategoryFilter={effectiveMapCategoryFilter}
               effectiveSearchZone={effectiveSearchZone}
               favorites={favorites}

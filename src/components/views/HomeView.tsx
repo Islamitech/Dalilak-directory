@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Business } from '../../types';
 import { shuffleBusinessesWithSeed } from '../../utils/directoryEnhancements';
-import { HadayekGatesModal } from '../atlas';
 import { HadayekZone, HADAYEK_ZONES } from '../../data/hadayekAtlasData';
 import { HomeHeroSection } from './home/HomeHeroSection';
 import { HomeFeaturedSection } from './home/HomeFeaturedSection';
 import { HomeCalloutsSection } from './home/HomeCalloutsSection';
+
+const HadayekGatesModal = React.lazy(() =>
+  import('../atlas/HadayekGatesModal').then((m) => ({ default: m.HadayekGatesModal }))
+);
 
 export interface HomeViewProps {
   businesses: Business[];
@@ -134,20 +137,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <HomeCalloutsSection onNavigate={onNavigate} />
 
       {/* 5. Hadayek Gates Modal */}
-      <HadayekGatesModal
-        isOpen={isGatesModalOpen}
-        onClose={() => setIsGatesModalOpen(false)}
-        onSelectZone={(zoneLetter) => {
-          const zone = HADAYEK_ZONES.find((z) => z.letterAr === zoneLetter);
-          if (zone) {
-            handleTargetSelection({
-              zone,
-              buildingNumber: '',
-              coords: { lat: zone.centerLat, lng: zone.centerLng },
-            });
-          }
-        }}
-      />
+      {isGatesModalOpen && (
+        <React.Suspense fallback={null}>
+          <HadayekGatesModal
+            isOpen={isGatesModalOpen}
+            onClose={() => setIsGatesModalOpen(false)}
+            onSelectZone={(zoneLetter) => {
+              const zone = HADAYEK_ZONES.find((z) => z.letterAr === zoneLetter);
+              if (zone) {
+                handleTargetSelection({
+                  zone,
+                  buildingNumber: '',
+                  coords: { lat: zone.centerLat, lng: zone.centerLng },
+                });
+              }
+            }}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 };

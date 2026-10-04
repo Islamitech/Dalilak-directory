@@ -1,5 +1,3 @@
-import { getDistrictByLetter, HADAYEK_OFFICIAL_DISTRICTS, isPointInPolygon, findDistrictForCoordinates } from './hadayekDistrictsGeoData';
-
 /**
  * 🗺️ Hadayek Atlas & Proximity Navigator Data Engine
  * 
@@ -456,12 +454,8 @@ export function getRecommendedGateForZone(letterOrId: string): {
 
 export function estimateBuildingCoordinates(
   zoneLetter: string,
-  buildingNumber: string
+  _buildingNumber?: string
 ): { lat: number; lng: number } {
-  const district = getDistrictByLetter(zoneLetter);
-  if (district) {
-    return { lat: district.centerLat, lng: district.centerLng };
-  }
   const zone = getHadayekZone(zoneLetter);
   if (zone) {
     return { lat: zone.centerLat, lng: zone.centerLng };
@@ -502,15 +496,18 @@ export async function searchBuildingCoordinatesExact(
   zoneLetter: string,
   buildingNumber: string
 ): Promise<{ lat: number; lng: number } | null> {
-  const district = getDistrictByLetter(zoneLetter);
-  
   // Clean building number
   const numMatch = buildingNumber.match(/\d+/);
   if (!numMatch) return null;
   const cleanNum = numMatch[0];
 
+  const [buildingsDB, { getDistrictByLetter, isPointInPolygon, findDistrictForCoordinates }] = await Promise.all([
+    getBuildingsDB(),
+    import('./hadayekDistrictsGeoData'),
+  ]);
+  const district = getDistrictByLetter(zoneLetter);
+
   // 1. FAST LOCAL DATABASE LOOKUP (O(1) Offline Background DB - Lazy Loaded)
-  const buildingsDB = await getBuildingsDB();
   if (buildingsDB && (buildingsDB as any)[cleanNum]) {
     const records = (buildingsDB as any)[cleanNum] as Array<{ lat: number; lng: number }>;
     if (district && district.polygons) {
