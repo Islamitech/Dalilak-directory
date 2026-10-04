@@ -1,6 +1,6 @@
 --
 -- DALILAK SEO CONTENT - ONE-CLICK ROLLBACK SCRIPT
--- Generated: 2026-10-04T17:33:10.500Z
+-- Generated: 2026-10-04T17:52:08.772Z
 -- Reverts all approved seo_* columns to NULL / default without touching original data.
 --
 BEGIN;

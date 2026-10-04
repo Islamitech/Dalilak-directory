@@ -266,75 +266,102 @@ async function main() {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupPath = path.join(process.cwd(), '_backup_original', `businesses_pre_apply_${timestamp}.json`);
 
-  // Step 1: Pre-apply backup
-  console.log('\n[Step 1/4] Taking timestamped pre-apply backup...');
+  // Step 1: Pre-apply backup (paginated full export)
+  console.log('\n[Step 1/5] Taking timestamped pre-apply backup of full businesses table...');
+  const allBackupRows: any[] = [];
   try {
-    const backupRes = await fetch(`${SUPABASE_URL}/rest/v1/businesses?select=*&order=id.asc`, {
-      headers: {
-        apikey: adminApiKey,
-        Authorization: `Bearer ${adminApiKey}`,
-        Range: '0-9999',
-        Prefer: 'count=exact'
+    let offset = 0;
+    const limit = 500;
+    let total = Infinity;
+
+    while (offset < total) {
+      const range = `${offset}-${offset + limit - 1}`;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/businesses?select=*&order=created_at.asc,id.asc`, {
+        headers: {
+          apikey: adminApiKey,
+          Authorization: `Bearer ${adminApiKey}`,
+          Range: range,
+          Prefer: 'count=exact'
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const contentRange = res.headers.get('content-range');
+      if (contentRange) {
+        const parts = contentRange.split('/');
+        if (parts[1]) total = parseInt(parts[1], 10);
       }
-    });
-    if (backupRes.ok) {
-      const backupRows = await backupRes.json();
-      fs.writeFileSync(backupPath, JSON.stringify(backupRows, null, 2), 'utf8');
-      console.log(`Saved pre-apply snapshot to: ${backupPath} (${backupRows.length} rows)`);
-    } else {
-      console.warn(`Could not export full backup via REST: HTTP ${backupRes.status}`);
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) break;
+      allBackupRows.push(...rows);
+      offset += rows.length;
+      if (rows.length < limit) break;
     }
+    fs.writeFileSync(backupPath, JSON.stringify(allBackupRows, null, 2), 'utf8');
+    console.log(`Saved pre-apply snapshot to: ${backupPath} (${allBackupRows.length} rows, reported total: ${total})`);
   } catch (e: any) {
-    console.warn(`Backup step warning: ${e.message}`);
+    console.error(`Backup step error: ${e.message}`);
+    process.exit(1);
   }
 
-  // Step 2: Apply in batches of 50
-  console.log('\n[Step 2/4] Applying 1,952 records in batches of 50...');
+  // Pre-apply row count check
+  const preApprovedCount = allBackupRows.filter((r: any) => r.seo_status === 'approved').length;
+  console.log(`Pre-apply approved SEO count in DB: ${preApprovedCount}`);
+
+  // Step 2: Apply in batches of 50 with sub-batches of 20 concurrent requests
+  console.log(`\n[Step 2/5] Applying ${approved.length} records in batches of 50...`);
   const appliedIds: string[] = [];
   const failedIds: { id: string; error: string }[] = [];
   const batchSize = 50;
+  const concurrency = 20;
 
   for (let i = 0; i < approved.length; i += batchSize) {
     const chunk = approved.slice(i, i + batchSize);
-    console.log(`Processing batch ${Math.floor(i / batchSize) + 1} / ${Math.ceil(approved.length / batchSize)} (records ${i + 1} to ${i + chunk.length})...`);
+    process.stdout.write(`Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(approved.length / batchSize)} (${i + 1}-${i + chunk.length})... `);
 
-    for (const record of chunk) {
-      try {
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/businesses?id=eq.${encodeURIComponent(record.id)}`, {
-          method: 'PATCH',
-          headers: {
-            apikey: adminApiKey,
-            Authorization: `Bearer ${adminApiKey}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal'
-          },
-          body: JSON.stringify({
-            seo_title: record.seo_title,
-            seo_description: record.seo_description,
-            seo_intro: record.seo_intro,
-            seo_keywords_internal: record.seo_keywords_internal,
-            seo_faq: record.seo_faq,
-            seo_status: 'approved',
-            seo_source_fields: record.seo_source_fields,
-            seo_generated_at: record.seo_generated_at,
-            seo_reviewed_by: record.seo_reviewed_by
-          })
-        });
+    // Process chunk in sub-concurrency
+    for (let j = 0; j < chunk.length; j += concurrency) {
+      const sub = chunk.slice(j, j + concurrency);
+      await Promise.all(
+        sub.map(async (record: any) => {
+          try {
+            const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/businesses?id=eq.${encodeURIComponent(record.id)}`, {
+              method: 'PATCH',
+              headers: {
+                apikey: adminApiKey,
+                Authorization: `Bearer ${adminApiKey}`,
+                'Content-Type': 'application/json',
+                Prefer: 'return=minimal'
+              },
+              body: JSON.stringify({
+                seo_title: record.seo_title,
+                seo_description: record.seo_description,
+                seo_intro: record.seo_intro,
+                seo_keywords_internal: record.seo_keywords_internal,
+                seo_faq: record.seo_faq,
+                seo_status: 'approved',
+                seo_source_fields: record.seo_source_fields,
+                seo_generated_at: record.seo_generated_at,
+                seo_reviewed_by: record.seo_reviewed_by
+              })
+            });
 
-        if (patchRes.ok) {
-          appliedIds.push(record.id);
-        } else {
-          const errText = await patchRes.text();
-          failedIds.push({ id: record.id, error: `HTTP ${patchRes.status}: ${errText}` });
-        }
-      } catch (err: any) {
-        failedIds.push({ id: record.id, error: err.message });
-      }
+            if (patchRes.ok) {
+              appliedIds.push(record.id);
+            } else {
+              const errText = await patchRes.text();
+              failedIds.push({ id: record.id, error: `HTTP ${patchRes.status}: ${errText}` });
+            }
+          } catch (err: any) {
+            failedIds.push({ id: record.id, error: err.message });
+          }
+        })
+      );
     }
+    console.log(`OK (applied total: ${appliedIds.length})`);
   }
 
   // Step 3: Save applied log & one-command rollback
-  console.log('\n[Step 3/4] Logging applied IDs and writing rollback scripts...');
+  console.log('\n[Step 3/5] Logging applied IDs and generating run rollback script...');
   const appliedLogPath = path.join(process.cwd(), '_backup_original', `applied_ids_${timestamp}.json`);
   fs.writeFileSync(appliedLogPath, JSON.stringify({
     timestamp,
@@ -360,15 +387,56 @@ async function main() {
   fs.writeFileSync(runRollbackPath, runRollbackStatements, 'utf8');
   console.log(`Run-specific rollback SQL saved to: ${runRollbackPath}`);
 
-  // Step 4: Verification sample
-  console.log('\n[Step 4/4] Verifying sample records in database...');
-  console.log(`Total successfully updated: ${appliedIds.length} / ${approved.length}`);
-  if (failedIds.length > 0) {
-    console.error(`Total failures: ${failedIds.length}`);
-    console.error('First 5 failures:', failedIds.slice(0, 5));
-  } else {
-    console.log('All approved records applied with ZERO errors!');
+  // Step 4: Post-apply count check
+  console.log('\n[Step 4/5] Checking post-apply database row counts...');
+  const postRes = await fetch(`${SUPABASE_URL}/rest/v1/businesses?seo_status=eq.approved&select=id`, {
+    headers: {
+      apikey: adminApiKey,
+      Authorization: `Bearer ${adminApiKey}`,
+      Range: '0-0',
+      Prefer: 'count=exact'
+    }
+  });
+  const postContentRange = postRes.headers.get('content-range') || '';
+  const postApprovedTotal = parseInt(postContentRange.split('/')[1] || '0', 10);
+  console.log(`Post-apply approved SEO count in DB: ${postApprovedTotal}`);
+  console.log(`Pre-apply approved count: ${preApprovedCount} -> Post-apply approved count: ${postApprovedTotal}`);
+
+  // Step 5: Verification of 20 random /biz pages
+  console.log('\n[Step 5/5] Verifying 20 random /biz pages from database...');
+  const sampleIndices = new Set<number>();
+  while (sampleIndices.size < Math.min(20, appliedIds.length)) {
+    sampleIndices.add(Math.floor(Math.random() * appliedIds.length));
   }
+
+  const sampleIds = Array.from(sampleIndices).map(idx => appliedIds[idx]);
+  console.log(`Testing sample of 20 IDs:`);
+
+  let verifiedCount = 0;
+  for (let s = 0; s < sampleIds.length; s++) {
+    const sId = sampleIds[s];
+    const sRes = await fetch(`${SUPABASE_URL}/rest/v1/businesses?id=eq.${encodeURIComponent(sId)}&select=id,name_ar,category,city,seo_title,seo_description,seo_status,seo_faq`, {
+      headers: {
+        apikey: adminApiKey,
+        Authorization: `Bearer ${adminApiKey}`
+      }
+    });
+    if (sRes.ok) {
+      const [sBiz] = await sRes.json();
+      if (sBiz && sBiz.seo_status === 'approved' && sBiz.seo_title && sBiz.seo_description) {
+        verifiedCount++;
+        console.log(`  [${s + 1}/20] PASS | ID: ${sBiz.id} | Title: "${sBiz.seo_title.slice(0, 45)}..." | FAQ: ${sBiz.seo_faq?.length || 0} Qs`);
+      } else {
+        console.warn(`  [${s + 1}/20] INCOMPLETE | ID: ${sId}`);
+      }
+    }
+  }
+
+  console.log(`\n====================================================`);
+  console.log(`APPLICATION COMPLETED: ${appliedIds.length} / ${approved.length} successfully updated.`);
+  console.log(`Sample verification: ${verifiedCount}/20 passed.`);
+  console.log(`Failures: ${failedIds.length}`);
+  console.log(`====================================================`);
 }
 
 main().catch(err => {
