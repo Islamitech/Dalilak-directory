@@ -1,7 +1,8 @@
 import React from 'react';
 import { Business } from '../../types';
-import { HomeView } from '../views/HomeView';
 import { useShowcaseFilterState } from './hooks/useShowcaseFilterState';
+
+const HomeView = React.lazy(() => import('../views/HomeView').then((m) => ({ default: m.HomeView })));
 
 const SearchView = React.lazy(() => import('../views/SearchView').then((m) => ({ default: m.SearchView })));
 const MapView = React.lazy(() => import('../views/MapView').then((m) => ({ default: m.MapView })));

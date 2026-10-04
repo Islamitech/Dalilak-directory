@@ -29,6 +29,9 @@ export default defineConfig({
               return 'icons-vendor';
             }
           }
+          if (id.includes('hadayekDistrictsGeoData') || id.includes('hadayekAtlasData')) {
+            return 'atlas-geodata';
+          }
         },
       },
     },

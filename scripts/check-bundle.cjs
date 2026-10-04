@@ -10,13 +10,16 @@ if (!fs.existsSync(DIST)) {
 }
 
 const BUDGETS = [
-  { pattern: /^assets\/index-.*\.js$/, maxKb: 250, name: 'Main Entry Bundle (index-*.js)' },
-  { pattern: /^assets\/index-.*\.css$/, maxKb: 150, name: 'Global Stylesheet (index-*.css)' },
-  { pattern: /^assets\/react-vendor-.*\.js$/, maxKb: 250, name: 'React Vendor Chunk' },
-  { pattern: /^assets\/supabase-vendor-.*\.js$/, maxKb: 250, name: 'Supabase Vendor Chunk' },
-  { pattern: /^assets\/InteractiveMap-.*\.js$/, maxKb: 180, name: 'Interactive Map Lazy Chunk' },
-  { pattern: /^assets\/SearchView-.*\.js$/, maxKb: 60, name: 'Search View Lazy Chunk' },
-  { pattern: /^assets\/ActivityDetailModal-.*\.js$/, maxKb: 50, name: 'Activity Detail Modal Lazy Chunk' },
+  { pattern: /^assets\/index-.*\.js$/, maxKb: 128, name: 'Main Entry Bundle (index-*.js)' },
+  { pattern: /^assets\/index-.*\.css$/, maxKb: 156, name: 'Global Stylesheet (index-*.css)' },
+  { pattern: /^assets\/react-vendor-.*\.js$/, maxKb: 243, name: 'React Vendor Chunk' },
+  { pattern: /^assets\/supabase-vendor-.*\.js$/, maxKb: 239, name: 'Supabase Vendor Chunk' },
+  { pattern: /^assets\/InteractiveMap-.*\.js$/, maxKb: 154, name: 'Interactive Map Lazy Chunk' },
+  { pattern: /^assets\/SearchView-.*\.js$/, maxKb: 42, name: 'Search View Lazy Chunk' },
+  { pattern: /^assets\/ActivityDetailModal-.*\.js$/, maxKb: 15, name: 'Activity Detail Modal Lazy Chunk' },
+  { pattern: /^assets\/atlas-geodata-.*\.js$/, maxKb: 31, name: 'Atlas Geodata Chunk' },
+  { pattern: /^assets\/HomeView-.*\.js$/, maxKb: 31, name: 'Home View Lazy Chunk' },
+  { pattern: /^assets\/UnifiedBusinessCard-.*\.js$/, maxKb: 40, name: 'Unified Business Card Chunk' },
 ];
 
 function getFiles(dir) {
