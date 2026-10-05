@@ -148,7 +148,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       />
 
       <div className={canvasWrapperClasses}>
-        <div ref={containerRef} className="w-full h-full cursor-crosshair leaflet-map-canvas touch-none" />
+        <div ref={containerRef} className="relative w-full h-full cursor-crosshair leaflet-map-canvas touch-none isolate" />
 
         <MapStatusOverlay
           mapScriptError={mapInstance.mapScriptError}
