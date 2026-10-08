@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Compass } from 'lucide-react';
 import { Business } from '../../../types';
 import { EGYPT_GOVERNORATES } from '../../../shared/data/geography';
-import { SearchField } from '../../../shared/ui';
+import { Button, SearchField } from '../../../shared/ui';
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch';
 import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown';
 
@@ -140,12 +140,11 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
             <Compass className={`w-4 h-4 ${isLocatingUser ? 'animate-spin text-amber-500' : ''}`} />
           </button>
 
-          <button
-            type="submit"
-            className="hidden sm:inline-flex bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
-          >
-            بحث
-          </button>
+          <span className="hidden sm:inline-flex shrink-0">
+            <Button type="submit" variant="primary" size="sm">
+              بحث
+            </Button>
+          </span>
         </div>
       </form>
 

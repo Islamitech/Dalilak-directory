@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigation, ExternalLink } from 'lucide-react';
 import { HadayekZone } from '../../../data/hadayekAtlasData';
+import { Button } from '../../../shared/ui';
 
 export interface AtlasGateBannerProps {
   primaryGate: {
@@ -41,23 +42,20 @@ export const AtlasGateBanner: React.FC<AtlasGateBannerProps> = ({
       </div>
 
       <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={onOpenGoogleMapsRoute}
-          className="flex-1 sm:flex-none text-xs font-extrabold bg-slate-900 text-white hover:bg-slate-800 px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+          leadingIcon={<ExternalLink />}
+          className="flex-1 sm:flex-none"
         >
-          <ExternalLink className="w-3.5 h-3.5" />
-          <span>ملاحة Google</span>
-        </button>
+          ملاحة Google
+        </Button>
 
         {onOpenGatesGuide && (
-          <button
-            type="button"
-            onClick={onOpenGatesGuide}
-            className="sm:hidden text-xs font-extrabold text-amber-700 bg-amber-100/80 px-3 py-2 rounded-xl"
-          >
+          <Button variant="secondary" size="sm" onClick={onOpenGatesGuide} className="sm:hidden">
             البوابات
-          </button>
+          </Button>
         )}
       </div>
     </div>

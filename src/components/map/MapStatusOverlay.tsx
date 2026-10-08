@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { Button } from '../../shared/ui';
 
 export interface MapStatusOverlayProps {
   mapScriptError: string | null;
@@ -46,13 +47,9 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
             <h3 className="font-bold text-slate-900 text-base">تعذر تحميل محرك الخريطة</h3>
             <p className="text-xs text-slate-600 leading-relaxed">{mapScriptError}</p>
             {onRetryMapScript && (
-              <button
-                type="button"
-                onClick={onRetryMapScript}
-                className="mt-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shadow-md active:scale-95 cursor-pointer"
-              >
+              <Button variant="primary" onClick={onRetryMapScript} className="mt-2">
                 إعادة المحاولة
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -69,13 +66,9 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
             <span className="text-base select-none">📍</span>
             <span className="flex-1 leading-snug">{geoError}</span>
             {onClearGeoError && (
-              <button
-                type="button"
-                onClick={onClearGeoError}
-                className="px-2.5 py-1 bg-red-950 hover:bg-red-900 border border-red-700/60 rounded-lg text-white font-bold text-caption transition-colors cursor-pointer"
-              >
+              <Button variant="secondary" size="sm" onClick={onClearGeoError}>
                 إغلاق
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -101,13 +94,14 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
             ) : (
               <>
                 <span>{directoryLoad.error}</span>
-                <button
-                  type="button"
-                  className="pointer-events-auto min-h-11 px-2 text-amber-700 font-bold"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="pointer-events-auto text-amber-700"
                   onClick={() => window.dispatchEvent(new Event('directory:retry'))}
                 >
                   إعادة المحاولة
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -122,13 +116,13 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
               <span className="text-red-400 text-sm">⚠️</span>
               <span>{directoryLoad.error}</span>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => window.dispatchEvent(new CustomEvent('directory:retry'))}
-              className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-400/40 rounded-lg px-2.5 py-1 text-caption font-extrabold cursor-pointer transition-colors"
             >
               إعادة المحاولة
-            </button>
+            </Button>
           </div>
         </div>
       )}

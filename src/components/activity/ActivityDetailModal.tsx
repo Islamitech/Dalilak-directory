@@ -7,7 +7,7 @@ import {
   getSmartWhatsAppUrl,
 } from '../../utils/directoryEnhancements';
 import { getPublicDirectoryUrl } from '../../utils/directoryUrl';
-import { Modal } from '../../shared/ui';
+import { Modal, Button } from '../../shared/ui';
 import { ShowcasePhotoLightbox } from './PhotoLightbox';
 import { useActivityPhotos } from './hooks/useActivityPhotos';
 import { ActivityDetailHeader } from './ActivityDetailHeader';
@@ -65,13 +65,9 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
           <p className="text-xs text-slate-500 leading-relaxed font-medium">
             تم تعليق صفحة هذا النشاط بناءً على المراجعة الإدارية لمنظومة «دليلك».
           </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
-          >
+          <Button variant="primary" fullWidth onClick={onClose}>
             العودة للدليل
-          </button>
+          </Button>
         </div>
       </Modal>
     );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { Button } from '../../shared/ui';
 
 export interface MapFilterPortalDropdownProps {
   isOpen: boolean;
@@ -129,24 +130,20 @@ export const MapFilterPortalDropdown: React.FC<MapFilterPortalDropdownProps> = (
           </label>
 
           <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onReset}
-              className="text-caption font-bold text-amber-700 hover:underline cursor-pointer"
-            >
+            <Button variant="ghost" size="sm" className="text-amber-700" onClick={onReset}>
               إعادة تعيين
-            </button>
+            </Button>
 
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => {
                 onSelectCategory('all');
                 onClose();
               }}
-              className="text-caption font-extrabold text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg border border-rose-200 cursor-pointer transition-colors"
             >
               إخفاء الأنشطة
-            </button>
+            </Button>
           </div>
         </div>
       </div>

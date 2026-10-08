@@ -1,6 +1,6 @@
 import React from 'react';
 import { HADAYEK_GATES, HadayekGate } from '../../data/hadayekAtlasData';
-import { Modal, IconButton } from '../../shared/ui';
+import { Modal, IconButton, Button } from '../../shared/ui';
 import {
   Compass,
   Clock,
@@ -123,14 +123,15 @@ export const HadayekGatesModal: React.FC<HadayekGatesModalProps> = ({
               </div>
 
               <div className="pt-2">
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="sm"
+                  fullWidth
                   onClick={() => handleOpenGateMaps(gate)}
-                  className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  leadingIcon={<Car />}
                 >
-                  <Car className="w-3.5 h-3.5" />
-                  <span>ملاحة بالسيارة لهذه البوابة</span>
-                </button>
+                  ملاحة بالسيارة لهذه البوابة
+                </Button>
               </div>
             </div>
           ))}
@@ -142,13 +143,9 @@ export const HadayekGatesModal: React.FC<HadayekGatesModalProps> = ({
         <span className="text-caption text-[var(--text-secondary)]">
           💡 نصيحة دليلك: ادخل دائماً من أقرب بوابة لعمارة وجهتك لتفادي التباطؤ داخل شوارع الحدائق.
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold hover:bg-slate-300 transition-colors cursor-pointer"
-        >
+        <Button variant="secondary" size="sm" onClick={onClose}>
           إغلاق
-        </button>
+        </Button>
       </div>
     </Modal>
   );

@@ -138,13 +138,9 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
         </p>
 
         {hasMore && (
-          <button
-            type="button"
-            onClick={() => setVisibleCount((prev) => prev + pageSize)}
-            className="min-h-11 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-sm font-extrabold shadow-xs transition-all cursor-pointer"
-          >
+          <Button variant="primary" size="lg" onClick={() => setVisibleCount((prev) => prev + pageSize)}>
             عرض المزيد من الأنشطة
-          </button>
+          </Button>
         )}
 
         {hasMore && <div ref={sentinelRef} className="h-8 w-full" aria-hidden="true" />}

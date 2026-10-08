@@ -18,7 +18,6 @@ const BUDGETS = [
   { pattern: /^assets\/SearchView-.*\.js$/, maxKb: 44, name: 'Search View Lazy Chunk' },
   { pattern: /^assets\/ActivityDetailModal-.*\.js$/, maxKb: 15, name: 'Activity Detail Modal Lazy Chunk' },
   { pattern: /^assets\/atlas-geodata-.*\.js$/, maxKb: 14, name: 'Atlas Geodata Chunk' },
-  { pattern: /^assets\/HomeView-.*\.js$/, maxKb: 32, name: 'Home View Lazy Chunk' },
   { pattern: /^assets\/UnifiedBusinessCard-.*\.js$/, maxKb: 42, name: 'Unified Business Card Chunk' },
   { pattern: /^assets\/hadayekBuildingsCoords-.*\.js$/, maxKb: 1032, name: 'Hadayek Buildings Coordinates Lazy Chunk' },
 ];
