@@ -128,7 +128,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
           <button
             type="button"
             onClick={onOpenGatesGuide}
-            className="hidden sm:flex items-center gap-1.5 text-xs font-black text-amber-700 dark:text-amber-400 hover:text-amber-800 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-500/20 transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 text-xs font-black text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-500/20 transition-all cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             <span>دليل البوابات الأربع</span>
@@ -148,7 +148,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
               <select
                 value={selectedZoneLetter}
                 onChange={(e) => setSelectedZoneLetter(e.target.value)}
-                className="w-full h-12 bg-slate-50 dark:bg-slate-900 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-black text-[var(--text-primary)] appearance-none cursor-pointer outline-none transition-all"
+                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-black text-[var(--text-primary)] appearance-none cursor-pointer outline-none transition-all"
               >
                 {HADAYEK_ZONES.map((zone) => (
                   <option key={zone.id} value={zone.letterAr}>
@@ -173,7 +173,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
                 value={buildingInput}
                 onChange={(e) => setBuildingInput(e.target.value)}
                 placeholder="مثال: 240 أو 185"
-                className="w-full h-12 bg-slate-50 dark:bg-slate-900 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-black text-[var(--text-primary)] placeholder:text-slate-400 outline-none transition-all font-mono"
+                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-black text-[var(--text-primary)] placeholder:text-slate-400 outline-none transition-all font-mono"
               />
               <div className="absolute end-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <Building2 className="w-4 h-4" />
@@ -209,7 +209,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
                 className={`text-[11px] font-black px-2.5 py-1 rounded-xl transition-all cursor-pointer border ${
                   isSelected
                     ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300'
+                    : 'bg-slate-100 text-slate-700 border-transparent hover:border-slate-300'
                 }`}
               >
                 منطقة ({letter})

@@ -19,7 +19,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'success' }) => {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-4 start-1/2 -translate-x-1/2 z-[99999] pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full border backdrop-blur-xl text-xs font-black shadow-2xl animate-fade-in transition-all select-none"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full border backdrop-blur-xl text-xs font-black shadow-2xl animate-fade-in transition-all select-none"
       style={{ direction: 'rtl' }}
     >
       <div className={`flex items-center gap-2 ${typeStyles[type]}`}>

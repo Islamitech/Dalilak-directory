@@ -8,6 +8,7 @@ import {
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
+import { getFirstStrongDirection } from '../../../utils/textDirection';
 import type { BusinessCardVariantProps } from './BusinessCardGridVariant';
 
 export const BusinessCardMapPopupVariant: React.FC<BusinessCardVariantProps> = ({
@@ -25,6 +26,7 @@ export const BusinessCardMapPopupVariant: React.FC<BusinessCardVariantProps> = (
   const mainPhoto =
     business.coverPhoto ||
     (business.photos && business.photos.length > 0 ? business.photos[0] : fallbackCover);
+  const locationString = [business.city, business.street].filter(Boolean).join('، ');
 
   return (
     <div className="flex flex-col gap-2 p-3 font-['Cairo',sans-serif] bg-white rounded-2xl border border-slate-200 shadow-sm" dir="rtl">
@@ -61,19 +63,19 @@ export const BusinessCardMapPopupVariant: React.FC<BusinessCardVariantProps> = (
           loading="lazy"
         />
         <div className="min-w-0 flex-1 space-y-0.5">
-          <h4 className="text-sm font-black text-slate-900 truncate">
+          <h4 dir={getFirstStrongDirection(business.nameAr)} className="text-sm font-black text-slate-900 truncate">
             <bdi dir="auto">{business.nameAr}</bdi>
           </h4>
-          <div className="flex items-center gap-1 text-[11px] text-slate-500 truncate">
+          <div dir={getFirstStrongDirection(locationString)} className="flex items-center gap-1 text-[11px] text-slate-500 truncate">
             <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-            <span>{[business.city, business.street].filter(Boolean).join('، ')}</span>
+            <span dir="auto">{locationString}</span>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-bold">
-            <span className={openStatus.isOpen ? 'text-emerald-600' : 'text-slate-400'}>
+            <span className={openStatus.isOpen ? 'text-emerald-700' : 'text-slate-500'}>
               {openStatus.badgeText}
             </span>
             {business.googleRating && (
-              <span className="inline-flex items-center gap-0.5 text-amber-600">
+              <span className="inline-flex items-center gap-0.5 text-amber-700">
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                 <span>{business.googleRating.toFixed(1)}</span>
               </span>

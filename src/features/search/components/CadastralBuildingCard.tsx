@@ -18,21 +18,21 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
 }) => {
   if (!isFound) {
     return (
-      <div className="bg-slate-50/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-slate-200/60 text-slate-500 flex items-center justify-center shrink-0">
             <Building2 className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            <h4 className="text-sm font-bold text-slate-800">
               عمارة {buildingNumber} — منطقة ({zoneLetter})
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500">
               هذه العمارة غير مسجلة في قاعدة بيانات حدائق الأهرام المساحية
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center justify-center min-h-[36px] px-3.5 rounded-xl bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold shrink-0">
+        <span className="inline-flex items-center justify-center min-h-[36px] px-3.5 rounded-xl bg-slate-200/80 text-slate-600 text-xs font-bold shrink-0">
           غير مسجلة
         </span>
       </div>
@@ -40,16 +40,16 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
   }
 
   return (
-    <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+    <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
           <Building2 className="w-5 h-5 stroke-[2.2]" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+          <h4 className="text-sm font-bold text-slate-900">
             عمارة {buildingNumber} — منطقة ({zoneLetter})
           </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-slate-600">
             حدائق الأهرام • أقرب بوابة: {nearestGateName}
           </p>
         </div>

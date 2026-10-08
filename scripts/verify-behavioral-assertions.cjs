@@ -125,7 +125,7 @@ async function runBehavioralTests() {
         assert.ok(await mapCanvas.isVisible(), 'Map leaflet container must be visible in Map view');
 
         // Switch back to List
-        const listBtn = page.locator('button[aria-label*="قائمة"]').first();
+        const listBtn = page.locator('button[aria-label*="قائمة الأنشطة"]').first();
         assert.ok((await listBtn.count()) > 0, 'List switch button must exist in header');
         await listBtn.click();
 

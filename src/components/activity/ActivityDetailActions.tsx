@@ -33,7 +33,7 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
       ) : (
         <button
           disabled
-          className="act-btn primary col-span-2 min-h-[44px] py-3 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
+          className="act-btn primary col-span-2 min-h-[44px] py-3 px-3 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
         >
           <Phone className="w-4 h-4 shrink-0" />
           <span>لا يوجد هاتف</span>
@@ -46,10 +46,10 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
         target="_blank"
         rel="noopener noreferrer"
         aria-label="محادثة واتساب"
-        className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+        className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
         title="محادثة واتساب"
       >
-        <MessageCircle className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <MessageCircle className="w-4 h-4 shrink-0 text-emerald-600" />
         <span className="hidden sm:inline">واتساب</span>
       </a>
 
@@ -59,10 +59,10 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
           type="button"
           onClick={() => onShowOnMap(business)}
           aria-label="عرض على الخريطة"
-          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-amber-50 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
           title="الاتجاهات على الخريطة"
         >
-          <Navigation className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <Navigation className="w-4 h-4 shrink-0 text-amber-600" />
           <span className="hidden sm:inline">الاتجاهات</span>
         </button>
       ) : effectiveUrl ? (
@@ -71,10 +71,10 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
           target="_blank"
           rel="noopener noreferrer"
           aria-label="الاتجاهات عبر Google Maps"
-          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-amber-50 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
           title="الاتجاهات"
         >
-          <Navigation className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <Navigation className="w-4 h-4 shrink-0 text-amber-600" />
           <span className="hidden sm:inline">الاتجاهات</span>
         </a>
       ) : onShare ? (
@@ -82,20 +82,20 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
           type="button"
           onClick={onShare}
           aria-label="مشاركة النشاط"
-          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 active:scale-[0.98] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
           title="مشاركة رابط النشاط"
         >
           {copied ? (
-            <CheckCheck className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <CheckCheck className="w-4 h-4 shrink-0 text-emerald-600" />
           ) : (
-            <Share2 className="w-4 h-4 shrink-0 text-slate-600 dark:text-slate-300" />
+            <Share2 className="w-4 h-4 shrink-0 text-slate-600" />
           )}
           <span className="hidden sm:inline">{copied ? 'تم النسخ' : 'مشاركة'}</span>
         </button>
       ) : (
         <button
           disabled
-          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
+          className="act-btn outline min-h-[44px] py-3 px-2 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
         >
           <Navigation className="w-4 h-4 shrink-0" />
           <span className="hidden sm:inline">لا يوجد موقع</span>

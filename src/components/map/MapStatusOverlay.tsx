@@ -61,7 +61,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
       {/* 📍 GPS Timeout / Precision Error Feedback */}
       {geoError && (
         <div
-          className="absolute top-20 inset-x-4 sm:inset-x-auto sm:start-1/2 sm:-translate-x-1/2 z-[1050] flex justify-center pointer-events-auto"
+          className="absolute top-20 inset-x-4 z-[1050] flex justify-center pointer-events-auto"
           role="alert"
           dir="rtl"
         >
@@ -141,7 +141,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
         !searchPending &&
         !directoryLoad.error &&
         matchingBusinessesCount === 0 && (
-          <div className="absolute bottom-5 start-16 end-3 sm:start-1/2 sm:end-auto sm:-translate-x-1/2 z-[850] pointer-events-none transition-all duration-300">
+          <div className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
               <span>

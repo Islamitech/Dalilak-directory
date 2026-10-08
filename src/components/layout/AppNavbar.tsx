@@ -81,10 +81,10 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             >
               <Logo variant="icon" size="sm" className="w-8 h-8 sm:w-9 sm:h-9" />
               <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-amber-600 transition-colors">
+                <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none group-hover:text-amber-600 transition-colors">
                   دليلك
                 </span>
-                <span className="hidden min-[480px]:inline text-[9px] text-slate-500 dark:text-slate-400 font-bold leading-none mt-0.5">
+                <span className="hidden min-[480px]:inline text-[9px] text-slate-500 font-bold leading-none mt-0.5">
                   دليل الخدمات الذكي
                 </span>
               </div>
@@ -98,7 +98,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               <button
                 type="button"
                 onClick={onLocateMe}
-                className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
+                className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
                 aria-label="تحديد موقعي"
                 title="موقعي"
               >
@@ -110,7 +110,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               <button
                 type="button"
                 onClick={onFitAll}
-                className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
+                className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
                 aria-label="عرض جميع الأنشطة"
                 title="عرض الكل"
               >
@@ -123,7 +123,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenAtlas}
-                className="hidden min-[480px]:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
+                className="hidden min-[480px]:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 items-center justify-center cursor-pointer transition-all"
                 aria-label="أطلس بوابات ومناطق حدائق الأهرام"
                 title="أطلس الحدائق"
               >
@@ -199,7 +199,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               ref={moreButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all"
               aria-label="المزيد من الخيارات والقائمة"
               title="المزيد"
               aria-expanded={mobileMenuOpen}

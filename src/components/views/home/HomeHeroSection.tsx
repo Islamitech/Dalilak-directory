@@ -54,11 +54,11 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
   };
 
   return (
-    <section className="relative pt-6 pb-8 sm:pt-10 sm:pb-12 overflow-hidden border-b border-[var(--border-color)] bg-gradient-to-b from-amber-500/10 via-slate-50/50 dark:via-slate-900/40 to-transparent">
+    <section className="relative pt-6 pb-8 sm:pt-10 sm:pb-12 overflow-hidden border-b border-[var(--border-color)] bg-gradient-to-b from-amber-500/10 via-slate-50/50 to-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* Hero Heading & Value Proposition */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-black shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 text-xs font-black shadow-xs">
             <Compass className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>أطلس حدائق الأهرام التفاعلي الذكي</span>
           </div>
@@ -79,7 +79,7 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
               className={`text-xs font-black px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                 heroMode === 'atlas'
                   ? 'bg-amber-500 text-slate-950 shadow-md scale-105'
-                  : 'bg-slate-100 dark:bg-slate-800 text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : 'bg-slate-100 text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Compass className="w-3.5 h-3.5" />
@@ -92,7 +92,7 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
               className={`text-xs font-black px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                 heroMode === 'search'
                   ? 'bg-amber-500 text-slate-950 shadow-md scale-105'
-                  : 'bg-slate-100 dark:bg-slate-800 text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : 'bg-slate-100 text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Search className="w-3.5 h-3.5" />
@@ -145,7 +145,7 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
                 const bldgParam = encodeURIComponent(activeTarget.buildingNumber || '');
                 onNavigate(`/map?zone=${zoneParam}&bldg=${bldgParam}`);
               }}
-              className="bg-slate-950 hover:bg-slate-800 text-white dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 font-black text-xs sm:text-sm px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+              className="bg-slate-950 hover:bg-slate-800 text-white font-black text-xs sm:text-sm px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer active:scale-95"
             >
               <Navigation className="w-4 h-4" />
               <span>

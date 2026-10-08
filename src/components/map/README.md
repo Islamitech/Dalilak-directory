@@ -81,7 +81,7 @@ src/components/map/
   - `keepBuffer: 8` (تحميل مسبق للبلاطات المجاورة لمنع وميض الخريطة أثناء الحركة).
   - `crossOrigin: true` (توافق كامل مع سياسات المتصفحات).
 - **سياسات الحماية (Content Security Policy):**
-  - تم تضمين `https://*.tile.openstreetmap.fr` و `https://*.openstreetmap.fr` في سياسات CSP لملف `vercel.json` و `server.ts` لضمان عدم حظرها على متصفحات الإنتاج.
+  - سياسة CSP المفروضة في `vercel.json` (وضع الحظر الكامل) تسمح بنطاقات بلاطات OpenStreetMap عبر `https://*.openstreetmap.fr` لضمان عدم حظرها على متصفحات الإنتاج.
 
 ---
 

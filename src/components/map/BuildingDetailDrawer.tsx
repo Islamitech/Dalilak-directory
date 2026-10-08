@@ -4,6 +4,7 @@ import { Business } from '../../types';
 import { getHadayekZone, getRecommendedGateForZone } from '../../data/hadayekAtlasData';
 import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
 import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
+import { getFirstStrongDirection } from '../../utils/textDirection';
 import { Drawer, IconButton } from '../../shared/ui';
 
 export interface BuildingDetailData {
@@ -59,6 +60,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  // lg:start-[436px] keeps this drawer over the map pane only — 436 = 420px list pane (DesktopTwoPaneView aside) + 16px gap.
   return (
     <Drawer
       isOpen={!!building}
@@ -66,7 +68,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
       position="bottom"
       hideDefaultHeader
       aria-label={`تفاصيل عمارة ${building.buildingNumber}`}
-      className="!border-2 !border-slate-200/90 !rounded-t-3xl sm:!rounded-3xl sm:bottom-4 sm:inset-x-4 max-w-2xl mx-auto shadow-2xl !max-h-[85vh]"
+      className="!border-2 !border-slate-200/90 !rounded-t-3xl sm:!rounded-3xl sm:bottom-4 sm:inset-x-4 lg:!start-[436px] lg:!end-4 lg:!mx-0 lg:!max-w-none max-w-2xl mx-auto shadow-2xl !max-h-[85vh]"
       contentClassName="p-4 sm:p-5 overflow-y-auto space-y-4 font-['Cairo',sans-serif]"
     >
       {/* Drawer Top Header */}
@@ -157,7 +159,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
                     className="w-full text-start p-2 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-colors flex items-center justify-between gap-1.5 cursor-pointer shadow-2xs group"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-black text-slate-900 truncate group-hover:text-emerald-800 transition-colors">
+                      <div dir={getFirstStrongDirection(biz.nameAr)} className="text-xs font-black text-slate-900 truncate group-hover:text-emerald-800 transition-colors">
                         <bdi dir="auto">{biz.nameAr}</bdi>
                       </div>
                       <div className="text-[10px] text-emerald-700 font-bold truncate">

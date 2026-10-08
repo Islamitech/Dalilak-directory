@@ -45,7 +45,7 @@ export const HomeFeaturedSection: React.FC<HomeFeaturedSectionProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('/search')}
-          className="text-xs font-black text-amber-700 dark:text-amber-400 hover:text-amber-800 flex items-center gap-1.5 transition-colors cursor-pointer group"
+          className="text-xs font-black text-amber-700 hover:text-amber-800 flex items-center gap-1.5 transition-colors cursor-pointer group"
         >
           <span>عرض كل الأنشطة ({businesses.length})</span>
           <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
@@ -63,7 +63,7 @@ export const HomeFeaturedSection: React.FC<HomeFeaturedSectionProps> = ({
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredBusinesses.map((biz) => (
+          {featuredBusinesses.map((biz, index) => (
             <BusinessCard
               key={biz.id}
               business={biz}
@@ -72,6 +72,7 @@ export const HomeFeaturedSection: React.FC<HomeFeaturedSectionProps> = ({
               isFavorite={favorites.includes(biz.id)}
               userCoords={userCoords}
               onOpenVideoModal={onOpenVideoModal}
+              priority={index < 2}
             />
           ))}
         </div>

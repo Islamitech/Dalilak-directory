@@ -92,7 +92,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-        {visibleList.map((biz) => (
+        {visibleList.map((biz, index) => (
           <BusinessCard
             key={biz.id}
             business={biz}
@@ -101,6 +101,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
             isFavorite={favorites.includes(biz.id)}
             userCoords={userCoords}
             onOpenVideoModal={onOpenVideoModal}
+            priority={index < 2}
           />
         ))}
       </div>

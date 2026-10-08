@@ -1,6 +1,4 @@
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../../../data/hadayekDistrictsGeoData';
-import { planCameraTransitionOnZoneChange, getVisualViewportPadding } from '../../../components/map/utils/cameraPlanner';
-import { preloadDistrictTiles } from '../../../utils/hadayekTilePreloader';
 
 export interface DistrictPolygonItem {
   letterAr: string;

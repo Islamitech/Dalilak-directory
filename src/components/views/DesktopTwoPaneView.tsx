@@ -119,17 +119,17 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
   };
 
   return (
-    <div className="w-full h-full flex flex-row overflow-hidden bg-slate-50 dark:bg-slate-950" dir="rtl">
+    <div className="w-full h-full flex flex-row overflow-hidden bg-slate-50" dir="rtl">
       {/* 1. Right Pane (RTL Start): 420px Scrollable Business List */}
-      <aside aria-label="قائمة الأنشطة والنتائج" className="w-[400px] lg:w-[420px] shrink-0 h-full flex flex-col border-inline-end border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 shadow-xs overflow-hidden">
+      <aside aria-label="قائمة الأنشطة والنتائج" className="w-[400px] lg:w-[420px] shrink-0 h-full flex flex-col border-inline-end border-slate-200 bg-white z-10 shadow-xs overflow-hidden">
         {/* Results Header / Stats Bar */}
-        <div className="list-header p-3.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <div className="list-header p-3.5 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20">
+            <span className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-800 border border-amber-500/20">
               {effectiveFilteredBusinesses.length} نشاط متاح
             </span>
             {categoryFilter && categoryFilter !== 'all' && (
-              <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[130px]">في {categoryFilter}</span>
+              <span className="text-xs text-slate-500 truncate max-w-[130px]">في {categoryFilter}</span>
             )}
           </div>
 
@@ -137,7 +137,7 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
             <button
               type="button"
               onClick={() => { onCategoryChange('all'); if (onSearchChange) onSearchChange(''); }}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-amber-600 cursor-pointer transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               <span>إعادة ضبط</span>
@@ -151,7 +151,7 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
           tabIndex={0}
           role="region"
           aria-label="قائمة الأنشطة والنتائج"
-          className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0 divide-y divide-slate-100/50 dark:divide-slate-800/40 focus:outline-none"
+          className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0 divide-y divide-slate-100/50 focus:outline-none"
         >
           {cadastralBuilding && (
             <div className="pb-2">
@@ -170,11 +170,11 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
             <div className="p-4 space-y-3"><LoadingSkeleton variant="grid" count={4} /></div>
           ) : effectiveFilteredBusinesses.length === 0 ? (
             <div className="py-12 px-4 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                 <MapPin className="w-6 h-6" />
               </div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">لا توجد نتائج مطابقة</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">جرب البحث بكلمات أخرى أو اختر تصنيفاً مختلفاً.</p>
+              <h4 className="font-bold text-sm text-slate-900">لا توجد نتائج مطابقة</h4>
+              <p className="text-xs text-slate-500">جرب البحث بكلمات أخرى أو اختر تصنيفاً مختلفاً.</p>
               {(categoryFilter !== 'all' || searchQuery) && (
                 <Button variant="outline" size="sm" onClick={() => { onCategoryChange('all'); if (onSearchChange) onSearchChange(''); }}>
                   عرض كافة الأنشطة
@@ -182,14 +182,14 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
               )}
             </div>
           ) : (
-            effectiveFilteredBusinesses.map((biz) => {
+            effectiveFilteredBusinesses.map((biz, index) => {
               const isSelected = focusedBusiness?.id === biz.id;
               return (
                 <div
                   key={biz.id}
                   data-biz-id={biz.id}
                   className={`pt-2.5 first:pt-0 transition-all rounded-2xl ${
-                    isSelected ? 'ring-2 ring-amber-500 shadow-sm bg-amber-50/40 dark:bg-amber-950/20' : ''
+                    isSelected ? 'ring-2 ring-amber-500 shadow-sm bg-amber-50/40' : ''
                   }`}
                 >
                   <UnifiedBusinessCard
@@ -200,6 +200,7 @@ export const DesktopTwoPaneView: React.FC<DesktopTwoPaneViewProps> = (props) => 
                     isFavorite={favorites.includes(biz.id)}
                     userCoords={userCoords}
                     onOpenVideoModal={onOpenVideoModal}
+                    priority={index < 2}
                   />
                 </div>
               );

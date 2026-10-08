@@ -115,7 +115,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       className={
         isMapRoute
           ? "h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
-          : "min-h-screen lg:h-[100dvh] flex flex-col lg:overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
+          : "min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
       }
       style={{ direction: 'rtl' }}
     >
@@ -156,14 +156,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         className={
           isMapRoute
             ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col"
-            : "flex-1 lg:min-h-0 lg:overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
+            : "flex-1 pb-[env(safe-area-inset-bottom,0px)]"
         }
       >
         <React.Suspense
           fallback={
             <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 p-8">
               <div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
-              <span className="text-xs font-bold text-slate-400">جاري التحميل...</span>
+              <span className="text-xs font-bold text-slate-500">جاري التحميل...</span>
             </div>
           }
         >

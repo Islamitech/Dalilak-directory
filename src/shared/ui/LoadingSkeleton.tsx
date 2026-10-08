@@ -41,7 +41,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
     return (
       <div className={`space-y-4 py-2 ${className}`}>
         {Array.from({ length: count }).map((_, i) => (
-          <div key={`skel-list-${i}`} className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-4">
+          <div key={`skel-list-${i}`} className="p-4 rounded-2xl border border-slate-200/60 flex items-center gap-4">
             <Skeleton variant="rectangular" width={56} height={56} className="shrink-0 !rounded-xl" />
             <div className="flex-1 space-y-2">
               <Skeleton variant="text" width="50%" height={18} />
@@ -56,11 +56,11 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
 
   if (variant === 'map') {
     return (
-      <div className={`w-full h-full min-h-[400px] relative bg-slate-100 dark:bg-slate-900 flex items-center justify-center ${className}`}>
-        <div className="absolute inset-0 bg-slate-200/40 dark:bg-slate-800/40 animate-pulse" />
+      <div className={`w-full h-full min-h-[400px] relative bg-slate-100 flex items-center justify-center ${className}`}>
+        <div className="absolute inset-0 bg-slate-200/40 animate-pulse" />
         <div className="relative z-10 flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-3 border-amber-500/30 border-t-amber-500 animate-spin" />
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">جارٍ تحميل الخريطة التفاعلية...</span>
+          <span className="text-xs font-bold text-slate-500">جارٍ تحميل الخريطة التفاعلية...</span>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-2 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={`skel-grid-${i}`} className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800 space-y-3">
+        <div key={`skel-grid-${i}`} className="p-4 rounded-2xl border border-slate-200/60 space-y-3">
           <Skeleton variant="rectangular" height={140} className="w-full !rounded-xl" />
           <Skeleton variant="text" width="70%" height={20} />
           <Skeleton variant="text" width="45%" height={14} />

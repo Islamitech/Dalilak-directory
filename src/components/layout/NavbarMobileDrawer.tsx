@@ -60,15 +60,15 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
     >
       <div
         ref={drawerRef}
-        className="w-full max-w-sm h-full bg-white dark:bg-slate-900 border-s border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto overscroll-contain transition-colors"
+        className="w-full max-w-sm h-full bg-white border-s border-slate-200 shadow-2xl flex flex-col justify-between overflow-y-auto overscroll-contain transition-colors"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-sm">
+            <span className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center font-black text-sm">
               ✨
             </span>
-            <h2 id="navbar-drawer-title" className="text-base font-black text-slate-900 dark:text-white">
+            <h2 id="navbar-drawer-title" className="text-base font-black text-slate-900">
               القائمة والمزيد
             </h2>
           </div>
@@ -77,7 +77,7 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
             type="button"
             onClick={onClose}
             aria-label="إغلاق القائمة"
-            className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer transition-colors active:scale-95"
+            className="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center cursor-pointer transition-colors active:scale-95"
           >
             <X className="w-5 h-5 stroke-[2.2]" />
           </button>
@@ -87,7 +87,7 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         <div className="p-4 space-y-4 flex-1">
           {/* Main Navigation */}
           <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">
               التصفح الأساسي
             </span>
             {navLinks.map((link) => {
@@ -106,12 +106,12 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                   }}
                   className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs font-black transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30'
+                      : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-amber-600' : 'text-slate-400'}`} />
                     <span>{link.label}</span>
                   </div>
                   {link.badge !== undefined && (
@@ -125,8 +125,8 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
           </div>
 
           {/* Business & Growth */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
+          <div className="space-y-1.5 pt-2 border-t border-slate-100">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">
               خدمات الأعمال والنمو
             </span>
             <a
@@ -150,18 +150,18 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                 onAnchorClick(e, '/pricing');
                 onClose();
               }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
+              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-800 text-xs font-black flex items-center justify-between transition-all cursor-pointer border border-slate-200"
             >
               <div className="flex items-center gap-2.5">
-                <BadgeDollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                <BadgeDollarSign className="w-4 h-4 text-amber-600 stroke-[2.2]" />
                 <span>باقات النمو والتوثيق الميداني</span>
               </div>
             </a>
           </div>
 
           {/* Tools & City Atlas */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
+          <div className="space-y-1.5 pt-2 border-t border-slate-100">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">
               أدوات حدائق الأهرام
             </span>
             {onOpenAtlas && (
@@ -171,9 +171,9 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                   onClose();
                   onOpenAtlas();
                 }}
-                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-xs font-black flex items-center gap-2.5 transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-800 text-xs font-black flex items-center gap-2.5 transition-all cursor-pointer border border-slate-200"
               >
-                <Compass className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                <Compass className="w-4 h-4 text-amber-600 stroke-[2.2]" />
                 <span>أطلس البوابات والمناطق</span>
               </button>
             )}
@@ -181,21 +181,21 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         </div>
 
         {/* Footer info links */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
+        <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex items-center gap-2">
           <a
             href="/about"
             onClick={(e) => {
               onAnchorClick(e, '/about');
               onClose();
             }}
-            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
+            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
           >
             <Info className="w-3.5 h-3.5 text-slate-400" />
             <span>عن دليلك</span>
           </a>
           <a
             href="/offline.html"
-            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
+            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
           >
             <WifiOff className="w-3.5 h-3.5 text-slate-400" />
             <span>دليل الأوفلاين</span>

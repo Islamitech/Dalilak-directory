@@ -47,7 +47,7 @@ export interface OpenStatusResult {
  * Parses working hours and determines if business is currently open
  */
 export function getBusinessOpenStatus(workingHours?: string, now = new Date()): OpenStatusResult {
- const result=(isOpen:boolean,badgeText:string,is24Hours=false):OpenStatusResult=>({isOpen,badgeText,is24Hours,statusClass:isOpen?'bg-emerald-500/15 text-emerald-600 border-emerald-500/30':'bg-slate-100 text-slate-600 border-slate-200',dotColor:isOpen?'bg-emerald-500':'bg-slate-400'});
+ const result=(isOpen:boolean,badgeText:string,is24Hours=false):OpenStatusResult=>({isOpen,badgeText,is24Hours,statusClass:isOpen?'bg-emerald-500/15 text-emerald-700 border-emerald-500/30':'bg-slate-100 text-slate-600 border-slate-200',dotColor:isOpen?'bg-emerald-500':'bg-slate-400'});
  const unknown=()=>result(false,'ساعات العمل غير متاحة');
  if(!workingHours?.trim())return unknown();
  const clean=workingHours.toLowerCase().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[\u064B-\u065F\u0670\u0640]/g,'').trim();

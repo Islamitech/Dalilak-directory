@@ -52,7 +52,16 @@ export function useMapViewUrlState(
   useEffect(() => {
     if (selectedZone !== undefined) {
       const cleanZone = selectedZone === 'all' ? '' : selectedZone;
-      if (cleanZone !== activeZoneLetter) setActiveZoneLetter(cleanZone);
+      if (cleanZone !== activeZoneLetter) {
+        setActiveZoneLetter(cleanZone);
+        if (typeof window !== 'undefined') {
+          const newUrl = new URL(window.location.href);
+          if (cleanZone) newUrl.searchParams.set('zone', cleanZone);
+          else newUrl.searchParams.delete('zone');
+          newUrl.searchParams.delete('bldg');
+          window.history.replaceState({}, '', newUrl.toString());
+        }
+      }
     }
   }, [selectedZone]);
 

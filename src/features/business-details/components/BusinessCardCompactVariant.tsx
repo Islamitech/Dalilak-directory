@@ -7,6 +7,7 @@ import {
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
+import { getFirstStrongDirection } from '../../../utils/textDirection';
 import { ShieldCheck } from 'lucide-react';
 import type { BusinessCardVariantProps } from './BusinessCardGridVariant';
 
@@ -14,6 +15,7 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
   business,
   onOpenBusiness,
   userCoords = null,
+  priority = false,
 }) => {
   const fallbackCover = getCategoryFallbackCover(business.category);
   const mainPhoto =
@@ -33,27 +35,28 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
       type="button"
       aria-label={business.nameAr}
       onClick={() => onOpenBusiness(business)}
-      className="w-full text-start flex items-center gap-3 p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      className="w-full text-start flex items-center gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
     >
       <img
         src={getOptimizedImageUrl(mainPhoto, 120, 120)}
         alt=""
         width="60"
         height="60"
-        className="w-14 h-14 rounded-xl object-cover shrink-0 bg-slate-100 dark:bg-slate-800"
-        loading="lazy"
+        className="w-14 h-14 rounded-xl object-cover shrink-0 bg-slate-100"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+          <h4 dir={getFirstStrongDirection(business.nameAr)} className="text-sm font-bold text-slate-900 truncate">
             <bdi dir="auto">{business.nameAr}</bdi>
           </h4>
           <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" />
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-1">{business.category}</p>
-        <div className="flex items-center gap-2 text-[11px] text-slate-400">
+        <p className="text-xs text-slate-500 truncate mb-1">{business.category}</p>
+        <div className="flex items-center gap-2 text-[11px] text-slate-500">
           {distanceKm !== null && <span>{formatDistanceString(distanceKm)}</span>}
-          <span className={openStatus.isOpen ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}>
+          <span className={openStatus.isOpen ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
             {openStatus.badgeText}
           </span>
         </div>

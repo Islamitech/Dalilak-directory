@@ -26,26 +26,6 @@ export const THEME_COLORS = {
     info: '#2563eb',
     infoSoft: '#eff6ff',
   },
-  dark: {
-    bg: '#0b0f19',
-    bgSecondary: '#111827',
-    surface: '#1f2937',
-    surfaceHover: '#283548',
-    border: '#374151',
-    borderSecondary: '#4b5563',
-    text: '#f9fafb',
-    textSecondary: '#e5e7eb',
-    textMuted: '#9ca3af',
-    primary: '#f59e0b',
-    primaryDark: '#d97706',
-    primarySoft: 'rgba(245, 158, 11, 0.15)',
-    accent: '#10b981',
-    accentSoft: 'rgba(16, 185, 129, 0.15)',
-    danger: '#ef4444',
-    dangerSoft: 'rgba(239, 68, 68, 0.15)',
-    info: '#3b82f6',
-    infoSoft: 'rgba(59, 130, 246, 0.15)',
-  },
 } as const;
 
 export const BREAKPOINTS = {

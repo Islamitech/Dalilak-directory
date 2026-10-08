@@ -66,7 +66,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
               className={`p-3 rounded-2xl border text-start transition-all flex items-start gap-2.5 cursor-pointer active:scale-95 ${
                 isActive
                   ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-black'
-                  : 'bg-[var(--bg-card)] hover:bg-slate-50 dark:hover:bg-slate-800/80 border-[var(--border-color)] hover:border-amber-500/40 text-[var(--text-primary)]'
+                  : 'bg-[var(--bg-card)] hover:bg-slate-50 border-[var(--border-color)] hover:border-amber-500/40 text-[var(--text-primary)]'
               }`}
             >
               <div
@@ -75,7 +75,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                     ? 'bg-slate-950 text-amber-400'
                     : isGates
                     ? 'bg-amber-500/15 text-amber-600'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 <Icon className="w-4 h-4 stroke-[2.5]" />
@@ -90,7 +90,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                     className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${
                       isActive
                         ? 'bg-slate-950/20 text-slate-950'
-                        : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                        : 'bg-amber-500/10 text-amber-700'
                     }`}
                   >
                     {item.badgeAr}

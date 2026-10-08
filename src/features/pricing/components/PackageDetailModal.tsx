@@ -19,14 +19,14 @@ export const PackageDetailModal: React.FC<PackageDetailModalProps> = ({ pkg, onC
       title={pkg.name}
       headerContent={
         <div>
-          <span className="text-[10px] font-black text-amber-600 bg-[var(--input-bg)] px-2 py-0.5 rounded border border-amber-500/20">
+          <span className="text-[10px] font-black text-amber-700 bg-[var(--input-bg)] px-2 py-0.5 rounded border border-amber-500/20">
             {pkg.badge || 'تفاصيل الباقة'}
           </span>
           <h3 className="font-black text-base sm:text-lg text-slate-900 mt-1">
             {pkg.name}
           </h3>
           <p className="text-xs text-slate-600 font-bold">
-            التكلفة: <span className="text-amber-600">{pkg.priceText}</span> ({pkg.billingCadence}) | مدة التنفيذ: {pkg.deliveryTime}
+            التكلفة: <span className="text-amber-700">{pkg.priceText}</span> ({pkg.billingCadence}) | مدة التنفيذ: {pkg.deliveryTime}
           </p>
         </div>
       }

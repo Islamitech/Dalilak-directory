@@ -32,6 +32,7 @@ verification/baseline/
 verification/mutation-copy/
 verification/vite-cache/
 verification/evidence/
+verification/.tmp-*
 
 # Evidence screenshots (binary files kept outside git tracking except phase evidence)
 reports/evidence/*.png

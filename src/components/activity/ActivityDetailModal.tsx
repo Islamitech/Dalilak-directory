@@ -54,11 +54,11 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         aria-label="نشاط غير متاح"
       >
         <div className="text-center space-y-4 p-5">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
             <Lock className="w-7 h-7" />
           </div>
-          <h3 className="font-black text-base text-slate-900 dark:text-white">هذا النشاط غير متاح حالياً</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+          <h3 className="font-black text-base text-slate-900">هذا النشاط غير متاح حالياً</h3>
+          <p className="text-xs text-slate-500 leading-relaxed font-medium">
             تم تعليق صفحة هذا النشاط بناءً على المراجعة الإدارية لمنظومة «دليلك».
           </p>
           <button
@@ -112,8 +112,8 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         maxWidth="lg"
         hideDefaultHeader
         aria-labelledby="activity-detail-modal-title"
-        className="!sheet-modal !rounded-t-3xl !rounded-b-none sm:!rounded-3xl !max-w-[480px] !w-full !max-h-[92dvh] !bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0 shadow-2xl"
-        overlayClassName="!items-end sm:!items-center lg:!justify-start !p-0 sm:!p-6 lg:!ps-6 lg:!pe-0 !bg-slate-900/60 lg:!bg-slate-900/35 !backdrop-blur-xs"
+        className="!sheet-modal !rounded-t-3xl !rounded-b-none sm:!rounded-3xl !max-w-[480px] !w-full !max-h-[92dvh] !bg-white !border-slate-200 overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0 shadow-2xl"
+        overlayClassName="!items-end sm:!items-center lg:!justify-end !p-0 sm:!p-6 lg:!ps-0 lg:!pe-6 !bg-slate-900/60 lg:!bg-slate-900/35 !backdrop-blur-xs"
         contentClassName="p-0 flex flex-col flex-1 min-h-0"
       >
         <div className="flex flex-col h-full text-start">

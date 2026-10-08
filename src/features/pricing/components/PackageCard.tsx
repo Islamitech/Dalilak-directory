@@ -26,7 +26,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({ pkg, isExpanded, onTog
               {pkg.badge}
             </span>
             {isPro && (
-              <span className="text-[10.5px] font-black text-amber-600 flex items-center gap-1">
+              <span className="text-[10.5px] font-black text-amber-700 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>الأكثر طلباً</span>
               </span>
@@ -104,7 +104,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({ pkg, isExpanded, onTog
 
           <div className="flex items-center justify-between p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--border-color)] text-[11px]">
             <span className="font-bold text-slate-500">مدة التنفيذ والتسليم:</span>
-            <span className="font-black text-amber-600">{pkg.deliveryTime}</span>
+            <span className="font-black text-amber-700">{pkg.deliveryTime}</span>
           </div>
         </div>
       )}
@@ -113,7 +113,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({ pkg, isExpanded, onTog
         <button
           type="button"
           onClick={onToggleExpand}
-          className="text-xs font-bold text-amber-600 hover:text-amber-500 cursor-pointer inline-flex items-center gap-1.5 transition-all active:scale-95"
+          className="text-xs font-bold text-amber-700 hover:text-amber-800 cursor-pointer inline-flex items-center gap-1.5 transition-all active:scale-95"
         >
           <span>{isExpanded ? 'عرض تفاصيل أقل' : 'عرض التفاصيل الكاملة والمخرجات'}</span>
           <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-amber-500' : ''}`} />

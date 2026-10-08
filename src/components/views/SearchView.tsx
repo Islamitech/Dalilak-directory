@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
-import { type SearchViewProps } from '../../features/search';
+import React, { useMemo, useState, useEffect } from 'react';
+import { type SearchViewProps, CadastralBuildingCard } from '../../features/search';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { BusinessCardGrid } from '../../components/cards/BusinessCardGrid';
 import { ViewSegmentedSwitch } from '../layout/ViewSegmentedSwitch';
+import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
+import { getRecommendedGateForZone } from '../../data/hadayekAtlasData';
 
 export type { SearchViewProps };
 
@@ -69,6 +71,38 @@ export const SearchView: React.FC<SearchViewProps> = ({
     userCoords,
   ]);
 
+  const cadastralBuilding = useMemo(() => {
+    if (!searchQuery) return null;
+    const match = parseHadayekBuildingAddress(searchQuery, selectedZone);
+    if (!match) return null;
+    const gateInfo = getRecommendedGateForZone(match.zoneLetter);
+    return {
+      buildingNumber: match.buildingNumber,
+      zoneLetter: match.zoneLetter,
+      nearestGateName: gateInfo?.primaryGate?.popularNameAr || 'البوابة الأولى',
+    };
+  }, [searchQuery, selectedZone]);
+
+  const [isBuildingFound, setIsBuildingFound] = useState<boolean>(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!cadastralBuilding) {
+      setIsBuildingFound(true);
+      return;
+    }
+    import('../../data/hadayekAtlasData').then(({ searchBuildingCoordinatesExact }) => {
+      searchBuildingCoordinatesExact(cadastralBuilding.zoneLetter, cadastralBuilding.buildingNumber).then((coords) => {
+        if (!cancelled) {
+          setIsBuildingFound(Boolean(coords));
+        }
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cadastralBuilding?.zoneLetter, cadastralBuilding?.buildingNumber]);
+
   return (
     <div
       className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 py-3 sm:py-5 pb-[calc(96px+env(safe-area-inset-bottom,0px))] bg-[#f8fafc]"
@@ -84,6 +118,19 @@ export const SearchView: React.FC<SearchViewProps> = ({
           />
         </div>
       </div>
+
+      {cadastralBuilding && (
+        <div className="mb-4">
+          <CadastralBuildingCard
+            buildingNumber={cadastralBuilding.buildingNumber}
+            zoneLetter={cadastralBuilding.zoneLetter}
+            nearestGateName={cadastralBuilding.nearestGateName}
+            isFound={isBuildingFound}
+            onNavigateToMap={(z, b) => onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`)}
+          />
+        </div>
+      )}
+
       <BusinessCardGrid
         businesses={effectiveFilteredBusinesses}
         loading={loading}

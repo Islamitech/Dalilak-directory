@@ -22,6 +22,7 @@ export interface BusinessCardVariantProps {
   onClose?: () => void;
   photos?: string[];
   onPreviewPhoto?: (index: number) => void;
+  priority?: boolean;
 }
 
 export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
@@ -30,6 +31,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
   onToggleFavorite,
   isFavorite = false,
   userCoords = null,
+  priority = false,
 }) => {
   const [photoError, setPhotoError] = useState(false);
   const fallbackCover = getCategoryFallbackCover(business.category);
@@ -75,7 +77,8 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
             height="360"
             role="presentation"
             aria-hidden="true"
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
             decoding="async"
             onError={() => setPhotoError(true)}
             className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-[1.03]"
@@ -103,6 +106,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
           <h3 className="card-name mt-1.5 text-[15px] sm:text-base font-bold text-white leading-snug drop-shadow-sm">
             <button
               type="button"
+              role="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenBusiness(business);
@@ -117,7 +121,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
           {areaString && (
             <div className="mt-1 flex items-center gap-1 text-xs text-slate-200 font-medium">
               <MapPin className="w-3 h-3 text-amber-300 shrink-0" />
-              <span className="truncate">{areaString}</span>
+              <span className="truncate" dir="auto">{areaString}</span>
             </div>
           )}
         </div>
@@ -155,19 +159,19 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
         {offerText && (
           <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 border border-dashed border-amber-300 px-2.5 py-1.5 rounded-lg">
             <Tag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="truncate">{offerText}</span>
+            <span className="truncate" dir="auto">{offerText}</span>
           </p>
         )}
 
         <div className="card-meta flex items-center gap-2 flex-wrap text-xs min-h-[20px]">
           {hasRating && (
-            <span className="rating inline-flex items-center gap-1 font-bold text-amber-600">
+            <span className="rating inline-flex items-center gap-1 font-bold text-amber-700">
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
               <span>{business.googleRating!.toFixed(1)}</span>
             </span>
           )}
           {hasReviewCount && (
-            <span className="reviews text-slate-400 font-normal">
+            <span className="reviews text-slate-500 font-normal">
               ({business.googleReviewsCount!.toLocaleString('ar-EG')})
             </span>
           )}

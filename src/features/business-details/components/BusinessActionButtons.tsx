@@ -11,7 +11,7 @@ export interface BusinessActionButtonsProps {
 
 export const BusinessActionButtons: React.FC<BusinessActionButtonsProps> = ({
   business,
-  className = 'grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80',
+  className = 'grid grid-cols-3 gap-2 pt-3 border-t border-slate-100',
 }) => {
   const cleanPhone = (business.phone || '').replace(/[^\d+]/g, '');
 

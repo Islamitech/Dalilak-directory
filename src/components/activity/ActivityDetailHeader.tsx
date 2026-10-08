@@ -43,6 +43,8 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
               role="presentation"
               aria-hidden="true"
               draggable={false}
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
             />
           ) : (
@@ -78,6 +80,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
             type="button"
             onClick={onClose}
             aria-label="إغلاق"
+            title="إغلاق"
             className="absolute top-3 end-3 z-10 w-9 h-9 min-w-[44px] min-h-[44px] rounded-full bg-white/90 hover:bg-white border border-slate-200 text-slate-600 hover:text-rose-600 flex items-center justify-center shadow-sm transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />

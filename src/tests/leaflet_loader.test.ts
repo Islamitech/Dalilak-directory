@@ -132,4 +132,28 @@ win.L = { version: '1.9.4' };
 secondScript.trigger('load');
 assert.equal(successCalls, 1, 'onSuccess must be called after retry succeeds');
 
+// --- Single-flight regression: concurrent callers (React StrictMode double-mount) must share
+// ONE script. A second script surviving alongside the first can execute later and overwrite
+// window.L with a second Leaflet copy, breaking cross-copy bounds in camera flights.
+const doc2 = new MockDocument();
+const win2: any = {};
+let successA = 0;
+let successB = 0;
+let errors2 = 0;
+const cleanupA = loadLeafletScript({ doc: doc2, win: win2, onSuccess: () => { successA++; }, onError: () => { errors2++; } });
+const sharedScript = doc2.querySelector('script[src*="leaflet.js"]');
+loadLeafletScript({ doc: doc2, win: win2, onSuccess: () => { successB++; }, onError: () => { errors2++; } });
+assert.equal(
+  doc2.head.children.filter((c) => c.tagName === 'script').length,
+  1,
+  'Second caller must join the in-flight load instead of appending another script'
+);
+assert.ok(doc2.head.children.includes(sharedScript as MockElement), 'In-flight script must not be removed from head');
+cleanupA(); // StrictMode unmount #1 must not cancel the shared load for the surviving caller
+win2.L = { version: '1.9.4' };
+(sharedScript as MockElement).trigger('load');
+assert.equal(successA, 0, 'Unsubscribed caller must not be notified');
+assert.equal(successB, 1, 'Joining caller must be notified exactly once');
+assert.equal(errors2, 0, 'No error may be reported for a successful shared load');
+
 console.log('✓ Leaflet Loader Unit Test passed');

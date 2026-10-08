@@ -27,7 +27,7 @@ export const AtlasGateBanner: React.FC<AtlasGateBannerProps> = ({
         </div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+            <span className="text-[11px] font-bold text-amber-700">
               🚪 البوابة الموصى بها للدخول:
             </span>
             <span className="text-xs font-black text-[var(--text-primary)]">
@@ -44,7 +44,7 @@ export const AtlasGateBanner: React.FC<AtlasGateBannerProps> = ({
         <button
           type="button"
           onClick={onOpenGoogleMapsRoute}
-          className="flex-1 sm:flex-none text-xs font-black bg-slate-900 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+          className="flex-1 sm:flex-none text-xs font-black bg-slate-900 text-white hover:bg-slate-800 px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
         >
           <ExternalLink className="w-3.5 h-3.5" />
           <span>ملاحة Google</span>

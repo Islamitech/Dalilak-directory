@@ -82,7 +82,7 @@ export const useMapPinsClustering = ({
     activeRoute, state.selectedBiz,
   ]);
 
-  useMapSelectionCamera(state.selectedBiz, mapInstance);
+  useMapSelectionCamera(state.selectedBiz, mapInstance, effectiveZone, mode);
 
   // Compute businesses filtered for map display
   const sortedBusinesses = useMemo(() => {

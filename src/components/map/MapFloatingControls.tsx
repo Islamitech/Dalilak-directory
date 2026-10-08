@@ -67,7 +67,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
 
       {/* 📊 Live Map Stats Badge - Pulsing dot with live count (.map-stats at top-left) */}
       {mode === 'view' && businessesCount !== undefined && businessesCount > 0 && (
-        <div className="map-stats absolute top-16 end-3 sm:top-3.5 sm:end-4 z-[1010] pointer-events-auto bg-white/90 border border-slate-200/70 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-lg flex items-center gap-2 select-none backdrop-blur-md">
+        <div className="map-stats absolute top-16 end-3 sm:top-3.5 sm:end-4 lg:start-4 lg:end-auto z-[1010] pointer-events-auto bg-white/90 border border-slate-200/70 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-lg flex items-center gap-2 select-none backdrop-blur-md">
           <span className="dot w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.25)] animate-pulse" />
           <span>{businessesCount} نشاط موثق</span>
         </div>
@@ -76,7 +76,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
       {/* FLOATING CONTROLS — one frosted-glass group (.map-floating at top-right).
           Unified recipe: white glass container, slate icons, amber accent only
           for the GPS action and active states (Google/Apple Maps grouping). */}
-      <div className="map-floating map-icon-controls absolute top-16 start-3 sm:top-3.5 sm:start-4 z-[1010] pointer-events-auto flex flex-col gap-2">
+      <div className={`map-floating map-icon-controls absolute top-16 start-3 sm:top-3.5 sm:start-4 z-[1010] pointer-events-auto flex flex-col gap-2${mode === 'view' ? ' lg:start-auto lg:end-4' : ''}`}>
         <div className="flex flex-col rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/70 shadow-lg p-1">
           {/* 1. Locate Me (44px target) — the single amber-accented action */}
           {mode === 'view' && onLocate && (

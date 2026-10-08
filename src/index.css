@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* docs/ holds documentation and reference prototypes only — excluded so `dark:` examples in prose
+   never compile into @media (prefers-color-scheme: dark) rules in the light-only build. */
+@source not "../docs";
+
 :root, html, body {
   color-scheme: light;
   background-color: var(--color-bg-primary, #f8fafc);

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { History, Sparkles, Building2 } from 'lucide-react';
 import { Business } from '../../../types';
 import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
+import { getFirstStrongDirection } from '../../../utils/textDirection';
 
 interface SearchSuggestionsDropdownProps {
   suggestions: Business[];
@@ -45,10 +46,10 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSelectQuery(searchQuery)}
-              className="w-full text-start p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-slate-900 dark:text-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+              className="w-full text-start p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-slate-900 flex items-center justify-between gap-2 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -84,7 +85,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                 className="w-full text-start p-2 rounded-xl hover:bg-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
               >
                 <div className="min-w-0">
-                  <p className="font-black text-[var(--text-primary)] truncate">
+                  <p dir={getFirstStrongDirection(biz.nameAr)} className="font-black text-[var(--text-primary)] truncate">
                     <bdi dir="auto">{biz.nameAr}</bdi>
                   </p>
                   <p className="text-[10px] text-[var(--text-muted)] truncate">{biz.category} • {biz.governorate}</p>

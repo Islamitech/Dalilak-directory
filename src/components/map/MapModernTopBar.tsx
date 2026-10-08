@@ -48,6 +48,7 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
           )}
 
           <ViewSegmentedSwitch
+            className="lg:hidden"
             activeView="map"
             onViewChange={(view) => {
               if (view === 'list') onViewList?.();
