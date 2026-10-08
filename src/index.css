@@ -1,0 +1,1232 @@
+@import "tailwindcss";
+@import "./styles/dl-ui.css";
+
+
+:root, html, body {
+  color-scheme: light;
+  background-color: var(--color-bg-primary, #f1f5f9);
+  color: var(--color-text-primary, #0f172a);
+
+  /* Prototype Design Tokens (Light Theme with WCAG 2.2 AA Contrast Remediation) */
+  --bg: #f8fafc;
+  --bg-2: #f1f5f9;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --border: #e2e8f0;
+  --border-2: #cbd5e1;
+
+  --text: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b; /* Remediated from #94a3b8 for 4.7:1 AA contrast */
+
+  --brand: #d97706;
+  --brand-hover: #b45309;
+  --brand-soft: #fef3c7;
+  --brand-ring: rgba(217, 119, 6, 0.25);
+  --gold: var(--brand);
+
+  --primary: var(--brand);
+  --primary-2: #fbbf24;
+  --primary-dark: var(--brand-hover);
+  --primary-soft: var(--brand-soft);
+  --primary-ring: var(--brand-ring);
+
+  --accent: #059669; /* Remediated emerald-600 for 4.6:1 AA contrast */
+  --accent-soft: #d1fae5;
+  --state-open: #059669;
+  --state-open-bg: #ecfdf5;
+  --state-closed: #475569;
+  --state-closed-bg: #f1f5f9;
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-floating: 0 8px 24px rgba(15, 23, 42, 0.1);
+  --shadow-modal: 0 20px 50px rgba(15, 23, 42, 0.16);
+  --shadow-primary: 0 8px 24px rgba(217, 119, 6, 0.28);
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --radius-full: 9999px;
+
+  --t: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-spring: 380ms cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 64px;
+  --cat-h: 58px;
+}
+
+option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+@theme {
+  --font-sans: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-subtle: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  --color-success: #059669;
+  --color-success-hover: #047857;
+  --color-success-subtle: #ecfdf5;
+  --color-success-border: #a7f3d0;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-subtle: #fef2f2;
+  --color-danger-border: #fecaca;
+
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-subtle: #eff6ff;
+  --color-info-border: #bfdbfe;
+
+  --color-bg-primary: #f1f5f9;
+  --color-bg-surface: #ffffff;
+  --color-bg-card: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-border-color: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+
+  --color-proto-bg: var(--bg);
+  --color-proto-bg-2: var(--bg-2);
+  --color-proto-surface: var(--surface);
+  --color-proto-surface-hover: var(--surface-hover);
+  --color-proto-border: var(--border);
+  --color-proto-border-2: var(--border-2);
+  --color-proto-text: var(--text);
+  --color-proto-text-2: var(--text-2);
+  --color-proto-text-3: var(--text-3);
+  --color-proto-primary: var(--primary);
+  --color-proto-primary-2: var(--primary-2);
+  --color-proto-primary-dark: var(--primary-dark);
+  --color-proto-primary-soft: var(--primary-soft);
+  --color-proto-accent: var(--accent);
+  --color-proto-accent-soft: var(--accent-soft);
+
+  --radius-2xl: 22px;
+
+  --text-display: 28px;
+  --text-display--line-height: 1.2;
+  --text-title: 22px;
+  --text-title--line-height: 1.25;
+  --text-heading: 17px;
+  --text-heading--line-height: 1.35;
+  --text-body: 15px;
+  --text-body--line-height: 1.5;
+  --text-label: 13px;
+  --text-label--line-height: 1.4;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.35;
+}
+
+/* ============================================
+   الأنماط الموحدة والمتغيرات (Light-Only Theme System)
+   ============================================ */
+:root {
+  /* ===== 2. الألوان الوظيفية الدقيقة (Semantic / Functional Colors - 5%) ===== */
+  /* Warning: لون وظيفي فقط للتنبيهات، حالات قيد المراجعة، والانتظار */
+  --warning: #d97706;
+  --warning-hover: #b45309;
+  --warning-subtle: #fffbeb;
+  --warning-border: #fde68a;
+  --amber-primary: var(--warning);
+  --amber-hover: var(--warning-hover);
+  --amber-subtle: var(--warning-subtle);
+
+  /* Success: للعمليات الناجحة والاعتماد الرسمي (Verified) */
+  --success: #059669;
+  --success-hover: #047857;
+  --success-subtle: #ecfdf5;
+  --success-border: #a7f3d0;
+
+  /* Danger: للأخطاء، الحذف، والمنشآت المرفوضة */
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-subtle: #fef2f2;
+  --danger-border: #fecaca;
+
+  /* Info: للإشعارات والمعلومات التوضيحية */
+  --info: #2563eb;
+  --info-hover: #1d4ed8;
+  --info-subtle: #eff6ff;
+  --info-border: #bfdbfe;
+
+  /* الخطوط */
+  --font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* سلم الطبقات المعياري (Standard Enterprise Z-Index Scale) */
+  --z-dropdown: 40;
+  --z-sticky: 40;
+  --z-modal: 50;
+  --z-overlay: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+
+  /* الانتقالات */
+  --transition-fast: 0.15s ease;
+  --transition-medium: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ===== 4. النظام البصري الأساسي (White & Slate - 85%) ===== */
+  --bg-primary: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  --map-bg: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  --nav-bg: rgba(255, 255, 255, 0.88);
+  --input-bg: #ffffff;
+
+  /* المودالات والأسطح والخريطة */
+  --modal-bg: #ffffff;
+  --modal-border: #e2e8f0;
+  --modal-overlay: rgba(15, 23, 42, 0.50);
+  --map-header-bg: #f8fafc;
+  --map-header-border: #e2e8f0;
+  --map-footer-bg: #ffffff;
+  --map-control-bg: #ffffff;
+  --map-control-border: #e2e8f0;
+  --map-control-text: #0f172a;
+  --map-coord-bg: #f8fafc;
+  --map-coord-text: #64748b;
+  --alert-error-bg: #fef2f2;
+  --alert-error-border: #fecaca;
+  --alert-error-text: #b91c1c;
+  --alert-success-bg: #f0fdf4;
+  --alert-success-border: #bbf7d0;
+  --alert-success-text: #15803d;
+  --alert-warning-bg: #fffbeb;
+  --alert-warning-border: #fde68a;
+  --alert-warning-text: #b45309;
+  --payment-surface: #f8fafc;
+  --payment-border: #e2e8f0;
+}
+
+@layer base {
+  html, body, #root {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  html {
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
+
+  body {
+    font-family: var(--font-family);
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: background-color var(--transition-slow), color var(--transition-slow);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Enforce minimum readable font size on interactive elements */
+  button, input, select, textarea, label {
+    font-size: max(0.75rem, 12px);
+  }
+}
+
+/* =========================================================
+   Direct Semantic Status Badges & Alert Cards System
+   Guaranteed High Contrast & Rich Vibrancy in Light & Dark Mode
+   ========================================================= */
+
+/* 1. DANGER / UNPAID / UNSUBMITTED (Red / Rose) */
+.badge-danger {
+  background-color: var(--danger-subtle) !important;
+  color: var(--danger) !important;
+  border: 1px solid var(--danger-border) !important;
+}
+
+/* 2. WARNING / REVIEW / DEBT (Amber / Orange) */
+.badge-warning {
+  background-color: var(--warning-subtle) !important;
+  color: var(--warning-hover) !important;
+  border: 1px solid var(--warning-border) !important;
+}
+
+/* 3. SUCCESS / VERIFIED / FULLY PAID (Emerald / Green) */
+.badge-success {
+  background-color: var(--success-subtle) !important;
+  color: var(--success-hover) !important;
+  border: 1px solid var(--success-border) !important;
+}
+
+/* 4. OPERATIONAL ALERT CARDS */
+.alert-card-danger {
+  background-color: var(--danger-subtle) !important;
+  border: 1px solid var(--danger-border) !important;
+  color: #881337 !important;
+}
+.alert-card-danger .alert-title {
+  color: #9f1239 !important;
+}
+.alert-card-danger .alert-desc {
+  color: var(--danger-hover) !important;
+}
+.alert-card-danger .alert-icon-box {
+  background-color: var(--danger-border) !important;
+  color: var(--danger) !important;
+}
+
+.alert-card-warning {
+  background-color: var(--warning-subtle) !important;
+  border: 1px solid var(--warning-border) !important;
+  color: #78350f !important;
+}
+.alert-card-warning .alert-title {
+  color: #78350f !important;
+}
+.alert-card-warning .alert-desc {
+  color: var(--warning-hover) !important;
+}
+.alert-card-warning .alert-icon-box {
+  background-color: var(--warning-border) !important;
+  color: var(--warning) !important;
+}
+
+
+
+
+
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 119, 6, 0.7);
+}
+/* Standardized Modal Overlay & Backdrop */
+.modal-overlay {
+  background-color: var(--modal-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Map Pin Icon */
+.pin-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #f59e0b;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  position: relative;
+}
+
+.pin-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  background: #0a0a12;
+  border-radius: 50%;
+}
+
+/* ============================================
+   CSS Keyframe Animations
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+}
+
+/* Utility Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes spinGlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.4; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+/* Staggered card appear animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Enhanced lift card */
+.card-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(212, 175, 55, 0.08);
+}
+
+
+
+/* ============================================
+   Unified Focus Ring Styles
+   ============================================ */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* ============================================
+   Safe Area Support (Notch devices)
+   ============================================ */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-safe {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================
+   Tab Content Transition Wrapper
+   ============================================ */
+.tab-content-enter {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+/* ============================================
+   Modal Overlay Transition
+   ============================================ */
+.modal-overlay {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modal-content {
+  animation: fadeInScale 0.25s ease-out forwards;
+}
+
+/* ============================================
+   Smooth Hover Card Effect
+   ============================================ */
+.hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   Discovery Hero Art Card Radial Decoration
+   ============================================ */
+.hero-art-glow {
+  position: relative;
+  overflow: hidden;
+}
+.hero-art-glow::before {
+  content: '';
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 50%;
+  inset-inline-end: -45px;
+  top: -65px;
+  box-shadow: 0 0 0 35px rgba(245, 158, 11, 0.08), 0 0 0 70px rgba(245, 158, 11, 0.04);
+  pointer-events: none;
+}
+
+
+
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ============================================
+   Toast Notification Progress Bar
+   ============================================ */
+@keyframes shrink-width {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* Slide-in from top for toast notifications */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-slide-down {
+  animation: slideInDown 0.32s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
+/* ============================================
+   Fixed Native Mobile Viewport (Prevent Page Zoom & Scale)
+   ============================================ */
+html, body, #root {
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Ensure mobile form fields never trigger auto-zoom on iOS Safari */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================
+   🛡️ Anti-Extraction & Reader-Mode Asset Protection
+   ============================================ */
+img, picture, video {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+[data-readability-ignore="true"],
+[data-reader-skip="true"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Protection class for card and image wrappers */
+.protected-asset-shield {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
+/* Accessibility: Respect system reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   ⚡ High-Performance GPU Hardware Acceleration for Hadayek Map
+   Ensures 60 FPS panning with zero tile pop-in and zero layer jank
+   ============================================ */
+.leaflet-container {
+  touch-action: none;
+  overscroll-behavior: contain;
+  background-color: #f8fafc !important;
+}
+
+.leaflet-map-pane {
+  will-change: transform;
+}
+
+.leaflet-tile-container img,
+.leaflet-tile {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.leaflet-overlay-pane svg {
+  backface-visibility: hidden;
+}
+
+/* Clean white basemap: neutralise OSM colours into a soft, bright, low-noise canvas */
+.leaflet-layer.dl-tiles-white {
+  filter: grayscale(1) brightness(1.12) contrast(0.86);
+}
+
+.hadayek-spotlight-focus-mask,
+path.hadayek-spotlight-focus-mask {
+  pointer-events: none;
+  fill-rule: evenodd !important;
+  transition: fill-opacity 0.35s ease, opacity 0.35s ease !important;
+}
+
+/* 🧭 District Polygons Clean Vector Focus */
+.hadayek-district-polygon,
+path.hadayek-district-polygon,
+.selected-district-polygon-focus,
+path.selected-district-polygon-focus {
+  transition: stroke 0.35s ease,
+              fill 0.35s ease,
+              fill-opacity 0.35s ease,
+              opacity 0.35s ease !important;
+}
+
+/* 🛡️ Zero-Jitter Transition Shield: Suppress SVG transitions during zoom/pan animations & landing reset */
+.leaflet-zoom-anim .hadayek-spotlight-focus-mask,
+.leaflet-zoom-anim path.hadayek-spotlight-focus-mask,
+.leaflet-zoom-anim .hadayek-district-polygon,
+.leaflet-zoom-anim path.hadayek-district-polygon,
+.leaflet-zoom-anim .selected-district-polygon-focus,
+.leaflet-zoom-anim path.selected-district-polygon-focus,
+.leaflet-pan-anim .hadayek-spotlight-focus-mask,
+.leaflet-pan-anim path.hadayek-spotlight-focus-mask,
+.leaflet-pan-anim .hadayek-district-polygon,
+.leaflet-pan-anim path.hadayek-district-polygon,
+.leaflet-pan-anim .selected-district-polygon-focus,
+.leaflet-pan-anim path.selected-district-polygon-focus,
+.is-camera-flying .hadayek-spotlight-focus-mask,
+.is-camera-flying path.hadayek-spotlight-focus-mask,
+.is-camera-flying .hadayek-district-polygon,
+.is-camera-flying path.hadayek-district-polygon,
+.is-camera-flying .selected-district-polygon-focus,
+.is-camera-flying path.selected-district-polygon-focus,
+.is-camera-settling .hadayek-spotlight-focus-mask,
+.is-camera-settling path.hadayek-spotlight-focus-mask,
+.is-camera-settling .hadayek-district-polygon,
+.is-camera-settling path.hadayek-district-polygon,
+.is-camera-settling .selected-district-polygon-focus,
+.is-camera-settling path.selected-district-polygon-focus {
+  transition: none !important;
+}
+
+/* ============================================
+   🗺️ Leaflet Vector & District Polygon Clean Styles
+   Prevent any browser focus outlines or black bounding boxes
+   ============================================ */
+.leaflet-container path,
+.leaflet-container svg,
+.leaflet-interactive,
+.hadayek-district-polygon,
+.hadayek-district-polygon-selected {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+}
+
+.leaflet-container path:focus,
+.leaflet-container path:focus-visible,
+.leaflet-interactive:focus,
+.leaflet-interactive:focus-visible,
+.hadayek-district-polygon:focus,
+.hadayek-district-polygon:focus-visible,
+.hadayek-district-polygon-selected:focus,
+.hadayek-district-polygon-selected:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* District letters are rendered as cartographic labels rather than UI badges.
+   The soft paper halo covers provider area-name text at the known centroid
+   without drawing a visible card on top of the map. */
+.hadayek-zone-letter-marker {
+  background: transparent !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
+
+.hadayek-zone-map-label {
+  --zone-color: #b45309;
+  position: relative;
+  width: 44px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--zone-color);
+  color: color-mix(in srgb, var(--zone-color) 82%, #0f172a);
+  font-family: 'Cairo', system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  direction: rtl;
+  unicode-bidi: isolate;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition: opacity 160ms ease, transform 160ms ease, color 160ms ease;
+}
+
+.hadayek-zone-map-label::before {
+  content: '';
+  position: absolute;
+  inset: -1px -3px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 253, 246, 0.98) 0%,
+    rgba(255, 253, 246, 0.94) 42%,
+    rgba(255, 253, 246, 0.56) 62%,
+    rgba(255, 253, 246, 0) 78%
+  );
+  filter: blur(0.4px);
+}
+
+.hadayek-zone-map-label span {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.98),
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+.hadayek-zone-map-label.is-overview span {
+  border: 0;
+}
+
+.hadayek-zone-map-label.is-selected {
+  color: #fff;
+  transform: scale(1.08) translateZ(0);
+}
+
+.hadayek-zone-map-label.is-selected span {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  background: var(--zone-color);
+  border: 3px solid #fef3c7;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.28), 0 0 0 3px rgba(245, 158, 11, 0.2);
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.42);
+}
+
+.hadayek-zone-map-label.is-muted {
+  opacity: 0.32;
+}
+
+.hadayek-zone-map-label:hover,
+.hadayek-zone-map-label:active {
+  opacity: 1;
+  transform: scale(1.1) translateZ(0);
+}
+
+/* ============================================
+   🗺️ Shahid3qar.com Exact District Map Styles
+   Identical to https://shahid3qar.com/map
+   ============================================ */
+.district-tooltip {
+  background: #ffffff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  font-family: 'Cairo', sans-serif !important;
+  font-size: 13.5px !important;
+  padding: 6px 12px !important;
+  direction: rtl !important;
+  color: #1e293b !important;
+}
+
+/* 📍 District Letter Badge (Clean Circle with District Letter Only) */
+.district-letter-badge {
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  height: 38px;
+  width: 38px;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+  user-select: none;
+}
+.district-letter-badge:hover {
+  transform: scale(1.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.district-letter-char {
+  font-family: 'Cairo', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.selected-district-badge-marker {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.district-popup .leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18) !important;
+  min-width: 170px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+}
+
+.district-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.district-popup .leaflet-popup-tip-container {
+  display: none !important;
+}
+
+.district-popup-inner {
+  direction: rtl;
+  font-family: 'Cairo', sans-serif;
+  padding: 14px 16px 12px;
+  text-align: center;
+}
+
+.district-popup-name {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.district-popup-count {
+  margin-bottom: 10px;
+}
+
+.district-popup-num {
+  color: #0d1f3c;
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.district-popup-label {
+  color: #6b7c93;
+  font-size: 12px;
+}
+
+.district-popup-btn {
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  direction: rtl;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.district-popup-btn:hover {
+  opacity: 0.88;
+}
+
+/* Leaflet positions the outer marker with an inline transform. Never override
+   that transform; doing so sends every district label to the pane origin. */
+.hadayek-zone-letter-marker {
+  transition: none !important;
+  animation: none !important;
+}
+
+.hadayek-zone-letter-marker .hadayek-zone-map-label span {
+  animation: none !important;
+}
+
+/* 🏷️ Map Activity Card Pins & Interactive Cluster Pins */
+.custom-biz-pin {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.custom-biz-pin .activity-card-pin {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+
+.custom-biz-pin:hover .activity-card-pin {
+  transform: translateY(-4px) scale(1.04);
+}
+
+.custom-district-cluster-pin {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.custom-district-cluster-pin .district-cluster-pin {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+}
+
+.custom-district-cluster-pin .category-cluster-pin {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+  transform-origin: 50% 100%;
+}
+
+.custom-district-cluster-pin:hover .category-cluster-pin {
+  transform: translateY(-3px) scale(1.08);
+  filter: brightness(1.08);
+}
+
+.custom-district-cluster-pin:hover .district-cluster-pin {
+  transform: translateY(-3px) scale(1.06);
+  filter: brightness(1.15);
+}
+
+@keyframes burstCardScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) translateY(14px);
+  }
+  70% {
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-in .activity-card-pin {
+  animation: burstCardScaleIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes markerSpringPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) translateY(14px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.06) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-marker-spring {
+  animation: markerSpringPopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes bounceSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-bounce-subtle .district-cluster-pin {
+  animation: bounceSubtle 2.4s ease-in-out infinite;
+}
+
+
+
+
+
+
+/* The surrounding search group supplies a visible focus-within indicator. */
+.directory-search-input:focus-visible { outline: none !important; }
+.directory-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+/* Keep map controls touchable without increasing the visual weight of markers. */
+@media (max-width: 640px) {
+  .map-icon-controls button { min-width: 44px; min-height: 44px; }
+  .custom-biz-pin .activity-card-pin { text-rendering: optimizeSpeed; }
+}
+ .map-top-safe-area { padding-top: max(0.75rem, env(safe-area-inset-top, 0px)); }
+
+
+/* ============================================
+   Preview theme overlay (matches the dalilak preview design)
+   ============================================ */
+:root {
+  --pv-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html, body, #root { background-color: var(--color-bg-primary); }
+
+header.sticky {
+  background: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+article.card {
+  border-radius: 22px;
+  border-color: rgba(226, 232, 240, 0.75);
+  box-shadow: var(--shadow-card);
+  transition: translate 0.28s var(--pv-ease), box-shadow 0.28s, border-color 0.28s;
+  animation: pv-card-up 0.45s var(--pv-ease) backwards;
+}
+article.card:hover {
+  translate: 0 -3px;
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: var(--shadow-modal);
+}
+article.card:active { scale: 0.99; }
+
+@keyframes pv-card-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  article.card { animation: none; transition: none; }
+  article.card:hover { translate: none; }
+}
+
+/* Keep floating map controls visually light over the map. */
+.map-icon-controls {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.map-icon-controls button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 10px;
+}
+.map-icon-controls button:hover { background: #fffbeb !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .compact-card { transition: none; }
+  .compact-card:hover { transform: none; }
+}
+
+/* While a modal dialog is open, freeze the list cards underneath: no hover
+   transforms and no nested backdrop-filters, which can leave stray, un-dimmed
+   fragments of card photos painted above the modal (compositing glitch). */
+body:has([role="dialog"][aria-modal="true"]) .dl-card {
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+  pointer-events: none;
+}
+body:has([role="dialog"][aria-modal="true"]) .dl-card * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+}
+
+/* Keep the map zoom/locate controls above the unified map sheet while it is open */
+.map-icon-controls {
+  transition: bottom 0.25s ease;
+}
+div:has(> [data-map-sheet]) .map-icon-controls {
+  bottom: calc(var(--map-sheet-h, 0px) + 24px) !important;
+}
+
+/* ── Navigation pins & route ── */
+.nav-pin-card {
+  max-width: 148px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #d97706;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  line-height: 1.25;
+}
+.nav-pin-card b {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.nav-pin-card small {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+}
+.nav-pin-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 34px;
+  height: 34px;
+  margin-left: -17px;
+  margin-bottom: -15px;
+  border-radius: 50%;
+  background: var(--c, #d97706);
+  opacity: 0.35;
+  transform: scale(0.4);
+  animation: nav-pin-pulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+.nav-origin-pin .nav-pin-ring {
+  margin-bottom: 0;
+  bottom: -6px;
+}
+@keyframes nav-pin-pulse {
+  0% { transform: scale(0.4); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+path.nav-route-flow {
+  animation: nav-route-flow 1.1s linear infinite;
+}
+@keyframes nav-route-flow {
+  to { stroke-dashoffset: -32; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-pin-ring, path.nav-route-flow { animation: none; }
+}

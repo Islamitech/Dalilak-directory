@@ -1,0 +1,56 @@
+{
+  "name": "dalelak-public-directory",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/check-architecture.cjs && vite build",
+    "vercel-build": "node scripts/check-architecture.cjs && vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "check:secrets": "node scripts/check-no-secrets.cjs",
+    "check:architecture": "node scripts/check-architecture.cjs",
+    "check:bundle": "node scripts/check-bundle.cjs",
+    "check:seo": "tsx scripts/seo/check-seo.ts",
+    "test:guard": "node scripts/test-architecture-guard.cjs",
+    "test": "npm run check:architecture && npm run test:guard && npm run check:bundle && npm run test:map && npm run test:safety-net && npm run test:map:unit && npm run test:security && npm run test:unit && npm run test:seo && npm run check:seo",
+    "test:map": "tsx src/tests/map_fixes.test.ts",
+    "test:safety-net": "tsx src/tests/safety_net_batch0.test.ts",
+    "test:repair:browser": "node src/tests/mutation_browser.playwright.cjs",
+    "test:ux:e2e": "node src/tests/e2e/ux_round2.playwright.cjs",
+    "test:axe": "node scripts/verify-axe.cjs",
+    "test:behavioral": "node scripts/verify-behavioral-assertions.cjs",
+    "test:cadastral": "node scripts/verify-cadastral-search.playwright.cjs",
+    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts src/tests/category_pins.test.ts",
+    "test:security": "vitest run src/tests/serverless_security.test.ts",
+    "test:unit": "vitest run src/tests/shared_lib.test.ts src/tests/building_search_contract.test.ts src/tests/integrated_filters.test.ts",
+    "test:map:e2e": "playwright test -c playwright.map.config.ts",
+    "test:seo": "tsx scripts/test-seo-endpoints.ts"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@supabase/supabase-js": "^2.112.3",
+    "lucide-react": "^0.546.0",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vercel/node": "^12.0.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "vitest": "^5.0.3"
+  }
+}

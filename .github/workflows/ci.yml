@@ -1,0 +1,57 @@
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main, master, feat/*, fix/*]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  quality-gates:
+    name: Mandatory Quality Gates (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Architecture check
+        run: node scripts/check-architecture.cjs
+
+      - name: Architecture guard test
+        run: npm run test:guard
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: 'https://fixture.supabase.co'
+          VITE_SUPABASE_ANON_KEY: 'test-anon-key-dalilak'
+          SUPABASE_URL: 'https://fixture.supabase.co'
+          SUPABASE_ANON_KEY: 'test-anon-key-dalilak'
+
+      - name: Full test suite & architecture guard
+        run: npm test
+        env:
+          VITE_SUPABASE_URL: 'https://fixture.supabase.co'
+          VITE_SUPABASE_ANON_KEY: 'test-anon-key-dalilak'
+          SUPABASE_URL: 'https://fixture.supabase.co'
+          SUPABASE_ANON_KEY: 'test-anon-key-dalilak'
+
+      - name: Secrets check
+        run: npm run check:secrets

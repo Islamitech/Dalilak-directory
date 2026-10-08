@@ -1,0 +1,108 @@
+import { Business } from '../types';
+
+/**
+ * 🔤 Comprehensive Arabic Text Normalizer
+ * Normalizes common Arabic letter variants, diacritics, and spaces
+ * so that searches like 'الراقية' match 'الراقيه', 'الاهرام' matches 'الأهرام', etc.
+ */
+export function normalizeArabicText(text?: string | null): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    // 1. Remove Arabic Tashkeel / Harakat
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    // 2. Normalize Alef variants (أ, إ, آ, ٱ -> ا)
+    .replace(/[أإآٱ]/g, 'ا')
+    // 3. Normalize Teh Marbuta and Heh (ة -> ه)
+    .replace(/ة/g, 'ه')
+    // 4. Normalize Alef Maksura and Yeh (ى, ی -> ي)
+    .replace(/[ىی]/g, 'ي')
+    // 5. Normalize Persian / Urdu letters (پ -> ب, ڤ -> ف, ک -> ك)
+    .replace(/پ/g, 'ب')
+    .replace(/ڤ/g, 'ف')
+    .replace(/ک/g, 'ك')
+    // 6. Remove Tatweel / Kashida (ـ)
+    .replace(/ـ/g, '')
+    // 7. Clean extra spaces
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Checks if a target string contains a search query using Arabic normalization
+ */
+export function matchesArabicSearch(target?: string | null, query?: string | null): boolean {
+  if (!query || !query.trim()) return true;
+  if (!target) return false;
+
+  const normTarget = normalizeArabicText(target);
+  const normQuery = normalizeArabicText(query);
+
+  if (!normQuery) return true;
+  return normTarget.includes(normQuery);
+}
+
+/**
+ * 🔍 Universal Business Search Matcher
+ * Thoroughly searches across all relevant business fields with full Arabic normalization.
+ * Matches: Name (Ar/En), Category, City, Governorate, Street, Landmark, Owner, Phone, Rep, and Invoice #
+ */
+export function matchesBusinessSearch(biz: Business, rawQuery: string): boolean {
+  if (!rawQuery || !rawQuery.trim()) return true;
+  const q = rawQuery.trim();
+  const normQ = normalizeArabicText(q);
+  const cleanQ = q.toLowerCase();
+
+  // 1. Direct entity ID match
+  if (biz.id && biz.id.toLowerCase().includes(cleanQ)) {
+    return true;
+  }
+
+  // 2. Public contact numbers (clean digits comparison)
+  const digitsOnlyQ = q.replace(/\D/g, '');
+  if (digitsOnlyQ.length >= 3) {
+    const phone = (biz.phone || '').replace(/\D/g, '');
+    const secPhone = (biz.secondaryPhone || '').replace(/\D/g, '');
+    const waPhone = (biz.whatsapp || '').replace(/\D/g, '');
+    if (phone.includes(digitsOnlyQ) || secPhone.includes(digitsOnlyQ) || waPhone.includes(digitsOnlyQ)) {
+      return true;
+    }
+  }
+
+  // 3. Name (Arabic & English)
+  if (matchesArabicSearch(biz.nameAr, normQ) || (biz.nameEn && biz.nameEn.toLowerCase().includes(cleanQ))) {
+    return true;
+  }
+
+  // Special alias for 'الراقيه' / 'رقيه' / 'الراقية'
+  const normName = normalizeArabicText(biz.nameAr);
+  if (normName.includes('راقيه') && (normQ.includes('رقيه') || normQ.includes('راقيه'))) {
+    return true;
+  }
+
+  // 4. Category & Services (e.g. searching "ذهب" or "فضة" or "مجوهرات")
+  if (matchesArabicSearch(biz.category, normQ)) {
+    return true;
+  }
+  if (Array.isArray(biz.services) && biz.services.some(s => matchesArabicSearch(s, normQ))) {
+    return true;
+  }
+
+  // 5. Governorate, City, Street, Landmark
+  if (
+    matchesArabicSearch(biz.city, normQ) ||
+    matchesArabicSearch(biz.governorate, normQ) ||
+    matchesArabicSearch(biz.street, normQ) ||
+    matchesArabicSearch(biz.landmark, normQ)
+  ) {
+    return true;
+  }
+
+  // 6. Public Description
+  if (matchesArabicSearch(biz.description, normQ)) {
+    return true;
+  }
+
+  return false;
+}

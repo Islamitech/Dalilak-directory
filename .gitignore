@@ -1,0 +1,44 @@
+node_modules/
+dist/
+dist-directory/
+dist-ux-preview/
+*.log
+.DS_Store
+.env*
+!.env.example
+_backup_original/
+**/_backup_original/
+
+# Archives and dumps
+*.zip
+*.tar
+*.tar.gz
+*.dump
+*.bak
+*.sql.bak
+*.sql.gz
+
+# Credentials, batch scripts, and auth/session state
+*.bat
+auth/
+session/
+.auth/
+.sessions/
+sessions/
+whatsapp-auth/
+
+# Verification artifacts, source copies, and caches
+verification/baseline/
+verification/mutation-copy/
+verification/vite-cache/
+verification/evidence/
+verification/.tmp-*
+
+# Evidence screenshots (binary files kept outside git tracking except phase evidence)
+reports/evidence/*.png
+!reports/evidence/category_bar_360px_scrolled.png
+!reports/evidence/*/*.png
+!reports/evidence/*/*/*.png
+screenshots/
+test-results/
+
