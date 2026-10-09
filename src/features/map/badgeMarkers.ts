@@ -555,7 +555,7 @@ export function createExpandedActivityCardHtml(
           <!-- Rating & Review Count (Authentic - never fake 4.9) -->
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 1px;">
             ${ratingText ? `
-              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 10px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
+              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 10px; font-weight: 800; color: #7a5a12; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
                 <svg width="9.5" height="9.5" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>${ratingText}${wordRating ? ` ${escapeHtml(wordRating)}` : ''}</span>
               </span>
@@ -743,7 +743,7 @@ export function createLightweightBadgeHtml(
           <!-- Rating & Action Link (Authentic - never fake 4.9) -->
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 3.5px; margin-top: 2px;">
             ${ratingText ? `
-              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 9.5px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 0.5px 5px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
+              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 9.5px; font-weight: 800; color: #7a5a12; background: rgba(245, 158, 11, 0.12); padding: 0.5px 5px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>${ratingText}${wordRating ? ` ${escapeHtml(wordRating)}` : ''}</span>
               </span>

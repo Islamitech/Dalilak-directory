@@ -576,6 +576,13 @@
     border-color: #e2e8f0;
   }
 
+  .dl-sp small {
+    font-size: 12px;
+    opacity: 0.8;
+    font-weight: 700;
+    margin-inline-start: 2px;
+  }
+
   .dl-sp.dl-closed small {
     color: #334155;
   }
