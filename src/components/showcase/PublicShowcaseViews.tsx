@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Business } from '../../types';
 import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import { useShowcaseFilterState } from './hooks/useShowcaseFilterState';
@@ -11,14 +11,12 @@ const ForBusinessView = React.lazy(() => import('../../features/for-business').t
 const BusinessPricingView = React.lazy(() => import('../views/BusinessPricingView').then((m) => ({ default: m.BusinessPricingView })));
 const AboutView = React.lazy(() => import('../views/AboutView').then((m) => ({ default: m.AboutView })));
 
-function preloadDirectoryViews() {
-  void import('../views/MapView');
-  void import('../views/SearchView');
-  void import('../views/FavoritesView');
-  void import('../views/BusinessPricingView');
-  void import('../views/AboutView');
-  void import('../../features/for-business');
-}
+void import('../views/MapView');
+void import('../views/SearchView');
+void import('../views/FavoritesView');
+void import('../views/BusinessPricingView');
+void import('../views/AboutView');
+void import('../../features/for-business');
 
 export interface PublicShowcaseViewsProps {
   currentPath: string;
@@ -63,10 +61,6 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
   handleReshuffle,
   loading,
 }) => {
-  useEffect(() => {
-    preloadDirectoryViews();
-  }, []);
-
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
   const changeCategory = (category: string) => {
     if (parseActivitySearchIntent(filterState.searchQuery)) filterState.setSearchQuery('');

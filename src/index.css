@@ -417,7 +417,24 @@ img, picture, video {
 .leaflet-container {
   touch-action: none;
   overscroll-behavior: contain;
-  background-color: #f8fafc !important;
+  background-color: #e8edf2 !important;
+}
+
+.dl-map-pending .leaflet-map-pane,
+.dl-map-pending .leaflet-marker-pane,
+.dl-map-pending .leaflet-shadow-pane,
+.dl-map-pending .leaflet-overlay-pane,
+.dl-map-pending .leaflet-tooltip-pane {
+  opacity: 0;
+}
+
+.dl-map-ready .leaflet-map-pane,
+.dl-map-ready .leaflet-marker-pane,
+.dl-map-ready .leaflet-shadow-pane,
+.dl-map-ready .leaflet-overlay-pane,
+.dl-map-ready .leaflet-tooltip-pane {
+  opacity: 1;
+  transition: opacity 380ms ease;
 }
 
 .leaflet-map-pane {

@@ -140,7 +140,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const canvasWrapperClasses = 'relative w-full flex-1 h-full min-h-0 overflow-hidden z-0';
 
   return (
-    <div className="relative w-full h-full flex-1 min-h-0 flex flex-col overflow-hidden bg-slate-100">
+    <div className="relative w-full h-full flex-1 min-h-0 flex flex-col overflow-hidden bg-[var(--bg-primary)]">
       <MapPickerOverlay
         mode={mode}
         filteredBusinessesCount={matchingBusinessesCount}

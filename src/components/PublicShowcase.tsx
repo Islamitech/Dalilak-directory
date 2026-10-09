@@ -191,13 +191,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
             : "flex-1 pb-[env(safe-area-inset-bottom,0px)]"
         }
       >
-        <React.Suspense
-          fallback={
-            <div className="flex min-h-[40vh] items-center justify-center p-6" role="status" aria-live="polite">
-              <p className="text-sm font-bold text-slate-500">جارٍ تحميل الصفحة…</p>
-            </div>
-          }
-        >
+        <React.Suspense fallback={<div className={isMapRoute ? 'h-full w-full bg-[var(--bg-primary)]' : 'min-h-[40vh]'} role="status" aria-live="polite" />}>
           <DirectorySearchContext.Provider value={filterState.searchQuery !== filterState.deferredSearchQuery}>
             <PublicShowcaseViews
               currentPath={currentPath}

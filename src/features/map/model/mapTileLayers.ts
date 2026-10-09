@@ -111,3 +111,21 @@ export function applyTileLayer(map: any, currentLayerRef: { current: any }, newT
 
   return newLayer;
 }
+
+/** Keep the basemap and pins invisible until the first view's tiles have settled. */
+export function holdMapUntilTiles(container: HTMLElement, layer: { once?: (event: string, handler: () => void) => void } | null) {
+  container.classList.add('dl-map-pending');
+  let settled = false;
+  const reveal = () => {
+    if (settled) return;
+    settled = true;
+    container.classList.remove('dl-map-pending');
+    container.classList.add('dl-map-ready');
+  };
+  layer?.once?.('load', reveal);
+  const timer = window.setTimeout(reveal, 1400);
+  return () => {
+    settled = true;
+    window.clearTimeout(timer);
+  };
+}

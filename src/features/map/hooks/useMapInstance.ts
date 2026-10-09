@@ -5,7 +5,7 @@ import { loadLeafletScript } from '../utils/leafletLoader';
 import { readSavedCamera, rememberMapCamera } from '../utils/mapCameraMemory';
 import { CameraController } from '../controllers/CameraController';
 import { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS } from '../model/mapBounds';
-import { applyTileLayer } from '../model/mapTileLayers';
+import { applyTileLayer, holdMapUntilTiles } from '../model/mapTileLayers';
 import { createLeafletMapInstance, calculatePanOffset, type UseMapInstanceProps } from '../model/mapFactory';
 
 export { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS, HADAYEK_TILE_BOUNDS };
@@ -58,6 +58,7 @@ export const useMapInstance = ({
   useEffect(() => {
     if (!containerRef.current) return;
     let isSubscribed = true;
+    let releaseTiles = () => {};
     const cleanupLoader = loadLeafletScript({
       onSuccess: () => {
         if (!isSubscribed || !containerRef.current || !window.L || leafletMapRef.current) return;
@@ -65,6 +66,9 @@ export const useMapInstance = ({
         const { map, cameraController } = createLeafletMapInstance({ container: containerRef.current, center: liveCenterRef.current, zoomLevel, mode, restoreCamera: Boolean(savedCamera) });
         cameraControllerRef.current = cameraController;
         applyTileLayer(map, tileLayerRef, tileLayer);
+        map.invalidateSize({ animate: false, pan: false });
+        const releaseTilesHold = containerRef.current ? holdMapUntilTiles(containerRef.current, tileLayerRef.current) : () => {};
+        releaseTiles = releaseTilesHold;
         markersGroupRef.current = window.L.layerGroup().addTo(map);
         leafletMapRef.current = map;
         (containerRef.current as any)._leaflet_map = map;
@@ -85,7 +89,7 @@ export const useMapInstance = ({
       onError: () => { if (isSubscribed) setMapScriptError('تعذر تحميل محرك الخريطة من المصدر. يرجى التحقق من الاتصال بالإنترنت.'); },
     });
     return () => {
-      isSubscribed = false; cleanupLoader(); setIsMapReady(false);
+      isSubscribed = false; cleanupLoader(); releaseTiles?.(); setIsMapReady(false);
       cameraControllerRef.current?.destroy(); cameraControllerRef.current = null;
       leafletMapRef.current?.remove(); leafletMapRef.current = null;
     };
@@ -93,7 +97,7 @@ export const useMapInstance = ({
 
   useEffect(() => {
     if (leafletMapRef.current && isMapReady) {
-      const timer = setTimeout(() => leafletMapRef.current?.invalidateSize({ animate: false, pan: false }), 150);
+      const timer = setTimeout(() => leafletMapRef.current?.invalidateSize({ animate: false, pan: false }), 0);
       return () => clearTimeout(timer);
     }
   }, [isExpanded, isMapReady]);
