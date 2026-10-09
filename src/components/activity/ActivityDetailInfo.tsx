@@ -81,12 +81,11 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
       {showGoogle && (
         <p
           className="dl-google"
-          dir="ltr"
           aria-label={`تقييم Google ${business.googleRating!.toFixed(1)}${reviewCount ? ` من ${reviewCount} تقييم` : ''}`}
         >
           <span className="dl-gmark" aria-hidden="true" />
           <b>{business.googleRating!.toFixed(1)}</b>
-          {reviewCount && <span>{reviewCount} تقييم</span>}
+          {reviewCount ? <span>({reviewCount} تقييماً)</span> : null}
         </p>
       )}
 
