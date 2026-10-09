@@ -107,9 +107,11 @@ export function getBusinessHadayekZoneLetter(biz: Business): string | null {
           matchArabicWordPattern(normCorpus, `\\d+\\s*${normLetter}`);
 
         if (isTextMatch && normalizeZoneLetter(d.letterAr) !== normalizeZoneLetter(district.letterAr)) {
-          console.warn(
-            `[Zone Conflict] Business "${biz.nameAr || biz.id}" text mentions zone "${d.letterAr}", but exact GPS coordinates (${biz.lat}, ${biz.lng}) place it in official district "${district.letterAr}". Enforcing GPS.`
-          );
+          if (import.meta.env?.DEV) {
+            console.warn(
+              `[Zone Conflict] Business "${biz.nameAr || biz.id}" text mentions zone "${d.letterAr}", but exact GPS coordinates (${biz.lat}, ${biz.lng}) place it in official district "${district.letterAr}". Enforcing GPS.`
+            );
+          }
           break;
         }
       }
