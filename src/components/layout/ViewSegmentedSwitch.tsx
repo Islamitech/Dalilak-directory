@@ -77,8 +77,8 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
             aria-label={ariaLabel}
             tabIndex={checked ? 0 : -1}
             onClick={() => onViewChange(view)}
-            className={`relative z-10 inline-flex items-center justify-center rounded-pill cursor-pointer font-extrabold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
-              isSm ? 'h-7 min-h-0 w-[4.15rem] gap-1 px-1.5 text-caption' : 'min-h-11 w-[6.2rem] gap-1.5 text-label'
+            className={`relative z-10 inline-flex items-center justify-center rounded-pill cursor-pointer font-extrabold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] min-h-11 ${
+              isSm ? 'w-[4.6rem] gap-1 px-2 text-caption' : 'w-[6.2rem] gap-1.5 text-label'
             } ${checked ? 'text-[var(--logo-gold-1)]' : 'text-[var(--logo-ink-0)] hover:text-[var(--logo-ink-2)]'}`}
           >
             <Icon className={isSm ? 'w-3 h-3 stroke-[2.4]' : 'w-4 h-4 stroke-[2.2]'} aria-hidden="true" />

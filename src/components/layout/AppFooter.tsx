@@ -23,7 +23,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
       <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-md space-y-2">
-            <Logo size="md" showSubtitle={false} />
+            <Logo size="md" showSubtitle={false} lightText />
             <p className="text-sm font-medium leading-relaxed">
               دليل حدائق الأهرام: أنشطة موثقة، ومناطق، وبوابات على الخريطة نفسها.
             </p>

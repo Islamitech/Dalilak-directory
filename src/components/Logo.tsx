@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
@@ -15,8 +15,13 @@ export const Logo: React.FC<LogoProps> = ({
   variant = 'full',
   lightText = false,
 }) => {
+  const rawId = useId().replace(/:/g, '');
+  const goldId = `dl-gold-${rawId}`;
+  const silverId = `dl-silver-${rawId}`;
+  const inkId = `dl-ink-${rawId}`;
+
   const iconDimensions = {
-    sm: 'w-8 h-8 sm:w-9 sm:h-9',
+    sm: 'w-9 h-9',
     md: 'w-10 h-10 sm:w-11 sm:h-11',
     lg: 'w-13 h-13 sm:w-14 sm:h-14',
     xl: 'w-16 h-16 sm:w-18 sm:h-18',
@@ -24,7 +29,7 @@ export const Logo: React.FC<LogoProps> = ({
   }[size];
 
   const titleSize = {
-    sm: 'text-base sm:text-lg',
+    sm: 'text-lg',
     md: 'text-lg sm:text-xl',
     lg: 'text-2xl sm:text-3xl',
     xl: 'text-3xl sm:text-4xl',
@@ -33,164 +38,73 @@ export const Logo: React.FC<LogoProps> = ({
 
   const subtitleSize = {
     sm: 'text-caption',
-    md: 'text-caption sm:text-caption',
+    md: 'text-caption',
     lg: 'text-xs sm:text-sm',
     xl: 'text-sm sm:text-base',
     '2xl': 'text-base sm:text-lg',
   }[size];
 
-  // Pure mathematical, crystal-clear SVG Vector Icon (Official Golden Pin & Silver Skyline)
-  const VectorIcon = () => (
-    <svg
-      viewBox="0 0 100 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-full transform group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
-    >
+  const wordColor = lightText ? 'text-[var(--logo-gold-0)]' : 'text-[var(--brand-hover)]';
+
+  const Mark = (
+    <svg viewBox="0 0 100 100" fill="none" className="h-full w-full" aria-hidden="true">
       <defs>
-        {/* Luxury Polished Gold Gradient */}
-        <linearGradient id="dalelakAppAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={goldId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="var(--logo-gold-0)" />
-          <stop offset="30%" stopColor="var(--logo-gold-1)" />
-          <stop offset="70%" stopColor="var(--logo-gold-2)" />
+          <stop offset="42%" stopColor="var(--logo-gold-1)" />
           <stop offset="100%" stopColor="var(--logo-gold-3)" />
         </linearGradient>
-
-        {/* Polished Silver/Platinum Gradient for Buildings */}
-        <linearGradient id="dalelakPlatinum" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={silverId} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="var(--logo-silver-0)" />
-          <stop offset="45%" stopColor="var(--logo-silver-1)" />
-          <stop offset="85%" stopColor="var(--logo-silver-2)" />
-          <stop offset="100%" stopColor="var(--logo-silver-3)" />
+          <stop offset="48%" stopColor="var(--logo-silver-1)" />
+          <stop offset="100%" stopColor="var(--logo-silver-2)" />
         </linearGradient>
-
-        {/* Deep Midnight Obsidian Gradient for Dark Backdrop */}
-        <linearGradient id="dalelakAppDark" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={inkId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="var(--logo-ink-0)" />
-          <stop offset="50%" stopColor="var(--logo-ink-1)" />
           <stop offset="100%" stopColor="var(--logo-ink-2)" />
         </linearGradient>
       </defs>
-
-      {/* 1. Deep Midnight Squircle Base */}
-      <rect
-        x="3"
-        y="3"
-        width="94"
-        height="94"
-        rx="24"
-        fill="url(#dalelakAppDark)"
-      />
-      {/* Outer Golden Border Rim */}
-      <rect
-        x="3"
-        y="3"
-        width="94"
-        height="94"
-        rx="24"
-        fill="none"
-        stroke="url(#dalelakAppAmber)"
-        strokeWidth="3.5"
-      />
-      {/* Inner Accent Gold Line */}
-      <rect
-        x="6"
-        y="6"
-        width="88"
-        height="88"
-        rx="21"
-        fill="none"
-        stroke="url(#dalelakAppAmber)"
-        strokeWidth="1"
-        opacity="0.4"
-      />
-
-      {/* 2. Golden Map Pin */}
+      <rect x="3" y="3" width="94" height="94" rx="24" fill={`url(#${inkId})`} />
+      <rect x="3" y="3" width="94" height="94" rx="24" fill="none" stroke={`url(#${goldId})`} strokeWidth="3" />
       <path
-        d="M50 14 C32 14 19 27 19 44 C19 60 38 78 50 89 C62 78 81 60 81 44 C81 27 68 14 50 14 Z"
-        fill="url(#dalelakAppAmber)"
+        d="M50 18C35 18 24 29 24 43c0 13 15 26 26 36 11-10 26-23 26-36 0-14-11-25-26-25z"
+        fill={`url(#${goldId})`}
       />
-
-      {/* 3. Dark Inner Circular Core */}
-      <circle
-        cx="50"
-        cy="42"
-        r="18"
-        fill="var(--logo-ink-core)"
-      />
-      <circle
-        cx="50"
-        cy="42"
-        r="18"
-        fill="none"
-        stroke="url(#dalelakAppAmber)"
-        strokeWidth="1"
-        opacity="0.4"
-      />
-
-      {/* 4. Silver/Platinum Business Skyline (3 Buildings + Arched Base) */}
-      {/* Curved Horizon Base */}
-      <path
-        d="M37 52 C44 49 56 49 63 52 L63 54.5 C56 51.5 44 51.5 37 54.5 Z"
-        fill="url(#dalelakPlatinum)"
-      />
-      {/* Left Building */}
-      <path
-        d="M39 51 L39 42 L44 38 L44 50 Z"
-        fill="url(#dalelakPlatinum)"
-        opacity="0.9"
-      />
-      {/* Left Highlight */}
-      <path d="M44 38 L39 42" stroke="var(--logo-silver-0)" strokeWidth="0.8" strokeLinecap="round" />
-
-      {/* Center Tower (Tallest) */}
-      <path
-        d="M45.5 49 L45.5 32 L51 28 L55 30.5 L55 49 Z"
-        fill="url(#dalelakPlatinum)"
-      />
-      {/* Center Tower Crown Highlight */}
-      <path d="M45.5 32 L51 28 L55 30.5" stroke="var(--logo-silver-0)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <line x1="50" y1="31" x2="50" y2="48" stroke="var(--logo-ink-core)" strokeWidth="0.8" opacity="0.8" />
-
-      {/* Right Building */}
-      <path
-        d="M56.5 50 L56.5 41.5 L61.5 43.5 L61.5 51 Z"
-        fill="url(#dalelakPlatinum)"
-        opacity="0.9"
-      />
-      {/* Right Highlight */}
-      <path d="M56.5 41.5 L61.5 43.5" stroke="var(--logo-silver-0)" strokeWidth="0.8" strokeLinecap="round" />
+      <circle cx="50" cy="41" r="15" fill="var(--logo-ink-core)" />
+      <path d="M39 51c4-2.4 18-2.4 22 0v2c-4-2.2-18-2.2-22 0z" fill={`url(#${silverId})`} />
+      <path d="M41 50V42l4.5-3.2V49z" fill={`url(#${silverId})`} />
+      <path d="M46.5 49V34L51.5 30l4 2.6V49z" fill={`url(#${silverId})`} />
+      <path d="M46.5 34L51.5 30l4 2.6" stroke="var(--logo-silver-0)" strokeWidth="0.9" strokeLinejoin="round" />
+      <path d="M56.5 49.5V42l4.5 1.6v6.4z" fill={`url(#${silverId})`} />
     </svg>
   );
 
   const IconElement = (
-    <div className={`relative ${iconDimensions} shrink-0 group cursor-pointer select-none flex items-center justify-center`}>
-      {/* Ambient background glow */}
-      <div className="absolute inset-0 rounded-lg bg-amber-500/20 blur-sm group-hover:blur-md transition-all duration-300 pointer-events-none" />
-      <VectorIcon />
-    </div>
+    <span className={`relative ${iconDimensions} inline-flex shrink-0 items-center justify-center`}>
+      {Mark}
+    </span>
   );
 
-  // 1. ICON ONLY
-  if (variant === 'icon') {
-    return IconElement;
+  if (variant === 'icon' || variant === 'watermark') {
+    return (
+      <span className={variant === 'watermark' ? `pointer-events-none opacity-5 select-none ${className}` : className}>
+        {variant === 'watermark' ? Mark : IconElement}
+      </span>
+    );
   }
 
-  // 2. OFFICIAL SEAL BADGE (Invoices, Documents, ID Cards)
   if (variant === 'badge') {
     return (
-      <div className={`inline-flex items-center gap-3 bg-[var(--bg-surface)]/95 border border-amber-500/30 rounded-lg p-2.5 sm:p-3 shadow-md backdrop-blur-md select-none ${className}`}>
+      <div className={`inline-flex items-center gap-3 rounded-lg border border-amber-500/30 bg-[var(--bg-surface)]/95 p-2.5 shadow-md backdrop-blur-md select-none sm:p-3 ${className}`}>
         {IconElement}
         <div className="flex flex-col text-start">
           <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-sm sm:text-base text-[var(--text-primary)] font-['Cairo'] leading-none">
-              دليلك
-            </span>
-            <span className="bg-amber-500/15 text-amber-700 text-caption font-extrabold px-1.5 py-0.5 rounded-pill border border-amber-500/30">
+            <span className="font-['Cairo'] text-sm font-extrabold leading-none text-[var(--text-primary)] sm:text-base">دليلك</span>
+            <span className="rounded-pill border border-amber-500/30 bg-amber-500/15 px-1.5 py-0.5 text-caption font-extrabold text-amber-700">
               منظومة معتمدة
             </span>
           </div>
-          <span className="text-caption text-[var(--text-muted)] font-bold mt-1">
+          <span className="mt-1 text-caption font-bold text-[var(--text-muted)]">
             المنصة الشاملة لإدارة وتوثيق الأنشطة والخدمات — مصر
           </span>
         </div>
@@ -198,43 +112,19 @@ export const Logo: React.FC<LogoProps> = ({
     );
   }
 
-  // 3. WATERMARK
-  if (variant === 'watermark') {
-    return (
-      <div className={`pointer-events-none opacity-5 select-none ${className}`}>
-        <VectorIcon />
-      </div>
-    );
-  }
-
-  // 4. FULL BRAND IDENTITY (ICON + CRISP ARABIC TITLE)
   return (
-    <div className={`flex items-center gap-2.5 sm:gap-3.5 select-none group ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 select-none sm:gap-2 ${className}`}>
       {IconElement}
-
-      <div className="flex flex-col justify-center text-start">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span
-            className={`font-extrabold ${titleSize} font-['Cairo'] tracking-tight leading-none transition-colors duration-300 ${
-              lightText
-                ? 'text-white'
-                : 'text-amber-500'
-            }`}
-          >
-            دليلك
-          </span>
-        </div>
-
+      <span className="flex flex-col justify-center text-start">
+        <span className={`font-['Cairo'] font-extrabold leading-none tracking-tight ${titleSize} ${wordColor}`}>
+          دليلك
+        </span>
         {showSubtitle && (
-          <p
-            className={`hidden sm:block ${subtitleSize} font-bold tracking-normal transition-colors duration-300 mt-1 leading-tight ${
-              lightText ? 'text-amber-100/90' : 'text-[var(--text-secondary)]'
-            }`}
-          >
+          <span className={`mt-1 hidden font-bold leading-tight sm:block ${subtitleSize} ${lightText ? 'text-[var(--logo-gold-0)]' : 'text-[var(--text-secondary)]'}`}>
             دليل الأنشطة والخدمات الميدانية
-          </p>
+          </span>
         )}
-      </div>
-    </div>
+      </span>
+    </span>
   );
 };

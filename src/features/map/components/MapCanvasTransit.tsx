@@ -2,7 +2,7 @@ import React from 'react';
 import { List, X } from 'lucide-react';
 import { Button } from '../../../shared/ui';
 
-const tinyButton = 'min-h-7! h-7! px-2.5! text-caption! shadow-md';
+const tinyButton = 'min-h-11! px-3! text-caption! shadow-md';
 
 export interface MapCanvasTransitProps {
   count: number;

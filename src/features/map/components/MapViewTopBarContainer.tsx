@@ -25,6 +25,13 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
   lat,
   lng,
   onViewList,
+  businesses,
+  searchQuery,
+  onSearchChange,
+  categoryFilter,
+  onCategoryChange,
+  onSelectZone,
+  activeZone,
   matchingCount,
   onResetAll,
   filtersActive,
@@ -35,7 +42,16 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
 
   return (
     <>
-      <MapModernTopBar onViewList={onViewList} />
+      <MapModernTopBar
+        onViewList={onViewList}
+        businesses={businesses}
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        categoryFilter={categoryFilter}
+        onCategoryChange={onCategoryChange}
+        selectedZone={activeZone || 'all'}
+        onZoneChange={onSelectZone}
+      />
       <MapCanvasTransit
         count={matchingCount ?? 0}
         onOpenList={onViewList}

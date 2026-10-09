@@ -78,7 +78,7 @@ export const FilterDropdownMenu: React.FC<FilterDropdownMenuProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
-        className={compact ? 'min-h-0! h-7! px-2! gap-0.5! text-caption!' : 'px-3!'}
+        className={compact ? 'px-3! gap-1! text-caption!' : 'px-3!'}
         trailing={
           <ChevronDown
             size={compact ? 12 : 14}
@@ -107,7 +107,7 @@ export const FilterDropdownMenu: React.FC<FilterDropdownMenuProps> = ({
                 role="option"
                 aria-selected={isOptSelected}
                 onClick={() => onSelect(opt.id)}
-                className={`flex w-full cursor-pointer items-center justify-between px-3.5 py-2 text-start text-caption font-bold transition-colors ${
+                className={`flex min-h-11 w-full cursor-pointer items-center justify-between px-3.5 py-2 text-start text-caption font-bold transition-colors ${
                   isOptSelected
                     ? 'bg-amber-500/15 font-extrabold text-amber-950'
                     : 'text-slate-700 hover:bg-amber-50 hover:text-amber-900'

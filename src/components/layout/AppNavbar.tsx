@@ -94,18 +94,10 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             <a
               href="/"
               onClick={(e) => handleAnchorClick(e, '/')}
-              className="flex items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-0.5"
+              className="inline-flex items-center rounded-lg p-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               aria-label="الرئيسية - منصة دليلك"
             >
-              <Logo variant="icon" size="sm" className="w-9 h-9" />
-              <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight leading-none group-hover:text-amber-600 transition-colors">
-                  دليلك
-                </span>
-                <span className="hidden lg:inline text-caption text-slate-500 font-bold leading-none mt-0.5">
-                  دليل الخدمات الذكي
-                </span>
-              </div>
+              <Logo variant="full" size="sm" showSubtitle={false} />
             </a>
           </div>
 
@@ -130,17 +122,20 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             </Button>
             </div>
 
+            <div className="hidden sm:block">
             <ButtonLink
               href="/for-business"
               onClick={(e) => handleAnchorClick(e, '/for-business')}
               variant="primary"
               size="sm"
               leadingIcon={<Store />}
+              className="min-h-11!"
               aria-label="أضف نشاطك مجاناً"
               title="أضف نشاطك"
             >
-              <span className="hidden min-[480px]:inline">أضف نشاطك</span>
+              أضف نشاطك
             </ButtonLink>
+            </div>
 
             <Button
               ref={moreButtonRef}

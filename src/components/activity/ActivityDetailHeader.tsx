@@ -40,6 +40,10 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
     .replace(/\s+/g, ' ')
     .trim() || rawName;
   const areaString = business.category || '';
+  const showRating =
+    business.googleRatingEnabled !== false &&
+    typeof business.googleRating === 'number' &&
+    business.googleRating > 0;
 
   return (
     <div
@@ -86,7 +90,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
       {/* Bottom gradient + merged title block (same look as the list card) */}
       <div className="dl-dh-grad" aria-hidden="true" />
 
-      {(isVerified || Boolean(business.googleRating && business.googleRating > 0)) && (
+      {(isVerified || showRating) && (
         <div className="dl-dtl">
           {isVerified && (
             <span className="dl-hv">
@@ -94,7 +98,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
               <span>موثق</span>
             </span>
           )}
-          {Boolean(business.googleRating && business.googleRating > 0) && (
+          {showRating && (
             <div className="dl-rp" dir="ltr">
               <span className="text-[var(--primary-2)]">★</span>
               <span>{business.googleRating!.toFixed(1)}</span>
@@ -143,7 +147,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           onClick={onClose}
           aria-label="إغلاق"
           title="إغلاق"
-          className="dl-dx min-w-[36px] min-h-[36px]"
+          className="dl-dx min-w-11 min-h-11"
         >
           <X className="w-4 h-4" />
         </Pressable>

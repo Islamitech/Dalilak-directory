@@ -315,10 +315,14 @@ export function getAvailableQuickCategoriesInZone(
 /** Location line that follows the GPS zone, not a conflicting street phrase. */
 export function formatBusinessAreaLabel(biz: Business): string {
   const zone = getBusinessHadayekZoneLetter(biz);
-  const city = (biz.city || '').trim();
+  let city = (biz.city || '').trim();
   let street = (biz.street || '').trim();
   if (zone) {
+    const zoneToken = zone.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const embeddedZone = new RegExp(`(?:ال)?منطقة\\s*${zoneToken}`, 'g');
+    city = city.replace(embeddedZone, ' ').replace(/\s{2,}/g, ' ').trim();
     street = street
+      .replace(embeddedZone, ' ')
       .replace(/المنطقة\s*[\u0621-\u064A]/g, '')
       .replace(/\s{2,}/g, ' ')
       .replace(/^[\s\-–—]+|[\s\-–—]+$/g, '')

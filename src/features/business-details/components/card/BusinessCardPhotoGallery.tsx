@@ -24,7 +24,7 @@ function previewAreaLabel(area: string): string {
   const zone = parts.find((part) => /^منطقة\s/.test(part)) || '';
   const street = parts.find((part) => part !== city && part !== zone) || '';
   const shortStreet = street && street.length <= 28 && !/[،,]|محافظة|مصر/.test(street) ? street : '';
-  return [city, zone, shortStreet].filter(Boolean).join(' · ');
+  return [city, shortStreet].filter(Boolean).join(' · ');
 }
 
 export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> = ({

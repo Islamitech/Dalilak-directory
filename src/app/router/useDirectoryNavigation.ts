@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { startTransition, useCallback, useEffect, useState } from 'react';
 import { extractBusinessIdFromSlug } from '../../utils/directoryUrl';
 
 function readLocation() {
@@ -29,7 +29,9 @@ function readLocation() {
 
 export function useDirectoryNavigation() {
   const [route, setRoute] = useState(readLocation);
-  const sync = useCallback(() => setRoute(readLocation()), []);
+  const sync = useCallback(() => {
+    startTransition(() => setRoute(readLocation()));
+  }, []);
 
   useEffect(() => {
     window.addEventListener('popstate', sync);

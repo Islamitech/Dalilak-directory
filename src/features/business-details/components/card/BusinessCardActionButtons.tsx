@@ -129,7 +129,7 @@ export const BusinessCardActionButtons: React.FC<BusinessCardActionButtonsProps>
           title={copied ? 'تم نسخ الرابط!' : 'مشاركة النشاط'}
           variant={copied ? 'primary' : 'secondary'}
           size="md"
-          className={`shrink-0 w-10 min-w-10 h-10 min-h-10 transition-all ${
+          className={`shrink-0 w-11 min-w-11 h-11 min-h-11 transition-all ${
             copied
               ? 'text-emerald-700! bg-emerald-50! border-emerald-300!'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-300'

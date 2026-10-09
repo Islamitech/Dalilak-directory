@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Lock } from 'lucide-react';
 import { Business } from '../../types';
 import {
@@ -32,12 +31,6 @@ export interface ActivityDetailModalProps {
   onShowOnMap?: (biz: Business) => void;
 }
 
-function activitySheetPlacement(): 'map' | 'page' {
-  const background = String(window.history.state?.directoryBackground || '');
-  const path = (background || window.location.pathname).split('?')[0];
-  return path === '/' || path === '/map' ? 'map' : 'page';
-}
-
 export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   business,
   onClose,
@@ -60,9 +53,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
 
   useEffect(() => {
     if (!business || business.verificationStatus === 'rejected') return;
-    const onMap = activitySheetPlacement() === 'map';
-    setSnap(onMap ? 'peek' : 'full');
-    if (onMap) window.dispatchEvent(new CustomEvent('map:stash-camera'));
+    setSnap('full');
     window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: true } }));
     return () => {
       window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } }));
@@ -129,8 +120,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
     .filter((b) => b.id !== business.id && groupId !== 'other' && matchesCategoryFilter(b, groupId))
     .slice(0, 3);
 
-  const mapHost = activitySheetPlacement() === 'map' ? document.querySelector('[data-map-host]') : null;
-  const placement = mapHost ? 'map' : 'page';
+  const placement = 'page' as const;
   const openFromGate = () => {
     if (!entryGate || !onShowOnMap) return;
     requestBusinessNavigation(business.id, entryGate.id);
@@ -149,7 +139,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
           <UnifiedBusinessCard
             variant="compact"
             business={business}
-            onOpenBusiness={() => setSnap('half')}
+            onOpenBusiness={() => setSnap('full')}
             isFavorite={isFavorite}
             onToggleFavorite={onToggleFavorite}
           />
@@ -207,7 +197,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   );
   return (
     <>
-      {mapHost ? createPortal(sheet, mapHost) : sheet}
+      {sheet}
 
       <ShowcasePhotoLightbox
         photos={photos}

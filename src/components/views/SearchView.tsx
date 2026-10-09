@@ -195,7 +195,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
           <Button
             size="sm"
             variant="secondary"
-            className="pointer-events-auto min-h-7! h-7! px-2.5! text-caption! shadow-md"
+            className="pointer-events-auto min-h-11! px-3! text-caption! shadow-md"
             leadingIcon={<X />}
             onClick={onResetAllFilters}
             aria-label="مسح الفلاتر"

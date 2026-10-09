@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable } from '../../shared/ui';
 import { Check, Phone, Tag, UserPlus } from 'lucide-react';
 import { Business } from '../../types';
-import { formatWorkingHoursLabel } from '../../shared/lib/format';
+import { formatCount, formatWorkingHoursLabel } from '../../shared/lib/format';
 import { formatDisplayPhone } from '../../shared/lib/phone';
 import { getBusinessOpenStatus } from '../../utils/directoryEnhancements';
 
@@ -26,6 +26,14 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
   const offerText = business.offer || null;
   const phone = business.phone;
   const about = business.description || business.seoIntro;
+  const showGoogle =
+    business.googleRatingEnabled !== false &&
+    typeof business.googleRating === 'number' &&
+    business.googleRating > 0;
+  const reviewCount =
+    typeof business.googleReviewsCount === 'number' && business.googleReviewsCount > 0
+      ? formatCount(business.googleReviewsCount)
+      : null;
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -70,8 +78,20 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
         </div>
       )}
 
+      {showGoogle && (
+        <p
+          className="dl-google"
+          dir="ltr"
+          aria-label={`تقييم Google ${business.googleRating!.toFixed(1)}${reviewCount ? ` من ${reviewCount} تقييم` : ''}`}
+        >
+          <span className="dl-gmark" aria-hidden="true" />
+          <b>{business.googleRating!.toFixed(1)}</b>
+          {reviewCount && <span>{reviewCount} تقييم</span>}
+        </p>
+      )}
+
       {about && (
-        <p className="text-sm text-slate-700 leading-relaxed font-medium">{about}</p>
+        <p className="text-caption text-slate-600 leading-snug font-medium line-clamp-3">{about}</p>
       )}
     </div>
   );
