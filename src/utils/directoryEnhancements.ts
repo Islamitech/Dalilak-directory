@@ -340,3 +340,26 @@ export function shuffleBusinessesWithSeed(list: Business[], seed: number): Busin
   }
   return result;
 }
+
+const SHUFFLE_SEED_KEY = 'dalilak:shuffle-seed';
+
+export function readSessionShuffleSeed(): number {
+  const fresh = Math.floor(Math.random() * 1000000) + 1;
+  try {
+    const raw = sessionStorage.getItem(SHUFFLE_SEED_KEY);
+    const parsed = Number(raw);
+    if (raw && Number.isFinite(parsed) && parsed !== 0) return parsed;
+    sessionStorage.setItem(SHUFFLE_SEED_KEY, String(fresh));
+  } catch {
+    return fresh;
+  }
+  return fresh;
+}
+
+export function rememberSessionShuffleSeed(seed: number): void {
+  try {
+    sessionStorage.setItem(SHUFFLE_SEED_KEY, String(seed));
+  } catch {
+    /* sessionStorage unavailable */
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { resolveCategorySelection } from '../../../utils/categoryMatcher';
+import { readSessionShuffleSeed, rememberSessionShuffleSeed } from '../../../utils/directoryEnhancements';
 import { hydrateCategoryQuery, queryFlag, querySort, queryValue, writeShowcaseQuery, type ShowcaseSort } from '../model/showcaseFilterQuery';
 
 export function useShowcaseFilterState(pathname = '') {
@@ -19,7 +20,9 @@ export function useShowcaseFilterState(pathname = '') {
   const [hasRatingOnly, setHasRatingOnly] = useState<boolean>(false);
   const [hasVideoOnly, setHasVideoOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<ShowcaseSort>(querySort);
-  const [shuffleSeed, setShuffleSeed] = useState<number>(() => Math.floor(Math.random() * 1000000) + 1);
+  const [shuffleSeed, setShuffleSeed] = useState<number>(readSessionShuffleSeed);
+
+  useEffect(() => { rememberSessionShuffleSeed(shuffleSeed); }, [shuffleSeed]);
 
   const handleCategoryChange = useCallback((nextCategory: string) => {
     const selection = resolveCategorySelection(nextCategory);
