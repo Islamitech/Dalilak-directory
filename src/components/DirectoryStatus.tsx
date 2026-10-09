@@ -3,7 +3,7 @@ import { useDirectoryLoad } from '../features/catalog';
 import { useNetworkStatus } from '../shared/hooks/useNetworkStatus';
 import { Button, OfflineState } from '../shared/ui';
 
-export function DirectoryStatus() {
+export function DirectoryStatus({ showSync = true }: { showSync?: boolean }) {
   const { pending, error } = useDirectoryLoad();
   const { isOnline, retryConnection } = useNetworkStatus();
 
@@ -12,6 +12,7 @@ export function DirectoryStatus() {
   }
 
   if (!pending && !error) return null;
+  if (!showSync && !error) return null;
 
   return (
     <div

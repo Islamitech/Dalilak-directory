@@ -180,7 +180,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         onSelectBusiness={handleOpenBusiness}
       />
 
-      <DirectoryStatus />
+      <DirectoryStatus showSync={isDirectoryRoute} />
 
       <main
         id="main"
