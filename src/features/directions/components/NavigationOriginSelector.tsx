@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from '../../../shared/ui';
 import { MapPin, Compass, Loader2, ChevronDown, AlertCircle } from 'lucide-react';
 import { HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
 
@@ -26,7 +27,7 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
   return (
     <div className="space-y-2">
       <div className="dl-seg2" role="group" aria-label="نقطة الانطلاق">
-        <button
+        <Pressable
           type="button"
           aria-pressed={originType === 'gps'}
           className="dl-gps"
@@ -36,17 +37,17 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
           }}
         >
           {isGettingGps ? (
-            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+            <Loader2 className="w-4 h-4 animate-spin text-[var(--brand)]" />
           ) : (
-            <MapPin className="w-4 h-4 text-emerald-600" />
+            <MapPin className="w-4 h-4 text-[var(--brand)]" />
           )}
           <span>موقعي الحالي</span>
-        </button>
+        </Pressable>
 
-        <button type="button" aria-pressed={originType === 'gate'} onClick={() => setOriginType('gate')}>
+        <Pressable type="button" aria-pressed={originType === 'gate'} onClick={() => setOriginType('gate')}>
           <Compass className="w-4 h-4 text-amber-600" />
           <span>من بوابة</span>
-        </button>
+        </Pressable>
       </div>
 
       {originType === 'gate' && (
@@ -55,7 +56,7 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
             value={selectedGateId}
             onChange={(e) => setSelectedGateId(e.target.value)}
             aria-label="اختر بوابة الانطلاق"
-            className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl ps-3 pe-8 py-2.5 min-h-11 outline-none cursor-pointer appearance-none"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-sm ps-3 pe-8 py-2.5 min-h-11 outline-none cursor-pointer appearance-none"
             style={{ colorScheme: 'light' }}
           >
             {HADAYEK_OFFICIAL_GATES.map((gate) => (
@@ -69,7 +70,7 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
       )}
 
       {originType === 'gps' && gpsError && (
-        <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-caption font-bold text-amber-900 flex items-center gap-1.5">
+        <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-caption font-bold text-amber-900 flex items-center gap-1.5">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
           <span>{gpsError}</span>
         </div>

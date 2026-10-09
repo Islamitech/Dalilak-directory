@@ -47,7 +47,7 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
           value={bizName}
           onChange={(e) => setBizName(e.target.value)}
           placeholder="مثال: صيدلية الأهرام، مطعم الحبايب..."
-          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+          className="w-full bg-white border border-slate-200 rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500"
         />
       </div>
 
@@ -59,7 +59,7 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
           value={ownerName}
           onChange={(e) => setOwnerName(e.target.value)}
           placeholder="الاسم الكريم..."
-          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+          className="w-full bg-white border border-slate-200 rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500"
         />
       </div>
 
@@ -74,7 +74,7 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="01XXXXXXXXX"
-          className={`w-full bg-white border rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none ${
+          className={`w-full bg-white border rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none ${
             phoneError ? 'border-rose-500 focus:border-rose-600 bg-rose-50/20' : 'border-slate-200 focus:border-amber-500'
           }`}
         />
@@ -92,7 +92,7 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
           aria-label="المحافظة"
           value={gov}
           onChange={(e) => setGov(e.target.value)}
-          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
+          className="w-full bg-white border border-slate-200 rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
         >
           {EGYPT_GOVERNORATES.map((g) => (
             <option key={g} value={g}>{g}</option>
@@ -109,13 +109,16 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
             setMainCategoryId(e.target.value);
             setSubcategoryId('all');
           }}
-          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
+          className="w-full bg-white border border-slate-200 rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
         >
           <option value="all">اختر الفئة الرئيسية</option>
           {CATEGORY_TAXONOMY.map((group) => (
-            <option key={group.id} value={group.id}>{group.icon} {group.label}</option>
+            <option key={group.id} value={group.id}>{group.icon} {group.word}</option>
           ))}
         </select>
+        {selectedCategoryGroup && (
+          <p className="text-caption text-slate-500">{selectedCategoryGroup.description}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -125,7 +128,7 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
           value={subcategoryId}
           onChange={(e) => setSubcategoryId(e.target.value)}
           disabled={!selectedCategoryGroup}
-          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer disabled:bg-slate-100 disabled:text-slate-400"
+          className="w-full bg-white border border-slate-200 rounded-sm px-3.5 min-h-11 py-2.5 text-base sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer disabled:bg-slate-100 disabled:text-slate-400"
         >
           <option value="all">{selectedCategoryGroup ? `كل ${selectedCategoryGroup.label}` : 'اختر الفئة الرئيسية أولاً'}</option>
           {selectedCategoryGroup?.children.map((child) => (

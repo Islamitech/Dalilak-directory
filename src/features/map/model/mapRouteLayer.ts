@@ -88,6 +88,6 @@ export function renderRouteLayer(
 
   try {
     const bounds = window.L.latLngBounds(routePoints);
-    cameraController?.request({ kind: 'flyToBounds', bounds, options: { paddingTopLeft: [48, 90], paddingBottomRight: [48, 60], maxZoom: 16.5, duration: 0.8 } }, 'route');
+    cameraController?.request({ kind: 'flyToBounds', bounds, options: { paddingTopLeft: [48, 100], paddingBottomRight: [48, 100], maxZoom: 16.5, duration: 0.8 } }, 'route');
   } catch {}
 }

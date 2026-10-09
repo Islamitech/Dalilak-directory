@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import { X } from 'lucide-react';
+import { Button, Chip } from '../../shared/ui';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../../data/hadayekDistrictsGeoData';
 import {
   filterBusinessesForMap,
@@ -94,27 +96,9 @@ export const DirectoryFilterSheet: React.FC<DirectoryFilterSheetProps> = ({
         {/* Header */}
         <div className="dl-fh fh">
           <h2 id="filter-sheet-title">تصفية الأنشطة</h2>
-          <button
-            type="button"
-            className="dl-fx fx"
-            onClick={onClose}
-            aria-label="إغلاق"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          <Button variant="icon" onClick={onClose} aria-label="إغلاق">
+            <X className="w-[18px] h-[18px]" aria-hidden="true" />
+          </Button>
         </div>
 
         {/* Body */}
@@ -142,32 +126,35 @@ export const DirectoryFilterSheet: React.FC<DirectoryFilterSheetProps> = ({
           {/* Category Chips */}
           <div>
             <span className="dl-fl fl">نوع النشاط</span>
-            <div className="dl-fc fc">
-              <button
-                type="button"
+            <div className="flex flex-wrap gap-1.5">
+              <Chip
                 data-fcat="all"
+                active={isAllActive}
                 aria-pressed={isAllActive}
                 onClick={() => filterState.handleCategoryChange('all')}
               >
                 الكل
-              </button>
+              </Chip>
               {activeCategories.map((cat) => {
                 const active = isCategoryActive(cat.id);
                 return (
-                  <button
+                  <Chip
                     key={cat.id}
-                    type="button"
                     data-fcat={cat.id}
+                    active={active}
                     aria-pressed={active}
+                    icon={cat.icon}
+                    count={cat.count}
                     onClick={() => filterState.handleCategoryChange(cat.id)}
                   >
-                    <span aria-hidden="true">{cat.icon}</span>
-                    <span>{cat.name}</span>
-                    <small>{cat.count}</small>
-                  </button>
+                    {cat.shortName}
+                  </Chip>
                 );
               })}
             </div>
+            {activeCategories.filter((cat) => isCategoryActive(cat.id) && cat.description).map((cat) => (
+              <p key={cat.id} className="mt-2 text-caption text-slate-500">{cat.description}</p>
+            ))}
           </div>
 
           {/* Live Result Count & Footer Actions */}
@@ -175,22 +162,18 @@ export const DirectoryFilterSheet: React.FC<DirectoryFilterSheetProps> = ({
             <p className="dl-fn fn" aria-live="polite">
               {formatFilterCountLabel(matchCount)}
             </p>
-            <div className="dl-ff ff">
-              <button
-                type="button"
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={filterState.resetAllFilters}
                 disabled={!filterState.hasActiveFilters}
-                className="dl-fr fr"
               >
                 مسح الفلاتر
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="dl-fgo fgo"
-              >
+              </Button>
+              <Button variant="primary" size="lg" onClick={onClose} className="flex-1">
                 إغلاق
-              </button>
+              </Button>
             </div>
           </div>
         </div>

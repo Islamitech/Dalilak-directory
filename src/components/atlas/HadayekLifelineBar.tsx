@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from '../../shared/ui';
 import { HADAYEK_LIFELINES } from '../../data/hadayekAtlasData';
 import { Pill, ShoppingCart, Wrench, Croissant, Compass } from 'lucide-react';
 
@@ -35,7 +36,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
     <div className={`space-y-2.5 ${className}`} dir="rtl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+          <span className="w-2 h-2 rounded-pill bg-amber-500 animate-ping" />
           <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
             خدمات الطوارئ والحياة اليومية بالحدائق
           </h3>
@@ -53,7 +54,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
           const isActive = !isGates && activeCategory === item.categoryQuery;
 
           return (
-            <button
+            <Pressable
               key={item.id}
               type="button"
               onClick={() => {
@@ -63,14 +64,14 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                   onSelectCategory(item.categoryQuery);
                 }
               }}
-              className={`p-3 rounded-2xl border text-start transition-all flex items-start gap-2.5 cursor-pointer active:scale-95 ${
+              className={`p-3 rounded-lg border text-start transition-all flex items-start gap-2.5 cursor-pointer active:scale-95 ${
                 isActive
                   ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-extrabold'
                   : 'bg-[var(--bg-card)] hover:bg-slate-50 border-[var(--border-color)] hover:border-amber-500/40 text-[var(--text-primary)]'
               }`}
             >
               <div
-                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
                   isActive
                     ? 'bg-slate-950 text-amber-400'
                     : isGates
@@ -87,7 +88,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                 </div>
                 {item.badgeAr && (
                   <span
-                    className={`inline-block text-caption font-bold px-1.5 py-0.5 rounded mt-0.5 ${
+                    className={`inline-block text-caption font-bold px-1.5 py-0.5 rounded-pill mt-0.5 ${
                       isActive
                         ? 'bg-slate-950/20 text-slate-950'
                         : 'bg-amber-500/10 text-amber-700'
@@ -97,7 +98,7 @@ export const HadayekLifelineBar: React.FC<HadayekLifelineBarProps> = ({
                   </span>
                 )}
               </div>
-            </button>
+            </Pressable>
           );
         })}
       </div>

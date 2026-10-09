@@ -49,9 +49,9 @@ export const OfflineState: React.FC<OfflineStateProps> = ({
   return (
     <div
       role="status"
-      className={`flex flex-col items-center justify-center text-center p-8 sm:p-12 my-6 bg-[var(--bg-card)] rounded-3xl border border-amber-500/20 shadow-xs max-w-lg mx-auto ${className}`}
+      className={`flex flex-col items-center justify-center text-center p-8 sm:p-12 my-6 bg-[var(--bg-card)] rounded-lg border border-amber-500/20 shadow-xs max-w-lg mx-auto ${className}`}
     >
-      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-2xl mb-4 border border-amber-500/20 shadow-xs">
+      <div className="w-16 h-16 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center text-2xl mb-4 border border-amber-500/20 shadow-xs">
         <WifiOff className="w-8 h-8" />
       </div>
       <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] mb-1.5">{title}</h3>
@@ -61,7 +61,7 @@ export const OfflineState: React.FC<OfflineStateProps> = ({
         </p>
       )}
       {onRetry && (
-        <Button variant="secondary" size="sm" onClick={onRetry} icon={<RefreshCw className="w-3.5 h-3.5" />}>
+        <Button variant="secondary" size="sm" onClick={onRetry} leadingIcon={<RefreshCw />}>
           {retryLabel}
         </Button>
       )}

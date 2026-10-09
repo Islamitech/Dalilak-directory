@@ -89,20 +89,6 @@
     height: 100%;
   }
 
-  .dl-slide.dl-sk::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, #1e293b 30%, #334155 50%, #1e293b 70%);
-    background-size: 200% 100%;
-    animation: dl-shimmer 1.4s linear infinite;
-  }
-
-  @keyframes dl-shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -200% 0; }
-  }
-
   .dl-slide img {
     width: 100%;
     height: 100%;
@@ -174,7 +160,7 @@
   /* One chip style for everything that sits on the photo: dark glass, white
      text, and colour only on the icon. */
   .dl-hv, .dl-hcat {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     padding: 3px 9px;
     border-radius: 999px;
@@ -325,7 +311,7 @@
 
   .dl-loc {
     margin-top: 3px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #e2e8f0;
     display: flex;
@@ -346,7 +332,7 @@
     inset-inline-end: 10px;
     z-index: 10;
     pointer-events: none;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1;
     color: #ffffff;
@@ -363,7 +349,7 @@
     display: inline-flex;
     align-items: center;
     gap: 3.5px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: #ffffff;
     background: rgba(2, 6, 23, 0.55);
@@ -471,7 +457,7 @@
   }
 
   .dl-sp small {
-    font-size: 11px;
+    font-size: 12px;
     opacity: 0.8;
     font-weight: 700;
     margin-inline-start: 2px;
@@ -578,7 +564,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #78350f;
     background: linear-gradient(to left, #fffbeb, rgba(254, 243, 199, 0.6));
@@ -591,7 +577,7 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     background: #f59e0b;
     color: #ffffff;
@@ -624,115 +610,6 @@
     gap: 8px;
     padding-top: 12px;
     border-top: 1px solid #f1f5f9;
-  }
-
-  /* Shared action button: flat, single line, pill-shaped to echo the card radius.
-     Colour hierarchy: one filled brand button (.dl-btnp), neutral secondaries
-     (.dl-bw / .dl-bn) whose service colour lives only in the icon. */
-  .dl-act {
-    min-height: 42px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    line-height: 1.2;
-    border: 1px solid transparent;
-    transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-    text-decoration: none;
-    box-sizing: border-box;
-    white-space: nowrap;
-  }
-
-  .dl-act:not([disabled]):active {
-    transform: scale(0.96);
-  }
-
-  .dl-act:focus-visible {
-    outline: 2px solid var(--primary, #d97706);
-    outline-offset: 2px;
-  }
-
-  .dl-act .dl-t {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    min-width: 0;
-  }
-
-  .dl-act .dl-t > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .dl-act .dl-s {
-    font-size: 11px;
-    font-weight: 700;
-    opacity: 0.75;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Primary: filled brand colour */
-  .dl-btnp {
-    background: var(--primary, #d97706);
-    color: #ffffff;
-    border-color: var(--primary, #d97706);
-    box-shadow: 0 1px 2px rgba(217, 119, 6, 0.3);
-  }
-
-  .dl-btnp:hover {
-    background: var(--primary-dark, #b45309);
-    border-color: var(--primary-dark, #b45309);
-  }
-
-  .dl-btnp .dl-s {
-    opacity: 0.9;
-  }
-
-  /* Secondaries: neutral surface, service colour on the icon only */
-  .dl-bw,
-  .dl-bn {
-    background: #f8fafc;
-    color: #334155;
-    border-color: #e2e8f0;
-  }
-
-  .dl-bw:hover,
-  .dl-bn:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #0f172a;
-  }
-
-  .dl-bw svg { color: #16a34a; }
-  .dl-bn svg { color: #2563eb; }
-
-  .dl-act.dl-off {
-    background: #f8fafc;
-    color: #64748b;
-    border-color: #e2e8f0;
-    cursor: not-allowed;
-  }
-
-  .dl-act.dl-off svg {
-    color: #94a3b8;
-  }
-
-  /* Detail modal / drawer keep the stacked two-line layout */
-  .dl-dag .dl-act {
-    flex-direction: column;
-    gap: 1px;
-    border-radius: 14px;
-    min-height: 46px;
-  }
-
-  .dl-dag .dl-act .dl-s {
-    font-size: 11px;
   }
 
   /* ── 7. Toast Notification (Bottom with Undo) ── */
@@ -797,22 +674,7 @@
     outline: none;
   }
 
-  /* ── 8. Activity Detail Modal (dl-modal-box, dl-dh, dl-dscroll, etc.) ── */
-  .dl-modal-box {
-    margin: auto !important;
-    width: min(360px, 92vw) !important;
-    max-width: 360px !important;
-    border-radius: 22px !important;
-    max-height: min(88vh, 720px) !important;
-    inset: 0;
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid rgba(226, 232, 240, 0.85);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28);
-    display: flex;
-    flex-direction: column;
-  }
-
+  /* ── 8. Activity detail (dl-dh, dl-dscroll, etc.) ── */
   .dl-dwrap {
     display: flex;
     flex-direction: column;
@@ -921,20 +783,6 @@
     transform: scale(1.05);
   }
 
-  .dl-dh-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .dl-dhp:hover .dl-dh-img {
-    transform: scale(1.05);
-  }
-
   .dl-dcam {
     position: absolute;
     bottom: 10px;
@@ -943,13 +791,19 @@
     display: inline-flex;
     gap: 4px;
     align-items: center;
-    background: rgba(2, 6, 23, 0.55);
+    background: rgba(2, 6, 23, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
     color: #ffffff;
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 700;
     padding: 4px 10px;
     border-radius: 999px;
     pointer-events: none;
+  }
+
+  .dl-dcam svg {
+    color: #fbbf24;
   }
 
   .dl-dvid {
@@ -957,23 +811,28 @@
     bottom: 10px;
     inset-inline-start: 12px;
     z-index: 2;
-    background: #f59e0b;
-    color: #020617;
+    background: rgba(2, 6, 23, 0.58);
+    color: #ffffff;
     font-size: 12px;
-    font-weight: 800;
-    padding: 7px 12px;
-    border-radius: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    min-height: 32px;
+    border-radius: 999px;
     display: flex;
     gap: 5px;
     align-items: center;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
     cursor: pointer;
-    transition: transform 0.15s;
+    transition: transform 0.15s, background-color 0.15s;
+  }
+
+  .dl-dvid svg {
+    color: #fbbf24;
   }
 
   .dl-dvid:hover {
-    filter: brightness(1.06);
+    background: rgba(2, 6, 23, 0.78);
   }
 
   .dl-dvid:active {
@@ -987,12 +846,12 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 0;
-    background: rgba(255, 255, 255, 0.92);
-    color: #475569;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
     display: grid;
     place-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     transition: transform 0.15s, background 0.15s;
     cursor: pointer;
     padding: 0;
@@ -1003,18 +862,17 @@
   }
 
   .dl-dx:hover, .dl-dx:focus-visible {
-    color: #e11d48;
-    background: #ffffff;
+    background: rgba(15, 23, 42, 0.7);
   }
 
   .dl-dfv {
     inset-inline-end: 10px;
-    color: #94a3b8;
   }
 
   .dl-dfv.dl-on {
-    background: #e11d48;
-    color: #ffffff;
+    background: rgba(2, 6, 23, 0.7);
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fbbf24;
   }
 
   .dl-dfv:hover, .dl-dfv:focus-visible {
@@ -1030,10 +888,6 @@
     box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.05);
   }
 
-  .dl-dbar .dl-dag {
-    margin: 0;
-  }
-
   /* Share button sits next to the favorite button */
   .dl-dsh {
     position: absolute;
@@ -1043,20 +897,21 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 0;
-    background: rgba(255, 255, 255, 0.92);
-    color: #475569;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
     display: grid;
     place-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     cursor: pointer;
     padding: 0;
     transition: transform 0.15s, background 0.15s;
   }
 
   .dl-dsh.dl-on {
-    background: #059669;
-    color: #ffffff;
+    background: rgba(2, 6, 23, 0.7);
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fbbf24;
   }
 
   .dl-dsh:hover, .dl-dsh:focus-visible {
@@ -1075,7 +930,7 @@
     border: 1px solid #fcd34d;
     background: #fffbeb;
     color: #78350f;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     cursor: pointer;
     transition: background 0.15s;
@@ -1084,9 +939,9 @@
   .dl-isv:hover { background: #fef3c7; }
 
   .dl-isv.dl-on {
-    background: #ecfdf5;
-    border-color: #6ee7b7;
-    color: #064e3b;
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    color: var(--brand-hover);
   }
   /* ── Unified map sheet (buildings + navigation) ── */
   .dl-msheet {
@@ -1105,13 +960,6 @@
     border-radius: 22px;
     box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
     animation: dl-card-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-  }
-
-  .dl-msheet-preview {
-    max-width: 380px;
-    background:
-      radial-gradient(120% 160% at 90% 0%, rgba(251, 191, 36, 0.22), transparent 60%),
-      linear-gradient(180deg, #fffbeb, #ffffff);
   }
 
   .dl-msh {
@@ -1149,7 +997,7 @@
   }
 
   .dl-msh-chip {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     padding: 2px 9px;
     border-radius: 999px;
@@ -1174,7 +1022,7 @@
 
   .dl-msh-sub {
     margin: 2px 0 0;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #64748b;
   }
@@ -1212,17 +1060,68 @@
 
   .dl-msheet .dl-dbar { box-shadow: none; }
 
-  .dl-dag.dl-dag-2 { grid-template-columns: 1fr 1fr; }
-
-  .dl-act.dl-off-soft {
-    background: #f8fafc;
-    color: #334155;
-    border-color: #cbd5e1;
+  /* One entity sheet: phone snaps, wide screen is a 420px side panel. */
+  .dl-esheet {
+    position: absolute;
+    z-index: 1100;
+    inset-inline: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: var(--shadow-floating);
+    outline: none;
   }
-
-  .dl-act.dl-off-soft:hover { background: #f1f5f9; }
-
-  .dl-act[disabled]:not(.dl-off) { opacity: 0.55; cursor: not-allowed; }
+  .dl-esheet[data-placement="page"] {
+    position: fixed;
+    z-index: 60;
+    inset-inline: 0;
+  }
+  .dl-esheet[data-snap="peek"] { height: 180px; }
+  .dl-esheet[data-placement="map"][data-snap="half"] { height: 55%; }
+  .dl-esheet[data-placement="map"][data-snap="full"] { height: 100%; border-radius: 0; }
+  .dl-esheet[data-placement="page"][data-snap="half"] { height: 55dvh; }
+  .dl-esheet[data-placement="page"][data-snap="full"] { height: 100dvh; border-radius: 0; }
+  .dl-esheet-handle {
+    flex: none;
+    width: 48px;
+    height: 18px;
+    margin: 6px auto 0;
+    cursor: grab;
+    touch-action: none;
+    background: linear-gradient(#cbd5e1, #cbd5e1) center / 42px 4px no-repeat;
+  }
+  .dl-esheet-x { position: absolute; top: 8px; inset-inline-end: 8px; z-index: 2; }
+  .dl-esheet-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  @media (min-width: 1024px) {
+    .dl-esheet,
+    .dl-esheet[data-snap="peek"],
+    .dl-esheet[data-placement="map"][data-snap="half"],
+    .dl-esheet[data-placement="map"][data-snap="full"],
+    .dl-esheet[data-placement="page"][data-snap="half"],
+    .dl-esheet[data-placement="page"][data-snap="full"] {
+      top: 0;
+      bottom: 0;
+      height: auto;
+      width: 420px;
+      max-width: 100%;
+      inset-inline-start: auto;
+      border-radius: 0;
+      border-inline-start: 1px solid #e2e8f0;
+    }
+    .dl-esheet[data-placement="page"] { top: var(--header-h, 64px); }
+  }
 
   button.dl-ir {
     width: 100%;
@@ -1234,8 +1133,7 @@
 
   button.dl-ir:hover { background: #fffbeb; border-color: #fcd34d; }
 
-  .dl-ir .dl-ico.dl-gr { color: #059669; }
-  .dl-ir .dl-ico.dl-bl { color: #2563eb; }
+  .dl-ir .dl-ico.dl-gr { color: var(--brand); }
 
   .dl-ir-end {
     flex: none;
@@ -1247,7 +1145,7 @@
     border: 1px solid #e2e8f0;
     background: #ffffff;
     color: #475569;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
   }
 
@@ -1281,12 +1179,12 @@
   }
 
   .dl-seg2 button.dl-gps[aria-pressed="true"] {
-    background: linear-gradient(180deg, #d1fae5, #a7f3d0);
-    border-color: #34d399;
-    color: #064e3b;
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    color: var(--brand-hover);
   }
 
-  /* Minimal navigation pill (no sheet while navigating) */
+  /* Navigation header: where we're going + distance/time */
   .dl-navpill {
     position: absolute;
     top: 12px;
@@ -1297,32 +1195,70 @@
     z-index: 1100;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 5px 6px 5px 14px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.96);
+    gap: 10px;
+    padding: 7px 8px 7px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.97);
     border: 1px solid #fcd34d;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
     animation: dl-card-up 0.25s ease backwards;
   }
 
-  .dl-navpill-t {
+  .dl-navpill-ic {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .dl-navpill-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .dl-navpill-to {
+    display: block;
     font-size: 13px;
     font-weight: 800;
     color: #0f172a;
-    font-variant-numeric: tabular-nums;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .dl-navpill-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  .dl-navpill-meta b {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+  }
+
   .dl-navpill-c {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: #b45309;
     white-space: nowrap;
   }
 
   .dl-navpill-s {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: #1d4ed8;
     white-space: nowrap;
@@ -1330,8 +1266,8 @@
 
   .dl-navpill-x {
     flex: none;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     border: 0;
     display: grid;
@@ -1341,6 +1277,52 @@
     cursor: pointer;
   }
 
+  /* Hand-off to Google Maps (primary call to action while navigating) */
+  .dl-navgo-wrap {
+    position: absolute;
+    bottom: 16px;
+    inset-inline: 0;
+    display: flex;
+    justify-content: center;
+    padding-inline: 12px;
+    z-index: 1100;
+  }
+
+  .dl-navgo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 340px);
+    padding: 11px 16px;
+    border-radius: 16px;
+    border: 1px solid #f59e0b;
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    color: #0f172a;
+    box-shadow: 0 10px 26px rgba(217, 119, 6, 0.35);
+    cursor: pointer;
+    text-align: start;
+  }
+
+  .dl-navgo:active {
+    transform: scale(0.98);
+  }
+
+  .dl-navgo-t {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  .dl-navgo-t b {
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .dl-navgo-t small {
+    font-size: 12px;
+    font-weight: 700;
+    color: #78350f;
+  }
   /* Route stats tiles */
   .dl-stats {
     display: grid;
@@ -1361,7 +1343,7 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #64748b;
   }
@@ -1444,7 +1426,7 @@
   }
 
   .dl-dnm h2 svg {
-    color: #10b981;
+    color: var(--brand);
     flex: none;
   }
 
@@ -1453,7 +1435,7 @@
     margin-top: 6px;
     padding: 3px 12px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     background: #fffbeb;
     color: #78350f;
@@ -1465,80 +1447,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-
-  .dl-dag {
-    display: grid;
-    grid-template-columns: 1.35fr 1fr 1fr;
-    gap: 6px;
-  }
-
-  .dl-da {
-    min-height: 42px;
-    padding: 8px 4px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 800;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #334155;
-    text-decoration: none;
-    transition: filter 0.15s, transform 0.1s;
-    cursor: pointer;
-    box-sizing: border-box;
-  }
-
-  .dl-da.dl-da-p {
-    background: #f59e0b;
-    color: #020617;
-    border-color: #f59e0b;
-  }
-
-  .dl-da.dl-da-p:hover {
-    filter: brightness(1.06);
-  }
-
-  .dl-da.dl-da-w {
-    background: #ecfdf5;
-    color: #047857;
-    border-color: #a7f3d0;
-  }
-
-  .dl-da.dl-da-w svg {
-    color: #059669;
-  }
-
-  .dl-da.dl-da-w:hover {
-    background: #d1fae5;
-  }
-
-  .dl-da.dl-da-d {
-    background: #f8fafc;
-    color: #334155;
-  }
-
-  .dl-da.dl-da-d svg {
-    color: #2563eb;
-  }
-
-  .dl-da.dl-da-d:hover {
-    background: #eff6ff;
-  }
-
-  .dl-da[disabled] {
-    background: #f1f5f9;
-    color: #94a3b8;
-    opacity: 0.5;
-    cursor: not-allowed;
-    border-color: #e2e8f0;
-  }
-
-  .dl-da:not([disabled]):active {
-    transform: scale(0.97);
   }
 
   .dl-rb {
@@ -1561,7 +1469,7 @@
   }
 
   .dl-rb .dl-k {
-    font-size: 11px;
+    font-size: 12px;
     color: #64748b;
     font-weight: 600;
     margin-top: 1px;
@@ -1609,7 +1517,7 @@
   }
 
   .dl-il {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #94a3b8;
   }
@@ -1628,7 +1536,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     padding: 2px 8px;
     border-radius: 99px;
@@ -1655,14 +1563,14 @@
   }
 
   .dl-sh {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     color: #64748b;
   }
 
   .dl-sm h4 {
     margin: 0 0 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: #64748b;
   }
@@ -1697,7 +1605,7 @@
     border-color: #fcd34d;
   }
 
-  .dl-sm img, .dl-sm-icon {
+  .dl-sm img {
     width: 36px;
     height: 36px;
     border-radius: 8px;
@@ -1707,7 +1615,7 @@
 
   .dl-sm b {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1717,7 +1625,7 @@
   }
 
   .dl-sm small {
-    font-size: 11px;
+    font-size: 12px;
     color: #64748b;
   }
 
@@ -1733,7 +1641,7 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
   }
 
@@ -1758,7 +1666,7 @@
     color: #e11d48;
   }
 
-  /* ── 9. Directory Filter Sheet (dl-filter-sheet, dl-fh, dl-fb, dl-fc, etc.) ── */
+  /* ── 9. Directory Filter Sheet (dl-filter-sheet, dl-fh, dl-fb, dl-fn) ── */
   .dl-sheet-backdrop {
     position: fixed;
     inset: 0;
@@ -1835,32 +1743,6 @@
     color: #0f172a;
   }
 
-  .dl-fx,
-  .dl-filter-sheet .fx {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    color: #475569;
-    display: grid;
-    place-items: center;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .dl-fx:hover,
-  .dl-filter-sheet .fx:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-  }
-
-  .dl-fx:focus-visible,
-  .dl-filter-sheet .fx:focus-visible {
-    outline: 2px solid #f59e0b;
-    outline-offset: 2px;
-  }
-
   /* Body */
   .dl-fb,
   .dl-filter-sheet .fb {
@@ -1908,63 +1790,6 @@
     box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
   }
 
-  /* Chips */
-  .dl-fc,
-  .dl-filter-sheet .fc {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .dl-fc button,
-  .dl-filter-sheet .fc button {
-    min-height: 42px;
-    padding-inline: 12px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    font-size: 13px;
-    font-weight: 700;
-    color: #334155;
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.15s;
-  }
-
-  .dl-fc button:hover,
-  .dl-filter-sheet .fc button:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
-  }
-
-  .dl-fc button[aria-pressed="true"],
-  .dl-filter-sheet .fc button[aria-pressed="true"] {
-    background: #fffbeb;
-    border-color: #fbbf24;
-    color: #b45309;
-  }
-
-  .dl-fc small,
-  .dl-filter-sheet .fc small {
-    font-size: 11px;
-    font-weight: 800;
-    color: #64748b;
-  }
-
-  .dl-fc button[aria-pressed="true"] small,
-  .dl-filter-sheet .fc button[aria-pressed="true"] small {
-    color: #d97706;
-  }
-
-  .dl-fc button:focus-visible,
-  .dl-filter-sheet .fc button:focus-visible {
-    outline: 2px solid #f59e0b;
-    outline-offset: 2px;
-  }
-
   /* Live count */
   .dl-fn,
   .dl-filter-sheet .fn {
@@ -1975,79 +1800,6 @@
     color: #64748b;
   }
 
-  /* Footer Actions */
-  .dl-ff,
-  .dl-filter-sheet .ff {
-    display: flex;
-    gap: 8px;
-  }
-
-  .dl-fr,
-  .dl-filter-sheet .fr {
-    min-height: 44px;
-    padding-inline: 16px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    font-size: 14px;
-    font-weight: 800;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .dl-fr:disabled,
-  .dl-filter-sheet .fr:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .dl-fr:not(:disabled):hover,
-  .dl-filter-sheet .fr:not(:disabled):hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #0f172a;
-  }
-
-  .dl-fr:focus-visible,
-  .dl-filter-sheet .fr:focus-visible {
-    outline: 2px solid #64748b;
-    outline-offset: 2px;
-  }
-
-  .dl-fgo,
-  .dl-filter-sheet .fgo {
-    min-height: 44px;
-    flex: 1;
-    border-radius: 10px;
-    background: #f59e0b;
-    color: #020617;
-    font-size: 14px;
-    font-weight: 800;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s, transform 0.05s;
-  }
-
-  .dl-fgo:hover,
-  .dl-filter-sheet .fgo:hover {
-    background: #fbbf24;
-  }
-
-  .dl-fgo:active,
-  .dl-filter-sheet .fgo:active {
-    transform: scale(0.99);
-  }
-
-  .dl-fgo:focus-visible,
-  .dl-filter-sheet .fgo:focus-visible {
-    outline: 2px solid #b45309;
-    outline-offset: 2px;
-  }
-
   /* Accessibility: Prefers Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
     .dl-card,
@@ -2055,7 +1807,6 @@
     .dl-slide img,
     .dl-pop,
     .dl-pd b,
-    .dl-chv,
     .dl-toast,
     .dl-sheet-backdrop,
     .dl-sheet,

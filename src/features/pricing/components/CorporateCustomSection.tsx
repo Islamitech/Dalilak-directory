@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { CORPORATE_PACKAGE, GoogleStylePackage } from '../model/pricingPackages';
+import { Button, ButtonLink } from '../../../shared/ui';
 
 interface CorporateCustomSectionProps {
   mode?: 'admin' | 'public';
@@ -17,7 +18,7 @@ export const CorporateCustomSection: React.FC<CorporateCustomSectionProps> = ({
 }) => {
   return (
     <div className="pt-6 border-t border-[var(--border-color)]">
-      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4 sm:p-5 flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-start space-y-1">
             <span className="text-caption font-extrabold text-amber-700 uppercase">
@@ -32,32 +33,28 @@ export const CorporateCustomSection: React.FC<CorporateCustomSectionProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={onToggleCorporate}
-              className="px-3.5 py-2 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--border-color)] text-slate-700 font-bold text-xs border border-[var(--border-color)] cursor-pointer inline-flex items-center gap-1 transition-all"
+              aria-expanded={isCorporateExpanded}
+              trailing={<ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCorporateExpanded ? 'rotate-180' : ''}`} />}
             >
-              <span>{isCorporateExpanded ? 'عرض أقل' : 'المخرجات والتفاصيل'}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCorporateExpanded ? 'rotate-180 text-amber-500' : ''}`} />
-            </button>
+              {isCorporateExpanded ? 'عرض أقل' : 'المخرجات والتفاصيل'}
+            </Button>
 
             {mode === 'public' ? (
-              <a
+              <ButtonLink
                 href="https://wa.me/201556221141?text=مرحباً%20دليلك،%20نود%20الاستفسار%20عن%20باقة%20الشركات%20والمشاريع%20الكبرى."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition-all"
+                variant="primary"
               >
                 طلب استشارة وعرض سعر
-              </a>
+              </ButtonLink>
             ) : (
-              <button
-                type="button"
-                onClick={() => onOpenModal(CORPORATE_PACKAGE)}
-                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition-all cursor-pointer"
-              >
+              <Button variant="primary" onClick={() => onOpenModal(CORPORATE_PACKAGE)}>
                 تفاصيل حلول الشركات
-              </button>
+              </Button>
             )}
           </div>
         </div>

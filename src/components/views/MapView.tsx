@@ -7,6 +7,7 @@ import {
   getRecommendedGateForZone,
 } from '../../data/hadayekAtlasData';
 import { useMapViewUrlState } from '../../features/map';
+import { stashCameraReturn } from '../map/utils/mapCameraMemory';
 
 export interface MapViewProps {
   searchQuery?: string;
@@ -21,6 +22,10 @@ export interface MapViewProps {
   onSortChange: (s: any) => void;
   openNowOnly: boolean;
   onToggleOpenNow: () => void;
+  verifiedOnly?: boolean;
+  hideActivities?: boolean;
+  filtersActive?: boolean;
+  onResetAllFilters?: () => void;
   onOpenBusiness: (biz: Business) => void;
   onToggleFavorite: (id: string) => void;
   favorites: string[];
@@ -44,6 +49,10 @@ export const MapView: React.FC<MapViewProps> = ({
   sortBy,
   onSortChange,
   openNowOnly,
+  verifiedOnly = false,
+  hideActivities = false,
+  filtersActive = false,
+  onResetAllFilters,
   onToggleOpenNow,
   onOpenBusiness,
   onToggleFavorite,
@@ -90,13 +99,25 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [selectZone]);
 
   const handleSelectBuilding = useCallback((bldg: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => {
+    stashCameraReturn();
     setActiveZoneLetter(bldg.zoneLetter);
     setActiveBuildingNumber(bldg.buildingNumber);
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('zone', bldg.zoneLetter);
-      newUrl.searchParams.set('bldg', bldg.buildingNumber);
-      window.history.replaceState({}, '', newUrl.toString());
+    if (typeof window === 'undefined') return;
+    const withBuilding = (base: string) => {
+      const url = new URL(base, window.location.origin);
+      url.searchParams.set('zone', bldg.zoneLetter);
+      url.searchParams.set('bldg', bldg.buildingNumber);
+      return `${url.pathname}${url.search}`;
+    };
+    const historyState = window.history.state;
+    if (historyState?.directoryModal) {
+      window.history.replaceState({ buildingSheet: true }, '', withBuilding(historyState.directoryBackground || '/map'));
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
+    }
+    const next = withBuilding(`${window.location.pathname}${window.location.search}`);
+    if (next !== `${window.location.pathname}${window.location.search}`) {
+      window.history.pushState({ buildingSheet: true }, '', next);
     }
   }, [setActiveZoneLetter, setActiveBuildingNumber]);
 
@@ -123,6 +144,7 @@ export const MapView: React.FC<MapViewProps> = ({
       govFilter: 'all',
       cityFilter: 'all',
       openNowOnly,
+      verifiedOnly,
       hasRatingOnly: false,
       hasVideoOnly: false,
       sortBy: sortBy || 'default',
@@ -138,6 +160,7 @@ export const MapView: React.FC<MapViewProps> = ({
     activeZoneLetter,
     selectedZone,
     openNowOnly,
+    verifiedOnly,
     sortBy,
     userCoords,
   ]);
@@ -148,7 +171,7 @@ export const MapView: React.FC<MapViewProps> = ({
         <InteractiveMap
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
-          businesses={effectiveFilteredBusinesses}
+          businesses={hideActivities ? [] : effectiveFilteredBusinesses}
           mode="view"
           lat={lat}
           lng={lng}
@@ -165,6 +188,8 @@ export const MapView: React.FC<MapViewProps> = ({
           heightClass="h-full"
           defaultExpanded={false}
           onExploreDirectory={() => onNavigate('/search')}
+          onResetFilters={onResetAllFilters}
+          filtersActive={filtersActive}
           focusedBusiness={focusedBusiness}
           onClearFocusedBusiness={onClearFocusedBusiness}
         />

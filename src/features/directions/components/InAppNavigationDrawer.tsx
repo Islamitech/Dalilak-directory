@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Car, Footprints, Navigation, X } from 'lucide-react';
+import { Pressable } from '../../../shared/ui';
+import { Car, ExternalLink, Footprints, Navigation, X } from 'lucide-react';
 import { HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
 import { fetchRealRoadRoute, RealRoadRouteResult } from '../../../utils/hadayekRouting';
 import {
   NavigationTarget,
   computeRouteStats,
-  getGoogleVoiceNavUrl,
+  getGoogleHandoffUrl,
 } from '../model/directionsModel';
 
 export interface InAppNavigationDrawerProps {
@@ -25,8 +26,8 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
   onClose,
   onUpdateRoute,
 }) => {
-  const [originType, setOriginType] = useState<'gps' | 'gate'>('gps');
-  const [selectedGateId, setSelectedGateId] = useState<string>('gate_1');
+  const [originType, setOriginType] = useState<'gps' | 'gate'>(target?.preferredGateId ? 'gate' : 'gps');
+  const [selectedGateId, setSelectedGateId] = useState<string>(target?.preferredGateId || 'gate_1');
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [isGettingGps, setIsGettingGps] = useState<boolean>(false);
@@ -136,47 +137,66 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
   };
 
   const handleOpenGoogleMaps = () => {
-    if (!currentOrigin || !target) return;
-    const url = getGoogleVoiceNavUrl(currentOrigin, target);
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (!target) return;
+    window.open(getGoogleHandoffUrl(target), '_blank', 'noopener,noreferrer');
   };
 
   if (!target) return null;
 
   // No sheet while navigating: the map and the route stay fully visible.
-  // Only a tiny pill with the essentials and an exit button remains.
+  // A compact header says WHERE you are going and HOW far, and one clear button hands the trip
+  // over to Google Maps for real turn-by-turn guidance.
   return (
-    <div
-      role="status"
-      aria-label={`التوجيه إلى ${target.title}`}
-      dir="rtl"
-      className="dl-navpill pointer-events-auto font-['Cairo',sans-serif]"
-    >
-      <Navigation className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
-      <span className="dl-navpill-t">
-        {stats ? stats.distanceText : 'جارٍ تحديد المسار…'}
-      </span>
-      {stats && (
-        <span className="dl-navpill-c" title="بالسيارة">
-          <Car className="inline w-3 h-3 me-0.5" aria-hidden="true" />
-          {stats.drivingMinutes} د
-        </span>
-      )}
-      {stats && (
-        <span className="dl-navpill-s" title="مشياً على الأقدام">
-          <Footprints className="inline w-3 h-3 me-0.5" aria-hidden="true" />
-          {stats.walkingMinutes} د
-        </span>
-      )}
-      <button
-        type="button"
-        onClick={handleEndNavigation}
-        aria-label="إنهاء الملاحة"
-        title="إنهاء الملاحة"
-        className="dl-navpill-x"
+    <>
+      <div
+        role="status"
+        aria-label={`التوجيه إلى ${target.title}`}
+        dir="rtl"
+        className="dl-navpill pointer-events-auto font-['Cairo',sans-serif]"
       >
-        <X className="w-4 h-4" />
-      </button>
-    </div>
+        <span className="dl-navpill-ic" aria-hidden="true">
+          <Navigation className="w-4 h-4" />
+        </span>
+        <span className="dl-navpill-main">
+          <span className="dl-navpill-to">إلى {target.title}</span>
+          <span className="dl-navpill-meta">
+            {stats ? (
+              <>
+                <b>{stats.distanceText}</b>
+                <span className="dl-navpill-c" title="بالسيارة">
+                  <Car className="inline w-3 h-3 me-0.5" aria-hidden="true" />
+                  {stats.drivingMinutes} د
+                </span>
+                <span className="dl-navpill-s" title="مشياً على الأقدام">
+                  <Footprints className="inline w-3 h-3 me-0.5" aria-hidden="true" />
+                  {stats.walkingMinutes} د
+                </span>
+              </>
+            ) : (
+              'جارٍ رسم المسار…'
+            )}
+          </span>
+        </span>
+        <Pressable
+          type="button"
+          onClick={handleEndNavigation}
+          aria-label="إنهاء الملاحة"
+          title="إنهاء الملاحة"
+          className="dl-navpill-x"
+        >
+          <X className="w-4 h-4" />
+        </Pressable>
+      </div>
+
+      <div className="dl-navgo-wrap pointer-events-none font-['Cairo',sans-serif]" dir="rtl">
+        <Pressable type="button" onClick={handleOpenGoogleMaps} className="dl-navgo pointer-events-auto">
+          <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span className="dl-navgo-t">
+            <b>ابدأ التوجيه في خرائط Google</b>
+            <small>توجيه صوتي خطوة بخطوة من موقعك الحالي</small>
+          </span>
+        </Pressable>
+      </div>
+    </>
   );
 };

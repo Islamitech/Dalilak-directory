@@ -13,8 +13,8 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
       subtitle="دليل حدائق الأهرام للأنشطة والخدمات: موقع دقيق، ورقم تواصل مباشر، وبوابة المنطقة من الخريطة نفسها."
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+        <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-700">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <h2 className="text-sm font-extrabold text-slate-900">بيانات موثقة</h2>
@@ -22,8 +22,8 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             يُراجع الموقع ورقم الهاتف وساعات العمل قبل ظهور النشاط في الدليل.
           </p>
         </div>
-        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+        <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-700">
             <MapPin className="h-5 w-5" />
           </div>
           <h2 className="text-sm font-extrabold text-slate-900">اتجاهات للمنطقة</h2>
@@ -31,8 +31,8 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             الخريطة تعرض بوابة المنطقة ورقم العمارة، وزر الاتجاهات يفتح المسار.
           </p>
         </div>
-        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-800">
+        <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-amber-50 text-amber-800">
             <Phone className="h-5 w-5" />
           </div>
           <h2 className="text-sm font-extrabold text-slate-900">تواصل مباشر</h2>
@@ -42,11 +42,11 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-medium leading-relaxed text-slate-600">
           التغطية الحالية هي حدائق الأهرام: المناطق، والبوابات، والأنشطة الموثقة على الخريطة والقائمة.
         </p>
-        <Button variant="primary" size="md" onClick={() => onNavigate('/search')} icon={<ArrowLeft className="h-4 w-4" />}>
+        <Button variant="primary" size="md" onClick={() => onNavigate('/search')} leadingIcon={<ArrowLeft />}>
           استكشف الدليل
         </Button>
       </div>

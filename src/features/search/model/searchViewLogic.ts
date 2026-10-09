@@ -20,6 +20,7 @@ export interface SearchViewProps {
   onSortChange: (s: any) => void;
   openNowOnly: boolean;
   onToggleOpenNow: () => void;
+  verifiedOnly?: boolean;
   hasRatingOnly: boolean;
   onToggleHasRating: () => void;
   hasVideoOnly: boolean;

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Pressable } from '../../shared/ui';
 import { Building2, Store } from 'lucide-react';
 import { Business } from '../../types';
 import {
@@ -130,7 +131,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         <div
           role="listbox"
           aria-label="نتائج البحث"
-          className="absolute inset-x-0 top-full z-[1200] mt-2 max-h-[min(60vh,420px)] overflow-y-auto rounded-2xl border border-slate-200 bg-white/98 p-1.5 shadow-xl backdrop-blur-md"
+          className="absolute inset-x-0 top-full z-[1200] mt-2 max-h-[min(60vh,420px)] overflow-y-auto rounded-lg border border-slate-200 bg-white/98 p-1.5 shadow-xl backdrop-blur-md"
         >
           {isLoading && results.length === 0 && (
             <div className="px-3 py-2 text-xs font-bold text-slate-500" role="status">
@@ -146,15 +147,15 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
             <div>
               <div className="px-3 pb-1 pt-1.5 text-caption font-extrabold text-amber-800">المباني</div>
               {buildings.map((result) => (
-                <button
+                <Pressable
                   key={`building-${result.zoneLetter}-${result.buildingNumber}`}
                   type="button"
                   role="option"
                   aria-selected="false"
                   onClick={() => selectBuilding(result)}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-start transition-colors hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start transition-colors hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-100 text-amber-800">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-100 text-amber-800">
                     <Building2 className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -165,27 +166,27 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
                       {result.zoneName}
                     </span>
                   </span>
-                  <span className="rounded-full bg-amber-100 px-2 py-1 text-caption font-extrabold text-amber-900">
+                  <span className="rounded-pill bg-amber-100 px-2 py-1 text-caption font-extrabold text-amber-900">
                     مبنى
                   </span>
-                </button>
+                </Pressable>
               ))}
             </div>
           )}
 
           {activities.length > 0 && (
             <div className={buildings.length > 0 ? 'mt-1 border-t border-slate-100 pt-1' : ''}>
-              <div className="px-3 pb-1 pt-1.5 text-caption font-extrabold text-emerald-800">الأنشطة</div>
+              <div className="px-3 pb-1 pt-1.5 text-caption font-extrabold text-amber-800">الأنشطة</div>
               {activities.map((result) => (
-                <button
+                <Pressable
                   key={`business-${result.business.id}`}
                   type="button"
                   role="option"
                   aria-selected="false"
                   onClick={() => selectActivity(result.business)}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-start transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start transition-colors hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-700">
                     <Store className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -196,10 +197,10 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
                       {result.business.category || result.business.street || (resolvedZone(value) ? `منطقة ${resolvedZone(value)}` : '')}
                     </span>
                   </span>
-                  <span className="rounded-full bg-emerald-100 px-2 py-1 text-caption font-extrabold text-emerald-900">
+                  <span className="rounded-pill bg-amber-100 px-2 py-1 text-caption font-extrabold text-amber-900">
                     نشاط
                   </span>
-                </button>
+                </Pressable>
               ))}
             </div>
           )}

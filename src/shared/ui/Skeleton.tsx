@@ -15,10 +15,10 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   ...props
 }) => {
   const variantClasses = {
-    text: 'h-4 rounded-md',
-    rectangular: 'rounded-2xl',
-    circular: 'rounded-full',
-    card: 'rounded-2xl',
+    text: 'h-4 rounded-sm',
+    rectangular: 'rounded-lg',
+    circular: 'rounded-pill',
+    card: 'rounded-lg',
   };
 
   const inlineStyles: React.CSSProperties = {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from '../../../shared/ui';
 import { Building2 } from 'lucide-react';
 
 export interface CadastralBuildingCardProps {
@@ -18,9 +19,9 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
 }) => {
   if (!isFound) {
     return (
-      <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-slate-50/90 border border-slate-200 rounded-lg p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200/60 text-slate-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-md bg-slate-200/60 text-slate-500 flex items-center justify-center shrink-0">
             <Building2 className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
@@ -32,7 +33,7 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center justify-center min-h-[36px] px-3.5 rounded-xl bg-slate-200/80 text-slate-600 text-xs font-bold shrink-0">
+        <span className="inline-flex items-center justify-center min-h-[36px] px-3.5 rounded-pill bg-slate-200/80 text-slate-600 text-xs font-bold shrink-0">
           غير مسجلة
         </span>
       </div>
@@ -40,9 +41,9 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
   }
 
   return (
-    <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+    <div className="bg-amber-50/90 border border-amber-300 rounded-lg p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-md bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
           <Building2 className="w-5 h-5 stroke-[2.2]" />
         </div>
         <div>
@@ -54,14 +55,14 @@ export const CadastralBuildingCard: React.FC<CadastralBuildingCardProps> = ({
           </p>
         </div>
       </div>
-      <button
+      <Pressable
         type="button"
         onClick={() => onNavigateToMap(zoneLetter, buildingNumber)}
-        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-pill bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
         aria-label={`عرض عمارة ${buildingNumber} منطقة ${zoneLetter} على الخريطة`}
       >
         عرض على الخريطة
-      </button>
+      </Pressable>
     </div>
   );
 };

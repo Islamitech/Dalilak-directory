@@ -8,6 +8,7 @@ import {
   CorporateCustomSection,
   PackageDetailModal,
 } from '../features/pricing';
+import { Button } from '../shared/ui';
 
 export interface PackagesHubProps {
   initialPackageId?: string;
@@ -49,22 +50,19 @@ export const PackagesHub: React.FC<PackagesHubProps> = ({
       </div>
 
       <div className="flex justify-center">
-        <div className="inline-flex p-1 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] gap-1">
+        <div className="inline-flex p-1 rounded-pill bg-white border border-slate-200 gap-1">
           {PRICING_TRACKS.map((t) => {
             const isActive = activeTrack === t.id;
             return (
-              <button
+              <Button
                 key={t.id}
-                type="button"
+                variant={isActive ? 'primary' : 'ghost'}
+                size="sm"
+                aria-pressed={isActive}
                 onClick={() => setActiveTrack(t.id)}
-                className={`px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
               >
                 {t.label}
-              </button>
+              </Button>
             );
           })}
         </div>

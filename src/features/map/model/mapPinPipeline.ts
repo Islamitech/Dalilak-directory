@@ -2,6 +2,7 @@ import { Business } from '../../../types';
 import {
   createCompactActivityPinHtml,
   createCategoryClusterPinHtml,
+  createLightweightClusterHtml,
 } from '../../../components/map/badgeMarkers';
 import { getCategoryPinStyle } from '../../../components/map/markers/categoryPinStyle';
 import { categoryPinKey, categoryPinLimitForZoom, categoryPinOffset, splitGroupByCategory } from '../../../components/map/utils/categoryPinGroups';
@@ -68,12 +69,17 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
   const showName = zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom;
   const clusterKey = visiblePinClusterKey;
   const pinLimit = categoryPinLimitForZoom(zoom);
+  const showNeutralClusters = zoom < MAP_ZOOM_POLICY.citywideFilterBelow;
 
-  // One registry entry per (cluster, category) pin.
+  // Below zoom 15 every cluster is one neutral count. Category colours appear once zoomed in.
   const nextCategoryPinKeys = new Set<string>();
   for (const group of visibleGroups) {
     if (group.length <= 1) continue;
     const groupKey = clusterKey(group);
+    if (showNeutralClusters) {
+      nextCategoryPinKeys.add(categoryPinKey(groupKey, 'neutral'));
+      continue;
+    }
     for (const sub of splitGroupByCategory(group, pinLimit)) nextCategoryPinKeys.add(categoryPinKey(groupKey, sub.categoryId));
   }
 
@@ -99,6 +105,26 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
       const lat = group.reduce((sum, biz) => sum + biz.lat, 0) / group.length;
       const lng = group.reduce((sum, biz) => sum + biz.lng, 0) / group.length;
       if (!bounds.contains([lat, lng])) return;
+
+      if (group.length > 1 && showNeutralClusters) {
+        const key = categoryPinKey(clusterKey(group), 'neutral');
+        if (!clusterRegistry.has(key)) {
+          const data = createLightweightClusterHtml(group.length);
+          const marker = window.L.marker([lat, lng], {
+            icon: window.L.divIcon({ className: 'custom-neutral-cluster', ...data }),
+            pane: 'pinsPane',
+            zIndexOffset: 500,
+            title: String(group.length),
+          });
+          marker.on('click', () => {
+            const points = group.map((biz) => [biz.lat, biz.lng]);
+            cameraController?.request({ kind: 'flyToBounds', bounds: window.L.latLngBounds(points), options: { padding: [70, 70], maxZoom: Math.min(19, map.getZoom() + 2), duration: 0.5 } }, 'cluster');
+          });
+          clusterLayer.addLayer(marker);
+          clusterRegistry.set(key, marker);
+        }
+        return;
+      }
 
       if (group.length > 1) {
         const groupKey = clusterKey(group);

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Pressable } from '../../shared/ui';
 import {
   HADAYEK_ZONES,
   HadayekZone,
@@ -97,7 +98,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
 
   return (
     <div
-      className={`bg-[var(--bg-card)]/90 backdrop-blur-xl border border-amber-500/25 rounded-3xl p-4 sm:p-6 shadow-xl relative overflow-hidden transition-all ${className}`}
+      className={`bg-[var(--bg-card)]/90 backdrop-blur-xl border border-amber-500/25 rounded-lg p-4 sm:p-6 shadow-xl relative overflow-hidden transition-all ${className}`}
       dir="rtl"
     >
       {/* Decorative Brand Accent Gradient */}
@@ -106,7 +107,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
       {/* Header: Identity & Gates Guide Link */}
       <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 shadow-xs">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 shadow-xs">
             <Compass className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
@@ -114,7 +115,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
               <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)]">
                 أطلس حدائق الأهرام الذكي
               </h2>
-              <span className="text-caption font-extrabold bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-caption font-extrabold bg-amber-500 text-slate-950 px-2 py-0.5 rounded-pill uppercase tracking-wider">
                 محدد العمارات
               </span>
             </div>
@@ -125,14 +126,14 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
         </div>
 
         {onOpenGatesGuide && (
-          <button
+          <Pressable
             type="button"
             onClick={onOpenGatesGuide}
-            className="hidden sm:flex items-center gap-1.5 text-xs font-extrabold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-500/20 transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 text-xs font-extrabold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/70 px-3 py-1.5 rounded-pill border border-amber-500/20 transition-all cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             <span>دليل البوابات الأربع</span>
-          </button>
+          </Pressable>
         )}
       </div>
 
@@ -148,7 +149,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
               <select
                 value={selectedZoneLetter}
                 onChange={(e) => setSelectedZoneLetter(e.target.value)}
-                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-extrabold text-[var(--text-primary)] appearance-none cursor-pointer outline-none transition-all"
+                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-sm px-4 py-2 text-sm font-extrabold text-[var(--text-primary)] appearance-none cursor-pointer outline-none transition-all"
               >
                 {HADAYEK_ZONES.map((zone) => (
                   <option key={zone.id} value={zone.letterAr}>
@@ -173,7 +174,7 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
                 value={buildingInput}
                 onChange={(e) => setBuildingInput(e.target.value)}
                 placeholder="مثال: 240 أو 185"
-                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-2xl px-4 py-2 text-sm font-extrabold text-[var(--text-primary)] placeholder:text-slate-400 outline-none transition-all font-mono"
+                className="w-full h-12 bg-slate-50 border border-[var(--border-color)] focus:border-amber-500 rounded-sm px-4 py-2 text-sm font-extrabold text-[var(--text-primary)] placeholder:text-slate-400 outline-none transition-all font-mono"
               />
               <div className="absolute end-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <Building2 className="w-4 h-4" />
@@ -183,14 +184,14 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
 
           {/* 3. Execute Navigation Button */}
           <div className="sm:col-span-3 flex items-end">
-            <button
+            <Pressable
               type="submit"
               disabled={isNavigating}
-              className="w-full h-12 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs sm:text-sm rounded-2xl shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full h-12 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs sm:text-sm rounded-pill shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Search className="w-4 h-4 stroke-[2.5]" />
               <span>{isNavigating ? 'جاري الرصد...' : 'انتقال ومسح المحيط'}</span>
-            </button>
+            </Pressable>
           </div>
         </div>
 
@@ -202,18 +203,18 @@ export const HadayekAtlasNavigator: React.FC<HadayekAtlasNavigatorProps> = ({
           {popularZoneLetters.map((letter) => {
             const isSelected = selectedZoneLetter === letter;
             return (
-              <button
+              <Pressable
                 key={letter}
                 type="button"
                 onClick={() => setSelectedZoneLetter(letter)}
-                className={`text-caption font-extrabold px-2.5 py-1 rounded-xl transition-all cursor-pointer border ${
+                className={`text-caption font-extrabold px-2.5 py-1 rounded-pill transition-all cursor-pointer border ${
                   isSelected
                     ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
                     : 'bg-slate-100 text-slate-700 border-transparent hover:border-slate-300'
                 }`}
               >
                 منطقة ({letter})
-              </button>
+              </Pressable>
             );
           })}
         </div>

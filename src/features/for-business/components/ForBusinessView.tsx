@@ -10,7 +10,7 @@ import {
   type MerchantDraft,
 } from '../model/merchantRegistration';
 import { MerchantFormFields } from './MerchantFormFields';
-import { PageFrame } from '../../../shared/ui';
+import { Button, ButtonLink, PageFrame } from '../../../shared/ui';
 
 export interface ForBusinessViewProps {
   onNavigate: (path: string) => void;
@@ -94,7 +94,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
       subtitle="التسجيل والظهور في دليل حدائق الأهرام مجانيان. بعد إرسال البيانات تُفتح رسالة واتساب جاهزة لإكمال الطلب."
     >
 
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 sm:p-6 space-y-4">
         <div className="space-y-1">
           <h3 className="text-lg font-extrabold text-slate-900">بيانات النشاط</h3>
           <p className="text-xs text-slate-500 font-medium">
@@ -103,8 +103,8 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
         </div>
 
         {submitted ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center space-y-4 animate-fade-in">
-            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center space-y-4 animate-fade-in">
+            <CheckCircle2 className="w-12 h-12 text-[var(--brand)] mx-auto" />
             <div className="space-y-1">
               <h4 className="font-extrabold text-base text-slate-900">تم تجهيز طلب الإدراج بنجاح</h4>
               <p className="text-xs text-slate-600 font-medium">
@@ -112,28 +112,25 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <a
+              <ButtonLink
                 href={getMerchantWhatsAppIntentUrl(currentDraft)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                variant="primary"
+                className="w-full sm:w-auto"
+                leadingIcon={<Send />}
               >
-                <Send className="w-4 h-4" />
-                <span>إعادة فتح واتساب</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => setSubmitted(false)}
-                className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs px-6 py-2.5 rounded-xl transition-all cursor-pointer"
-              >
+                إعادة فتح واتساب
+              </ButtonLink>
+              <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setSubmitted(false)}>
                 تعديل البيانات
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {popupBlocked && (
-              <div role="alert" aria-live="assertive" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5 text-start space-y-3 animate-fade-in">
+              <div role="alert" aria-live="assertive" className="bg-amber-50 border border-amber-300 rounded-lg p-4 sm:p-5 text-start space-y-3 animate-fade-in">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
@@ -144,26 +141,16 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => openWhatsApp()}
-                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>افتح واتساب مرة أخرى</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyMessage}
-                    className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span>انسخ الرسالة</span>
-                  </button>
+                  <Button variant="primary" className="w-full sm:w-auto" onClick={() => openWhatsApp()} leadingIcon={<Send />}>
+                    افتح واتساب مرة أخرى
+                  </Button>
+                  <Button variant="secondary" className="w-full sm:w-auto" onClick={handleCopyMessage} leadingIcon={<Copy />}>
+                    انسخ الرسالة
+                  </Button>
                 </div>
                 {copyStatus === 'copied' && (
-                  <p role="status" className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 pt-1">
-                    <Check className="w-4 h-4 text-emerald-600" />
+                  <p role="status" className="text-xs font-bold text-slate-700 flex items-center gap-1.5 pt-1">
+                    <Check className="w-4 h-4 text-[var(--brand)]" />
                     <span>تم نسخ الرسالة بنجاح إلى الحافظة! يمكنك الآن لصقها في محادثة واتساب.</span>
                   </p>
                 )}
@@ -188,22 +175,18 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
 
             <p className="text-xs leading-relaxed text-slate-500">{FREE_DIRECTORY_SERVICE.condition}</p>
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <button
-                type="submit"
-                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs px-8 py-3 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span>متابعة الطلب عبر واتساب</span>
-              </button>
+              <Button type="submit" variant="primary" size="lg" className="w-full sm:w-auto" leadingIcon={<Send />}>
+                متابعة الطلب عبر واتساب
+              </Button>
 
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => onNavigate('/pricing')}
-                className="text-xs font-bold text-slate-600 hover:text-amber-800 flex items-center gap-1 cursor-pointer"
+                leadingIcon={<BadgeDollarSign className="text-[var(--brand)]" />}
               >
-                <BadgeDollarSign className="w-4 h-4 text-amber-600" />
-                <span>الاطلاع على باقات التسويق والتأسيس الرقمي</span>
-              </button>
+                الاطلاع على باقات التسويق والتأسيس الرقمي
+              </Button>
             </div>
           </form>
         )}

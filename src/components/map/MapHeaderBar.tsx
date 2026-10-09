@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Pressable } from '../../shared/ui';
 import {
   Navigation,
   SlidersHorizontal,
@@ -99,8 +100,8 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
         {/* Quick Selectors & Micro Toggles */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0 w-full sm:w-auto">
           {/* City Fixed Badge */}
-          <div className="inline-flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-extrabold text-caption sm:text-xs rounded-md px-2 py-1 shrink-0 shadow-xs" title="الخريطة مثبتة على نطاق حدائق الأهرام">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/50 text-amber-300 font-extrabold text-caption sm:text-xs rounded-pill px-2 py-1 shrink-0 shadow-xs" title="الخريطة مثبتة على نطاق حدائق الأهرام">
+            <span className="w-1.5 h-1.5 rounded-pill bg-amber-400 animate-pulse" />
             <span>حدائق الأهرام</span>
           </div>
 
@@ -118,14 +119,14 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
               type="checkbox"
               checked={showDistrictsOverlay}
               onChange={(e) => setShowDistrictsOverlay(e.target.checked)}
-              className="rounded accent-indigo-500 w-3 h-3 cursor-pointer"
+              className="rounded-sm accent-indigo-500 w-3 h-3 cursor-pointer"
             />
             <span>مناطق</span>
           </label>
 
           {mode === 'view' && (
             <>
-              <button
+              <Pressable
                 ref={filterButtonRef}
                 type="button"
                 onClick={(e) => {
@@ -141,7 +142,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                     setIsMapFilterOpen(false);
                   }
                 }}
-                className={`px-2 py-0.5 rounded text-caption sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer select-none ${
+                className={`px-2 py-0.5 rounded-pill text-caption sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer select-none ${
                   mapCategoryFilter !== 'all' || onlyVerifiedFilter
                     ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
@@ -155,9 +156,9 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                     : 'نوع النشاط'}
                 </span>
                 {(mapCategoryFilter !== 'all' || onlyVerifiedFilter) && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
+                  <span className="w-1.5 h-1.5 rounded-pill bg-slate-950 animate-ping" />
                 )}
-              </button>
+              </Pressable>
 
               <MapFilterPortalDropdown
                 isOpen={isMapFilterOpen}
@@ -186,33 +187,33 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
           )}
 
           {onExploreDirectory && (
-            <button
+            <Pressable
               type="button"
               onClick={onExploreDirectory}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-caption sm:text-xs px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-caption sm:text-xs px-2 py-0.5 rounded-pill flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
               title="استكشف الدليل"
             >
               <Compass className="w-3 h-3" />
               <span>استكشف</span>
-            </button>
+            </Pressable>
           )}
 
           {mode === 'picker' && handleGetLocation && (
-            <button
+            <Pressable
               type="button"
               onClick={handleGetLocation}
               disabled={isLocating}
-              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-caption sm:text-xs font-extrabold px-1.5 py-0.5 rounded shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-caption sm:text-xs font-extrabold px-1.5 py-0.5 rounded-pill shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
               title="تحديد موقعي"
             >
               {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3 fill-slate-950" />}
-            </button>
+            </Pressable>
           )}
 
-          <button
+          <Pressable
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-1 rounded border text-caption font-bold flex items-center justify-center transition-all cursor-pointer ${
+            className={`p-1 rounded-pill border text-caption font-bold flex items-center justify-center transition-all cursor-pointer ${
               isExpanded
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xs'
                 : 'bg-slate-800/90 hover:bg-slate-700 text-slate-300 border-slate-700'
@@ -220,7 +221,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
             title={isExpanded ? 'إنهاء وضع الشاشة الكاملة' : 'توسيع الخريطة'}
           >
             {isExpanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
-          </button>
+          </Pressable>
         </div>
       </div>
     </div>

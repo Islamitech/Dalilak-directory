@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X } from 'lucide-react';
 import { Business } from '../../../types';
 import { useIntegratedFilters } from '../hooks/useIntegratedFilters';
 import { FilterDropdownMenu, FilterDropdownOption } from './FilterDropdownMenu';
+import { getCategoryGroupById, getSubcategoryById } from '../../../data/categoryTaxonomy';
 
 export interface UnifiedSearchFilterBarProps {
   selectedCategory: string;
@@ -10,8 +10,6 @@ export interface UnifiedSearchFilterBarProps {
   selectedZone: string;
   onZoneChange: (zone: string) => void;
   businesses: Business[];
-  matchingCount: number;
-  onResetAll?: () => void;
   variant?: 'list' | 'map';
   className?: string;
   // Optional props for backward compatibility
@@ -29,8 +27,6 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
   selectedZone,
   onZoneChange,
   businesses,
-  matchingCount,
-  onResetAll,
   className = '',
   searchQuery = '',
   onSearchChange,
@@ -45,7 +41,6 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
     activeCategory,
     activeZone,
     activeCategoryName,
-    resetAll,
   } = useIntegratedFilters({
     businesses,
     searchQuery,
@@ -54,7 +49,6 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
     onCategoryChange,
     selectedZone,
     onZoneChange,
-    onResetAll,
   });
 
   // Close dropdown on outside click or Escape key
@@ -79,16 +73,14 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
     };
   }, [openDropdown]);
 
-  const hasFilterSelected = activeCategory !== 'all' || activeZone !== 'all';
-
   // Category options
   const categoryOptions = useMemo<FilterDropdownOption[]>(() => {
-    const list: FilterDropdownOption[] = [{ id: 'all', label: 'كل الأنشطة والتصنيفات' }];
+    const list: FilterDropdownOption[] = [{ id: 'all', label: 'الكل' }];
     for (const cat of categories) {
       const count = categoryCounts.get(cat.id);
       const isSelected = activeCategory === cat.id;
       if (businesses.length > 0 && count === 0 && !isSelected) continue;
-      list.push({ id: cat.id, label: cat.name });
+      list.push({ id: cat.id, label: cat.shortName });
     }
     return list;
   }, [categories, categoryCounts, activeCategory, businesses.length]);
@@ -102,26 +94,28 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
     return list;
   }, [zones]);
 
-  const categoryLabel = searchQuery.trim()
-    ? 'نوع النشاط'
-    : activeCategory === 'all'
-      ? 'نوع النشاط'
-      : (categories.find((c) => c.id === activeCategory)?.name || activeCategoryName || 'نوع النشاط');
+  const selectedCategoryItem = categories.find((c) => c.id === activeCategory);
+  const parentCategoryId = getSubcategoryById(activeCategory)?.groupId || activeCategory;
+  const parentWord = categories.find((c) => c.id === parentCategoryId)?.shortName
+    || getCategoryGroupById(parentCategoryId)?.word;
+  const categoryLabel = activeCategory === 'all'
+    ? 'الكل'
+    : (selectedCategoryItem?.shortName || parentWord || activeCategoryName || 'الكل');
 
-  const zoneLabel = activeZone === 'all' ? 'كل المناطق' : `منطقة ${activeZone}`;
+  const zoneLabel = activeZone === 'all' ? 'المناطق' : activeZone;
 
   return (
     <div
       ref={containerRef}
       dir="rtl"
-      className={`inline-flex flex-wrap items-center justify-center gap-1.5 select-none font-['Cairo',sans-serif] ${className}`}
+      className={`inline-flex flex-nowrap items-center gap-1 select-none font-['Cairo',sans-serif] ${className}`}
     >
-      {/* 1. Category Dropdown */}
       <FilterDropdownMenu
+        compact
         label="نوع النشاط"
         displayValue={categoryLabel}
         options={categoryOptions}
-        selectedValue={activeCategory}
+        selectedValue={parentCategoryId}
         isOpen={openDropdown === 'category'}
         onToggle={() => setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))}
         onSelect={(catId) => {
@@ -130,11 +124,11 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
         }}
         ariaLabel="تصفية حسب نوع النشاط"
         menuWidthClass="w-52 sm:w-60"
-        maxLabelWidthClass="max-w-[110px]"
+        maxLabelWidthClass="max-w-14"
       />
 
-      {/* 2. Zone Dropdown */}
       <FilterDropdownMenu
+        compact
         label="المنطقة"
         displayValue={zoneLabel}
         options={zoneOptions}
@@ -147,27 +141,8 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
         }}
         ariaLabel="تصفية حسب المنطقة"
         menuWidthClass="w-48 sm:w-52"
-        maxLabelWidthClass="max-w-[95px]"
+        maxLabelWidthClass="max-w-12"
       />
-
-      {/* 3. Active Filters Reset & Count Pill */}
-      {hasFilterSelected && (
-        <div className="inline-flex items-center gap-1 animate-fade-in">
-          <span className="text-caption font-bold text-slate-500 px-0.5">
-            {matchingCount} نتيجة
-          </span>
-          <button
-            type="button"
-            onClick={resetAll}
-            className="h-10 px-3 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-caption font-bold transition-all flex items-center gap-1 cursor-pointer border border-slate-200 active:scale-95 shadow-xs"
-            aria-label="مسح الفلاتر المحددة"
-            title="إعادة تعيين الفلاتر"
-          >
-            <X size={12} />
-            <span>مسح</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 };

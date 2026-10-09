@@ -28,7 +28,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('pharmacy')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #075985, #38bdf8)',
+      gradient: 'var(--cat-grad-medical)',
       icon: <Pill className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
@@ -47,7 +47,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('cafe')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #b45309, #f59e0b)',
+      gradient: 'var(--cat-grad-food)',
       icon: <Utensils className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
@@ -64,7 +64,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('grocery')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #047857, #34d399)',
+      gradient: 'var(--cat-grad-shop)',
       icon: <ShoppingBag className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
@@ -80,7 +80,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('beauty')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #5b21b6, #a78bfa)',
+      gradient: 'var(--cat-grad-fashion)',
       icon: <Shirt className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
@@ -93,7 +93,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('auto')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #9f1239, #fb7185)',
+      gradient: 'var(--cat-grad-auto)',
       icon: <Car className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
@@ -107,13 +107,13 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
     text.includes('edu')
   ) {
     return {
-      gradient: 'linear-gradient(145deg, #3730a3, #818cf8)',
+      gradient: 'var(--cat-grad-edu)',
       icon: <GraduationCap className="w-10 h-10 text-white" strokeWidth={1.8} />,
     };
   }
 
   return {
-    gradient: 'linear-gradient(145deg, #b45309, #f59e0b)',
+    gradient: 'var(--cat-grad-food)',
     icon: <Store className="w-10 h-10 text-white" strokeWidth={1.8} />,
   };
 }

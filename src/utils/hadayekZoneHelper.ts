@@ -1,6 +1,6 @@
 import { Business } from '../types';
 import { findDistrictForCoordinates, HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
-import { HADAYEK_GATES } from '../data/hadayekAtlasData';
+import { HADAYEK_GATES, getHadayekZone, getRecommendedGateForZone } from '../data/hadayekAtlasData';
 import { CATEGORY_GROUPS } from '../shared/data/categories';
 import { matchesCategoryFilter } from './categoryMatcher';
 import { normalizeArabicText } from './arabicSearch';
@@ -385,4 +385,13 @@ export function formatBusinessAreaLabel(biz: Business): string {
   const zoneLabel = zone ? `منطقة ${zone}` : '';
   const parts = [city, zoneLabel, street && city && street.includes(city) ? '' : street].filter(Boolean);
   return parts.join(' · ');
+}
+
+/** Nearest official gate and zone, the line cards and the entry action share. */
+export function getBusinessEntryGate(biz: Business): { id: string; label: string; line: string } | null {
+  const letter = getBusinessHadayekZoneLetter(biz);
+  if (!letter) return null;
+  const gate = getRecommendedGateForZone(letter).primaryGate;
+  const zoneName = getHadayekZone(letter)?.nameAr || `منطقة ${letter}`;
+  return { id: gate.id, label: gate.popularNameAr, line: `${gate.popularNameAr} · ${zoneName}` };
 }

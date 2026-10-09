@@ -8,6 +8,7 @@ export interface NavigationTarget {
   lng: number;
   type: 'building' | 'business';
   details?: string;
+  preferredGateId?: string;
 }
 
 interface Params {
@@ -32,7 +33,7 @@ export function useBusinessNavigationStart({
   setNavigationTarget,
   onStartNavigation,
 }: Params) {
-  const startBusinessNavigation = useCallback((biz: Business) => {
+  const startBusinessNavigation = useCallback((biz: Business, gateId?: string | null) => {
     if (!biz || !Number.isFinite(biz.lat) || !Number.isFinite(biz.lng)) return;
     const target: NavigationTarget = {
       title: biz.nameAr || biz.name || 'النشاط',
@@ -40,6 +41,7 @@ export function useBusinessNavigationStart({
       lng: biz.lng,
       type: 'business',
       details: biz.category || undefined,
+      preferredGateId: gateId || undefined,
     };
     setSelectedBiz(null);
     setSelectedBuilding(null);
@@ -55,10 +57,11 @@ export function useBusinessNavigationStart({
       startedForRef.current = null;
       return;
     }
-    if (startedForRef.current === focusedBusiness.id || consumeBusinessNavigation(focusedBusiness.id)) {
-      startedForRef.current = focusedBusiness.id;
-      startBusinessNavigation(focusedBusiness);
-    }
+    if (startedForRef.current === focusedBusiness.id) return;
+    const pending = consumeBusinessNavigation(focusedBusiness.id);
+    if (!pending.matched) return;
+    startedForRef.current = focusedBusiness.id;
+    startBusinessNavigation(focusedBusiness, pending.gateId);
   }, [focusedBusiness, startBusinessNavigation]);
 
   return startBusinessNavigation;

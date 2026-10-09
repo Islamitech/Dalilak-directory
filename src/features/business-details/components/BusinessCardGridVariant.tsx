@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Business } from '../../../types';
 import { calculateDistanceKm, getBusinessOpenStatus } from '../../../utils/directoryEnhancements';
 import { formatWorkingHoursLabel } from '../../../shared/lib/format';
-import { formatBusinessAreaLabel } from '../../../utils/hadayekZoneHelper';
+import { formatBusinessAreaLabel, getBusinessEntryGate } from '../../../utils/hadayekZoneHelper';
 import { Tag } from 'lucide-react';
 import { BusinessCardPhotoGallery } from './card/BusinessCardPhotoGallery';
 import { BusinessCardRatingRow } from './card/BusinessCardRatingRow';
@@ -61,6 +61,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
       : null;
 
   const areaString = formatBusinessAreaLabel(business);
+  const entryGate = getBusinessEntryGate(business);
 
   const offerText = business.offer || null;
 
@@ -98,6 +99,8 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
             <span className="dl-nh">{hasRawHours ? 'ساعات العمل غير واضحة' : 'ساعات العمل غير مسجّلة'}</span>
           )}
         </div>
+
+        {entryGate && <p className="text-caption font-bold text-slate-500 truncate">{entryGate.line}</p>}
 
         {/* Google rating summary (single line) */}
         <BusinessCardRatingRow

@@ -1,4 +1,5 @@
 import React, { ErrorInfo, ReactNode } from 'react';
+import { Pressable } from '../shared/ui';
 import { AlertTriangle, RefreshCw, MapPin } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -38,8 +39,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         dir="rtl"
         className="min-h-screen bg-slate-50 flex items-center justify-center p-5 text-center"
       >
-        <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+        <div className="w-full max-w-md bg-white rounded-lg border border-slate-200 shadow-xl p-8 space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-md bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
             <AlertTriangle className="w-8 h-8 text-white" aria-hidden="true" />
           </div>
 
@@ -52,18 +53,18 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           </div>
 
           <div className="space-y-2 pt-1">
-            <button
+            <Pressable
               type="button"
               onClick={this.handleReload}
-              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-sm font-extrabold shadow-md shadow-amber-500/25 transition-colors cursor-pointer active:scale-[0.98]"
+              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-pill bg-amber-500 hover:bg-amber-600 text-slate-950 text-sm font-extrabold shadow-md shadow-amber-500/25 transition-colors cursor-pointer active:scale-[0.98]"
             >
               <RefreshCw className="w-4 h-4" aria-hidden="true" />
               <span>إعادة تحميل الصفحة</span>
-            </button>
+            </Pressable>
 
             <a
               href="/"
-              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-sm font-bold border border-slate-200 transition-colors"
+              className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-pill bg-white hover:bg-slate-50 text-slate-600 text-sm font-bold border border-slate-200 transition-colors"
             >
               <MapPin className="w-4 h-4 text-amber-600" aria-hidden="true" />
               <span>العودة إلى الخريطة الرئيسية</span>

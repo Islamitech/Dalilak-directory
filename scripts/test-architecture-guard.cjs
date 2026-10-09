@@ -124,6 +124,39 @@ try {
   }
 
   console.log('✅ Case 2B Passed: Non-cyclic architecture check correctly exited 0.');
+
+  // Case 2C: Design-system guard rejects raw hex, font-black, tiny type, and raw buttons
+  console.log('--- Test 2C: Design-system guard ---');
+  const badUi = path.join(compDir, 'BadUi.tsx');
+  fs.writeFileSync(
+    badUi,
+    [
+      'export const BadUi = () => (',
+      '  <button className="font-black text-[10px] bg-[#d97706]">x</button>',
+      ');',
+      '',
+    ].join('\n')
+  );
+
+  const designResult = spawnSync(process.execPath, [checkArchScript], {
+    env: { ...process.env, ARCH_CHECK_SRC_DIR: tempDir },
+    encoding: 'utf8',
+  });
+  const designOutput = (designResult.stdout || '') + (designResult.stderr || '');
+  if (designResult.status === 0) {
+    console.error('❌ Failed: Expected design-system violations to exit non-zero.');
+    console.error(designOutput);
+    process.exit(1);
+  }
+  for (const needle of ['Raw hex color', 'font-black', 'Type under 12px', 'Raw <button className=']) {
+    if (!designOutput.includes(needle)) {
+      console.error(`❌ Failed: Expected design-system output to mention "${needle}".`);
+      console.error(designOutput);
+      process.exit(1);
+    }
+  }
+  fs.rmSync(badUi);
+  console.log('✅ Case 2C Passed: Design-system guard rejects hex, font-black, sub-12px type, and raw buttons.');
   console.log('🎉 Architecture Guard tests passed 100% on current OS.\n');
 } finally {
   try {

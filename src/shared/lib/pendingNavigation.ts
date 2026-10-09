@@ -4,16 +4,20 @@
  * should start in-app navigation; the map consumes the request once it shows that activity.
  */
 let pendingBusinessId: string | null = null;
+let pendingGateId: string | null = null;
 
-export function requestBusinessNavigation(businessId: string): void {
+export function requestBusinessNavigation(businessId: string, gateId?: string): void {
   pendingBusinessId = businessId;
+  pendingGateId = gateId ?? null;
 }
 
-/** Returns true (once) if navigation to this activity was requested. */
-export function consumeBusinessNavigation(businessId: string): boolean {
-  if (pendingBusinessId && pendingBusinessId === businessId) {
-    pendingBusinessId = null;
-    return true;
+/** Returns whether navigation to this activity was requested, and the entry gate if one was chosen. */
+export function consumeBusinessNavigation(businessId: string): { matched: boolean; gateId: string | null } {
+  if (!pendingBusinessId || pendingBusinessId !== businessId) {
+    return { matched: false, gateId: null };
   }
-  return false;
+  pendingBusinessId = null;
+  const gateId = pendingGateId;
+  pendingGateId = null;
+  return { matched: true, gateId };
 }

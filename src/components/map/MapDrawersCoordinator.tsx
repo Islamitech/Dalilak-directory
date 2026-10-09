@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Business } from '../../types';
+import { EntitySheet, type EntitySheetSnap } from '../../shared/ui';
 import { BuildingDetailDrawer } from './BuildingDetailDrawer';
 import { InAppNavigationDrawer } from './InAppNavigationDrawer';
 import { MapBuildingPreviewCard } from './MapBuildingPreviewCard';
@@ -23,6 +24,7 @@ export interface MapDrawersCoordinatorProps {
     lng: number;
     type: 'building' | 'business';
     details?: string;
+    preferredGateId?: string;
   } | null;
   onSetNavigationTarget: (target: any) => void;
   onCloseNavigation: () => void;
@@ -33,66 +35,71 @@ export interface MapDrawersCoordinatorProps {
 export const MapDrawersCoordinator: React.FC<MapDrawersCoordinatorProps> = ({
   mode,
   businesses,
-  onSelectBusiness,
   selectedBuildingState,
-  buildingSheetRequest = 0,
   onClearBuilding,
   onSelectBuildingBusiness,
   navigationTargetState,
   onSetNavigationTarget,
   onCloseNavigation,
   onUpdateRoute,
-  setSelectedBuildingState,
 }) => {
-  const [isBuildingDetailsOpen, setIsBuildingDetailsOpen] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [snap, setSnap] = useState<EntitySheetSnap>('peek');
+  const [activityOpen, setActivityOpen] = useState(false);
   const buildingKey = selectedBuildingState
     ? `${selectedBuildingState.zoneLetter}:${selectedBuildingState.buildingNumber}`
     : '';
-  const previousBuildingKey = useRef(buildingKey);
 
   useEffect(() => {
-    if (previousBuildingKey.current !== buildingKey) {
-      setIsBuildingDetailsOpen(false);
-      setSheetOpen(false);
-      previousBuildingKey.current = buildingKey;
-    }
+    setSnap('peek');
   }, [buildingKey]);
 
   useEffect(() => {
-    if (buildingSheetRequest > 0) setSheetOpen(true);
-  }, [buildingSheetRequest]);
+    const onActivity = (event: Event) => {
+      setActivityOpen(Boolean((event as CustomEvent<{ open?: boolean }>).detail?.open));
+    };
+    window.addEventListener('map:activity-sheet', onActivity);
+    return () => window.removeEventListener('map:activity-sheet', onActivity);
+  }, []);
 
   if (mode !== 'view') return null;
 
+  const closeBuilding = () => {
+    if (window.history.state?.buildingSheet) {
+      window.history.back();
+      return;
+    }
+    onClearBuilding?.();
+  };
+
+  const showBuilding = Boolean(selectedBuildingState) && !navigationTargetState && !activityOpen;
+
   return (
     <>
-      {/* 🏢 Selected Building Detail Drawer */}
-      {!navigationTargetState && selectedBuildingState && sheetOpen && !isBuildingDetailsOpen && (
-        <MapBuildingPreviewCard
-          building={selectedBuildingState}
-          businesses={businesses}
-          onOpenDetails={() => setIsBuildingDetailsOpen(true)}
-          onClose={() => {
-            setSheetOpen(false);
-            setIsBuildingDetailsOpen(false);
-          }}
-        />
+      {showBuilding && selectedBuildingState && (
+        <EntitySheet
+          snap={snap}
+          onSnapChange={setSnap}
+          onClose={closeBuilding}
+          placement="map"
+          ariaLabel={`عمارة ${selectedBuildingState.buildingNumber}`}
+          peek={
+            <MapBuildingPreviewCard
+              building={selectedBuildingState}
+              businesses={businesses}
+              onOpenDetails={() => setSnap('half')}
+            />
+          }
+        >
+          <BuildingDetailDrawer
+            building={selectedBuildingState}
+            businesses={businesses}
+            onClose={closeBuilding}
+            onSelectBusiness={onSelectBuildingBusiness}
+            onStartNavigation={(target) => onSetNavigationTarget(target)}
+          />
+        </EntitySheet>
       )}
 
-      {!navigationTargetState && selectedBuildingState && sheetOpen && isBuildingDetailsOpen && (
-        <BuildingDetailDrawer
-          building={selectedBuildingState}
-          businesses={businesses}
-          onClose={() => setIsBuildingDetailsOpen(false)}
-          onSelectBusiness={onSelectBuildingBusiness}
-          onStartNavigation={(target) => {
-            onSetNavigationTarget(target);
-          }}
-        />
-      )}
-
-      {/* 🧭 Interactive In-App Navigation Drawer */}
       {navigationTargetState && (
         <InAppNavigationDrawer
           target={navigationTargetState}

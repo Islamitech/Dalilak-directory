@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Pressable } from '../../shared/ui';
 import { PhotoWatermarkBadge } from '../PhotoWatermarkBadge';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
@@ -64,17 +65,17 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
       }}
     >
       {photos.length > 1 && (
-        <button
+        <Pressable
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             handlePrevPhoto();
           }}
-          className="absolute start-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
+          className="absolute start-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-pill bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
           title="الصورة السابقة"
         >
           <ChevronLeft className="w-5 h-5" />
-        </button>
+        </Pressable>
       )}
 
       <div 
@@ -89,7 +90,7 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
           data-reader-skip="true"
           data-readability-ignore="true"
           draggable={false}
-          className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain animate-fade-in-scale pointer-events-none select-none"
+          className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain animate-fade-in-scale pointer-events-none select-none"
           onClick={(e) => e.stopPropagation()}
         />
         {/* Anti-Extraction Transparent Protection Shield */}
@@ -107,39 +108,39 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
       </div>
 
       {photos.length > 1 && (
-        <button
+        <Pressable
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             handleNextPhoto();
           }}
-          className="absolute end-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
+          className="absolute end-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-pill bg-slate-800/80 hover:bg-amber-500 text-white hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-xl active:scale-95"
           title="الصورة التالية"
         >
           <ChevronRight className="w-5 h-5" />
-        </button>
+        </Pressable>
       )}
 
-      <button
+      <Pressable
         type="button"
         onClick={() => setPreviewPhotoIndex(null)}
-        className="absolute top-4 start-4 w-10 h-10 rounded-full bg-slate-800/80 hover:bg-rose-600 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95"
+        className="absolute top-4 start-4 w-10 h-10 rounded-pill bg-slate-800/80 hover:bg-rose-600 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95"
         title="إغلاق"
       >
         <X className="w-5 h-5" />
-      </button>
+      </Pressable>
 
       {photos.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 max-w-[80vw] overflow-x-auto py-1 px-2 scrollbar-none">
           {photos.map((_, i) => (
-            <button
+            <Pressable
               key={i}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setPreviewPhotoIndex(i);
               }}
-              className={`rounded-full transition-all cursor-pointer shrink-0 ${
+              className={`rounded-pill transition-all cursor-pointer shrink-0 ${
                 i === previewPhotoIndex ? 'w-6 h-2 bg-amber-500' : 'w-2 h-2 bg-white/40 hover:bg-white/70'
               }`}
             />

@@ -12,6 +12,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { useDrawerFocusTrap } from './hooks/useDrawerFocusTrap';
+import { Button, ButtonLink } from '../../shared/ui';
 
 export interface NavbarMobileDrawerProps {
   navLinks: Array<{
@@ -64,30 +65,24 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-slate-200 p-4">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center font-extrabold text-sm">
+            <span className="w-8 h-8 rounded-md bg-amber-500/15 text-amber-600 flex items-center justify-center font-extrabold text-sm">
               ✨
             </span>
             <h2 id="navbar-drawer-title" className="text-base font-extrabold text-slate-900">
               القائمة والمزيد
             </h2>
           </div>
-          <button
-            ref={closeBtnRef}
-            type="button"
-            onClick={onClose}
-            aria-label="إغلاق القائمة"
-            className="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center cursor-pointer transition-colors active:scale-95"
-          >
-            <X className="w-5 h-5 stroke-[2.2]" />
-          </button>
+          <Button ref={closeBtnRef} variant="icon" onClick={onClose} aria-label="إغلاق القائمة">
+            <X className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
+          </Button>
         </div>
 
         {/* Links Body */}
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           {/* Main Navigation */}
           <div className="space-y-1">
-            <span className="text-caption font-bold text-slate-400 uppercase tracking-wider px-2">
-              التصفح الأساسي
+            <span className="text-caption font-bold text-slate-400 px-2">
+              الاستكشاف
             </span>
             {navLinks.map((link) => {
               const isActive =
@@ -103,10 +98,11 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                     onAnchorClick(e, link.path);
                     onClose();
                   }}
-                  className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-pill flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-amber-500/10 text-amber-800 border-s-2 border-s-[var(--brand)]'
+                      : 'text-slate-700 hover:bg-slate-100 border-s-2 border-s-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -114,7 +110,7 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                     <span>{link.label}</span>
                   </div>
                   {link.badge !== undefined && (
-                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-caption font-bold font-mono">
+                    <span className="px-2 py-0.5 rounded-pill bg-rose-500 text-white text-caption font-bold font-mono">
                       {link.badge}
                     </span>
                   )}
@@ -124,61 +120,67 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
           </div>
 
           {/* Business & Growth */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-100">
-            <span className="text-caption font-bold text-slate-400 uppercase tracking-wider px-2">
-              خدمات الأعمال والنمو
+          <div role="separator" className="h-px bg-slate-200" />
+          <div className="space-y-1.5">
+            <span className="text-caption font-bold text-slate-400 px-2">
+              للأعمال
             </span>
-            <a
+            <ButtonLink
               href="/for-business"
               onClick={(e) => {
                 onAnchorClick(e, '/for-business');
                 onClose();
               }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-98"
+              variant="primary"
+              size="lg"
+              fullWidth
+              leadingIcon={<Store />}
+              trailing="مجاني"
             >
-              <div className="flex items-center gap-2.5">
-                <Store className="w-4 h-4 stroke-[2.2]" />
-                <span>إدراج نشاطك مجاناً</span>
-              </div>
-              <span className="text-caption bg-slate-950 text-white px-2 py-0.5 rounded-md font-bold">مجاني</span>
-            </a>
+              إدراج نشاطك مجاناً
+            </ButtonLink>
 
-            <a
+            <ButtonLink
               href="/pricing"
               onClick={(e) => {
                 onAnchorClick(e, '/pricing');
                 onClose();
               }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-800 text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer border border-slate-200"
+              variant="secondary"
+              size="lg"
+              fullWidth
+              leadingIcon={<BadgeDollarSign className="text-[var(--brand)]" />}
             >
-              <div className="flex items-center gap-2.5">
-                <BadgeDollarSign className="w-4 h-4 text-amber-600 stroke-[2.2]" />
-                <span>باقات النمو والتوثيق الميداني</span>
-              </div>
-            </a>
+              باقات النمو والتوثيق الميداني
+            </ButtonLink>
           </div>
         </div>
 
         {/* Footer info links */}
-        <div className="flex shrink-0 items-center gap-2 border-t border-slate-200 bg-slate-50/50 p-4">
-          <a
+        <div className="shrink-0 space-y-1.5 border-t border-slate-200 bg-slate-50/50 p-4">
+          <span className="text-caption font-bold text-slate-400 px-2">المنصة</span>
+          <div className="flex items-center gap-2">
+          <ButtonLink
             href="/about"
             onClick={(e) => {
               onAnchorClick(e, '/about');
               onClose();
             }}
-            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
+            variant="secondary"
+            className="flex-1"
+            leadingIcon={<Info className="text-slate-400" />}
           >
-            <Info className="w-3.5 h-3.5 text-slate-400" />
-            <span>عن دليلك</span>
-          </a>
-          <a
+            عن دليلك
+          </ButtonLink>
+          <ButtonLink
             href="/offline.html"
-            className="flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors"
+            variant="secondary"
+            className="flex-1"
+            leadingIcon={<WifiOff className="text-slate-400" />}
           >
-            <WifiOff className="w-3.5 h-3.5 text-slate-400" />
-            <span>دليل الأوفلاين</span>
-          </a>
+            دليل الأوفلاين
+          </ButtonLink>
+          </div>
         </div>
       </div>
     </div>

@@ -4,6 +4,9 @@ import { Business } from '../../../../types';
 import { getWhatsAppUrl } from '../../../../shared/lib/whatsapp';
 import { getGoogleMapsDirectionsUrl } from '../../../../shared/lib/directions';
 import { formatDistanceString } from '../../../../utils/directoryEnhancements';
+import { ButtonLink } from '../../../../shared/ui/Button';
+
+const DENSE = 'px-2! gap-1!';
 
 export interface BusinessCardActionButtonsProps {
   business: Business;
@@ -40,51 +43,48 @@ export const BusinessCardActionButtons: React.FC<BusinessCardActionButtonsProps>
   return (
     <div className="dl-hca" onClick={(e) => e.stopPropagation()}>
       <div className="dl-hag">
-        {/* 1. Call (primary) */}
         {hasPhone && (
-          <a
+          <ButtonLink
             href={`tel:${rawPhone.replace(/[^\d+]/g, '')}`}
-            className="dl-act dl-btnp"
+            variant="primary"
+            size="md"
+            leadingIcon={<Phone />}
+            className={DENSE}
             title="اتصال هاتفي مباشر"
           >
-            <span className="dl-t">
-              <Phone className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>اتصال</span>
-            </span>
-          </a>
+            اتصال
+          </ButtonLink>
         )}
 
-        {/* 2. WhatsApp (secondary) */}
         {whatsAppUrl && (
-          <a
+          <ButtonLink
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="dl-act dl-bw"
+            variant="secondary"
+            size="md"
+            leadingIcon={<MessageCircle className="text-green-600" />}
+            className={DENSE}
             title="مراسلة واتساب"
           >
-            <span className="dl-t">
-              <MessageCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>واتساب</span>
-            </span>
-          </a>
+            واتساب
+          </ButtonLink>
         )}
 
-        {/* 3. Directions (secondary, carries the distance) */}
-        <a
+        <ButtonLink
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="dl-act dl-bn"
+          variant="secondary"
+          size="md"
+          leadingIcon={<Navigation className="text-blue-600" />}
+          trailing={distanceLabel}
+          className={DENSE}
           title="الاتجاهات على خرائط Google"
           aria-label={distanceLabel ? `الاتجاهات، على بعد ${distanceLabel}` : 'الاتجاهات'}
         >
-          <span className="dl-t">
-            <Navigation className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>الاتجاهات</span>
-          </span>
-          {distanceLabel && <span className="dl-s">{distanceLabel}</span>}
-        </a>
+          الاتجاهات
+        </ButtonLink>
       </div>
     </div>
   );

@@ -50,25 +50,25 @@ export const Logo: React.FC<LogoProps> = ({
       <defs>
         {/* Luxury Polished Gold Gradient */}
         <linearGradient id="dalelakAppAmber" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FDE68A" />
-          <stop offset="30%" stopColor="#F59E0B" />
-          <stop offset="70%" stopColor="#D97706" />
-          <stop offset="100%" stopColor="#B45309" />
+          <stop offset="0%" stopColor="var(--logo-gold-0)" />
+          <stop offset="30%" stopColor="var(--logo-gold-1)" />
+          <stop offset="70%" stopColor="var(--logo-gold-2)" />
+          <stop offset="100%" stopColor="var(--logo-gold-3)" />
         </linearGradient>
 
         {/* Polished Silver/Platinum Gradient for Buildings */}
         <linearGradient id="dalelakPlatinum" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="45%" stopColor="#F1F5F9" />
-          <stop offset="85%" stopColor="#CBD5E1" />
-          <stop offset="100%" stopColor="#94A3B8" />
+          <stop offset="0%" stopColor="var(--logo-silver-0)" />
+          <stop offset="45%" stopColor="var(--logo-silver-1)" />
+          <stop offset="85%" stopColor="var(--logo-silver-2)" />
+          <stop offset="100%" stopColor="var(--logo-silver-3)" />
         </linearGradient>
 
         {/* Deep Midnight Obsidian Gradient for Dark Backdrop */}
         <linearGradient id="dalelakAppDark" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#111827" />
-          <stop offset="50%" stopColor="#0B132B" />
-          <stop offset="100%" stopColor="#030712" />
+          <stop offset="0%" stopColor="var(--logo-ink-0)" />
+          <stop offset="50%" stopColor="var(--logo-ink-1)" />
+          <stop offset="100%" stopColor="var(--logo-ink-2)" />
         </linearGradient>
       </defs>
 
@@ -116,7 +116,7 @@ export const Logo: React.FC<LogoProps> = ({
         cx="50"
         cy="42"
         r="18"
-        fill="#0A0F1D"
+        fill="var(--logo-ink-core)"
       />
       <circle
         cx="50"
@@ -141,7 +141,7 @@ export const Logo: React.FC<LogoProps> = ({
         opacity="0.9"
       />
       {/* Left Highlight */}
-      <path d="M44 38 L39 42" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" />
+      <path d="M44 38 L39 42" stroke="var(--logo-silver-0)" strokeWidth="0.8" strokeLinecap="round" />
 
       {/* Center Tower (Tallest) */}
       <path
@@ -149,8 +149,8 @@ export const Logo: React.FC<LogoProps> = ({
         fill="url(#dalelakPlatinum)"
       />
       {/* Center Tower Crown Highlight */}
-      <path d="M45.5 32 L51 28 L55 30.5" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <line x1="50" y1="31" x2="50" y2="48" stroke="#0A0F1D" strokeWidth="0.8" opacity="0.8" />
+      <path d="M45.5 32 L51 28 L55 30.5" stroke="var(--logo-silver-0)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <line x1="50" y1="31" x2="50" y2="48" stroke="var(--logo-ink-core)" strokeWidth="0.8" opacity="0.8" />
 
       {/* Right Building */}
       <path
@@ -159,14 +159,14 @@ export const Logo: React.FC<LogoProps> = ({
         opacity="0.9"
       />
       {/* Right Highlight */}
-      <path d="M56.5 41.5 L61.5 43.5" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" />
+      <path d="M56.5 41.5 L61.5 43.5" stroke="var(--logo-silver-0)" strokeWidth="0.8" strokeLinecap="round" />
     </svg>
   );
 
   const IconElement = (
     <div className={`relative ${iconDimensions} shrink-0 group cursor-pointer select-none flex items-center justify-center`}>
       {/* Ambient background glow */}
-      <div className="absolute inset-0 rounded-2xl bg-amber-500/20 blur-sm group-hover:blur-md transition-all duration-300 pointer-events-none" />
+      <div className="absolute inset-0 rounded-lg bg-amber-500/20 blur-sm group-hover:blur-md transition-all duration-300 pointer-events-none" />
       <VectorIcon />
     </div>
   );
@@ -179,14 +179,14 @@ export const Logo: React.FC<LogoProps> = ({
   // 2. OFFICIAL SEAL BADGE (Invoices, Documents, ID Cards)
   if (variant === 'badge') {
     return (
-      <div className={`inline-flex items-center gap-3 bg-[var(--bg-surface)]/95 border border-amber-500/30 rounded-2xl p-2.5 sm:p-3 shadow-md backdrop-blur-md select-none ${className}`}>
+      <div className={`inline-flex items-center gap-3 bg-[var(--bg-surface)]/95 border border-amber-500/30 rounded-lg p-2.5 sm:p-3 shadow-md backdrop-blur-md select-none ${className}`}>
         {IconElement}
         <div className="flex flex-col text-start">
           <div className="flex items-center gap-1.5">
             <span className="font-extrabold text-sm sm:text-base text-[var(--text-primary)] font-['Cairo'] leading-none">
               دليلك
             </span>
-            <span className="bg-emerald-500/15 text-emerald-600 text-caption font-extrabold px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="bg-amber-500/15 text-amber-700 text-caption font-extrabold px-1.5 py-0.5 rounded-pill border border-amber-500/30">
               منظومة معتمدة
             </span>
           </div>

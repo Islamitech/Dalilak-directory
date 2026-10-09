@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { Pressable } from '../../../../shared/ui';
 import { Business } from '../../../../types';
 import { getOptimizedImageUrl } from '../../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../../utils/categoryPhotos';
@@ -136,7 +137,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
       {/* 4. Top-End Favorite Button */}
       {onToggleFavorite && (
         <div className="dl-hrt">
-          <button
+          <Pressable
             type="button"
             data-testid="favorite-button"
             aria-pressed={isFavorite}
@@ -150,14 +151,14 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             <span className={popHeart ? 'dl-pop' : ''}>
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} aria-hidden="true" />
             </span>
-          </button>
+          </Pressable>
         </div>
       )}
 
       {/* 5. Center Video Play Button */}
       {hasVideo && (
         <div className="dl-vid">
-          <button
+          <Pressable
             type="button"
             aria-label={`تشغيل فيديو ${business.nameAr}`}
             onClick={(e) => {
@@ -170,14 +171,14 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             }}
           >
             <Play className="w-5 h-5 fill-current ms-0.5" aria-hidden="true" />
-          </button>
+          </Pressable>
         </div>
       )}
 
       {/* 6. Title and Location Block */}
       <div className="dl-tt">
         <h3 className="dl-nm dl-ts">
-          <button
+          <Pressable
             type="button"
             data-testid="business-card-name"
             onClick={(e) => {
@@ -187,7 +188,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             aria-label={displayName}
           >
             <bdi dir="rtl">{cardTitle}</bdi>
-          </button>
+          </Pressable>
         </h3>
         {areaString && (
           <p className="dl-loc dl-ts">
@@ -203,7 +204,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
           <span className="dl-cnt" dir="ltr" aria-hidden="true">
             {currentSlide + 1}/{gallery.length}
           </span>
-          <button
+          <Pressable
             type="button"
             className="dl-nav-btn dl-nx"
             onClick={(e) => slideTo(1, e)}
@@ -211,8 +212,8 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             style={{ display: currentSlide >= gallery.length - 1 ? 'none' : 'flex' }}
           >
             <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
+          </Pressable>
+          <Pressable
             type="button"
             className="dl-nav-btn dl-pv"
             onClick={(e) => slideTo(-1, e)}
@@ -220,7 +221,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             style={{ display: currentSlide <= 0 ? 'none' : 'flex' }}
           >
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </Pressable>
           <div className="dl-segs" aria-hidden="true">
             {gallery.map((_, k) => (
               <i key={k} className={`dl-seg ${k === currentSlide ? 'dl-on' : ''}`} />

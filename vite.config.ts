@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig, loadEnv } from 'vite';
 
 function supabaseEnvGuardPlugin() {
@@ -30,7 +31,23 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
   },
-  plugins: [react(), tailwindcss(), supabaseEnvGuardPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src/pwa',
+      filename: 'sw.ts',
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      manifest: false,
+      includeAssets: ['favicon.svg', 'offline.html', 'logo.png', 'icon-192.png', 'icon-512.png'],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+      },
+    }),
+    supabaseEnvGuardPlugin(),
+  ],
   build: {
     sourcemap: false,
     rollupOptions: {

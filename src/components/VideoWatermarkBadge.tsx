@@ -23,9 +23,9 @@ export const VideoWatermarkBadge: React.FC<VideoWatermarkBadgeProps> = ({
 
   return (
     <div
-      className={`absolute ${positionClasses} pointer-events-none z-20 flex items-center gap-1.5 bg-slate-950/75 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-500/40 shadow-xl select-none transition-opacity ${className}`}
+      className={`absolute ${positionClasses} pointer-events-none z-20 flex items-center gap-1.5 bg-slate-950/75 backdrop-blur-md px-2.5 py-1 rounded-pill border border-amber-500/40 shadow-xl select-none transition-opacity ${className}`}
     >
-      <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-caption text-slate-950 font-extrabold shadow-xs">
+      <div className="w-4 h-4 rounded-pill bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-caption text-slate-950 font-extrabold shadow-xs">
         ✓
       </div>
       <span className="text-caption font-extrabold text-amber-400 leading-none">دليلك</span>

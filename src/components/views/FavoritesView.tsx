@@ -33,7 +33,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
       subtitle="الأنشطة التي حفظتها للرجوع إليها من نفس بطاقات الدليل."
       icon={<Heart className="h-6 w-6 fill-rose-500 text-rose-500" />}
       action={
-        <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')} icon={<ArrowLeft className="h-4 w-4" />}>
+        <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')} leadingIcon={<ArrowLeft />}>
           استكشف المزيد
         </Button>
       }
@@ -57,7 +57,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
             variant="primary"
             size="md"
             onClick={() => onNavigate('/search')}
-            icon={<Search className="w-4 h-4" />}
+            leadingIcon={<Search />}
           >
             تصفح الأنشطة الآن
           </Button>

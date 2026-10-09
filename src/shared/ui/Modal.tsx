@@ -62,7 +62,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-labelledby={ariaLabelledBy}
         aria-label={!ariaLabelledBy ? (ariaLabel || title || 'نافذة منبثقة') : undefined}
         tabIndex={-1}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90vh] flex flex-col focus:outline-none ${className}`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-lg shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[90vh] flex flex-col focus:outline-none ${className}`}
         style={{ direction: 'rtl' }}
       >
         {/* Modal Header */}

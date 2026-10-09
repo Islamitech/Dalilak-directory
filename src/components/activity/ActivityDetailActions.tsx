@@ -2,6 +2,7 @@ import React from 'react';
 import { Phone, MessageCircle, Navigation } from 'lucide-react';
 import { Business } from '../../types';
 import { requestBusinessNavigation } from '../../shared/lib/pendingNavigation';
+import { Button, ButtonLink } from '../../shared/ui';
 
 export interface ActivityDetailQuickActionsProps {
   business: Business;
@@ -11,8 +12,8 @@ export interface ActivityDetailQuickActionsProps {
 }
 
 /**
- * Quick actions of the detail modal. Uses the exact same markup and classes
- * (dl-act / dl-btnp / dl-bw / dl-bn) as the list card buttons so both previews look identical.
+ * Quick actions of the detail modal. Same variants as the list card buttons;
+ * unavailable actions are omitted rather than rendered disabled.
  */
 export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProps> = ({
   business,
@@ -35,69 +36,46 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
   };
 
   return (
-    <div className="dl-dag">
-      {/* 1. Call */}
-      {hasPhone ? (
-        <a
+    <div className="grid grid-flow-col auto-cols-fr gap-2">
+      {hasPhone && (
+        <ButtonLink
           href={`tel:${rawPhone.replace(/[^\d+]/g, '')}`}
-          className="dl-act dl-btnp"
+          variant="primary"
+          size="md"
+          leadingIcon={<Phone />}
+          className="px-2.5! gap-1!"
           title="اتصال هاتفي مباشر"
         >
-          <span className="dl-t">
-            <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span>اتصال</span>
-          </span>
-          <span className="dl-s">مكالمة</span>
-        </a>
-      ) : (
-        <button type="button" disabled className="dl-act dl-off" aria-label="لا يوجد هاتف">
-          <span className="dl-t">
-            <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span>اتصال</span>
-          </span>
-          <span className="dl-s">غير متوفر</span>
-        </button>
+          اتصال
+        </ButtonLink>
       )}
 
-      {/* 2. WhatsApp */}
-      {hasWhatsApp ? (
-        <a
+      {hasWhatsApp && (
+        <ButtonLink
           href={smartWhatsAppUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="dl-act dl-bw"
+          variant="secondary"
+          size="md"
+          leadingIcon={<MessageCircle className="text-green-600" />}
+          className="px-2.5! gap-1!"
           title="مراسلة واتساب"
         >
-          <span className="dl-t">
-            <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
-            <span>واتساب</span>
-          </span>
-          <span className="dl-s">مراسلة</span>
-        </a>
-      ) : (
-        <button type="button" disabled className="dl-act dl-off" aria-label="واتساب غير متوفر">
-          <span className="dl-t">
-            <MessageCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span>واتساب</span>
-          </span>
-          <span className="dl-s">غير متوفر</span>
-        </button>
+          واتساب
+        </ButtonLink>
       )}
 
-      {/* 3. Directions */}
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="md"
         onClick={handleDirections}
-        className="dl-act dl-bn"
+        leadingIcon={<Navigation className="text-blue-600" />}
+        className="px-2.5! gap-1!"
         title="الاتجاهات على الخريطة"
         aria-label="الاتجاهات على الخريطة"
       >
-        <span className="dl-t">
-          <Navigation className="w-3.5 h-3.5 text-blue-600 shrink-0" aria-hidden="true" />
-          <span>الاتجاهات</span>
-        </span>
-        <span className="dl-s">خريطة</span>
-      </button>
+        الاتجاهات
+      </Button>
     </div>
   );
 };

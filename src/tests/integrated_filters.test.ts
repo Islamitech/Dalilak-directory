@@ -75,11 +75,16 @@ describe('Integrated Search and Filter System', () => {
     expect(foodCat?.icon).toBe('🍽️');
     expect(foodCat?.name).toBe('مطاعم وكافيهات');
     expect(foodCat?.shortName).toBe('مطاعم');
+    expect(foodCat?.description).toContain('المطاعم');
 
     const healthCat = INTEGRATED_FILTER_CATEGORIES.find((c) => c.id === 'health');
     expect(healthCat).toBeDefined();
     expect(healthCat?.icon).toBe('💊');
-    expect(healthCat?.shortName).toBe('صيدليات وعيادات');
+    expect(healthCat?.shortName).toBe('صحة');
+    for (const cat of INTEGRATED_FILTER_CATEGORIES) {
+      expect(cat.shortName.split(/\s+/)).toEqual([cat.shortName]);
+      expect(cat.description.length).toBeGreaterThan(20);
+    }
   });
 
   it('contains all official Hadayek districts', () => {

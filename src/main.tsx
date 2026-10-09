@@ -21,25 +21,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-// Register Service Worker in production for offline shell & PWA resiliency with instant update checking
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((registration) => {
-      registration.update();
-      registration.onupdatefound = () => {
-        const installingWorker = registration.installing;
-        if (installingWorker) {
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              installingWorker.postMessage('skipWaiting');
-            }
-          };
-        }
-      };
-    }).catch((err) => {
-      console.warn('[Dalilak Directory PWA] Service Worker registration skipped:', err);
-    });
-  });
-}
-
 

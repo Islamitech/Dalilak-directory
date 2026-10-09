@@ -13,14 +13,14 @@ export interface MapInfoSheetProps {
   ariaLabel: string;
   /** Scrollable body (info rows, stats...). */
   children?: React.ReactNode;
-  /** Action buttons pinned at the bottom (use the shared dl-act buttons). */
+  /** Action buttons pinned at the bottom (use the shared Button). */
   actions?: React.ReactNode;
 }
 
 /**
  * Unified, non-modal bottom sheet used on the map (buildings, navigation).
  * It mirrors the activity detail modal: amber hero header, dl-ir info rows and a
- * pinned dl-act action bar. It has NO backdrop, so the map and the route stay visible
+ * pinned action bar. It has NO backdrop, so the map and the route stay visible
  * and interactive while it is open.
  */
 export const MapInfoSheet: React.FC<MapInfoSheetProps> = ({

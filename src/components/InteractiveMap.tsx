@@ -25,7 +25,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   targetBuilding = null, onSelectBuilding: externalOnSelectBuilding,
   showHadayekGates = true, selectedZone, onSelectZone, categoryFilter, onCategoryChange,
   initialShowBusinesses = false, onToggleBusinessesVisibility, defaultExpanded = false,
-  onExploreDirectory, activeRoute: externalActiveRoute, onUpdateRoute,
+  onExploreDirectory, onResetFilters, filtersActive = false, activeRoute: externalActiveRoute, onUpdateRoute,
   onStartNavigation: externalOnStartNavigation, onClearBuilding,
   focusedBusiness, onClearFocusedBusiness,
 }) => {
@@ -160,7 +160,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         search={search}
       />
 
-      <div className={canvasWrapperClasses}>
+      <div className={canvasWrapperClasses} data-map-host>
         <div ref={containerRef} className="relative w-full h-full cursor-crosshair leaflet-map-canvas touch-none isolate" />
 
         <MapStatusOverlay
@@ -193,11 +193,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             onCategoryChange={onCategoryChange}
             onSelectZone={onSelectZone}
             matchingCount={matchingBusinessesCount}
-            onResetAll={() => {
-              onSearchChange?.('');
-              onCategoryChange?.('all');
-              onSelectZone?.('all');
-            }}
+            filtersActive={filtersActive}
+            onResetAll={onResetFilters ?? (() => { onSearchChange?.(''); onCategoryChange?.('all'); onSelectZone?.('all'); })}
           />
         )}
 

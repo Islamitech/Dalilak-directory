@@ -17,7 +17,17 @@ export const useMapState = ({
   const [selectedZone, setSelectedZone] = useState<string>(initialSelectedZone);
   const [mapCategoryFilter, setMapCategoryFilter] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
-  const [onlyVerifiedFilter, setOnlyVerifiedFilter] = useState<boolean>(false);
+  const [onlyVerifiedFilter, setOnlyVerifiedRaw] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('verified') === '1';
+  });
+  const setOnlyVerifiedFilter = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    setOnlyVerifiedRaw((prev) => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      window.dispatchEvent(new CustomEvent('showcase:verified', { detail: next }));
+      return next;
+    });
+  }, []);
   const [isMapFilterOpen, setIsMapFilterOpen] = useState<boolean>(false);
   const [showGatesLayer, setShowGatesLayer] = useState<boolean>(false);
   const [showDistrictsOverlay, setShowDistrictsOverlay] = useState<boolean>(true);

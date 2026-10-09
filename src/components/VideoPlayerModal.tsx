@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Business } from '../types';
 import { VideoWatermarkBadge } from './VideoWatermarkBadge';
-import { Modal, IconButton } from '../shared/ui';
+import { Modal, IconButton, Pressable } from '../shared/ui';
 import { getWhatsAppUrl } from '../shared/lib/whatsapp';
 import { getGoogleMapsDirectionsUrl } from '../shared/lib/directions';
 import { 
@@ -72,21 +72,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       maxWidth="lg"
       hideDefaultHeader
       aria-labelledby="video-modal-title"
-      className="!bg-slate-900 !border-amber-500/40 text-slate-100 !rounded-3xl !shadow-2xl overflow-hidden"
+      className="!bg-slate-900 !border-amber-500/40 text-slate-100 !rounded-lg !shadow-2xl overflow-hidden"
       overlayClassName="!bg-slate-950/90 !backdrop-blur-xl"
       contentClassName="p-0"
     >
       {/* Top Header Bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-950/80 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-extrabold">
+          <div className="w-8 h-8 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-extrabold">
             <Film className="w-4 h-4" />
           </div>
           <div>
             <h3 id="video-modal-title" className="font-extrabold text-sm text-white line-clamp-1 flex items-center gap-1.5">
               <span>{business.nameAr}</span>
               {isVerified && (
-                <span className="text-caption font-bold px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                <span className="text-caption font-bold px-2 py-0.2 rounded-pill bg-amber-500/20 text-amber-400 border border-amber-500/40">
                   ✓ موثق
                 </span>
               )}
@@ -104,8 +104,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             onClick={handleShare}
             size="sm"
             variant="ghost"
-            className={`!w-9 !h-9 !rounded-xl transition-colors ${
-              copied ? '!bg-emerald-600 !text-white' : '!bg-slate-800 hover:!bg-slate-700 !text-slate-300'
+            className={`!w-9 !h-9 !rounded-md transition-colors ${
+              copied ? '!bg-amber-600 !text-white' : '!bg-slate-800 hover:!bg-slate-700 !text-slate-300'
             }`}
             icon={copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
           />
@@ -114,7 +114,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             onClick={onClose}
             size="sm"
             variant="ghost"
-            className="!w-9 !h-9 !rounded-xl !bg-slate-800 hover:!bg-rose-500/20 !text-slate-400 hover:!text-rose-400"
+            className="!w-9 !h-9 !rounded-md !bg-slate-800 hover:!bg-rose-500/20 !text-slate-400 hover:!text-rose-400"
             icon={<span className="text-sm font-extrabold">✕</span>}
           />
         </div>
@@ -136,7 +136,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       {/* Video Bottom Summary & Fast Actions */}
       <div className="p-4 bg-slate-950/90 border-t border-white/10 space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+          <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-pill font-bold flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5" />
             <span>فيديو ميداني موثق (30 ثانية)</span>
           </span>
@@ -150,7 +150,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
 
         {business.description && (
-          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed bg-slate-900/60 p-2.5 rounded-xl border border-white/5 font-medium">
+          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed bg-slate-900/60 p-2.5 rounded-lg border border-white/5 font-medium">
             {business.description}
           </p>
         )}
@@ -160,7 +160,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           {business.phone ? (
             <a
               href={`tel:${business.phone}`}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shadow-md"
+              className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-extrabold text-xs py-2.5 rounded-pill flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shadow-md"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>اتصال</span>
@@ -174,7 +174,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               href={whatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-600 font-extrabold text-xs py-2.5 rounded-pill flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>واتساب</span>
@@ -188,21 +188,21 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shadow-md"
+              className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-extrabold text-xs py-2.5 rounded-pill flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shadow-md"
               title="فتح على خرائط Google"
             >
               <Navigation className="w-3.5 h-3.5" />
               <span>الخريطة 🗺️</span>
             </a>
           ) : (
-            <button
+            <Pressable
               type="button"
               disabled
-              className="bg-slate-800 text-slate-500 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 border border-slate-700 cursor-not-allowed opacity-60"
+              className="bg-slate-800 text-slate-500 font-bold text-xs py-2.5 rounded-pill flex items-center justify-center gap-1.5 border border-slate-700 cursor-not-allowed opacity-60"
             >
               <Navigation className="w-3.5 h-3.5 opacity-40" />
               <span>قيد التوثيق ⏳</span>
-            </button>
+            </Pressable>
           )}
         </div>
       </div>

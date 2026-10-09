@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from '../../shared/ui';
 import { Search, Loader2, X, MapPin } from 'lucide-react';
 import { PlaceSearchResult } from '../../utils/geocoding';
 
@@ -38,28 +39,28 @@ export const MapSearchBox: React.FC<MapSearchBoxProps> = ({
             if (searchResults.length > 0) setShowSearchResults(true);
           }}
           placeholder="🔍 ابحث عن اسم شارع أو ميدان، أو الصق إحداثيات أو رابط جوجل ماب مباشرة..."
-          className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl ps-9 pe-8 py-2 focus:outline-none focus:border-amber-500 focus:bg-white shadow-inner transition-colors"
+          className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-sm ps-9 pe-8 py-2 focus:outline-none focus:border-amber-500 focus:bg-white shadow-inner transition-colors"
         />
         {isSearching && (
           <Loader2 className="absolute end-8 w-4 h-4 text-amber-500 animate-spin" />
         )}
         {searchQuery && (
-          <button
+          <Pressable
             type="button"
             onClick={handleClearSearch}
-            className="absolute end-2.5 text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer rounded-full hover:bg-slate-100 transition-colors"
+            className="absolute end-2.5 text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer rounded-pill hover:bg-slate-100 transition-colors"
             aria-label="مسح البحث"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Pressable>
         )}
       </div>
 
       {/* Search Suggestions Dropdown */}
       {showSearchResults && searchResults.length > 0 && (
-        <div className="absolute top-full inset-x-3 mt-1 bg-white/98 border border-slate-200 rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden z-40 max-h-60 overflow-y-auto divide-y divide-slate-100">
+        <div className="absolute top-full inset-x-3 mt-1 bg-white/98 border border-slate-200 rounded-lg shadow-xl backdrop-blur-xl overflow-hidden z-40 max-h-60 overflow-y-auto divide-y divide-slate-100">
           {searchResults.map((item, idx) => (
-            <button
+            <Pressable
               key={idx}
               type="button"
               onClick={() => handleSelectSearchResult(item)}
@@ -70,7 +71,7 @@ export const MapSearchBox: React.FC<MapSearchBoxProps> = ({
                 <div className="font-bold text-slate-900">{item.displayName.split(',')[0]}</div>
                 <div className="text-caption text-slate-500 line-clamp-1">{item.displayName}</div>
               </div>
-            </button>
+            </Pressable>
           ))}
         </div>
       )}

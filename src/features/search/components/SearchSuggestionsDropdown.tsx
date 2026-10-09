@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Pressable } from '../../../shared/ui';
 import { History, Sparkles, Building2 } from 'lucide-react';
 import { Business } from '../../../types';
 import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
@@ -35,21 +36,21 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
   }, [searchQuery]);
 
   return (
-    <div className="absolute top-full inset-x-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
+    <div className="absolute top-full inset-x-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-2xl z-50 overflow-hidden text-xs animate-fade-in">
       <div className="p-3 space-y-3 max-h-[min(18rem,40dvh)] overflow-y-auto overscroll-contain text-start">
         {buildingMatch && (
           <div className="space-y-1 pb-2 border-b border-[var(--border-color)]">
             <span className="text-caption font-extrabold text-[var(--text-muted)] block px-2">
               عمارة سكنية في أطلس حدائق الأهرام
             </span>
-            <button
+            <Pressable
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSelectQuery(searchQuery)}
-              className="w-full text-start p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-slate-900 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+              className="w-full text-start p-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-slate-900 flex items-center justify-between gap-2 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-md bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -61,10 +62,10 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                   </p>
                 </div>
               </div>
-              <span className="text-caption bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shrink-0 font-extrabold">
+              <span className="text-caption bg-amber-500 text-slate-950 px-2.5 py-1 rounded-pill shrink-0 font-extrabold">
                 عرض
               </span>
-            </button>
+            </Pressable>
           </div>
         )}
 
@@ -74,7 +75,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
               أنشطة مقترحة
             </span>
             {suggestions.map((biz) => (
-              <button
+              <Pressable
                 key={biz.id}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -82,7 +83,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                   if (onSelectBusiness) onSelectBusiness(biz);
                   else onSelectQuery(biz.nameAr);
                 }}
-                className="w-full text-start p-2 rounded-xl hover:bg-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                className="w-full text-start p-2 rounded-lg hover:bg-slate-100 flex items-center justify-between gap-2 transition-colors cursor-pointer"
               >
                 <div className="min-w-0">
                   <p dir={getFirstStrongDirection(biz.nameAr)} className="font-extrabold text-[var(--text-primary)] truncate">
@@ -90,10 +91,10 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                   </p>
                   <p className="text-caption text-[var(--text-muted)] truncate">{biz.category} • {biz.governorate}</p>
                 </div>
-                <span className="text-caption bg-amber-500/15 text-amber-700 px-2 py-0.5 rounded-md shrink-0 font-bold">
+                <span className="text-caption bg-amber-500/15 text-amber-700 px-2 py-0.5 rounded-pill shrink-0 font-bold">
                   عرض
                 </span>
-              </button>
+              </Pressable>
             ))}
           </div>
         )}
@@ -105,25 +106,25 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                 <History className="w-3 h-3 text-slate-400" />
                 <span>عمليات البحث الأخيرة</span>
               </span>
-              <button
+              <Pressable
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={onClearRecent}
                 className="text-caption text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
               >
                 مسح السجل
-              </button>
+              </Pressable>
             </div>
             <div className="flex flex-wrap gap-1.5 px-2">
               {recentSearches.map((term, i) => (
-                <button
+                <Pressable
                   key={i}
                   type="button"
                   onClick={() => onSelectQuery(term)}
-                  className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-800 text-caption font-bold cursor-pointer transition-colors"
+                  className="px-3 py-1 rounded-pill bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-800 text-caption font-bold cursor-pointer transition-colors"
                 >
                   {term}
-                </button>
+                </Pressable>
               ))}
             </div>
           </div>
@@ -137,14 +138,14 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
             </span>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {POPULAR_SEARCH_TERMS.map((term, i) => (
-                <button
+                <Pressable
                   key={i}
                   type="button"
                   onClick={() => onSelectQuery(term)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-800 text-caption font-bold cursor-pointer transition-colors"
+                  className="px-2.5 py-1 rounded-pill bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-800 text-caption font-bold cursor-pointer transition-colors"
                 >
                   {term}
-                </button>
+                </Pressable>
               ))}
             </div>
           </div>

@@ -35,7 +35,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
   const positionClasses = {
     bottom:
-      'bottom-0 inset-x-0 max-h-[85dvh] rounded-t-3xl border-t border-slate-200/80',
+      'bottom-0 inset-x-0 max-h-[85dvh] rounded-t-lg border-t border-slate-200/80',
     right:
       'top-0 bottom-0 end-0 w-full max-w-md border-s border-slate-200/80 shadow-2xl',
     left:
@@ -61,7 +61,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       >
         {/* Grab Handle for bottom sheet */}
         {!hideDefaultHeader && position === 'bottom' && (
-          <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-3 shrink-0" />
+          <div className="w-12 h-1.5 bg-slate-300 rounded-pill mx-auto my-3 shrink-0" />
         )}
 
         {/* Header */}

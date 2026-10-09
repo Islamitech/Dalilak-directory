@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Lock } from 'lucide-react';
 import { Business } from '../../types';
 import {
@@ -7,7 +8,10 @@ import {
   getSmartWhatsAppUrl,
 } from '../../utils/directoryEnhancements';
 import { getPublicDirectoryUrl } from '../../utils/directoryUrl';
-import { Modal, Button } from '../../shared/ui';
+import { Modal, Button, EntitySheet, type EntitySheetSnap } from '../../shared/ui';
+import { UnifiedBusinessCard } from '../../features/business-details';
+import { getBusinessEntryGate } from '../../utils/hadayekZoneHelper';
+import { requestBusinessNavigation } from '../../shared/lib/pendingNavigation';
 import { ShowcasePhotoLightbox } from './PhotoLightbox';
 import { useActivityPhotos } from './hooks/useActivityPhotos';
 import { ActivityDetailHeader } from './ActivityDetailHeader';
@@ -28,6 +32,12 @@ export interface ActivityDetailModalProps {
   onShowOnMap?: (biz: Business) => void;
 }
 
+function activitySheetPlacement(): 'map' | 'page' {
+  const background = String(window.history.state?.directoryBackground || '');
+  const path = (background || window.location.pathname).split('?')[0];
+  return path === '/' || path === '/map' ? 'map' : 'page';
+}
+
 export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   business,
   onClose,
@@ -45,6 +55,19 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   const [vCardSaved, setVCardSaved] = useState(false);
 
   const photos = useActivityPhotos(business);
+  const [snap, setSnap] = useState<EntitySheetSnap>('full');
+  const entryGate = business ? getBusinessEntryGate(business) : null;
+
+  useEffect(() => {
+    if (!business || business.verificationStatus === 'rejected') return;
+    const onMap = activitySheetPlacement() === 'map';
+    setSnap(onMap ? 'peek' : 'full');
+    if (onMap) window.dispatchEvent(new CustomEvent('map:stash-camera'));
+    window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: true } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } }));
+    };
+  }, [business]);
 
   if (!business) return null;
 
@@ -58,7 +81,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         aria-label="نشاط غير متاح"
       >
         <div className="text-center space-y-4 p-5">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
             <Lock className="w-7 h-7" />
           </div>
           <h3 className="font-extrabold text-base text-slate-900">هذا النشاط غير متاح حالياً</h3>
@@ -106,19 +129,33 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
     .filter((b) => b.id !== business.id && groupId !== 'other' && matchesCategoryFilter(b, groupId))
     .slice(0, 3);
 
-  return (
-    <>
-      <Modal
-        isOpen={!!business}
-        onClose={onClose}
-        maxWidth="lg"
-        hideDefaultHeader
-        aria-labelledby="activity-detail-modal-title"
-        className="!sheet-modal dl-modal-box !p-0 !border-slate-200 overflow-hidden shadow-2xl"
-        overlayClassName="!items-center !justify-center !p-3 sm:!p-6 !bg-slate-900/60 !backdrop-blur-xs"
-        contentClassName="!p-0 flex flex-col flex-1 min-h-0 h-full !overflow-hidden"
-      >
-        <div className="dl-dwrap text-start">
+  const mapHost = activitySheetPlacement() === 'map' ? document.querySelector('[data-map-host]') : null;
+  const placement = mapHost ? 'map' : 'page';
+  const openFromGate = () => {
+    if (!entryGate || !onShowOnMap) return;
+    requestBusinessNavigation(business.id, entryGate.id);
+    onShowOnMap(business);
+  };
+  const sheet = (
+    <EntitySheet
+      snap={snap}
+      onSnapChange={setSnap}
+      onClose={onClose}
+      placement={placement}
+      ariaLabel={business.nameAr || 'تفاصيل النشاط'}
+      peek={
+        <div className="p-3">
+          <UnifiedBusinessCard
+            variant="compact"
+            business={business}
+            onOpenBusiness={() => setSnap('half')}
+            isFavorite={isFavorite}
+            onToggleFavorite={onToggleFavorite}
+          />
+        </div>
+      }
+    >
+      <div className="dl-dwrap text-start min-h-full">
           <ActivityDetailHeader
             business={business}
             photos={photos}
@@ -140,6 +177,8 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                 onShowOnMap={onShowOnMap}
                 onSaveContact={handleSaveContact}
                 vCardSaved={vCardSaved}
+                gateLabel={entryGate?.label}
+                onEnterFromGate={entryGate && onShowOnMap ? openFromGate : undefined}
               />
 
               <ActivityDetailFooter
@@ -162,8 +201,12 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               onShowOnMap={onShowOnMap}
             />
           </div>
-        </div>
-      </Modal>
+      </div>
+    </EntitySheet>
+  );
+  return (
+    <>
+      {mapHost ? createPortal(sheet, mapHost) : sheet}
 
       <ShowcasePhotoLightbox
         photos={photos}

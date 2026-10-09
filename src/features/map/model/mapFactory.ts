@@ -18,13 +18,14 @@ export interface MapInstanceInitOptions {
   center: { lat: number; lng: number; zoom?: number };
   zoomLevel: number;
   mode: 'picker' | 'view';
+  restoreCamera?: boolean;
 }
 
 export function createLeafletMapInstance(options: MapInstanceInitOptions): {
   map: any;
   cameraController: CameraController;
 } {
-  const { container, center, zoomLevel, mode } = options;
+  const { container, center, zoomLevel, mode, restoreCamera = false } = options;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
   try {
@@ -58,12 +59,14 @@ export function createLeafletMapInstance(options: MapInstanceInitOptions): {
     map.setMaxBounds(HADAYEK_BOUNDS);
     map.options.minZoom = isMobile ? 12.8 : 13.2;
     map.options.maxZoom = 19.5;
-    try {
-      cameraController.request(
-        { kind: 'fitBounds', bounds: HADAYEK_VIEW_BOUNDS, options: { padding: [12, 12], maxZoom: 14.5, animate: false } },
-        'initial'
-      );
-    } catch {}
+    if (!restoreCamera) {
+      try {
+        cameraController.request(
+          { kind: 'fitBounds', bounds: HADAYEK_VIEW_BOUNDS, options: { padding: [12, 12], maxZoom: 14.5, animate: false } },
+          'initial'
+        );
+      } catch {}
+    }
   } else {
     map.options.minZoom = 6;
     map.options.maxZoom = 19.5;

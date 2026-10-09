@@ -244,6 +244,59 @@ function runArchitectureCheck() {
     console.log(`✅ Sandbox isolation verified: 0 production files import from directory-experience.`);
   }
 
+  // 9. Design-system guard (improvement plan, phase 5)
+  // Fails the build on raw hex in .tsx, font-black, type under 12px, and
+  // raw <button className=> outside src/shared/ui.
+  const HEX_REGEX = /#[0-9a-fA-F]{6}\b/g;
+  const FONT_BLACK_REGEX = /\bfont-black\b/g;
+  const TINY_TEXT_REGEX = /text-\[(\d+(?:\.\d+)?)px\]/g;
+  const RAW_BUTTON_REGEX = /<button\b[^>]*\bclassName\s*=/g;
+  let designViolations = 0;
+
+  sourceFiles.forEach((filePath) => {
+    if (!filePath.endsWith('.tsx')) return;
+    const rel = path.relative(SRC, filePath).replace(/\\/g, '/');
+    const inSharedUi = rel.startsWith('shared/ui/');
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split(/\r?\n/);
+
+    lines.forEach((line, idx) => {
+      const where = `${rel}:${idx + 1}`;
+      const hex = line.match(HEX_REGEX);
+      if (hex) {
+        errors.push(`Raw hex color in "${where}": ${hex.join(', ')}. Use a token from src/index.css.`);
+        designViolations++;
+      }
+      if (FONT_BLACK_REGEX.test(line)) {
+        errors.push(`font-black in "${where}". Use font-extrabold (Cairo 800).`);
+        designViolations++;
+      }
+      FONT_BLACK_REGEX.lastIndex = 0;
+
+      let tiny;
+      while ((tiny = TINY_TEXT_REGEX.exec(line)) !== null) {
+        const size = parseFloat(tiny[1]);
+        if (size < 12) {
+          errors.push(`Type under 12px in "${where}": text-[${tiny[1]}px]. Minimum is text-caption (12px); map pins may use 11px only in badgeMarkers.ts and categoryPinStyle.ts.`);
+          designViolations++;
+        }
+      }
+      TINY_TEXT_REGEX.lastIndex = 0;
+    });
+
+    if (!inSharedUi) {
+      const buttonMatches = content.match(RAW_BUTTON_REGEX);
+      if (buttonMatches) {
+        errors.push(`Raw <button className=> in "${rel}" (${buttonMatches.length}). Use Button, Chip, IconButton, or Pressable from shared/ui.`);
+        designViolations++;
+      }
+    }
+  });
+
+  if (designViolations === 0) {
+    console.log('✅ Design-system guard: no raw hex, font-black, sub-12px type, or raw buttons outside shared/ui.');
+  }
+
   console.log('========================================\n');
 
   if (errors.length > 0) {

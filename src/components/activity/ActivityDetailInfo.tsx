@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Check, Clock, MapPin, Phone, Tag, UserPlus } from 'lucide-react';
+import { Button, Pressable } from '../../shared/ui';
+import { Check, Clock, Compass, MapPin, Phone, Tag, UserPlus } from 'lucide-react';
 import { Business } from '../../types';
 import { getBusinessOpenStatus } from '../../utils/directoryEnhancements';
 import { formatCount, formatRating, formatWorkingHoursLabel } from '../../shared/lib/format';
@@ -12,12 +13,16 @@ export interface ActivityDetailInfoProps {
   onShowOnMap?: (biz: Business) => void;
   onSaveContact?: () => void;
   vCardSaved?: boolean;
+  gateLabel?: string | null;
+  onEnterFromGate?: () => void;
 }
 
 export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
   business,
   onSaveContact,
   vCardSaved = false,
+  gateLabel,
+  onEnterFromGate,
 }) => {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const openStatus = getBusinessOpenStatus(business.workingHours);
@@ -105,6 +110,12 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
           </div>
         </div>
 
+        {gateLabel && onEnterFromGate && (
+          <Button variant="secondary" size="sm" onClick={onEnterFromGate} leadingIcon={<Compass />}>
+            الدخول من {gateLabel}
+          </Button>
+        )}
+
         {/* Phone Row */}
         {phone && (
           <div className="dl-ir">
@@ -124,7 +135,7 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
               </div>
             </div>
             {onSaveContact && (
-              <button
+              <Pressable
                 type="button"
                 onClick={onSaveContact}
                 className={`dl-isv ${vCardSaved ? 'dl-on' : ''}`}
@@ -133,7 +144,7 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
               >
                 {vCardSaved ? <Check className="w-3.5 h-3.5" /> : <UserPlus className="w-3.5 h-3.5" />}
                 <span>{vCardSaved ? 'تم الحفظ' : 'حفظ'}</span>
-              </button>
+              </Pressable>
             )}
           </div>
         )}
@@ -141,19 +152,19 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
 
       {/* 4. Description / About (if present) */}
       {(business.seoIntro || business.description) && (
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium space-y-1">
+        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium space-y-1">
           <span className="text-caption text-amber-700 font-extrabold block">نبذة ومعلومات:</span>
           <p className={!isDescExpanded && (business.seoIntro || business.description)!.length > 180 ? 'line-clamp-2' : ''}>
             {business.seoIntro || business.description}
           </p>
           {(business.seoIntro || business.description)!.length > 180 && (
-            <button
+            <Pressable
               type="button"
               onClick={() => setIsDescExpanded(!isDescExpanded)}
               className="text-amber-700 hover:underline font-bold text-xs pt-0.5 cursor-pointer block"
             >
               {isDescExpanded ? 'عرض أقل ▴' : 'عرض المزيد ▾'}
-            </button>
+            </Pressable>
           )}
         </div>
       )}

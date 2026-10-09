@@ -5,7 +5,7 @@ import { getHadayekZone, getRecommendedGateForZone } from '../../data/hadayekAtl
 import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
 import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
 import { getFirstStrongDirection } from '../../utils/textDirection';
-import { MapInfoSheet } from '../../shared/ui';
+import { Button, Pressable } from '../../shared/ui';
 
 export interface BuildingDetailData {
   buildingNumber: string;
@@ -61,37 +61,20 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
   };
 
   return (
-    <MapInfoSheet
-      ariaLabel={`تفاصيل عمارة ${building.buildingNumber}`}
-      icon={<Building2 className="w-6 h-6 stroke-[2.2]" />}
-      chips={
-        <>
-          <span className="dl-msh-chip">حدائق الأهرام</span>
-          <span className="dl-msh-chip dl-blue">{zoneName}</span>
-        </>
-      }
-      title={<>عمارة رقم {building.buildingNumber}</>}
-      onClose={onClose}
-      actions={
-        <div className="dl-dag dl-dag-2">
-          <button type="button" onClick={handleStartNav} className="dl-act dl-btnp">
-            <span className="dl-t">
-              <Navigation className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span>ابدأ الملاحة</span>
-            </span>
-            <span className="dl-s">داخل التطبيق</span>
-          </button>
-
-          <button type="button" onClick={handleOpenGoogleMaps} className="dl-act dl-bn">
-            <span className="dl-t">
-              <ExternalLink className="w-3.5 h-3.5 text-blue-600 shrink-0" aria-hidden="true" />
-              <span>خرائط Google</span>
-            </span>
-            <span className="dl-s">توجيه صوتي</span>
-          </button>
+    <div className="flex min-h-full flex-col">
+      <header className="dl-msh">
+        <span className="dl-msh-ic" aria-hidden="true">
+          <Building2 className="w-6 h-6 stroke-[2.2]" />
+        </span>
+        <div className="dl-msh-t">
+          <div className="dl-msh-chips">
+            <span className="dl-msh-chip">حدائق الأهرام</span>
+            <span className="dl-msh-chip dl-blue">{zoneName}</span>
+          </div>
+          <h3>عمارة رقم {building.buildingNumber}</h3>
         </div>
-      }
-    >
+      </header>
+      <div className="dl-msb">
       {/* Best entry gate */}
       <div className="dl-ir">
         <span className="dl-ico">
@@ -111,7 +94,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
       {/* Activities in / near the building */}
       {matchingBusinesses.length > 0 && (
         <>
-          <button
+          <Pressable
             type="button"
             onClick={() => setIsBusinessesOpen((open) => !open)}
             aria-expanded={isBusinessesOpen}
@@ -130,13 +113,13 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
               <span>{isBusinessesOpen ? 'إخفاء' : 'عرض'}</span>
               {isBusinessesOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </span>
-          </button>
+          </Pressable>
 
           {isBusinessesOpen && (
             <div className="dl-sm">
               <div className="dl-g">
                 {matchingBusinesses.map((biz) => (
-                  <button
+                  <Pressable
                     key={biz.id}
                     type="button"
                     onClick={() => onSelectBusiness && onSelectBusiness(biz)}
@@ -147,13 +130,29 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
                       </b>
                       <small>{biz.category}</small>
                     </div>
-                  </button>
+                  </Pressable>
                 ))}
               </div>
             </div>
           )}
         </>
       )}
-    </MapInfoSheet>
+      </div>
+      <div className="dl-dbar">
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="primary" size="lg" onClick={handleStartNav} leadingIcon={<Navigation />}>
+            ابدأ الملاحة
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={handleOpenGoogleMaps}
+            leadingIcon={<ExternalLink className="text-blue-600" />}
+          >
+            خرائط Google
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };

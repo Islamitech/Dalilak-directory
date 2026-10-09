@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Building2, ChevronLeft, Store, X } from 'lucide-react';
+import { Pressable } from '../../shared/ui';
+import { Building2, ChevronLeft, Store } from 'lucide-react';
 import { Business } from '../../types';
 import { getHadayekZone } from '../../data/hadayekAtlasData';
 import { isBusinessAssociatedWithBuilding } from '../../utils/hadayekBuildingSearch';
@@ -15,14 +16,12 @@ interface MapBuildingPreviewCardProps {
   };
   businesses: Business[];
   onOpenDetails: () => void;
-  onClose: () => void;
 }
 
 export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
   building,
   businesses,
   onOpenDetails,
-  onClose,
 }) => {
   const zone = getHadayekZone(building.zoneLetter);
   const associatedBusinessesCount = useMemo(
@@ -41,16 +40,12 @@ export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
   );
 
   return (
-    <section
-      aria-label={`معاينة عمارة ${building.buildingNumber}`}
-      data-map-sheet dir="rtl" className="dl-msheet dl-msheet-preview pointer-events-auto"
-    >
-      <div className="flex items-center gap-3 p-3">
+    <div className="flex items-center gap-3 p-3" dir="rtl">
         <div className="dl-msh-ic">
           <Building2 className="h-6 w-6 stroke-[2.5]" />
         </div>
 
-        <button
+        <Pressable
           type="button"
           onClick={onOpenDetails}
           className="min-w-0 flex-1 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
@@ -68,23 +63,13 @@ export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
             عمارة رقم {building.buildingNumber}
           </div>
           <div className="mt-1 flex items-center gap-1 text-caption font-bold text-slate-500">
-            <Store className="h-3.5 w-3.5 text-emerald-600" />
+            <Store className="h-3.5 w-3.5 text-[var(--brand)]" />
             <span>{formatNearbyActivityCount(associatedBusinessesCount)}</span>
             <span className="ms-auto inline-flex items-center gap-0.5 text-amber-700">
               التفاصيل <ChevronLeft className="h-3.5 w-3.5" />
             </span>
           </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="إغلاق معاينة المبنى"
-          className="dl-msx"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        </Pressable>
       </div>
-    </section>
   );
 };

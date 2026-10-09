@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable, Button } from '../../shared/ui';
 import { Store, AlertTriangle } from 'lucide-react';
 import { Business } from '../../types';
 import { getFirstStrongDirection } from '../../utils/textDirection';
@@ -33,7 +34,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                 getCategoryFallbackCover(sim.category);
 
               return (
-                <button
+                <Pressable
                   key={sim.id}
                   type="button"
                   onClick={() => onSelectBusiness && onSelectBusiness(sim)}
@@ -50,7 +51,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                     </b>
                     <small>{sim.category}</small>
                   </div>
-                </button>
+                </Pressable>
               );
             })}
           </div>
@@ -59,8 +60,11 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
 
       {/* 4. Claim & Report WhatsApp Links */}
       <div className="dl-cr">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={<Store />}
+          className="text-amber-700"
           onClick={() => {
             if (onNavigateToBusinessClaim) {
               onNavigateToBusinessClaim(business);
@@ -74,13 +78,9 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
               );
             }
           }}
-          className="bg-transparent border-0 p-0 cursor-pointer text-start"
         >
-          <span className="flex items-center gap-1 text-[#b45309] hover:text-[#d97706] transition-colors">
-            <Store className="w-3.5 h-3.5 shrink-0" />
-            <span>صاحب النشاط؟ اطلب الإدارة</span>
-          </span>
-        </button>
+          صاحب النشاط؟ اطلب الإدارة
+        </Button>
 
         <a
           href={`https://wa.me/201556221141?text=${encodeURIComponent(

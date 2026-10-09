@@ -25,26 +25,26 @@ export const PhotoWatermarkBadge: React.FC<PhotoWatermarkBadgeProps> = ({
 
   const sizeStyles = {
     sm: {
-      container: 'px-2.5 py-1 gap-1.5 rounded-xl border border-amber-500/50 shadow-md',
-      icon: 'w-4 h-4 text-caption rounded-full',
+      container: 'px-2.5 py-1 gap-1.5 rounded-pill border border-amber-500/50 shadow-md',
+      icon: 'w-4 h-4 text-caption rounded-pill',
       arText: 'text-xs font-extrabold text-amber-400',
       enText: 'text-caption font-extrabold text-slate-100 tracking-wider',
     },
     md: {
-      container: 'px-3.5 py-1.5 gap-2 rounded-2xl border border-amber-500/60 shadow-lg',
-      icon: 'w-5 h-5 text-xs rounded-full',
+      container: 'px-3.5 py-1.5 gap-2 rounded-pill border border-amber-500/60 shadow-lg',
+      icon: 'w-5 h-5 text-xs rounded-pill',
       arText: 'text-sm font-extrabold text-amber-400',
       enText: 'text-caption font-extrabold text-slate-100 tracking-wider',
     },
     lg: {
-      container: 'px-4 py-2 gap-2.5 rounded-2xl border-2 border-amber-500/70 shadow-xl',
-      icon: 'w-6 h-6 text-sm rounded-xl',
+      container: 'px-4 py-2 gap-2.5 rounded-pill border-2 border-amber-500/70 shadow-xl',
+      icon: 'w-6 h-6 text-sm rounded-md',
       arText: 'text-base font-extrabold text-amber-400',
       enText: 'text-xs font-extrabold text-slate-100 tracking-widest',
     },
     xl: {
-      container: 'px-4 sm:px-5 py-2 sm:py-2.5 gap-2.5 sm:gap-3 rounded-2xl border-2 border-amber-400/80 shadow-2xl',
-      icon: 'w-6 sm:w-7 h-6 sm:h-7 text-xs sm:text-sm rounded-xl',
+      container: 'px-4 sm:px-5 py-2 sm:py-2.5 gap-2.5 sm:gap-3 rounded-pill border-2 border-amber-400/80 shadow-2xl',
+      icon: 'w-6 sm:w-7 h-6 sm:h-7 text-xs sm:text-sm rounded-md',
       arText: 'text-base sm:text-lg font-extrabold text-amber-400',
       enText: 'text-xs sm:text-sm font-extrabold text-white tracking-widest',
     },

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useLayoutEffect, useState, useRef } from 'react';
 import { Logo } from '../Logo';
 import {
   MoreHorizontal,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { NavbarMobileDrawer } from './NavbarMobileDrawer';
 import { UnifiedMapSearch } from './UnifiedMapSearch';
+import { Button, ButtonLink } from '../../shared/ui';
 import { Business } from '../../types';
 
 export interface AppNavbarProps {
@@ -47,6 +48,19 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const apply = () => {
+      document.documentElement.style.setProperty('--app-header-h', `${header.getBoundingClientRect().height}px`);
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
 
   const handleLinkClick = (path: string) => {
@@ -69,11 +83,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-2xs pt-[env(safe-area-inset-top)]"
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto px-2.5 min-[360px]:px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
-        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-3">
+        <div className="flex flex-nowrap items-center gap-x-1.5 sm:gap-x-3">
           {/* 1. Right (RTL Start): Brand Logo & Name (order-1) */}
           <div className="order-1 flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <a
@@ -82,12 +97,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               className="flex items-center gap-2 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-0.5"
               aria-label="الرئيسية - منصة دليلك"
             >
-              <Logo variant="icon" size="sm" className="w-8 h-8 sm:w-9 sm:h-9" />
+              <Logo variant="icon" size="sm" className="w-9 h-9" />
               <div className="flex flex-col">
                 <span className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight leading-none group-hover:text-amber-600 transition-colors">
                   دليلك
                 </span>
-                <span className="hidden min-[480px]:inline text-caption text-slate-500 font-bold leading-none mt-0.5">
+                <span className="hidden lg:inline text-caption text-slate-500 font-bold leading-none mt-0.5">
                   دليل الخدمات الذكي
                 </span>
               </div>
@@ -96,55 +111,52 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
 
           {/* 2. Left (RTL End): ONLY 3 items (Favorites, Add Business, More Menu ⋯) */}
           <div className="order-2 lg:order-4 flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Favorites (المفضلة) */}
-            <button
-              type="button"
+            {/* Favorites stay in the side drawer on phones; desktop keeps the icon. */}
+            <div className="hidden lg:block">
+            <Button
+              variant="icon"
               onClick={() => onNavigate('/favorites')}
-              className={`relative w-10 h-10 rounded-xl border flex items-center justify-center cursor-pointer transition-all active:scale-95 ${
-                cleanRoute === '/favorites'
-                  ? 'bg-amber-50 border-amber-400 text-amber-600'
-                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400'
-              }`}
+              className={`relative ${cleanRoute === '/favorites' ? 'text-[var(--brand)]! border-[var(--brand)]!' : ''}`}
               aria-label={`المفضلة${favoritesCount > 0 ? ` (${favoritesCount})` : ''}`}
+              aria-current={cleanRoute === '/favorites' ? 'page' : undefined}
               title="المفضلة"
             >
-              <Heart className="w-4 h-4 stroke-[2.2]" />
+              <Heart className="w-4 h-4 stroke-[2.2]" aria-hidden="true" />
               {favoritesCount > 0 && (
-                <span className="absolute -top-1 -start-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-caption font-extrabold flex items-center justify-center">
+                <span className="absolute -top-1 -start-1 min-w-[18px] h-[18px] px-1 rounded-pill bg-rose-500 text-white text-caption font-extrabold flex items-center justify-center">
                   {favoritesCount > 99 ? '+99' : favoritesCount}
                 </span>
               )}
-            </button>
+            </Button>
+            </div>
 
-            {/* Add Activity CTA (أضف نشاطك) */}
-            <a
+            <ButtonLink
               href="/for-business"
               onClick={(e) => handleAnchorClick(e, '/for-business')}
-              className="h-10 px-2.5 sm:px-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              variant="primary"
+              size="sm"
+              leadingIcon={<Store />}
               aria-label="أضف نشاطك مجاناً"
               title="أضف نشاطك"
             >
-              <Store className="w-4 h-4 stroke-[2.2]" />
               <span className="hidden min-[480px]:inline">أضف نشاطك</span>
-            </a>
+            </ButtonLink>
 
-            {/* More Menu (...) Button */}
-            <button
+            <Button
               ref={moreButtonRef}
-              type="button"
+              variant="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-400 flex items-center justify-center cursor-pointer transition-all active:scale-95"
               aria-label="المزيد من الخيارات والقائمة"
               title="المزيد"
               aria-expanded={mobileMenuOpen}
             >
-              <MoreHorizontal className="w-5 h-5 stroke-[2.2]" />
-            </button>
+              <MoreHorizontal className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
+            </Button>
           </div>
 
           {/* 3. Single Unified SearchField for all modes (order-4 w-full on mobile, order-3 flex-1 on desktop) */}
           {onSearchChange && (
-            <div className="order-4 lg:order-3 w-full lg:w-auto lg:flex-1 lg:max-w-xl lg:mx-4">
+            <div className="order-3 min-w-0 flex-1 lg:max-w-xl lg:mx-4">
               <UnifiedMapSearch
                 value={searchQuery}
                 onChange={onSearchChange}

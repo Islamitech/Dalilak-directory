@@ -223,7 +223,7 @@ export function createCompactActivityPinHtml(
       : '';
 
   const verifiedDotHtml = isVerified
-    ? `<span style="position:absolute;top:-3px;left:-3px;z-index:5;width:11px;height:11px;border-radius:50%;background:#059669;border:1.5px solid #ffffff;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
+    ? `<span style="position:absolute;top:-3px;left:-3px;z-index:5;width:11px;height:11px;border-radius:50%;background:#d97706;border:1.5px solid #ffffff;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
     : '';
 
   const nameHtml = showName
@@ -339,7 +339,7 @@ export function renderUnifiedCompactCardHtml(
             <span>${ratingText}</span>
           </span>
         ` : `
-          <span style="font-size: 8.5px; font-weight: 800; color: #059669; background: rgba(5, 150, 105, 0.08); padding: 0.5px 5px; border-radius: 4px;">
+          <span style="font-size: 8.5px; font-weight: 800; color: #b45309; background: rgba(217, 119, 6, 0.10); padding: 0.5px 5px; border-radius: 4px;">
             ${isVerified ? 'معتمد رسمي' : 'مسجل'}
           </span>
         `}
@@ -372,7 +372,7 @@ export function renderUnifiedCompactCardHtml(
           <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.35) 0%, transparent 60%); pointer-events: none;"></div>
           ${rankBadgeHtml}
           ${isVerified ? `
-            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 13px; height: 13px; border-radius: 50%; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
+            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 13px; height: 13px; border-radius: 50%; background: #d97706; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
               <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
           ` : ''}
@@ -486,7 +486,7 @@ export function createExpandedActivityCardHtml(
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #059669; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #d97706; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = hoursLabel ? `
@@ -582,7 +582,7 @@ export function createExpandedActivityCardHtml(
               </span>
             `}
             ${smartWhatsAppUrl ? `
-              <a href="${escapeHtml(smartWhatsAppUrl)}" target="_blank" rel="noopener noreferrer" class="card-action-link" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="محادثة واتساب">
+              <a href="${escapeHtml(smartWhatsAppUrl)}" target="_blank" rel="noopener noreferrer" class="card-action-link" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="محادثة واتساب">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                 <span>واتساب</span>
               </a>
@@ -692,7 +692,7 @@ export function createLightweightBadgeHtml(
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #059669; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #d97706; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = !hoursLabel
@@ -750,7 +750,7 @@ export function createLightweightBadgeHtml(
                 <span>${ratingText}${wordRating ? ` ${escapeHtml(wordRating)}` : ''}</span>
               </span>
             ` : `
-              <span style="font-size: 8.5px; font-weight: 800; color: #059669; background: rgba(5, 150, 105, 0.08); padding: 0.5px 4.5px; border-radius: 4px;">
+              <span style="font-size: 8.5px; font-weight: 800; color: #b45309; background: rgba(217, 119, 6, 0.10); padding: 0.5px 4.5px; border-radius: 4px;">
                 ${isVerified ? 'معتمد' : 'مسجل'}
               </span>
             `}

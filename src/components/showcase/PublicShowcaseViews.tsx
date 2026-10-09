@@ -1,6 +1,7 @@
 import React from 'react';
 import { Business } from '../../types';
 import { useShowcaseFilterState } from './hooks/useShowcaseFilterState';
+import { Button } from '../../shared/ui';
 
 const SearchView = React.lazy(() => import('../views/SearchView').then((m) => ({ default: m.SearchView })));
 const MapView = React.lazy(() => import('../views/MapView').then((m) => ({ default: m.MapView })));
@@ -72,6 +73,10 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           onSortChange={filterState.setSortBy}
           openNowOnly={filterState.openNowOnly}
           onToggleOpenNow={() => filterState.setOpenNowOnly(!filterState.openNowOnly)}
+          verifiedOnly={filterState.verifiedOnly}
+          hideActivities={filterState.hideActivities}
+          filtersActive={filterState.hasActiveFilters}
+          onResetAllFilters={filterState.resetAllFilters}
           onOpenBusiness={handleOpenBusiness}
           onToggleFavorite={toggleFavorite}
           favorites={favorites}
@@ -106,6 +111,7 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           onSortChange={filterState.setSortBy}
           openNowOnly={filterState.openNowOnly}
           onToggleOpenNow={() => filterState.setOpenNowOnly(!filterState.openNowOnly)}
+          verifiedOnly={filterState.verifiedOnly}
           hasRatingOnly={filterState.hasRatingOnly}
           onToggleHasRating={() => filterState.setHasRatingOnly(!filterState.hasRatingOnly)}
           hasVideoOnly={filterState.hasVideoOnly}
@@ -160,20 +166,12 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           <h1 className="text-xl font-extrabold text-slate-900">الصفحة غير موجودة</h1>
           <p className="text-sm font-medium text-slate-600">تحقق من الرابط أو عُد إلى الدليل.</p>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            <button
-              type="button"
-              className="min-h-11 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-extrabold cursor-pointer"
-              onClick={() => handleNavigate('/map')}
-            >
+            <Button variant="primary" size="lg" onClick={() => handleNavigate('/map')}>
               الخريطة التفاعلية
-            </button>
-            <button
-              type="button"
-              className="min-h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-sm font-extrabold cursor-pointer"
-              onClick={() => handleNavigate('/search')}
-            >
+            </Button>
+            <Button variant="secondary" size="lg" onClick={() => handleNavigate('/search')}>
               قائمة الأنشطة
-            </button>
+            </Button>
           </div>
         </section>
       );

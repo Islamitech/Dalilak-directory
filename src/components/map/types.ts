@@ -28,6 +28,8 @@ export interface InteractiveMapProps {
   onToggleBusinessesVisibility?: (visible: boolean) => void;
   defaultExpanded?: boolean;
   onExploreDirectory?: () => void;
+  onResetFilters?: () => void;
+  filtersActive?: boolean;
   onOpenGatesGuide?: () => void;
   activeRoute?: {
     origin: { lat: number; lng: number; label: string };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { resolveCategorySelection } from '../../../utils/categoryMatcher';
+import { hydrateCategoryQuery, queryFlag, querySort, queryValue, writeShowcaseQuery, type ShowcaseSort } from '../model/showcaseFilterQuery';
 
 export function useShowcaseFilterState() {
   const [searchQuery, setSearchQuery] = useState<string>(() => {
@@ -9,16 +10,15 @@ export function useShowcaseFilterState() {
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
-  const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'all';
-    return new URLSearchParams(window.location.search).get('zone') || 'all';
-  });
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>(() => queryValue('zone') || 'all');
+  const [categoryFilter, setCategoryFilter] = useState<string>(() => queryValue('cat') || 'all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
-  const [openNowOnly, setOpenNowOnly] = useState<boolean>(false);
+  const [openNowOnly, setOpenNowOnly] = useState<boolean>(() => queryFlag('open'));
+  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(() => queryFlag('verified'));
+  const [hideActivities, setHideActivities] = useState<boolean>(() => queryFlag('hide'));
   const [hasRatingOnly, setHasRatingOnly] = useState<boolean>(false);
   const [hasVideoOnly, setHasVideoOnly] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<'default' | 'nearest' | 'newest' | 'has_video' | 'open_now' | 'alpha'>('default');
+  const [sortBy, setSortBy] = useState<ShowcaseSort>(querySort);
   const [shuffleSeed, setShuffleSeed] = useState<number>(() => Math.floor(Math.random() * 1000000) + 1);
 
   const handleCategoryChange = useCallback((nextCategory: string) => {
@@ -28,35 +28,28 @@ export function useShowcaseFilterState() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const categoryParam = params.get('cat');
-    const subcategoryParam = params.get('subcat');
-    if (categoryParam) {
-      const selection = resolveCategorySelection(categoryParam);
-      setCategoryFilter(selection.mainCategoryId);
-      if (subcategoryParam) {
-        const subSelection = resolveCategorySelection(subcategoryParam);
-        setSubcategoryFilter(
-          subSelection.mainCategoryId === selection.mainCategoryId ? subSelection.subcategoryId : selection.subcategoryId
-        );
-      } else {
-        setSubcategoryFilter(selection.subcategoryId);
-      }
+    const hydrated = hydrateCategoryQuery(resolveCategorySelection);
+    if (hydrated.main) {
+      setCategoryFilter(hydrated.main);
+      if (hydrated.sub) setSubcategoryFilter(hydrated.sub);
     }
-    const qParam = params.get('q') || params.get('search');
-    if (qParam) setSearchQuery(qParam);
+    if (hydrated.q) setSearchQuery(hydrated.q);
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.location.pathname.startsWith('/search')) return;
-    const url = new URL(window.location.href);
-    if (categoryFilter === 'all') url.searchParams.delete('cat');
-    else url.searchParams.set('cat', categoryFilter);
-    if (subcategoryFilter === 'all') url.searchParams.delete('subcat');
-    else url.searchParams.set('subcat', subcategoryFilter);
-    window.history.replaceState(window.history.state, '', url.toString());
-  }, [categoryFilter, subcategoryFilter]);
+    const onVerified = (event: Event) => setVerifiedOnly(Boolean((event as CustomEvent<boolean>).detail));
+    const onHide = (event: Event) => setHideActivities(Boolean((event as CustomEvent<boolean>).detail));
+    window.addEventListener('showcase:verified', onVerified);
+    window.addEventListener('showcase:hide-activities', onHide);
+    return () => {
+      window.removeEventListener('showcase:verified', onVerified);
+      window.removeEventListener('showcase:hide-activities', onHide);
+    };
+  }, []);
+
+  useEffect(() => {
+    writeShowcaseQuery({ categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy });
+  }, [categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy]);
 
   const resetAllFilters = useCallback(() => {
     setSearchQuery('');
@@ -66,6 +59,8 @@ export function useShowcaseFilterState() {
     setCategoryFilter('all');
     setSubcategoryFilter('all');
     setOpenNowOnly(false);
+    setVerifiedOnly(false);
+    setHideActivities(false);
     setHasRatingOnly(false);
     setHasVideoOnly(false);
     setSortBy('default');
@@ -79,6 +74,8 @@ export function useShowcaseFilterState() {
     categoryFilter !== 'all' ||
     subcategoryFilter !== 'all' ||
     openNowOnly ||
+    verifiedOnly ||
+    hideActivities ||
     hasRatingOnly ||
     hasVideoOnly ||
     sortBy !== 'default';
@@ -99,6 +96,10 @@ export function useShowcaseFilterState() {
     setSubcategoryFilter,
     openNowOnly,
     setOpenNowOnly,
+    verifiedOnly,
+    setVerifiedOnly,
+    hideActivities,
+    setHideActivities,
     hasRatingOnly,
     setHasRatingOnly,
     hasVideoOnly,

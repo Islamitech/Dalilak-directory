@@ -17,7 +17,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const baseClasses =
-      'rounded-2xl transition-all duration-200 overflow-hidden bg-white';
+      'rounded-lg transition-all duration-200 overflow-hidden bg-white';
 
     const variantClasses = {
       elevated:

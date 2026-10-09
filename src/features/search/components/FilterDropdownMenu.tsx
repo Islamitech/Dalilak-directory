@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
+import { Chip, Pressable } from '../../../shared/ui';
 
 export interface FilterDropdownOption {
   id: string;
@@ -17,6 +19,22 @@ export interface FilterDropdownMenuProps {
   ariaLabel: string;
   menuWidthClass?: string;
   maxLabelWidthClass?: string;
+  compact?: boolean;
+}
+
+const MENU_WIDTH = 208;
+const MENU_MARGIN = 8;
+
+function placeMenu(trigger: HTMLElement): { top: number; left: number; width: number } {
+  const rect = trigger.getBoundingClientRect();
+  const width = Math.min(MENU_WIDTH, window.innerWidth - MENU_MARGIN * 2);
+  let left = rect.right - width;
+  left = Math.max(MENU_MARGIN, Math.min(left, window.innerWidth - MENU_MARGIN - width));
+  let top = rect.bottom + 6;
+  if (top + 256 > window.innerHeight - MENU_MARGIN) {
+    top = Math.max(MENU_MARGIN, rect.top - 6 - 256);
+  }
+  return { top, left, width };
 }
 
 export const FilterDropdownMenu: React.FC<FilterDropdownMenuProps> = ({
@@ -27,59 +45,81 @@ export const FilterDropdownMenu: React.FC<FilterDropdownMenuProps> = ({
   onToggle,
   onSelect,
   ariaLabel,
-  menuWidthClass = 'w-52 sm:w-60',
   maxLabelWidthClass = 'max-w-[120px]',
+  compact = false,
 }) => {
   const isSelected = selectedValue !== 'all';
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [box, setBox] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setBox(null);
+      return;
+    }
+    const update = () => {
+      if (triggerRef.current) setBox(placeMenu(triggerRef.current));
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [isOpen]);
 
   return (
     <div className="relative">
-      <button
-        type="button"
+      <Chip
+        ref={triggerRef}
+        active={isSelected}
         onClick={onToggle}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
-        className={`h-10 px-3 sm:px-3.5 rounded-full border border-transparent flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-          isSelected
-            ? 'bg-amber-500/15 text-amber-900 font-extrabold'
-            : 'bg-transparent text-slate-700 hover:bg-white/20 hover:text-amber-800'
-        }`}
+        className={compact ? 'min-h-0! h-7! px-2! gap-0.5! text-caption!' : 'px-3!'}
+        trailing={
+          <ChevronDown
+            size={compact ? 12 : 14}
+            aria-hidden="true"
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[var(--brand)]' : 'text-slate-400'}`}
+          />
+        }
       >
-        <span className={`truncate ${maxLabelWidthClass}`}>{displayValue}</span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-amber-600' : 'text-slate-400'}`}
-        />
-      </button>
+        <span className={`block truncate ${maxLabelWidthClass}`}>{displayValue}</span>
+      </Chip>
 
-      {isOpen && (
+      {isOpen && box && createPortal(
         <div
           role="listbox"
           aria-label={ariaLabel}
-          className={`absolute top-full start-0 mt-1.5 ${menuWidthClass} bg-white/98 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 py-1.5 z-[1100] max-h-64 overflow-y-auto overscroll-contain animate-fade-in divide-y divide-slate-50`}
+          onPointerDown={(event) => event.stopPropagation()}
+          style={{ top: box.top, left: box.left, width: box.width }}
+          className="fixed z-[1300] max-h-64 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white/98 py-1.5 shadow-xl backdrop-blur-md divide-y divide-slate-50"
         >
           {options.map((opt) => {
             const isOptSelected = selectedValue === opt.id;
             return (
-              <button
+              <Pressable
                 key={opt.id}
                 type="button"
                 role="option"
                 aria-selected={isOptSelected}
                 onClick={() => onSelect(opt.id)}
-                className={`w-full px-3.5 py-2 text-start text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
+                className={`flex w-full cursor-pointer items-center justify-between px-3.5 py-2 text-start text-caption font-bold transition-colors ${
                   isOptSelected
-                    ? 'bg-amber-500/15 text-amber-950 font-extrabold'
+                    ? 'bg-amber-500/15 font-extrabold text-amber-950'
                     : 'text-slate-700 hover:bg-amber-50 hover:text-amber-900'
                 }`}
               >
                 <span className="truncate">{opt.label}</span>
-                {isOptSelected && <Check size={14} className="text-amber-600 shrink-0" />}
-              </button>
+                {isOptSelected && <Check size={14} className="shrink-0 text-amber-600" />}
+              </Pressable>
             );
           })}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

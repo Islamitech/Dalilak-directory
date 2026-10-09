@@ -16,6 +16,7 @@ export interface FilterBusinessesParams {
   govFilter: string;
   cityFilter: string;
   openNowOnly: boolean;
+  verifiedOnly?: boolean;
   hasRatingOnly: boolean;
   hasVideoOnly: boolean;
   sortBy: 'default' | 'nearest' | 'newest' | 'has_video' | 'open_now' | 'alpha' | 'rating' | 'reviews' | 'name';
@@ -34,6 +35,7 @@ export function computeFilteredBusinesses({
   govFilter,
   cityFilter,
   openNowOnly,
+  verifiedOnly,
   hasRatingOnly,
   hasVideoOnly,
   sortBy,
@@ -50,6 +52,7 @@ export function computeFilteredBusinesses({
     govFilter,
     cityFilter,
     openNowOnly,
+    verifiedOnly,
     hasRatingOnly,
     hasVideoOnly,
   });
@@ -116,6 +119,7 @@ export function computeFilteredBusinesses({
     categoryFilter !== 'all' ||
     subcategoryFilter !== 'all' ||
     openNowOnly ||
+    verifiedOnly ||
     hasRatingOnly ||
     hasVideoOnly;
 

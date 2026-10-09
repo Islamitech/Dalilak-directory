@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from '../../shared/ui';
 import { AlertCircle, Camera, CheckCheck, Heart, MapPin, Play, Share2, ShieldCheck, X } from 'lucide-react';
 import { Business } from '../../types';
 import { displayBusinessName } from '../../shared/lib/format';
@@ -41,10 +42,10 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
   return (
     <div
       className={`dl-dh ${mainPhoto ? 'dl-has-photo' : ''}`}
-      style={{ background: mainPhoto ? '#0f172a' : visual.gradient }}
+      style={{ background: mainPhoto ? 'var(--text)' : visual.gradient }}
     >
       {mainPhoto ? (
-        <button
+        <Pressable
           type="button"
           className="dl-dh-full-btn"
           data-lb="0"
@@ -59,13 +60,13 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           />
           <div className="dl-dh-full-overlay" />
           {mainPhoto.includes('images.unsplash.com') && (
-            <span className="absolute bottom-3 start-3 z-10 text-caption font-extrabold text-white bg-slate-950/70 rounded-full px-2.5 py-1">
+            <span className="absolute bottom-3 start-3 z-10 text-caption font-extrabold text-white bg-slate-950/70 rounded-pill px-2.5 py-1">
               صورة توضيحية
             </span>
           )}
-        </button>
+        </Pressable>
       ) : (
-        <button
+        <Pressable
           type="button"
           className="dl-dhp"
           data-lb="0"
@@ -77,7 +78,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           <div className="dl-dh-circle">
             {visual.icon}
           </div>
-        </button>
+        </Pressable>
       )}
 
       {/* Bottom gradient + merged title block (same look as the list card) */}
@@ -93,7 +94,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           )}
           {Boolean(business.googleRating && business.googleRating > 0) && (
             <div className="dl-rp" dir="ltr">
-              <span style={{ color: '#fbbf24' }}>★</span>
+              <span className="text-[var(--primary-2)]">★</span>
               <span>{business.googleRating!.toFixed(1)}</span>
             </div>
           )}
@@ -122,7 +123,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
 
       {/* Video Pill (bottom-start / right in RTL) */}
       {business.videos && business.videos.length > 0 && onOpenVideoModal && (
-        <button
+        <Pressable
           type="button"
           onClick={() => onOpenVideoModal(business)}
           className="dl-dvid"
@@ -130,12 +131,12 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
         >
           <Play className="w-3.5 h-3.5 fill-current" />
           <span>فيديو</span>
-        </button>
+        </Pressable>
       )}
 
       {/* Close Button (top-start / right in RTL, 36px/44px touch) */}
       {onClose && (
-        <button
+        <Pressable
           type="button"
           onClick={onClose}
           aria-label="إغلاق"
@@ -143,12 +144,12 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           className="dl-dx min-w-[36px] min-h-[36px]"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Pressable>
       )}
 
       {/* Share / copy link (next to favorite) */}
       {onShare && (
-        <button
+        <Pressable
           type="button"
           onClick={onShare}
           aria-label={copied ? 'تم نسخ الرابط' : copyError ? 'تعذر نسخ الرابط' : 'نسخ رابط النشاط'}
@@ -162,11 +163,11 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           ) : (
             <Share2 className="w-4 h-4" />
           )}
-        </button>
+        </Pressable>
       )}
       {/* Favorite Button (top-end / left in RTL, 36px/44px touch) */}
       {onToggleFavorite && (
-        <button
+        <Pressable
           type="button"
           onClick={() => onToggleFavorite(business.id)}
           aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
@@ -175,7 +176,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           className={`dl-dfv min-w-[36px] min-h-[36px] ${isFavorite ? 'dl-on' : ''}`}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-        </button>
+        </Pressable>
       )}
     </div>
   );

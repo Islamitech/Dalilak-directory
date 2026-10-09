@@ -7,6 +7,7 @@ export interface NavigationTarget {
   lng: number;
   type: 'building' | 'business';
   details?: string;
+  preferredGateId?: string;
 }
 
 export interface RouteStats {
@@ -47,6 +48,11 @@ export function computeRouteStats(
     walkingMinutes,
     isRealRoad: false,
   };
+}
+
+/** Hand-off link: Google Maps starts from the device's live position and drives the turn-by-turn guidance. */
+export function getGoogleHandoffUrl(destination: { lat: number; lng: number }): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=driving&dir_action=navigate`;
 }
 
 export function getGoogleVoiceNavUrl(

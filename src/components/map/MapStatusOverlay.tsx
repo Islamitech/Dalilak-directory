@@ -40,8 +40,8 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
           dir="rtl"
           role="alert"
         >
-          <div className="max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-red-200 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl font-bold select-none">
+          <div className="max-w-md bg-white rounded-lg p-6 shadow-2xl border border-red-200 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-pill bg-red-100 text-red-600 flex items-center justify-center text-xl font-bold select-none">
               ⚠️
             </div>
             <h3 className="font-bold text-slate-900 text-base">تعذر تحميل محرك الخريطة</h3>
@@ -62,7 +62,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
           role="alert"
           dir="rtl"
         >
-          <div className="bg-slate-900/95 text-red-300 border border-red-500/40 rounded-2xl px-4 py-2.5 text-xs shadow-2xl flex items-center gap-3 max-w-md backdrop-blur-md">
+          <div className="bg-slate-900/95 text-red-300 border border-red-500/40 rounded-lg px-4 py-2.5 text-xs shadow-2xl flex items-center gap-3 max-w-md backdrop-blur-md">
             <span className="text-base select-none">📍</span>
             <span className="flex-1 leading-snug">{geoError}</span>
             {onClearGeoError && (
@@ -83,7 +83,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
           aria-atomic="true"
         >
           <div
-            className="flex items-center gap-2 rounded-full bg-white/95 border border-slate-200 px-3 py-2 text-xs text-slate-700 shadow-sm"
+            className="flex items-center gap-2 rounded-pill bg-white/95 border border-slate-200 px-3 py-2 text-xs text-slate-700 shadow-sm"
             dir="rtl"
           >
             {busy ? (
@@ -111,7 +111,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
       {/* ⚠️ Network / Connection Error Toast Banner */}
       {directoryLoad.error && (
         <div className="absolute top-20 inset-x-4 sm:inset-x-auto sm:end-4 z-[950] pointer-events-auto transition-all animate-bounce-in">
-          <div className="bg-red-950/90 backdrop-blur-md text-red-200 border border-red-500/50 rounded-xl px-4 py-2.5 text-xs font-bold shadow-2xl flex items-center justify-between gap-3">
+          <div className="bg-red-950/90 backdrop-blur-md text-red-200 border border-red-500/50 rounded-lg px-4 py-2.5 text-xs font-bold shadow-2xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-red-400 text-sm">⚠️</span>
               <span>{directoryLoad.error}</span>
@@ -136,7 +136,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
         !directoryLoad.error &&
         matchingBusinessesCount === 0 && (
           <div className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none transition-all duration-300">
-            <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-full px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
+            <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-pill px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
               <span>
                 لا توجد أنشطة مسجلة في تصنيف &quot;{activeCategory}&quot;{' '}

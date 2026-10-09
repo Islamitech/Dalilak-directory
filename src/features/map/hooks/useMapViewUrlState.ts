@@ -21,12 +21,14 @@ export function useMapViewUrlState(
   const buildingSearchReqIdRef = useRef(0);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const z = params.get('zone') || '';
-    const b = params.get('bldg') || '';
-    if (z !== activeZoneLetter) setActiveZoneLetter(z);
-    if (b !== activeBuildingNumber) setActiveBuildingNumber(b);
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActiveZoneLetter(params.get('zone') || '');
+      setActiveBuildingNumber(params.get('bldg') || '');
+    };
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
   useEffect(() => {

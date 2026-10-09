@@ -21,9 +21,9 @@ export const AtlasGateBanner: React.FC<AtlasGateBannerProps> = ({
   onOpenGatesGuide,
 }) => {
   return (
-    <div className="mt-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="mt-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div className="flex items-start gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-8 h-8 rounded-md bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
           <Navigation className="w-4 h-4 stroke-[2.5]" />
         </div>
         <div>

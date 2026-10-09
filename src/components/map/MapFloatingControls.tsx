@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { MapTileLayerType } from './constants/mapConstants';
+import { Button } from '../../shared/ui';
 
 export interface MapFloatingControlsProps {
   mode: 'picker' | 'view';
@@ -30,8 +31,8 @@ export interface MapFloatingControlsProps {
   isLocating?: boolean;
 }
 
-const controlRow =
-  'map-ctl w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 transition-all cursor-pointer hover:bg-amber-50 hover:text-amber-700 active:scale-95 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500';
+const controlRow = 'map-ctl text-slate-600 hover:text-amber-700';
+const dpadButton = 'w-8! h-8! min-h-8! text-slate-600 hover:text-amber-700';
 const groupDivider = <div aria-hidden="true" className="h-px bg-slate-200/80 mx-2.5 my-0.5" />;
 
 export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
@@ -53,12 +54,12 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[1000]">
           <div className="relative flex items-center justify-center">
             {/* Outer Crosshair Ring */}
-            <div className="w-16 h-16 rounded-full border-2 border-amber-400/80 border-dashed animate-spin-slow flex items-center justify-center shadow-2xl bg-amber-500/10" />
+            <div className="w-16 h-16 rounded-pill border-2 border-amber-400/80 border-dashed animate-spin-slow flex items-center justify-center shadow-2xl bg-amber-500/10" />
             {/* Center Cross lines */}
             <div className="absolute w-24 h-0.5 bg-amber-400/90" />
             <div className="absolute h-24 w-0.5 bg-amber-400/90" />
             {/* Center Dot */}
-            <div className="absolute w-3 h-3 rounded-full bg-amber-400 border-2 border-slate-950 shadow-lg" />
+            <div className="absolute w-3 h-3 rounded-pill bg-amber-400 border-2 border-slate-950 shadow-lg" />
           </div>
         </div>
       )}
@@ -67,8 +68,8 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         <div className="flex flex-col">
           {/* 1. Locate Me (44px target) — the single amber-accented action */}
           {mode === 'view' && onLocate && (
-            <button
-              type="button"
+            <Button
+              variant="icon"
               onClick={onLocate}
               disabled={isLocating}
               aria-label="تحديد موقعي الحالي"
@@ -77,59 +78,59 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
               title="موقعي"
             >
               {isLocating ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : <LocateFixed className="w-5 h-5" />}
-            </button>
+            </Button>
           )}
 
           {mode === 'view' && onLocate && groupDivider}
 
           {/* 2. Fit All / Reset Position */}
-          <button
-            type="button"
+          <Button
+            variant="icon"
             onClick={handleResetPosition}
             aria-label="عرض الكل وإعادة ضبط موضع الخريطة"
             className={controlRow}
             title="عرض الكل"
           >
             <RotateCcw className="w-5 h-5" />
-          </button>
+          </Button>
 
           {groupDivider}
 
           {/* 3. Zoom In / Out group */}
-          <button
-            type="button"
+          <Button
+            variant="icon"
             onClick={handleZoomIn}
             aria-label="تكبير الخريطة"
             className={controlRow}
             title="تكبير الخريطة (+)"
           >
             <ZoomIn className="w-5 h-5 stroke-[2.5]" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="icon"
             onClick={handleZoomOut}
             aria-label="تصغير الخريطة"
             className={controlRow}
             title="تصغير الخريطة (-)"
           >
             <ZoomOut className="w-5 h-5 stroke-[2.5]" />
-          </button>
+          </Button>
 
           {/* Picker-only controls follow the same recipe */}
           {mode === 'picker' && (
             <>
               {groupDivider}
-              <button
-                type="button"
+              <Button
+                variant="icon"
                 onClick={handlePinCenterOfMap}
                 aria-label="تثبيت الدبوس في منتصف الخريطة"
                 className={controlRow}
                 title="تثبيت الدبوس في منتصف شاشة الخريطة الحالية"
               >
                 <Target className="w-5 h-5 stroke-[2.5]" />
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="icon"
                 onClick={() => setCenterReticleActive(!centerReticleActive)}
                 aria-label="تفعيل أو إلغاء علامة التصويب الدقيقة"
                 aria-pressed={centerReticleActive}
@@ -139,7 +140,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
                 title="تفعيل/إلغاء علامة التصويب الدقيقة"
               >
                 <Crosshair className="w-5 h-5 stroke-[2.5]" />
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -149,51 +150,51 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
           <div className="flex flex-col items-center gap-1">
             <span className="text-caption font-bold text-amber-600 uppercase tracking-tighter">تحريك دقيق</span>
 
-            <button
-              type="button"
+            <Button
+              variant="icon"
               onClick={() => handlePan('up')}
               aria-label="تحريك لأعلى"
-              className="w-8 h-8 rounded-lg text-slate-600 transition-colors hover:bg-amber-50 hover:text-amber-700 flex items-center justify-center cursor-pointer"
+              className={dpadButton}
               title="تحريك لأعلى"
             >
               <ChevronUp className="w-4 h-4 stroke-[3]" />
-            </button>
+            </Button>
 
             <div className="flex items-center gap-1">
-              <button
-                type="button"
+              <Button
+                variant="icon"
                 onClick={() => handlePan('left')}
                 aria-label="تحريك لليسار"
-                className="w-8 h-8 rounded-lg text-slate-600 transition-colors hover:bg-amber-50 hover:text-amber-700 flex items-center justify-center cursor-pointer"
+                className={dpadButton}
                 title="تحريك لليسار"
               >
                 <ChevronLeft className="w-4 h-4 stroke-[3]" />
-              </button>
+              </Button>
 
               <div className="w-5 h-5 rounded-md bg-amber-500/15 text-amber-600 flex items-center justify-center text-caption font-bold">
                 <Crosshair className="w-3 h-3" />
               </div>
 
-              <button
-                type="button"
+              <Button
+                variant="icon"
                 onClick={() => handlePan('right')}
                 aria-label="تحريك لليمين"
-                className="w-8 h-8 rounded-lg text-slate-600 transition-colors hover:bg-amber-50 hover:text-amber-700 flex items-center justify-center cursor-pointer"
+                className={dpadButton}
                 title="تحريك لليمين"
               >
                 <ChevronRight className="w-4 h-4 stroke-[3]" />
-              </button>
+              </Button>
             </div>
 
-            <button
-              type="button"
+            <Button
+              variant="icon"
               onClick={() => handlePan('down')}
               aria-label="تحريك لأسفل"
-              className="w-8 h-8 rounded-lg text-slate-600 transition-colors hover:bg-amber-50 hover:text-amber-700 flex items-center justify-center cursor-pointer"
+              className={dpadButton}
               title="تحريك لأسفل"
             >
               <ChevronDown className="w-4 h-4 stroke-[3]" />
-            </button>
+            </Button>
           </div>
         )}
       </div>

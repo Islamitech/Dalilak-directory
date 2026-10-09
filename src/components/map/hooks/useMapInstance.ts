@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchLocationAddress } from '../../../utils/geocoding';
 import { MapTileLayerType } from '../constants/mapConstants';
 import { loadLeafletScript } from '../utils/leafletLoader';
+import { readSavedCamera, rememberMapCamera } from '../utils/mapCameraMemory';
 import { CameraController } from '../controllers/CameraController';
 import {
   HADAYEK_BOUNDS,
@@ -25,9 +26,10 @@ export const useMapInstance = ({
   isExpanded = false,
   onLocationSelect,
 }: UseMapInstanceProps) => {
-  const [currentLat, setCurrentLat] = useState(lat);
-  const [currentLng, setCurrentLng] = useState(lng);
-  const [zoomLevel, setZoomLevel] = useState(initialZoom);
+  const savedCamera = mode === 'view' ? readSavedCamera() : null;
+  const [currentLat, setCurrentLat] = useState(savedCamera?.lat ?? lat);
+  const [currentLng, setCurrentLng] = useState(savedCamera?.lng ?? lng);
+  const [zoomLevel, setZoomLevel] = useState(savedCamera?.zoom ?? initialZoom);
   const [tileLayer, setTileLayer] = useState<MapTileLayerType>('dalelak-white');
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -40,7 +42,7 @@ export const useMapInstance = ({
   const markersGroupRef = useRef<any>(null);
   const pickerMarkerRef = useRef<any>(null);
   const accuracyCircleRef = useRef<any>(null);
-  const liveCenterRef = useRef({ lat, lng, zoom: zoomLevel });
+  const liveCenterRef = useRef({ lat: savedCamera?.lat ?? lat, lng: savedCamera?.lng ?? lng, zoom: savedCamera?.zoom ?? initialZoom });
 
   const retryLoadMap = useCallback(() => { setMapScriptError(null); setReloadKey((k) => k + 1); }, []);
   const switchTileLayer = useCallback((newType: MapTileLayerType) => {
@@ -66,7 +68,7 @@ export const useMapInstance = ({
       onSuccess: () => {
         if (!isSubscribed || !containerRef.current || !window.L || leafletMapRef.current) return;
         setMapScriptError(null);
-        const { map, cameraController } = createLeafletMapInstance({ container: containerRef.current, center: liveCenterRef.current, zoomLevel, mode });
+        const { map, cameraController } = createLeafletMapInstance({ container: containerRef.current, center: liveCenterRef.current, zoomLevel, mode, restoreCamera: Boolean(savedCamera) });
         cameraControllerRef.current = cameraController;
         applyTileLayer(map, tileLayerRef, tileLayer);
         markersGroupRef.current = window.L.layerGroup().addTo(map);
@@ -77,7 +79,10 @@ export const useMapInstance = ({
           if (!isSubscribed) return;
           try {
             const c = map.getCenter(); const z = map.getZoom();
-            if (c && typeof c.lat === 'number') liveCenterRef.current = { lat: c.lat, lng: c.lng, zoom: z };
+            if (c && typeof c.lat === 'number') {
+              liveCenterRef.current = { lat: c.lat, lng: c.lng, zoom: z };
+              rememberMapCamera(mode, liveCenterRef.current);
+            }
             setZoomLevel(z);
           } catch {}
         });

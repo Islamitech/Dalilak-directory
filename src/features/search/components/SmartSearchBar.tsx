@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Compass } from 'lucide-react';
 import { Business } from '../../../types';
 import { EGYPT_GOVERNORATES } from '../../../shared/data/geography';
-import { Button, SearchField } from '../../../shared/ui';
+import { Button, SearchField, Pressable } from '../../../shared/ui';
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch';
 import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown';
 
@@ -71,7 +71,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-[var(--bg-card)] border-2 border-amber-500/30 hover:border-amber-500/60 focus-within:border-amber-500 rounded-2xl p-1.5 sm:p-2 shadow-lg shadow-amber-500/5 backdrop-blur-md transition-all flex flex-col md:flex-row items-stretch md:items-center gap-1.5"
+        className="bg-[var(--bg-card)] border-2 border-amber-500/30 hover:border-amber-500/60 focus-within:border-amber-500 rounded-lg p-1.5 sm:p-2 shadow-lg shadow-amber-500/5 backdrop-blur-md transition-all flex flex-col md:flex-row items-stretch md:items-center gap-1.5"
       >
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <SearchField
@@ -96,7 +96,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                 const firstCity = EGYPT_GOVERNORATES[e.target.value]?.[0] || 'all';
                 onCityChange(firstCity);
               }}
-              className="w-full bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] text-[var(--text-primary)] font-bold text-xs py-2.5 px-3 rounded-xl border border-transparent hover:border-[var(--border-color)] transition-all cursor-pointer truncate"
+              className="w-full bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] text-[var(--text-primary)] font-bold text-xs py-2.5 px-3 rounded-sm border border-transparent hover:border-[var(--border-color)] transition-all cursor-pointer truncate"
             >
               <option value="all">كل المحافظات</option>
               {Object.keys(EGYPT_GOVERNORATES).map((gov) => (
@@ -113,7 +113,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                 aria-label="اختر المدينة أو المنطقة"
                 value={selectedCity || 'all'}
                 onChange={(e) => onCityChange(e.target.value)}
-                className="w-full bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] text-[var(--text-primary)] font-bold text-xs py-2.5 px-3 rounded-xl border border-transparent hover:border-[var(--border-color)] transition-all cursor-pointer truncate"
+                className="w-full bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] text-[var(--text-primary)] font-bold text-xs py-2.5 px-3 rounded-sm border border-transparent hover:border-[var(--border-color)] transition-all cursor-pointer truncate"
               >
                 <option value="all">كل المناطق</option>
                 {EGYPT_GOVERNORATES[selectedGov].map((city) => (
@@ -125,20 +125,20 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
             </div>
           )}
 
-          <button
+          <Pressable
             type="button"
             onClick={onRequestLocation}
             disabled={isLocatingUser}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+            className={`p-2.5 rounded-pill border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
               userCoords
-                ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
+                ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
                 : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-transparent'
             }`}
             title="تحديد موقعي لترتيب الأنشطة حسب الأقرب"
             aria-label="تحديد موقعي"
           >
             <Compass className={`w-4 h-4 ${isLocatingUser ? 'animate-spin text-amber-500' : ''}`} />
-          </button>
+          </Pressable>
 
           <span className="hidden sm:inline-flex shrink-0">
             <Button type="submit" variant="primary" size="sm">

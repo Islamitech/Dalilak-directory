@@ -74,13 +74,23 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   const handleNavigate = useCallback((newPath: string) => {
     const url = new URL(newPath, window.location.origin);
-    if ((url.pathname === '/' || url.pathname === '/map') && !url.searchParams.has('zone')) {
+    const directoryPaths = ['/', '/map', '/search'];
+    const fromDirectory = directoryPaths.includes(window.location.pathname);
+    const toDirectory = directoryPaths.includes(url.pathname);
+    if (fromDirectory && toDirectory && !url.search) {
+      const current = new URLSearchParams(window.location.search);
+      for (const key of ['cat', 'subcat', 'zone', 'open', 'verified', 'sort', 'hide', 'q', 'search']) {
+        const value = current.get(key);
+        if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
+      }
+    }
+    if ((url.pathname === '/' || url.pathname === '/map') && !url.searchParams.has('zone') && !fromDirectory) {
       filterState.setHadayekZoneFilter('all');
     }
     const cat = url.searchParams.get('cat');
     if (cat) filterState.handleCategoryChange(cat);
-    routing.navigate(newPath);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    routing.navigate(`${url.pathname}${url.search}`);
+    if (!(fromDirectory && toDirectory)) window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [filterState, routing]);
 
   const activityIntent = useMemo(
@@ -142,7 +152,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     >
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[80] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-label focus:font-bold focus:text-slate-900 focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[80] focus:rounded-pill focus:bg-white focus:px-4 focus:py-2 focus:text-label focus:font-bold focus:text-slate-900 focus:shadow-lg"
       >
         تخطي إلى المحتوى
       </a>
@@ -182,9 +192,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         <React.Suspense
           fallback={
             <div className="min-h-[40vh] p-4 space-y-3" aria-busy="true" aria-label="جاري التحميل">
-              <div className="h-28 rounded-2xl bg-slate-200/80 animate-pulse" />
-              <div className="h-4 w-2/3 rounded-full bg-slate-200/80 animate-pulse" />
-              <div className="h-4 w-1/2 rounded-full bg-slate-200/70 animate-pulse" />
+              <div className="h-28 rounded-lg bg-slate-200/80 animate-pulse" />
+              <div className="h-4 w-2/3 rounded-pill bg-slate-200/80 animate-pulse" />
+              <div className="h-4 w-1/2 rounded-pill bg-slate-200/70 animate-pulse" />
             </div>
           }
         >

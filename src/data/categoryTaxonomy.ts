@@ -11,7 +11,9 @@ export interface CategorySubcategory {
 export interface CategoryTaxonomyGroup {
   id: string;
   label: string;
+  word: string;
   icon: string;
+  description: string;
   aliases: string[];
   children: CategorySubcategory[];
 }
@@ -56,13 +58,43 @@ const SUBCATEGORY_META: Record<string, SubMeta> = {
   'مغسلة ملابس ودراي كلين ومكوجي': { id: 'laundry', aliases: ['مغسلة ملابس', 'دراي كلين', 'مكوجي'] },
   'أدوات صحية وسيراميك ورخام': { id: 'building-plumbing-supplies', aliases: ['أدوات صحية', 'ادوات صحية', 'أدوات سباكة', 'ادوات سباكة', 'سيراميك', 'رخام'] },
   'إضاءة ونجف وتأسيس كهرباء': { id: 'lighting-electrical-supplies', aliases: ['إضاءة', 'اضاءة', 'نجف', 'أدوات كهربائية', 'ادوات كهربائية', 'مستلزمات كهرباء'] },
+  'وجبات سريعة وتيك أواي': { id: 'fast-food', aliases: ['وجبات سريعة', 'تيك اواي', 'فاست فود'] },
+  'مأكولات شعبية وكشري': { id: 'local-food', aliases: ['كشري', 'فول وطعمية', 'مأكولات شعبية', 'طعمية'] },
+  'أسماك ومأكولات بحرية': { id: 'seafood', aliases: ['مطعم اسماك', 'مأكولات بحرية', 'سي فود'] },
+  'كاترينج وتجهيز طعام': { id: 'catering', aliases: ['كاترينج', 'تموين حفلات', 'تجهيز طعام'] },
+  'ألبان وأجبان ومنتجات غذائية': { id: 'dairy-products', aliases: ['ألبان', 'البان', 'أجبان', 'اجبان', 'منتجات ألبان'] },
+  'مجمدات وأغذية جاهزة': { id: 'frozen-foods', aliases: ['مجمدات', 'أغذية مجمدة', 'اغذية مجمدة'] },
+  'منظفات ومستلزمات منزلية': { id: 'household-supplies', aliases: ['منظفات', 'مستلزمات منزلية'] },
+  'عيادة أنف وأذن وحنجرة': { id: 'ent-clinic', aliases: ['أنف وأذن', 'انف واذن', 'حنجرة'] },
+  'عيادة قلب وأوعية دموية': { id: 'cardiology', aliases: ['عيادة قلب', 'قلب وأوعية', 'دكتور قلب'] },
+  'عيادة مخ وأعصاب': { id: 'neurology', aliases: ['مخ وأعصاب', 'مخ واعصاب', 'دكتور مخ'] },
+  'عيادة مسالك بولية': { id: 'urology', aliases: ['مسالك بولية', 'عيادة مسالك'] },
+  'عيادة نفسية': { id: 'psychiatry', aliases: ['عيادة نفسية', 'علاج نفسي', 'طبيب نفسي'] },
+  'مركز تخاطب وتأهيل نطق': { id: 'speech-therapy', aliases: ['تخاطب', 'تأهيل نطق'] },
+  'عيادة سمعيات': { id: 'audiology', aliases: ['سمعيات', 'سماعات أذن', 'مركز سمعيات'] },
+  'خياطة وتفصيل ملابس': { id: 'tailoring', aliases: ['خياطة', 'تفصيل ملابس', 'ترزي', 'خياط'] },
+  'ملابس رياضية': { id: 'sportswear', aliases: ['ملابس رياضية', 'ملابس رياضة'] },
+  'صيانة كمبيوتر وطابعات': { id: 'computer-repair', aliases: ['صيانة كمبيوتر', 'صيانة لابتوب', 'طابعات'] },
+  'أجهزة ألعاب': { id: 'gaming', aliases: ['العاب فيديو', 'بلايستيشن', 'اجهزة العاب'] },
+  'سمكرة ودهان سيارات': { id: 'auto-body', aliases: ['سمكرة', 'دهان سيارات', 'بويا سيارات'] },
+  'تأجير سيارات': { id: 'car-rental', aliases: ['تأجير سيارات', 'ايجار سيارات', 'رينت كار'] },
+  'ونش وإنقاذ سيارات': { id: 'tow-truck', aliases: ['ونش', 'إنقاذ سيارات', 'سحب سيارات'] },
+  'ليزر وإزالة شعر': { id: 'laser-hair', aliases: ['ازالة شعر', 'ليزر تجميل', 'جلسات ليزر'] },
+  'نقش حناء': { id: 'henna', aliases: ['حناء', 'نقش حناء'] },
+  'تنجيد وفرش أثاث': { id: 'upholstery', aliases: ['تنجيد', 'منجد', 'فرش أثاث'] },
+  'تنظيف منازل ومكافحة حشرات': { id: 'home-cleaning', aliases: ['تنظيف منازل', 'مكافحة حشرات', 'رش مبيدات'] },
+  'خدمات توصيل ومندوبين': { id: 'delivery', aliases: ['مندوب توصيل', 'خدمات توصيل', 'شركة توصيل'] },
+  'تأمين ووثائق': { id: 'insurance', aliases: ['تأمين', 'تامين سيارات', 'وثائق تأمين'] },
+  'أحبار وورق ومستلزمات طباعة': { id: 'print-supplies', aliases: ['أحبار', 'احبار طابعات', 'ورق طباعة'] },
+  'تحفيظ قرآن وعلوم شرعية': { id: 'quran', aliases: ['تحفيظ قرآن', 'تحفيظ القران', 'كتاتيب'] },
+  'تدريب مهني وحرفي': { id: 'vocational', aliases: ['تدريب مهني', 'تدريب حرفي', 'مركز تدريب'] },
+  'مفاتيح وأقفال': { id: 'locksmith', aliases: ['مفاتيح', 'أقفال', 'اقفال', 'صانع مفاتيح'] },
+  'حج وعمرة': { id: 'hajj-umrah', aliases: ['حج وعمرة', 'عمرة', 'رحلات حج'] },
+  'شقق مفروشة وإيجار يومي': { id: 'furnished-rentals', aliases: ['شقق مفروشة', 'ايجار يومي'] },
+  'مستلزمات حيوانات أليفة': { id: 'pet-supplies', aliases: ['مستلزمات حيوانات', 'طعام حيوانات', 'بت شوب'] },
 };
 
 const EXTRA_SUBCATEGORIES: Record<string, Array<{ id: string; label: string; aliases: string[]; exclusions?: string[] }>> = {
-  grocery: [
-    { id: 'dairy-products', label: 'ألبان وأجبان ومنتجات غذائية', aliases: ['ألبان', 'البان', 'أجبان', 'اجبان', 'منتجات ألبان'] },
-    { id: 'frozen-foods', label: 'مجمدات وأغذية جاهزة', aliases: ['مجمدات', 'أغذية مجمدة', 'اغذية مجمدة'] },
-  ],
   crafts: [
     { id: 'painting-finishing', label: 'نقاشة وتشطيبات منزلية', aliases: ['نقاش', 'نقاشة', 'تشطيبات منزلية', 'محارة', 'جبس بورد'] },
     { id: 'building-tools', label: 'مواد وأدوات بناء', aliases: ['مواد بناء', 'أدوات بناء', 'ادوات بناء', 'أسمنت', 'اسمنت', 'جبس'] },
@@ -82,8 +114,10 @@ export const CATEGORY_TAXONOMY: CategoryTaxonomyGroup[] = CATEGORY_GROUPS.map((g
   return {
     id: meta.id,
     label: group.group,
+    word: group.word,
     icon: group.icon,
-    aliases: normalizedUnique([group.group, ...meta.aliases]),
+    description: group.description,
+    aliases: normalizedUnique([group.group, group.word, ...meta.aliases]),
     children: [...group.items.map((label) => {
       const childMeta = SUBCATEGORY_META[label];
       return {

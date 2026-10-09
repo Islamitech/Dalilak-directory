@@ -43,7 +43,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
               key={category.id}
               href={`/search?cat=${encodeURIComponent(category.id)}`}
               onClick={(event) => go(event, `/search?cat=${encodeURIComponent(category.id)}`)}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-amber-300"
+              className="rounded-pill border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-amber-300"
             >
               {category.name}
             </a>

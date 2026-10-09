@@ -22,7 +22,7 @@ export const Toast: React.FC<ToastProps> = ({ message, action = null }) => {
       style={{ direction: 'rtl' }}
     >
       <div className="dl-toast-content">
-        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping motion-reduce:animate-none shrink-0" />
+        <span className="w-2.5 h-2.5 rounded-pill bg-amber-400 animate-ping motion-reduce:animate-none shrink-0" />
         <span>{message}</span>
         {action && (
           <button

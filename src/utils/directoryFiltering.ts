@@ -4,8 +4,8 @@ import {matchesBusinessSearch,normalizeArabicText} from './arabicSearch';
 import {matchesCategorySelection} from './categoryMatcher';
 import {isBusinessInHadayekZone} from './hadayekZoneHelper';
 import {getBusinessOpenStatus} from './directoryEnhancements';
-export interface DirectoryFilterOptions {activityIntent:ReturnType<typeof parseActivitySearchIntent>;deferredSearchQuery:string;categoryFilter:string;subcategoryFilter:string;effectiveSearchZone:string;govFilter:string;cityFilter:string;openNowOnly:boolean;hasRatingOnly:boolean;hasVideoOnly:boolean;}
-export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,deferredSearchQuery,categoryFilter,subcategoryFilter,effectiveSearchZone,govFilter,cityFilter,openNowOnly,hasRatingOnly,hasVideoOnly}:DirectoryFilterOptions):Business[]{
+export interface DirectoryFilterOptions {activityIntent:ReturnType<typeof parseActivitySearchIntent>;deferredSearchQuery:string;categoryFilter:string;subcategoryFilter:string;effectiveSearchZone:string;govFilter:string;cityFilter:string;openNowOnly:boolean;verifiedOnly?:boolean;hasRatingOnly:boolean;hasVideoOnly:boolean;}
+export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,deferredSearchQuery,categoryFilter,subcategoryFilter,effectiveSearchZone,govFilter,cityFilter,openNowOnly,verifiedOnly,hasRatingOnly,hasVideoOnly}:DirectoryFilterOptions):Business[]{
     return businesses.filter((b) => {
       if (!b) return false;
 
@@ -76,6 +76,8 @@ export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,
         const status = getBusinessOpenStatus(b.workingHours);
         if (!status.isOpen) return false;
       }
+
+      if (verifiedOnly && b.verificationStatus !== 'verified') return false;
 
       // 6. Has Rating Filter
       if (hasRatingOnly) {

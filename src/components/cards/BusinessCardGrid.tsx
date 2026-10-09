@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Business } from '../../types';
 import { UnifiedBusinessCard as BusinessCard } from '../../features/business-details';
 import { Search, RotateCcw, Sparkles } from 'lucide-react';
-import { EmptyState, Skeleton, Button, ErrorState, LoadingSkeleton } from '../../shared/ui';
+import { EmptyState, Skeleton, Button, ErrorState, LoadingSkeleton, Pressable } from '../../shared/ui';
 
 export interface BusinessCardGridProps {
   businesses: Business[];
@@ -101,14 +101,14 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
         title="لم نجد أنشطة مطابقة لخيارات بحثك"
         description="جرّب توسيع النطاق الجغرافي، أو تغيير التصنيف المختار، أو إزالة بعض الفلاتر."
       >
-        <button
+        <Pressable
           type="button"
           onClick={onResetFilters}
-          className="inline-flex items-center gap-1.5 text-xs font-extrabold text-amber-800 bg-amber-500/15 hover:bg-amber-500/25 px-5 py-2.5 rounded-xl border border-amber-500/30 cursor-pointer transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-extrabold text-amber-800 bg-amber-500/15 hover:bg-amber-500/25 px-5 py-2.5 rounded-pill border border-amber-500/30 cursor-pointer transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>إعادة ضبط كافة الفلاتر</span>
-        </button>
+        </Pressable>
       </EmptyState>
     );
   }
@@ -133,7 +133,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
 
       {/* Pagination / Load More Status */}
       <div className="pt-2 pb-4 flex flex-col items-center justify-center gap-2">
-        <p className="text-xs text-slate-500 font-bold bg-white border border-slate-200/80 shadow-xs rounded-full px-3.5 py-1.5">
+        <p className="text-xs text-slate-500 font-bold bg-white border border-slate-200/80 shadow-xs rounded-pill px-3.5 py-1.5">
           عرض {visibleList.length} من أصل {businesses.length} نشاطاً
         </p>
 

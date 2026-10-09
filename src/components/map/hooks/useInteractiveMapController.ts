@@ -3,6 +3,7 @@ import { Business } from '../../../types';
 import { useMapState } from './useMapState';
 import { TargetBuildingData } from '../../../features/map';
 import { MapViewportSnapshot } from '../state/mapViewport';
+import { useMapSheetBridge } from './useMapSheetBridge';
 
 export interface InteractiveMapControllerParams {
   initialShowBusinesses?: boolean;
@@ -25,6 +26,7 @@ export function useInteractiveMapController({
   targetBuilding = null,
   focusedBusiness,
 }: InteractiveMapControllerParams) {
+  useMapSheetBridge();
   const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
 
   const handleSearchChange = useCallback((query: string) => {
