@@ -218,7 +218,9 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         </React.Suspense>
       </main>
 
-      {!isMapRoute && <AppFooter onNavigate={handleNavigate} />}
+      {!isMapRoute && (currentPath !== '/search' || directoryBusinesses.length > 0 || !directoryLoad.pending) && (
+        <AppFooter onNavigate={handleNavigate} />
+      )}
 
       <PublicShowcaseModals
         selectedBiz={selectedBiz}
