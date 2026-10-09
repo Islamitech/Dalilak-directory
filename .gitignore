@@ -42,3 +42,4 @@ reports/evidence/*.png
 screenshots/
 test-results/
 
+.vercel
