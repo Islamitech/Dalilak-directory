@@ -75,7 +75,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
           onFocus={onFocus}
           onBlur={onBlur}
           placeholder={placeholder}
-          className={`search-input w-full h-12 pe-11 ps-11 rounded-md bg-slate-100 hover:bg-slate-200/60 focus:bg-white text-slate-900 placeholder-slate-400 text-sm font-medium border border-transparent focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${inputClassName}`}
+          className={`search-input w-full h-12 ${value.trim() ? 'pe-11' : 'pe-3'} ps-11 rounded-md bg-slate-100 hover:bg-slate-200/60 focus:bg-white text-slate-900 placeholder-slate-400 text-sm font-medium border border-transparent focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${inputClassName}`}
         />
 
         {/* Clear Button (44px touch target with 24px inner circular icon) */}

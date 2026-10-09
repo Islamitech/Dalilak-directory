@@ -134,7 +134,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         }}
         onFocus={() => setIsOpen(value.trim().length >= 2)}
         onSubmit={handleSubmit}
-        placeholder="ابحث عن مطعم، صيدلية، أو خدمة..."
+        placeholder="ابحث عن نشاط"
         className="w-full"
       />
 
