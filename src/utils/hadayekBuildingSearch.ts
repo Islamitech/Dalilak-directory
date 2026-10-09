@@ -1,12 +1,12 @@
 import { Business } from '../types';
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import {
   searchBuildingCoordinatesExact,
   getHadayekZone,
   getRecommendedGateForZone,
   calculateDirectDistanceMeters,
   formatHadayekDistance,
-} from '../data/hadayekAtlasData';
+} from '../shared/data/hadayek/hadayekGeo';
 import { isBusinessInHadayekZone } from './hadayekZoneHelper';
 
 export interface BuildingSearchResult {
@@ -32,7 +32,7 @@ let cachedKeys: string[] | null = null;
 async function getBuildingKeys(): Promise<string[]> {
   if (cachedKeys) return cachedKeys;
   try {
-    const mod = await import('../data/hadayekBuildingsCoords.json');
+    const mod = await import('../shared/data/hadayek/hadayekBuildingsCoords.json');
     const db = (mod as any).default || mod;
     cachedKeys = Object.keys(db);
     return cachedKeys;

@@ -54,3 +54,6 @@ export {
 } from './model/mapSearchSuggestionsLogic';
 export { GEO_ERRORS, startGeolocationWatch } from './model/geolocationUtils';
 export { useMapViewUrlState } from './hooks/useMapViewUrlState';
+export { stashCameraReturn } from './utils/mapCameraMemory';
+export { InteractiveMap } from './components/InteractiveMap';
+export type { InteractiveMapProps } from './types';

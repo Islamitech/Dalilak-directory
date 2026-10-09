@@ -34,10 +34,12 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
   const mainPhoto = photos.length > 0 ? photos[0] : (business.coverPhoto || null);
   const hasPhotos = photos.length > 0 || Boolean(mainPhoto);
   const isVerified = business.verificationStatus === 'verified' || Boolean(business.packageId?.includes('verified'));
-  const displayName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
-  const areaString = [business.category, business.city || business.governorate || 'حدائق الأهرام']
-    .filter(Boolean)
-    .join(' · ');
+  const rawName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
+  const displayName = rawName
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim() || rawName;
+  const areaString = business.category || '';
 
   return (
     <div

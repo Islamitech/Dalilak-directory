@@ -171,7 +171,7 @@ async function runBrowserScenarios() {
       const p = s.page;
       p.setDefaultTimeout(6000);
 
-      await s.context.route((u) => u.pathname === '/src/services/supabaseClient.ts', (r) =>
+      await s.context.route((u) => u.pathname === '/src/shared/lib/supabase.ts', (r) =>
         r.fulfill({
           contentType: 'application/javascript',
           body: 'export const SUPABASE_REST_BASE="https://mock.supabase.co/rest/v1";export const SUPABASE_ANON_KEY="placeholder";export const supabase={channel(){const c={on(t,o,f){window.__realtime=f;return c;},subscribe(){return c;}};return c;},removeChannel(){}};',

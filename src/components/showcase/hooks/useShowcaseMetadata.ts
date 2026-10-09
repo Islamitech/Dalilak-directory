@@ -59,13 +59,13 @@ export function useShowcaseMetadata(
         description: 'استكشف المحلات والأنشطة والخدمات الميدانية القريبة منك على الخريطة الحية المعتمدة في حدائق الأهرام ومصر.',
         canonicalUrl: `${baseDomain}/`,
       });
-    } else if (cleanRoute === '/pricing') {
+    } else if (cleanRoute === '/pricing' || cleanRoute === '/business-pricing') {
       updatePageMetadata({
         title: 'باقات النمو والتوثيق الميداني للأنشطة | منصة دليلك',
         description: 'اكتشف باقات توثيق واعتماد المحلات والشركات، الفواتير الإلكترونية، وبطاقات الدعم الميداني في منصة دليلك.',
         canonicalUrl: `${baseDomain}/pricing`,
       });
-    } else if (cleanRoute === '/for-business') {
+    } else if (cleanRoute === '/for-business' || cleanRoute === '/add-business') {
       updatePageMetadata({
         title: 'أضف نشاطك التجاري مجاناً | منصة دليلك',
         description: 'سجّل محلك أو خدمتك في منصة دليلك المعتمدة مجاناً واحصل على توثيق لموقعك على خرائط Google وتواصل مباشر مع العملاء.',
@@ -85,9 +85,9 @@ export function useShowcaseMetadata(
       });
     } else {
       updatePageMetadata({
-        title: 'منصة دليلك | دليل المحلات والأنشطة التجارية والخدمات في مصر',
-        description: 'الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية، العناوين الدقيقة، أرقام التواصل المباشرة، والمواقع الموثقة على Google Maps.',
-        canonicalUrl: `${baseDomain}/`,
+        title: 'الصفحة غير موجودة | منصة دليلك',
+        description: 'هذا الرابط غير موجود في دليل دليلك. عُد إلى الخريطة أو قائمة الأنشطة.',
+        canonicalUrl: `${baseDomain}${cleanRoute}`,
       });
     }
   }, [selectedBiz, currentPath, categoryFilter, hadayekZoneFilter, searchQuery]);

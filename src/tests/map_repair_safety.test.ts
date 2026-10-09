@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { Business } from '../types';
 import { filterBusinessesForMap } from '../utils/hadayekZoneHelper';
 import { isBusinessAssociatedWithBuilding, parseHadayekBuildingAddress } from '../utils/hadayekBuildingSearch';
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
-import { HADAYEK_GATES } from '../data/hadayekAtlasData';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
+import { HADAYEK_GATES } from '../shared/data/hadayek/hadayekGeo';
 import { MAP_ZOOM_POLICY, isLocalPinPresentationZoom } from '../utils/mapZoomPolicy';
-import { getVisualViewportPadding, planCameraTransitionOnZoneChange } from '../components/map/utils/cameraPlanner';
+import { getVisualViewportPadding, planCameraTransitionOnZoneChange } from '../features/map/utils/cameraPlanner';
 import { getMapBusinessSearchMatches, isSearchSelectedBusiness } from '../utils/mapSearch';
 
 function business(partial: Partial<Business> & Pick<Business, 'id' | 'nameAr' | 'category' | 'lat' | 'lng'>): Business {
@@ -59,7 +59,7 @@ describe('map repair safety contracts', () => {
     expect(official.length).toBeGreaterThan(0);
     expect(HADAYEK_GATES.length).toBeGreaterThan(0);
     // Gate 3 differs today (official catalog vs atlas); record the conflict without choosing data.
-    const source = require('node:fs').readFileSync('src/data/hadayekDistrictsGeoData.ts', 'utf8');
+    const source = require('node:fs').readFileSync('src/shared/data/hadayek/hadayekDistrictsGeoData.ts', 'utf8');
     expect(source).toContain('HADAYEK_OFFICIAL_GATES');
   });
 

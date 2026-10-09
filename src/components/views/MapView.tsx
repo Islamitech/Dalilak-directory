@@ -1,13 +1,13 @@
 import React, { useMemo, useCallback } from 'react';
 import { Business } from '../../types';
-import { InteractiveMap } from '../InteractiveMap';
+import { InteractiveMap, stashCameraReturn, useMapViewUrlState } from '../../features/map';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
+import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
+import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
 import {
   getHadayekZone,
   getRecommendedGateForZone,
-} from '../../data/hadayekAtlasData';
-import { useMapViewUrlState } from '../../features/map';
-import { stashCameraReturn } from '../map/utils/mapCameraMemory';
+} from '../../shared/data/hadayek/hadayekGeo';
 
 export interface MapViewProps {
   searchQuery?: string;
@@ -70,7 +70,6 @@ export const MapView: React.FC<MapViewProps> = ({
     activeBuildingNumber,
     setActiveBuildingNumber,
     exactBuildingCoords,
-    selectZone,
     clearTarget,
     clearBuilding,
   } = useMapViewUrlState(focusedBusiness, selectedZone, onZoneChange);
@@ -95,8 +94,8 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [activeZoneLetter]);
 
   const handleSelectZoneJump = useCallback((letter: string) => {
-    selectZone(letter);
-  }, [selectZone]);
+    setActiveZoneLetter(!letter || letter === 'all' ? '' : letter);
+  }, [setActiveZoneLetter]);
 
   const handleSelectBuilding = useCallback((bldg: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => {
     stashCameraReturn();
@@ -132,15 +131,16 @@ export const MapView: React.FC<MapViewProps> = ({
     return () => window.removeEventListener('map:searchBuilding', handleBuildingSearch);
   }, [handleSelectBuilding]);
 
+  const activityIntent = useMemo(() => parseActivitySearchIntent(searchQuery || ''), [searchQuery]);
+
   const effectiveFilteredBusinesses = useMemo(() => {
-    if (filteredBusinesses && filteredBusinesses.length > 0) return filteredBusinesses;
-    return computeFilteredBusinesses({
+    const listed = computeFilteredBusinesses({
       publicBusinesses: businesses,
-      activityIntent: null,
+      activityIntent,
       deferredSearchQuery: searchQuery || '',
-      categoryFilter,
+      categoryFilter: activityIntent ? 'all' : categoryFilter,
       subcategoryFilter: 'all',
-      effectiveSearchZone: activeZoneLetter || selectedZone || 'all',
+      effectiveSearchZone: 'all',
       govFilter: 'all',
       cityFilter: 'all',
       openNowOnly,
@@ -152,13 +152,12 @@ export const MapView: React.FC<MapViewProps> = ({
       shuffleSeed: 1,
       pinnedDirectBizId: null,
     });
+    return filterBusinessesForMap(listed, 'all', 'all', false);
   }, [
-    filteredBusinesses,
     businesses,
+    activityIntent,
     searchQuery,
     categoryFilter,
-    activeZoneLetter,
-    selectedZone,
     openNowOnly,
     verifiedOnly,
     sortBy,
@@ -192,6 +191,7 @@ export const MapView: React.FC<MapViewProps> = ({
           filtersActive={filtersActive}
           focusedBusiness={focusedBusiness}
           onClearFocusedBusiness={onClearFocusedBusiness}
+          resultsReady={filteredBusinesses !== undefined}
         />
       </div>
     </div>

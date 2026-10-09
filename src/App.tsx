@@ -1,5 +1,5 @@
 import React from 'react';
-import { DirectoryLoadContext } from './contexts/DirectoryLoadContext';
+import { DirectoryLoadContext } from './features/catalog';
 import { PublicShowcase } from './components/PublicShowcase';
 import { useCatalogLifecycle } from './features/catalog';
 import { useInitialRouteParams } from './app/router/useInitialRouteParams';

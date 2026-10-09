@@ -1,6 +1,6 @@
 import { normalizeBuildingQuery } from '../utils/hadayekBuildingSearch';
-import { getDistrictLabelPosition } from '../components/map/utils/districtLabelPosition';
-import { HADAYEK_OFFICIAL_DISTRICTS as labelDistricts, isPointInPolygon as labelInside, findDistrictForCoordinates } from '../data/hadayekDistrictsGeoData';
+import { getDistrictLabelPosition } from '../features/map/utils/districtLabelPosition';
+import { HADAYEK_OFFICIAL_DISTRICTS as labelDistricts, isPointInPolygon as labelInside, findDistrictForCoordinates } from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import assert from 'node:assert/strict';
 import {
   isBusinessInHadayekZone,
@@ -10,7 +10,7 @@ import {
 import {
   disperseCoincidentPins,
   disperseActivityCardsScreenSpace,
-} from '../components/map/utils/pinDispersal';
+} from '../features/map/utils/pinDispersal';
 import {
   formatDisplayRating,
   sanitizeSafeUrl,
@@ -19,20 +19,20 @@ import {
   createExpandedActivityCardHtml,
   createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
-} from '../components/map/badgeMarkers';
+} from '../features/map/badgeMarkers';
 import {
   planCameraTransitionOnZoneChange,
   planCameraTransitionOnCategoryChange,
   planCameraTransitionOnBusinessSelect,
   getVisualViewportPadding,
   selectedCardCameraShiftY,
-} from '../components/map/utils/cameraPlanner';
+} from '../features/map/utils/cameraPlanner';
 import {
   computeMarkerIconKey,
   reconcileMarkerRegistry,
   MarkerRegistryEntry,
-} from '../components/map/utils/markerReconciliation';
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
+} from '../features/map/utils/markerReconciliation';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import { Business } from '../types';
 import {
   classifyBusinessCategory,

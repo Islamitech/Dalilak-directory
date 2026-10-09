@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { Business } from '../../../types';
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../../../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
 import { classifyBusinessCategory } from '../../../utils/categoryMatcher';
 import { getBusinessHadayekZoneLetter } from '../../../utils/hadayekZoneHelper';
 import { INTEGRATED_FILTER_CATEGORIES } from '../model/filterModel';

@@ -17,6 +17,8 @@ export interface EntitySheetProps {
   children?: React.ReactNode;
   /** `map` anchors inside the map. `page` covers the directory. */
   placement?: 'map' | 'page';
+  /** Peek keeps this control. Expanded activity content brings its own close button. */
+  showClose?: boolean;
 }
 
 /**
@@ -32,6 +34,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
   peek,
   children,
   placement = 'map',
+  showClose = true,
 }) => {
   const sheetRef = useRef<HTMLElement>(null);
   const dragRef = useRef<{ y: number; snap: EntitySheetSnap } | null>(null);
@@ -75,6 +78,15 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
   const isFull = snap === 'full';
 
   return (
+    <>
+    {placement === 'page' && (
+      <button
+        type="button"
+        className="dl-esheet-backdrop"
+        aria-label="إغلاق"
+        onClick={onClose}
+      />
+    )}
     <section
       ref={sheetRef}
       data-map-sheet
@@ -115,6 +127,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
       }}
     >
       <div data-sheet-handle className="dl-esheet-handle" aria-hidden="true" />
+      {showClose && (
       <IconButton
         aria-label="إغلاق"
         variant="ghost"
@@ -123,9 +136,11 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
         className="dl-esheet-x"
         icon={<X className="w-4 h-4" />}
       />
+      )}
       <div className="dl-esheet-body">
         {snap === 'peek' && peek ? peek : children}
       </div>
     </section>
+    </>
   );
 };

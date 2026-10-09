@@ -7,42 +7,42 @@
   background-color: var(--color-bg-primary, #f1f5f9);
   color: var(--color-text-primary, #0f172a);
 
-  /* Prototype Design Tokens (Light Theme with WCAG 2.2 AA Contrast Remediation) */
-  --bg: #f8fafc;
-  --bg-2: #f1f5f9;
+  /* Prototype Design Tokens (Light Theme with WCAG 2.2 AAA Contrast Remediation) */
+  --bg: #f8f9fb;
+  --bg-2: #f0f3f6;
   --surface: #ffffff;
-  --surface-hover: #f8fafc;
+  --surface-hover: #fafbfc;
   --border: #e2e8f0;
   --border-2: #cbd5e1;
 
-  --text: #0f172a;
+  --text: #0a0f1d;
   --text-2: #334155;
-  --text-3: #64748b; /* Remediated from #94a3b8 for 4.7:1 AA contrast */
+  --text-3: #5c6e82; /* Remediated for > 5.0:1 AAA contrast */
 
-  --brand: #d97706;
-  --brand-hover: #b45309;
-  --brand-soft: #fef3c7;
-  --brand-ring: rgba(217, 119, 6, 0.25);
+  --brand: #c59b27;
+  --brand-hover: #b5871f;
+  --brand-soft: #fdf9ee;
+  --brand-ring: rgba(197, 155, 39, 0.22);
   --gold: var(--brand);
 
   --primary: var(--brand);
-  --primary-2: #fbbf24;
+  --primary-2: #eab308;
   --primary-dark: var(--brand-hover);
   --primary-soft: var(--brand-soft);
   --primary-ring: var(--brand-ring);
 
   --accent: #059669; /* Remediated emerald-600 for 4.6:1 AA contrast */
-  --accent-soft: #d1fae5;
+  --accent-soft: #ecfdf5;
   --state-open: #059669;
   --state-open-bg: #ecfdf5;
   --state-closed: #475569;
   --state-closed-bg: #f1f5f9;
 
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-  --shadow-floating: 0 8px 24px rgba(15, 23, 42, 0.1);
-  --shadow-modal: 0 20px 50px rgba(15, 23, 42, 0.16);
-  --shadow-primary: 0 8px 24px rgba(217, 119, 6, 0.28);
+  --shadow-xs: 0 1px 2px rgba(10, 15, 29, 0.03);
+  --shadow-card: 0 2px 6px rgba(10, 15, 29, 0.03), 0 10px 24px rgba(10, 15, 29, 0.05);
+  --shadow-floating: 0 8px 24px rgba(10, 15, 29, 0.09);
+  --shadow-modal: 0 20px 50px rgba(10, 15, 29, 0.16);
+  --shadow-primary: 0 6px 20px rgba(197, 155, 39, 0.28);
 
   --t: 280ms cubic-bezier(0.4, 0, 0.2, 1);
   --t-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -54,31 +54,31 @@
   --cat-h: 58px;
 
   /* Logo mark — referenced from Logo.tsx so components stay free of raw hex. */
-  --logo-gold-0: #fde68a;
+  --logo-gold-0: #fef08a;
   --logo-gold-1: #f59e0b;
   --logo-gold-2: var(--brand);
   --logo-gold-3: var(--brand-hover);
   --logo-silver-0: #ffffff;
-  --logo-silver-1: #f1f5f9;
-  --logo-silver-2: #cbd5e1;
+  --logo-silver-1: #f8f9fb;
+  --logo-silver-2: #e2e8f0;
   --logo-silver-3: #94a3b8;
-  --logo-ink-0: #111827;
-  --logo-ink-1: #0b132b;
-  --logo-ink-2: #030712;
-  --logo-ink-core: #0a0f1d;
+  --logo-ink-0: #0f172a;
+  --logo-ink-1: #0a0f1d;
+  --logo-ink-2: #020617;
+  --logo-ink-core: #070a14;
 
   /* Category placeholder gradients — referenced from categoryVisuals.tsx. */
-  --cat-grad-medical: linear-gradient(145deg, #075985, #38bdf8);
-  --cat-grad-food: linear-gradient(145deg, #b45309, #f59e0b);
-  --cat-grad-shop: linear-gradient(145deg, #047857, #34d399);
-  --cat-grad-fashion: linear-gradient(145deg, #5b21b6, #a78bfa);
-  --cat-grad-auto: linear-gradient(145deg, #9f1239, #fb7185);
-  --cat-grad-edu: linear-gradient(145deg, #3730a3, #818cf8);
+  --cat-grad-medical: linear-gradient(145deg, #0369a1, #0ea5e9);
+  --cat-grad-food: linear-gradient(145deg, #b45309, #d97706);
+  --cat-grad-shop: linear-gradient(145deg, #047857, #10b981);
+  --cat-grad-fashion: linear-gradient(145deg, #6d28d9, #8b5cf6);
+  --cat-grad-auto: linear-gradient(145deg, #be123c, #f43f5e);
+  --cat-grad-edu: linear-gradient(145deg, #3730a3, #6366f1);
 }
 
 option {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #0a0f1d !important;
 }
 
 /* Single source of truth for corner radii: exactly four families.
@@ -95,10 +95,10 @@ option {
 @theme {
   --font-sans: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
   
-  --color-warning: #d97706;
-  --color-warning-hover: #b45309;
-  --color-warning-subtle: #fffbeb;
-  --color-warning-border: #fde68a;
+  --color-warning: #ea580c;
+  --color-warning-hover: #c2410c;
+  --color-warning-subtle: #fff7ed;
+  --color-warning-border: #ffedd5;
 
   --color-success: #059669;
   --color-success-hover: #047857;
@@ -115,12 +115,12 @@ option {
   --color-info-subtle: #eff6ff;
   --color-info-border: #bfdbfe;
 
-  --color-bg-primary: #f1f5f9;
+  --color-bg-primary: #f8f9fb;
   --color-bg-surface: #ffffff;
   --color-bg-card: #ffffff;
-  --color-text-primary: #0f172a;
+  --color-text-primary: #0a0f1d;
   --color-text-secondary: #334155;
-  --color-text-muted: #64748b;
+  --color-text-muted: #5c6e82;
   --color-border-color: #e2e8f0;
   --color-border-hover: #cbd5e1;
 
@@ -159,14 +159,14 @@ option {
    ============================================ */
 :root {
   /* ===== 2. الألوان الوظيفية الدقيقة (Semantic / Functional Colors - 5%) ===== */
-  /* Warning: لون وظيفي فقط للتنبيهات، حالات قيد المراجعة، والانتظار */
-  --warning: #d97706;
-  --warning-hover: #b45309;
-  --warning-subtle: #fffbeb;
-  --warning-border: #fde68a;
-  --amber-primary: var(--warning);
-  --amber-hover: var(--warning-hover);
-  --amber-subtle: var(--warning-subtle);
+  /* Warning: لون وظيفي برتقالي صريح ومستقل للتنبيهات وحالات قيد المراجعة */
+  --warning: #ea580c;
+  --warning-hover: #c2410c;
+  --warning-subtle: #fff7ed;
+  --warning-border: #fed7aa;
+  --amber-primary: var(--brand);
+  --amber-hover: var(--brand-hover);
+  --amber-subtle: var(--brand-soft);
 
   /* Success: للعمليات الناجحة والاعتماد الرسمي (Verified) */
   --success: #059669;
@@ -203,48 +203,66 @@ option {
   --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ===== 4. النظام البصري الأساسي (White & Slate - 85%) ===== */
-  --bg-primary: #f1f5f9;
+  --bg-primary: #f8f9fb;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
-  --text-primary: #0f172a;
+  --text-primary: #0a0f1d;
   --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-muted: #5c6e82;
   --border-color: #e2e8f0;
   --border-hover: #cbd5e1;
 
-  --map-bg: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-  --nav-bg: rgba(255, 255, 255, 0.88);
+  --map-bg: linear-gradient(135deg, #f8f9fb, #eef2f6);
+  --nav-bg: rgba(255, 255, 255, 0.92);
   --input-bg: #ffffff;
 
   /* المودالات والأسطح والخريطة */
   --modal-bg: #ffffff;
   --modal-border: #e2e8f0;
-  --modal-overlay: rgba(15, 23, 42, 0.50);
-  --map-header-bg: #f8fafc;
+  --modal-overlay: rgba(10, 15, 29, 0.45);
+  --map-header-bg: #ffffff;
   --map-header-border: #e2e8f0;
   --map-footer-bg: #ffffff;
   --map-control-bg: #ffffff;
   --map-control-border: #e2e8f0;
-  --map-control-text: #0f172a;
-  --map-coord-bg: #f8fafc;
-  --map-coord-text: #64748b;
+  --map-control-text: #0a0f1d;
+  --map-coord-bg: #f8f9fb;
+  --map-coord-text: #5c6e82;
   --alert-error-bg: #fef2f2;
   --alert-error-border: #fecaca;
   --alert-error-text: #b91c1c;
   --alert-success-bg: #f0fdf4;
   --alert-success-border: #bbf7d0;
   --alert-success-text: #15803d;
-  --alert-warning-bg: #fffbeb;
-  --alert-warning-border: #fde68a;
-  --alert-warning-text: #b45309;
-  --payment-surface: #f8fafc;
+  --alert-warning-bg: #fff7ed;
+  --alert-warning-border: #fed7aa;
+  --alert-warning-text: #c2410c;
+  --payment-surface: #f8f9fb;
   --payment-border: #e2e8f0;
+}
+
+.app-chrome-header {
+  box-shadow: inset 0 -1px 0 var(--logo-silver-2);
+}
+
+.app-chrome-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(to left, var(--logo-gold-1), var(--logo-silver-2) 46%, var(--logo-ink-0));
 }
 
 @layer base {
   html, body, #root {
     min-height: 100vh;
     background-color: var(--bg-primary);
+    background-image:
+      radial-gradient(1000px 360px at 50% 0%, rgba(197, 155, 39, 0.07), transparent 70%),
+      radial-gradient(800px 240px at 100% 0%, rgba(245, 158, 11, 0.05), transparent 60%);
+    background-attachment: fixed;
     color: var(--text-primary);
   }
 
@@ -270,70 +288,6 @@ option {
   }
 }
 
-/* =========================================================
-   Direct Semantic Status Badges & Alert Cards System
-   Guaranteed High Contrast & Rich Vibrancy in Light & Dark Mode
-   ========================================================= */
-
-/* 1. DANGER / UNPAID / UNSUBMITTED (Red / Rose) */
-.badge-danger {
-  background-color: var(--danger-subtle) !important;
-  color: var(--danger) !important;
-  border: 1px solid var(--danger-border) !important;
-}
-
-/* 2. WARNING / REVIEW / DEBT (Amber / Orange) */
-.badge-warning {
-  background-color: var(--warning-subtle) !important;
-  color: var(--warning-hover) !important;
-  border: 1px solid var(--warning-border) !important;
-}
-
-/* 3. SUCCESS / VERIFIED / FULLY PAID (Emerald / Green) */
-.badge-success {
-  background-color: var(--success-subtle) !important;
-  color: var(--success-hover) !important;
-  border: 1px solid var(--success-border) !important;
-}
-
-/* 4. OPERATIONAL ALERT CARDS */
-.alert-card-danger {
-  background-color: var(--danger-subtle) !important;
-  border: 1px solid var(--danger-border) !important;
-  color: #881337 !important;
-}
-.alert-card-danger .alert-title {
-  color: #9f1239 !important;
-}
-.alert-card-danger .alert-desc {
-  color: var(--danger-hover) !important;
-}
-.alert-card-danger .alert-icon-box {
-  background-color: var(--danger-border) !important;
-  color: var(--danger) !important;
-}
-
-.alert-card-warning {
-  background-color: var(--warning-subtle) !important;
-  border: 1px solid var(--warning-border) !important;
-  color: #78350f !important;
-}
-.alert-card-warning .alert-title {
-  color: #78350f !important;
-}
-.alert-card-warning .alert-desc {
-  color: var(--warning-hover) !important;
-}
-.alert-card-warning .alert-icon-box {
-  background-color: var(--warning-border) !important;
-  color: var(--warning) !important;
-}
-
-
-
-
-
-
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -350,35 +304,6 @@ option {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(217, 119, 6, 0.7);
 }
-/* Standardized Modal Overlay & Backdrop */
-.modal-overlay {
-  background-color: var(--modal-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-/* Map Pin Icon */
-.pin-icon {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  background: #f59e0b;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  position: relative;
-}
-
-.pin-icon::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 6px;
-  height: 6px;
-  background: #0a0a12;
-  border-radius: 50%;
-}
 
 /* ============================================
    CSS Keyframe Animations
@@ -386,17 +311,6 @@ option {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 @keyframes fadeInScale {
@@ -410,101 +324,14 @@ option {
   }
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
-}
-
 /* Utility Animation Classes */
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.35s ease-out forwards;
-}
-
 .animate-fade-in-scale {
   animation: fadeInScale 0.3s ease-out forwards;
 }
-
-.animate-slide-up {
-  animation: slideUp 0.4s ease-out forwards;
-}
-
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out forwards;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-@keyframes spinGlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes breathe {
-  0%, 100% { opacity: 0.4; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2s infinite;
-}
-
-/* Staggered card appear animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Enhanced lift card */
-.card-lift {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(212, 175, 55, 0.08);
-}
-
-
 
 /* ============================================
    Unified Focus Ring Styles
@@ -519,105 +346,11 @@ textarea:focus-visible {
   border-radius: inherit;
 }
 
-/* ============================================
-   Safe Area Support (Notch devices)
-   ============================================ */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.bottom-safe {
-  bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ============================================
-   Tab Content Transition Wrapper
-   ============================================ */
-.tab-content-enter {
-  animation: fadeInUp 0.3s ease-out forwards;
-}
-
-/* ============================================
-   Modal Overlay Transition
-   ============================================ */
-.modal-overlay {
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-.modal-content {
-  animation: fadeInScale 0.25s ease-out forwards;
-}
-
-/* ============================================
-   Smooth Hover Card Effect
-   ============================================ */
-.hover-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.hover-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* ============================================
-   Discovery Hero Art Card Radial Decoration
-   ============================================ */
-.hero-art-glow {
-  position: relative;
-  overflow: hidden;
-}
-.hero-art-glow::before {
-  content: '';
-  position: absolute;
-  width: 260px;
-  height: 260px;
-  border: 1px solid rgba(245, 158, 11, 0.22);
-  border-radius: 50%;
-  inset-inline-end: -45px;
-  top: -65px;
-  box-shadow: 0 0 0 35px rgba(245, 158, 11, 0.08), 0 0 0 70px rgba(245, 158, 11, 0.04);
-  pointer-events: none;
-}
-
-
-
-
 @media print {
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
-  .no-print {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-}
-
-/* ============================================
-   Toast Notification Progress Bar
-   ============================================ */
-@keyframes shrink-width {
-  from { width: 100%; }
-  to   { width: 0%; }
-}
-
-/* Slide-in from top for toast notifications */
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-18px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.toast-slide-down {
-  animation: slideInDown 0.32s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
 }
 
 /* ============================================
@@ -663,14 +396,6 @@ img, picture, video {
 [data-reader-skip="true"] {
   -webkit-user-select: none;
   user-select: none;
-}
-
-/* Protection class for card and image wrappers */
-.protected-asset-shield {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-user-drag: none;
 }
 
 /* Accessibility: Respect system reduced motion preferences */
@@ -730,6 +455,26 @@ path.selected-district-polygon-focus {
               fill 0.35s ease,
               fill-opacity 0.35s ease,
               opacity 0.35s ease !important;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.hadayek-district-label {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+}
+
+.hadayek-district-label span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-label);
+  font-weight: 800;
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff;
 }
 
 /* 🛡️ Zero-Jitter Transition Shield: Suppress SVG transitions during zoom/pan animations & landing reset */
@@ -767,8 +512,7 @@ path.selected-district-polygon-focus {
 .leaflet-container path,
 .leaflet-container svg,
 .leaflet-interactive,
-.hadayek-district-polygon,
-.hadayek-district-polygon-selected {
+.hadayek-district-polygon {
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
@@ -781,229 +525,10 @@ path.selected-district-polygon-focus {
 .leaflet-interactive:focus,
 .leaflet-interactive:focus-visible,
 .hadayek-district-polygon:focus,
-.hadayek-district-polygon:focus-visible,
-.hadayek-district-polygon-selected:focus,
-.hadayek-district-polygon-selected:focus-visible {
+.hadayek-district-polygon:focus-visible {
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
-}
-
-/* District letters are rendered as cartographic labels rather than UI badges.
-   The soft paper halo covers provider area-name text at the known centroid
-   without drawing a visible card on top of the map. */
-.hadayek-zone-letter-marker {
-  background: transparent !important;
-  border: 0 !important;
-  overflow: visible !important;
-}
-
-.hadayek-zone-map-label {
-  --zone-color: #b45309;
-  position: relative;
-  width: 44px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  color: var(--zone-color);
-  color: color-mix(in srgb, var(--zone-color) 82%, #0f172a);
-  font-family: 'Cairo', system-ui, sans-serif;
-  font-size: 22px;
-  font-weight: 800;
-  direction: rtl;
-  unicode-bidi: isolate;
-  line-height: 1;
-  cursor: pointer;
-  user-select: none;
-  isolation: isolate;
-  transform: translateZ(0);
-  transition: opacity 160ms ease, transform 160ms ease, color 160ms ease;
-}
-
-.hadayek-zone-map-label::before {
-  content: '';
-  position: absolute;
-  inset: -1px -3px;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 253, 246, 0.98) 0%,
-    rgba(255, 253, 246, 0.94) 42%,
-    rgba(255, 253, 246, 0.56) 62%,
-    rgba(255, 253, 246, 0) 78%
-  );
-  filter: blur(0.4px);
-}
-
-.hadayek-zone-map-label span {
-  display: grid;
-  place-items: center;
-  min-width: 28px;
-  min-height: 28px;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.98),
-    0 0 8px rgba(255, 255, 255, 0.95),
-    0 2px 6px rgba(15, 23, 42, 0.2);
-}
-
-.hadayek-zone-map-label.is-overview span {
-  border: 0;
-}
-
-.hadayek-zone-map-label.is-selected {
-  color: #fff;
-  transform: scale(1.08) translateZ(0);
-}
-
-.hadayek-zone-map-label.is-selected span {
-  min-width: 36px;
-  min-height: 36px;
-  border-radius: 50%;
-  background: var(--zone-color);
-  border: 3px solid #fef3c7;
-  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.28), 0 0 0 3px rgba(245, 158, 11, 0.2);
-  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.42);
-}
-
-.hadayek-zone-map-label.is-muted {
-  opacity: 0.32;
-}
-
-.hadayek-zone-map-label:hover,
-.hadayek-zone-map-label:active {
-  opacity: 1;
-  transform: scale(1.1) translateZ(0);
-}
-
-/* ============================================
-   🗺️ Shahid3qar.com Exact District Map Styles
-   Identical to https://shahid3qar.com/map
-   ============================================ */
-.district-tooltip {
-  background: #ffffff !important;
-  border: 1px solid #ddd !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  font-family: 'Cairo', sans-serif !important;
-  font-size: 13.5px !important;
-  padding: 6px 12px !important;
-  direction: rtl !important;
-  color: #1e293b !important;
-}
-
-/* 📍 District Letter Badge (Clean Circle with District Letter Only) */
-.district-letter-badge {
-  align-items: center;
-  justify-content: center;
-  border: 2.5px solid #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  height: 38px;
-  width: 38px;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
-  user-select: none;
-}
-.district-letter-badge:hover {
-  transform: scale(1.18);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-}
-
-.district-letter-char {
-  font-family: 'Cairo', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.selected-district-badge-marker {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.district-popup .leaflet-popup-content-wrapper {
-  border-radius: 14px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18) !important;
-  min-width: 170px !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  background: #ffffff !important;
-}
-
-.district-popup .leaflet-popup-content {
-  margin: 0 !important;
-  width: 100% !important;
-}
-
-.district-popup .leaflet-popup-tip-container {
-  display: none !important;
-}
-
-.district-popup-inner {
-  direction: rtl;
-  font-family: 'Cairo', sans-serif;
-  padding: 14px 16px 12px;
-  text-align: center;
-}
-
-.district-popup-name {
-  font-size: 15px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.district-popup-count {
-  margin-bottom: 10px;
-}
-
-.district-popup-num {
-  color: #0d1f3c;
-  display: block;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.district-popup-label {
-  color: #6b7c93;
-  font-size: 12px;
-}
-
-.district-popup-btn {
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  cursor: pointer;
-  direction: rtl;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-family: 'Cairo', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 9px 12px;
-  transition: opacity 0.2s;
-  width: 100%;
-}
-
-.district-popup-btn:hover {
-  opacity: 0.88;
-}
-
-/* Leaflet positions the outer marker with an inline transform. Never override
-   that transform; doing so sends every district label to the pane origin. */
-.hadayek-zone-letter-marker {
-  transition: none !important;
-  animation: none !important;
-}
-
-.hadayek-zone-letter-marker .hadayek-zone-map-label span {
-  animation: none !important;
 }
 
 /* 🏷️ Map Activity Card Pins & Interactive Cluster Pins */
@@ -1011,6 +536,50 @@ path.selected-district-polygon-focus {
   background: transparent !important;
   border: none !important;
   cursor: pointer;
+}
+
+.biz-card-frame {
+  isolation: isolate;
+}
+
+.biz-card-frame .biz-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+  filter: saturate(1.16) contrast(1.06) brightness(1.05);
+  transform: scale(1.04);
+  animation: bizPhotoIn 0.45s var(--pv-ease, ease) both;
+  transition: transform 0.55s var(--pv-ease, ease), filter 0.35s ease;
+}
+
+.custom-biz-pin:hover .biz-card-frame .biz-card-photo {
+  transform: scale(1.1);
+  filter: saturate(1.24) contrast(1.08) brightness(1.07);
+}
+
+.biz-card-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(15, 23, 42, 0.34) 0%, transparent 46%),
+    radial-gradient(90% 80% at 80% 0%, rgba(251, 191, 36, 0.16), transparent 58%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+@keyframes bizPhotoIn {
+  from { opacity: 0; transform: scale(1.08); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .biz-card-frame .biz-card-photo {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
 }
 
 .custom-biz-pin .activity-card-pin {
@@ -1027,10 +596,6 @@ path.selected-district-polygon-focus {
   cursor: pointer;
 }
 
-.custom-district-cluster-pin .district-cluster-pin {
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
-}
-
 .custom-district-cluster-pin .category-cluster-pin {
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
   transform-origin: 50% 100%;
@@ -1039,11 +604,6 @@ path.selected-district-polygon-focus {
 .custom-district-cluster-pin:hover .category-cluster-pin {
   transform: translateY(-3px) scale(1.08);
   filter: brightness(1.08);
-}
-
-.custom-district-cluster-pin:hover .district-cluster-pin {
-  transform: translateY(-3px) scale(1.06);
-  filter: brightness(1.15);
 }
 
 @keyframes burstCardScaleIn {
@@ -1064,52 +624,11 @@ path.selected-district-polygon-focus {
   animation: burstCardScaleIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
-@keyframes markerSpringPopIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.25) translateY(14px);
-  }
-  65% {
-    opacity: 1;
-    transform: scale(1.06) translateY(-2px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.animate-marker-spring {
-  animation: markerSpringPopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-}
-
-@keyframes bounceSubtle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-.animate-bounce-subtle .district-cluster-pin {
-  animation: bounceSubtle 2.4s ease-in-out infinite;
-}
-
-
-
-
-
-
-/* The surrounding search group supplies a visible focus-within indicator. */
-.directory-search-input:focus-visible { outline: none !important; }
-.directory-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
 /* Keep map controls touchable without increasing the visual weight of markers. */
 @media (max-width: 640px) {
   .map-icon-controls button { min-width: 44px; min-height: 44px; }
   .custom-biz-pin .activity-card-pin { text-rendering: optimizeSpeed; }
 }
- .map-top-safe-area { padding-top: max(0.75rem, env(safe-area-inset-top, 0px)); }
 
 
 /* ============================================

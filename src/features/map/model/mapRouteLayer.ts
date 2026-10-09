@@ -1,4 +1,4 @@
-import { createNavigationPinHtml } from '../../../components/map/badgeMarkers';
+import { createNavigationPinHtml } from '../badgeMarkers';
 
 export interface ActiveRouteData {
   origin: { lat: number; lng: number; label: string };

@@ -4,15 +4,15 @@ import {
   CATEGORY_PIN_STYLES,
   getBusinessPinCategoryId,
   getCategoryPinStyle,
-} from '../components/map/markers/categoryPinStyle';
+} from '../features/map/markers/categoryPinStyle';
 import {
   categoryClusterFootprint,
   categoryPinKey,
   categoryPinOffset,
   splitGroupByCategory,
-} from '../components/map/utils/categoryPinGroups';
-import { createCategoryClusterPinHtml, createCompactActivityPinHtml } from '../components/map/badgeMarkers';
-import { buildVisiblePinPipeline } from '../components/map/utils/visiblePinPipeline';
+} from '../features/map/utils/categoryPinGroups';
+import { createCategoryClusterPinHtml, createCompactActivityPinHtml } from '../features/map/badgeMarkers';
+import { buildVisiblePinPipeline } from '../features/map/utils/visiblePinPipeline';
 import { INTEGRATED_FILTER_CATEGORIES } from '../features/search/model/filterModel';
 
 function biz(id: string, category: string, lng = 31): Business {

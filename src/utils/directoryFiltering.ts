@@ -1,6 +1,6 @@
 import type { Business } from '../types';
 import {parseActivitySearchIntent} from './activitySearchIntent';
-import {matchesBusinessSearch,normalizeArabicText} from './arabicSearch';
+import {matchesBusinessSearch,normalizeArabicText} from '../shared/lib/arabicSearch';
 import {matchesCategorySelection} from './categoryMatcher';
 import {isBusinessInHadayekZone} from './hadayekZoneHelper';
 import {getBusinessOpenStatus} from './directoryEnhancements';

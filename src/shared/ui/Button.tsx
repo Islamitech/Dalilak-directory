@@ -13,6 +13,7 @@ interface ButtonContentProps {
   leadingIcon?: React.ReactNode;
   trailing?: React.ReactNode;
   loading?: boolean;
+  truncateLabel?: boolean;
 }
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & ButtonStyleOptions & ButtonContentProps;
@@ -29,9 +30,9 @@ const SIZES: Record<ButtonSize, string> = {
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--brand)] border-[var(--brand)] text-white hover:bg-[var(--brand-hover)] hover:border-[var(--brand-hover)]',
+    'bg-[var(--logo-gold-1)] border-[var(--logo-gold-2)] text-[var(--logo-ink-core)] hover:bg-[var(--logo-gold-2)] hover:border-[var(--logo-gold-3)] shadow-xs hover:shadow-sm',
   secondary:
-    'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 hover:text-slate-900',
+    'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-700 hover:bg-slate-100',
   danger: 'bg-rose-600 border-rose-600 text-white hover:bg-rose-700 hover:border-rose-700',
   icon: 'w-11 h-11 min-h-11 p-0 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900',
@@ -46,6 +47,7 @@ const ButtonContent: React.FC<ButtonContentProps & { children?: React.ReactNode 
   leadingIcon,
   trailing,
   loading,
+  truncateLabel = true,
   children,
 }) => (
   <>
@@ -62,7 +64,7 @@ const ButtonContent: React.FC<ButtonContentProps & { children?: React.ReactNode 
       )
     )}
     {children !== undefined && children !== null && children !== false && (
-      <span className="min-w-0 truncate">{children}</span>
+      <span className={truncateLabel ? 'min-w-0 truncate' : undefined}>{children}</span>
     )}
     {trailing && <span className="shrink-0 text-caption font-bold opacity-80 tabular-nums">{trailing}</span>}
   </>
@@ -70,7 +72,7 @@ const ButtonContent: React.FC<ButtonContentProps & { children?: React.ReactNode 
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { variant, size, fullWidth, leadingIcon, trailing, loading = false, className = '', disabled, type = 'button', children, ...props },
+    { variant, size, fullWidth, leadingIcon, trailing, loading = false, truncateLabel = true, className = '', disabled, type = 'button', children, ...props },
     ref
   ) => (
     <button
@@ -81,7 +83,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className={`${buttonClassName({ variant, size, fullWidth })} ${className}`}
       {...props}
     >
-      <ButtonContent leadingIcon={leadingIcon} trailing={trailing} loading={loading}>
+      <ButtonContent leadingIcon={leadingIcon} trailing={trailing} loading={loading} truncateLabel={truncateLabel}>
         {children}
       </ButtonContent>
     </button>
@@ -91,9 +93,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
-  ({ variant, size, fullWidth, leadingIcon, trailing, loading = false, className = '', children, ...props }, ref) => (
+  ({ variant, size, fullWidth, leadingIcon, trailing, loading = false, truncateLabel = true, className = '', children, ...props }, ref) => (
     <a ref={ref} className={`${buttonClassName({ variant, size, fullWidth })} ${className}`} {...props}>
-      <ButtonContent leadingIcon={leadingIcon} trailing={trailing} loading={loading}>
+      <ButtonContent leadingIcon={leadingIcon} trailing={trailing} loading={loading} truncateLabel={truncateLabel}>
         {children}
       </ButtonContent>
     </a>

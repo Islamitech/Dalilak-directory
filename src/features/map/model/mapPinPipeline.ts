@@ -3,14 +3,14 @@ import {
   createCompactActivityPinHtml,
   createCategoryClusterPinHtml,
   createLightweightClusterHtml,
-} from '../../../components/map/badgeMarkers';
-import { getCategoryPinStyle } from '../../../components/map/markers/categoryPinStyle';
-import { categoryPinKey, categoryPinLimitForZoom, categoryPinOffset, splitGroupByCategory } from '../../../components/map/utils/categoryPinGroups';
+} from '../badgeMarkers';
+import { getCategoryPinStyle } from '../markers/categoryPinStyle';
+import { categoryPinKey, categoryPinLimitForZoom, categoryPinOffset, splitGroupByCategory } from '../utils/categoryPinGroups';
 import { formatActivityCountLabel } from '../../../shared/lib/format';
 import { MAP_ZOOM_POLICY } from '../../../utils/mapZoomPolicy';
-import { scheduleProgressiveWork } from '../../../components/map/utils/progressiveWork';
-import { buildVisiblePinPipeline, visiblePinClusterKey } from '../../../components/map/utils/visiblePinPipeline';
-import { computeMarkerIconKey } from '../../../components/map/utils/markerReconciliation';
+import { scheduleProgressiveWork } from '../utils/progressiveWork';
+import { buildVisiblePinPipeline, visiblePinClusterKey } from '../utils/visiblePinPipeline';
+import { computeMarkerIconKey } from '../utils/markerReconciliation';
 
 export interface PinPipelineContext {
   map: any;

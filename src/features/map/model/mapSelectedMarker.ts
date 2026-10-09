@@ -2,7 +2,7 @@ import { Business } from '../../../types';
 import {
   createExpandedActivityCardHtml,
   attachCardDomListeners,
-} from '../../../components/map/badgeMarkers';
+} from '../badgeMarkers';
 
 export function renderSelectedBusinessMarker(
   selectedLayer: any,

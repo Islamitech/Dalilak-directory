@@ -1,6 +1,6 @@
 import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
-import { readCatalogCache } from '../../../services/catalogCache';
+import { readCatalogCache } from './catalogCache';
 import { BIDI_CONTROL_REGEX } from './businessMapper';
 
 export function getInitialCachedBusinesses(): Business[] {

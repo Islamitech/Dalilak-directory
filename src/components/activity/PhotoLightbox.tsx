@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Pressable } from '../../shared/ui';
 import { PhotoWatermarkBadge } from '../PhotoWatermarkBadge';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
+import { useAccessibleDialog } from '../../shared/hooks/useAccessibleDialog';
 
 export interface ShowcasePhotoLightboxProps {
   photos: string[];

@@ -4,7 +4,8 @@ import { Business } from '../../../../types';
 import { getOptimizedImageUrl } from '../../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../../utils/categoryPhotos';
 import { displayBusinessName } from '../../../../shared/lib/format';
-import { ShieldCheck, Heart, Play, ChevronLeft, ChevronRight, MapPin, Store } from 'lucide-react';
+import { ShieldCheck, Heart, Play, MapPin, Store } from 'lucide-react';
+import { BusinessCardGalleryNav } from './BusinessCardGalleryNav';
 
 export interface BusinessCardPhotoGalleryProps {
   business: Business;
@@ -15,6 +16,15 @@ export interface BusinessCardPhotoGalleryProps {
   priority?: boolean;
   popHeart?: boolean;
   areaString: string;
+}
+
+function previewAreaLabel(area: string): string {
+  const parts = area.split(' · ').map((part) => part.trim()).filter(Boolean);
+  const city = parts[0] || '';
+  const zone = parts.find((part) => /^منطقة\s/.test(part)) || '';
+  const street = parts.find((part) => part !== city && part !== zone) || '';
+  const shortStreet = street && street.length <= 28 && !/[،,]|محافظة|مصر/.test(street) ? street : '';
+  return [city, zone, shortStreet].filter(Boolean).join(' · ');
 }
 
 export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> = ({
@@ -29,22 +39,22 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
 }) => {
   const railRef = useRef<HTMLDivElement>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadedPhotos, setLoadedPhotos] = useState<Record<number, boolean>>({});
+  const [fallbackLoaded, setFallbackLoaded] = useState(false);
 
   const rawPhotos = business.photos && business.photos.length > 0 ? business.photos : business.coverPhoto ? [business.coverPhoto] : [];
   const gallery = rawPhotos.slice(0, 4);
   const hasMultiple = gallery.length > 1;
-
   const isVerified = business.verificationStatus === 'verified' || business.packageId?.includes('verified');
   const hasVideo = Boolean(business.videoUrl || (business as unknown as { videos?: string[] }).videos?.length);
-
   const fallbackCover = getCategoryFallbackCover(business.category);
   const displayName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
-  // Card shows the Arabic name only; the bilingual form lives in the detail view.
+  const withoutNotes = displayName.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
   const cardTitle =
-    displayName
-      .split(/\s*\|\s*/)
+    withoutNotes
+      .split(/\s+\|\s+|\s+[–—-]\s+/)
       .map((part) => part.trim())
-      .find((part) => /[\u0600-\u06FF]/.test(part)) || displayName;
+      .find((part) => /[\u0600-\u06FF]/.test(part)) || withoutNotes || displayName;
   const currentPhoto = gallery[currentSlide] || (gallery.length === 0 ? fallbackCover : '');
   const showIllustrative = Boolean(
     currentPhoto && (currentPhoto.includes('images.unsplash.com') || currentPhoto === fallbackCover)
@@ -63,11 +73,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
     const rail = railRef.current;
     if (!rail) return;
     const targetIdx = Math.min(gallery.length - 1, Math.max(0, currentSlide + direction));
-    // In RTL, scrollLeft is negative or indexed
-    rail.scrollTo({
-      left: -targetIdx * rail.clientWidth,
-      behavior: 'smooth',
-    });
+    rail.scrollTo({ left: -targetIdx * rail.clientWidth, behavior: 'smooth' });
     setCurrentSlide(targetIdx);
   };
 
@@ -84,7 +90,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
       {gallery.length > 0 ? (
         <div ref={railRef} className="dl-rail">
           {gallery.map((src, idx) => (
-            <div key={idx} className="dl-slide">
+            <div key={idx} className={`dl-slide ${loadedPhotos[idx] ? '' : 'dl-sk'}`}>
               <img
                 src={getOptimizedImageUrl(src, 480, 360)}
                 alt=""
@@ -93,13 +99,14 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
                 loading={priority && idx === 0 ? 'eager' : 'lazy'}
                 fetchPriority={priority && idx === 0 ? 'high' : 'auto'}
                 decoding="async"
-                className="dl-in"
+                className={loadedPhotos[idx] ? 'dl-in' : ''}
+                onLoad={() => setLoadedPhotos((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }))}
               />
             </div>
           ))}
         </div>
       ) : (
-        <div className="dl-slide">
+        <div className={`dl-slide ${fallbackCover && !fallbackLoaded ? 'dl-sk' : ''}`}>
           {fallbackCover ? (
             <img
               src={fallbackCover}
@@ -108,7 +115,8 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
               height="360"
               loading="lazy"
               decoding="async"
-              className="dl-in"
+              className={fallbackLoaded ? 'dl-in' : ''}
+              onLoad={() => setFallbackLoaded(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-900">
@@ -133,6 +141,19 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
         <span className="dl-hcat">{business.category}</span>
         {showIllustrative && <span className="dl-hcat">صورة توضيحية</span>}
       </div>
+
+      {/* Dalilak Verified Stamp Badge on Photo */}
+      {isVerified && (
+        <span
+          className={`dl-stamp ${hasMultiple ? 'dl-stamp-multi' : ''}`}
+          aria-label="نشاط موثق لدى دليلك"
+        >
+          <span className="dl-stamp-row" dir="ltr">
+            <span className="dl-ck" aria-hidden="true">✓</span>
+            <span className="dl-dn">دليلك</span>
+          </span>
+        </span>
+      )}
 
       {/* 4. Top-End Favorite Button */}
       {onToggleFavorite && (
@@ -176,7 +197,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
       )}
 
       {/* 6. Title and Location Block */}
-      <div className="dl-tt">
+      <div className={`dl-tt${isVerified || hasMultiple ? ' dl-tt-end' : ''}`}>
         <h3 className="dl-nm dl-ts">
           <Pressable
             type="button"
@@ -190,44 +211,20 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             <bdi dir="rtl">{cardTitle}</bdi>
           </Pressable>
         </h3>
-        {areaString && (
+        {previewAreaLabel(areaString) && (
           <p className="dl-loc dl-ts">
-            <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" aria-hidden="true" />
-            <span dir="auto">{areaString}</span>
+            <MapPin className="w-3.5 h-3.5 text-white shrink-0" aria-hidden="true" />
+            <span dir="rtl">{previewAreaLabel(areaString)}</span>
           </p>
         )}
       </div>
 
-      {/* 7. Slide counter, nav chevrons and segment indicators */}
       {hasMultiple && (
-        <>
-          <span className="dl-cnt" dir="ltr" aria-hidden="true">
-            {currentSlide + 1}/{gallery.length}
-          </span>
-          <Pressable
-            type="button"
-            className="dl-nav-btn dl-nx"
-            onClick={(e) => slideTo(1, e)}
-            aria-label="الصورة التالية"
-            style={{ display: currentSlide >= gallery.length - 1 ? 'none' : 'flex' }}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Pressable>
-          <Pressable
-            type="button"
-            className="dl-nav-btn dl-pv"
-            onClick={(e) => slideTo(-1, e)}
-            aria-label="الصورة السابقة"
-            style={{ display: currentSlide <= 0 ? 'none' : 'flex' }}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Pressable>
-          <div className="dl-segs" aria-hidden="true">
-            {gallery.map((_, k) => (
-              <i key={k} className={`dl-seg ${k === currentSlide ? 'dl-on' : ''}`} />
-            ))}
-          </div>
-        </>
+        <BusinessCardGalleryNav
+          count={gallery.length}
+          currentSlide={currentSlide}
+          onSlide={slideTo}
+        />
       )}
     </div>
   );

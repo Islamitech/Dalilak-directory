@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Business } from '../types';
-import { createInitialMapState, mapStateReducer } from '../components/map/state/mapState';
-import { createMapViewportSnapshot } from '../components/map/state/mapViewport';
+import { createInitialMapState, mapStateReducer } from '../features/map/state/mapState';
+import { createMapViewportSnapshot } from '../features/map/state/mapViewport';
 
 describe('map interaction state', () => {
   it('stores query, filters, selected result and viewport together', () => {

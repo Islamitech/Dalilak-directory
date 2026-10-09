@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { useDirectoryNavigation } from '../hooks/useDirectoryNavigation';
-import { useDirectoryLoad, DirectorySearchContext } from '../contexts/DirectoryLoadContext';
+import { useDirectoryNavigation } from '../app/router/useDirectoryNavigation';
+import { useDirectoryLoad, DirectorySearchContext } from '../features/catalog';
 import { DirectoryStatus } from './DirectoryStatus';
 import { isPublicBusiness } from '../shared/publicBusiness';
 import { parseActivitySearchIntent } from '../utils/activitySearchIntent';
@@ -9,10 +9,8 @@ import { getBusinessSlug } from '../utils/directoryUrl';
 import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
-const DirectoryFilterSheet = React.lazy(() =>
-  import('./showcase/DirectoryFilterSheet').then((m) => ({ default: m.DirectoryFilterSheet }))
-);
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
+import { useDirectoryBusinesses } from './showcase/hooks/useDirectoryBusinesses';
 import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
 import { useShowcaseGeolocation } from './showcase/hooks/useShowcaseGeolocation';
@@ -41,7 +39,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastAction, setToastAction] = useState<{ label: string; onAction: () => void } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const hideToast = useCallback(() => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = null;
@@ -68,7 +65,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
   }, []);
 
-  const filterState = useShowcaseFilterState();
+  const filterState = useShowcaseFilterState(currentPath);
   const { favorites, toggleFavorite } = useFavorites(showToast);
   const geo = useShowcaseGeolocation(filterState, showToast);
 
@@ -93,14 +90,14 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     if (!(fromDirectory && toDirectory)) window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [filterState, routing]);
 
+  const isDirectoryRoute = currentPath === '/' || currentPath === '/map' || currentPath === '/search';
   const activityIntent = useMemo(
-    () => (currentPath === '/' || currentPath.startsWith('/map')) ? parseActivitySearchIntent(filterState.deferredSearchQuery) : null,
-    [currentPath, filterState.deferredSearchQuery]
+    () => (isDirectoryRoute ? parseActivitySearchIntent(filterState.deferredSearchQuery) : null),
+    [isDirectoryRoute, filterState.deferredSearchQuery]
   );
-  const effectiveSearchZone = activityIntent?.zone ?? filterState.hadayekZoneFilter;
-  const effectiveMapCategoryFilter =
-    activityIntent?.category ??
-    (filterState.subcategoryFilter !== 'all' ? filterState.subcategoryFilter : filterState.categoryFilter);
+  const intentZone = activityIntent?.zone;
+  const effectiveSearchZone = intentZone && intentZone !== 'all' ? intentZone : filterState.hadayekZoneFilter;
+  const effectiveMapCategoryFilter = activityIntent?.category ?? (filterState.subcategoryFilter !== 'all' ? filterState.subcategoryFilter : filterState.categoryFilter);
 
   const handleReshuffle = useCallback(() => {
     filterState.setShuffleSeed(Date.now() ^ Math.floor(Math.random() * 1000000));
@@ -138,15 +135,31 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
   const publicBusinesses = useMemo(() => businesses.filter(isPublicBusiness), [businesses]);
 
+  const directoryBusinesses = useDirectoryBusinesses({
+    publicBusinesses,
+    activityIntent,
+    deferredSearchQuery: filterState.deferredSearchQuery,
+    categoryFilter: filterState.categoryFilter,
+    subcategoryFilter: filterState.subcategoryFilter,
+    effectiveSearchZone,
+    openNowOnly: filterState.openNowOnly,
+    verifiedOnly: filterState.verifiedOnly,
+    hasRatingOnly: filterState.hasRatingOnly,
+    hasVideoOnly: filterState.hasVideoOnly,
+    sortBy: filterState.sortBy,
+    userCoords: geo.userCoords,
+    shuffleSeed: filterState.shuffleSeed,
+    pinnedDirectBizId,
+  });
+
   const isMapRoute = currentPath === '/' || currentPath === '/map';
-  const isDirectoryRoute = isMapRoute || currentPath === '/search';
 
   return (
     <div
       className={
         isMapRoute
           ? "h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
-          : "min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] font-['Cairo',sans-serif]"
+          : "min-h-screen flex flex-col bg-transparent text-[var(--text-primary)] font-['Cairo',sans-serif]"
       }
       style={{ direction: 'rtl' }}
     >
@@ -169,17 +182,6 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
       <DirectoryStatus />
 
-      {filterSheetOpen && (
-        <React.Suspense fallback={null}>
-          <DirectoryFilterSheet
-            isOpen={filterSheetOpen}
-            onClose={() => setFilterSheetOpen(false)}
-            businesses={publicBusinesses}
-            effectiveCategory={effectiveMapCategoryFilter}
-            filterState={filterState}
-          />
-        </React.Suspense>
-      )}
       <main
         id="main"
         tabIndex={-1}
@@ -191,10 +193,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       >
         <React.Suspense
           fallback={
-            <div className="min-h-[40vh] p-4 space-y-3" aria-busy="true" aria-label="جاري التحميل">
-              <div className="h-28 rounded-lg bg-slate-200/80 animate-pulse" />
-              <div className="h-4 w-2/3 rounded-pill bg-slate-200/80 animate-pulse" />
-              <div className="h-4 w-1/2 rounded-pill bg-slate-200/70 animate-pulse" />
+            <div className="flex min-h-[40vh] items-center justify-center p-6" role="status" aria-live="polite">
+              <p className="text-sm font-bold text-slate-500">جارٍ تحميل الصفحة…</p>
             </div>
           }
         >
@@ -203,6 +203,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
               currentPath={currentPath}
               filterState={filterState}
               publicBusinesses={publicBusinesses}
+              filteredBusinesses={directoryBusinesses}
               effectiveMapCategoryFilter={effectiveMapCategoryFilter}
               effectiveSearchZone={effectiveSearchZone}
               favorites={favorites}

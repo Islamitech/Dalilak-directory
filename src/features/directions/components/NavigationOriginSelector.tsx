@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable } from '../../../shared/ui';
 import { MapPin, Compass, Loader2, ChevronDown, AlertCircle } from 'lucide-react';
-import { HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_GATES } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
 
 interface NavigationOriginSelectorProps {
   originType: 'gps' | 'gate' | 'custom';

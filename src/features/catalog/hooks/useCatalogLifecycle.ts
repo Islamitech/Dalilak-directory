@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Business } from '../../../types';
-import { mergeCatalog, catalogsEqual } from '../../../services/catalogState';
-import { writeCatalogCache } from '../../../services/catalogCache';
+import { mergeCatalog, catalogsEqual } from '../model/catalogState';
+import { writeCatalogCache } from '../model/catalogCache';
 import { getSafeCacheList } from '../model/businessMapper';
 import {
   getInitialCachedBusinesses,

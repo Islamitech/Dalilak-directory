@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Business } from '../../../types';
-import { searchBuildingCoordinatesExact } from '../../../data/hadayekAtlasData';
+import { searchBuildingCoordinatesExact } from '../../../shared/data/hadayek/hadayekGeo';
 
 export function useMapViewUrlState(
   focusedBusiness?: Business | null,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Business } from '../types';
-import { buildVisiblePinPipeline } from '../components/map/utils/visiblePinPipeline';
+import { buildVisiblePinPipeline } from '../features/map/utils/visiblePinPipeline';
 
 function biz(id: string, lng = 31): Business {
   return { id, nameAr: id, nameEn: id, category: 'مطاعم', governorate: 'الجيزة', city: 'حدائق الأهرام', street: '', landmark: '', lat: 30, lng, phone: '', verificationStatus: 'verified', createdAt: '', createdDate: '', description: '', workingHours: '', photos: [], isFeatured: false };

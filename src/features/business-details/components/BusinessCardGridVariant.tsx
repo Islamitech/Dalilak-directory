@@ -52,8 +52,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
 
   const openStatus = getBusinessOpenStatus(business.workingHours);
   const hoursLabel = formatWorkingHoursLabel(business.workingHours);
-  const hasRawHours = Boolean(business.workingHours && business.workingHours.trim().length > 0);
-  const hasHours = Boolean(hoursLabel);
+  const hasHours = Boolean(hoursLabel) && openStatus.badgeText !== 'ساعات العمل غير متاحة';
 
   const distanceKm =
     userCoords && business.lat && business.lng
@@ -85,8 +84,8 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
 
       {/* 2. Body: Working Hours, Distance, Ratings, Offer */}
       <div className="dl-hbd">
-        <div className="dl-hrow">
-          {hasHours ? (
+        {hasHours && (
+          <div className="dl-hrow">
             <span className={`dl-sp ${openStatus.isOpen ? 'dl-open' : 'dl-closed'}`}>
               <span className="dl-pd">
                 {openStatus.isOpen && <b aria-hidden="true" />}
@@ -95,17 +94,16 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
               <span>{openStatus.badgeText}</span>
               <small>· {hoursLabel}</small>
             </span>
-          ) : (
-            <span className="dl-nh">{hasRawHours ? 'ساعات العمل غير واضحة' : 'ساعات العمل غير مسجّلة'}</span>
-          )}
-        </div>
+          </div>
+        )}
 
         {entryGate && <p className="text-caption font-bold text-slate-500 truncate">{entryGate.line}</p>}
 
-        {/* Google rating summary (single line) */}
+        {/* Google rating summary (interactive expandable accordion) */}
         <BusinessCardRatingRow
           rating={business.googleRating}
           reviewsCount={business.googleReviewsCount}
+          businessName={business.nameAr}
         />
 
         {/* Promotional Offer */}

@@ -1,12 +1,13 @@
 import React from 'react';
 import { Business } from '../../types';
+import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import { useShowcaseFilterState } from './hooks/useShowcaseFilterState';
 import { Button } from '../../shared/ui';
 
 const SearchView = React.lazy(() => import('../views/SearchView').then((m) => ({ default: m.SearchView })));
 const MapView = React.lazy(() => import('../views/MapView').then((m) => ({ default: m.MapView })));
 const FavoritesView = React.lazy(() => import('../views/FavoritesView').then((m) => ({ default: m.FavoritesView })));
-const ForBusinessView = React.lazy(() => import('../views/ForBusinessView').then((m) => ({ default: m.ForBusinessView })));
+const ForBusinessView = React.lazy(() => import('../../features/for-business').then((m) => ({ default: m.ForBusinessView })));
 const BusinessPricingView = React.lazy(() => import('../views/BusinessPricingView').then((m) => ({ default: m.BusinessPricingView })));
 const AboutView = React.lazy(() => import('../views/AboutView').then((m) => ({ default: m.AboutView })));
 
@@ -54,11 +55,14 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
   loading,
 }) => {
   const cleanRoute = currentPath.toLowerCase().split('?')[0];
+  const changeCategory = (category: string) => {
+    if (parseActivitySearchIntent(filterState.searchQuery)) filterState.setSearchQuery('');
+    filterState.handleCategoryChange(category);
+  };
 
   switch (cleanRoute) {
     case '/':
     case '/map':
-    case '/atlas-home':
       return (
         <MapView
           searchQuery={filterState.searchQuery}
@@ -66,7 +70,7 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           businesses={publicBusinesses}
           filteredBusinesses={filteredBusinesses}
           categoryFilter={effectiveMapCategoryFilter}
-          onCategoryChange={filterState.handleCategoryChange}
+          onCategoryChange={changeCategory}
           selectedZone={effectiveSearchZone}
           onZoneChange={filterState.setHadayekZoneFilter}
           sortBy={filterState.sortBy}
@@ -101,10 +105,10 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           onGovChange={filterState.setGovFilter}
           selectedCity={filterState.cityFilter}
           onCityChange={filterState.setCityFilter}
-          selectedZone={filterState.hadayekZoneFilter}
+          selectedZone={effectiveSearchZone}
           onZoneChange={filterState.setHadayekZoneFilter}
-          categoryFilter={filterState.categoryFilter}
-          onCategoryChange={filterState.handleCategoryChange}
+          categoryFilter={effectiveMapCategoryFilter}
+          onCategoryChange={changeCategory}
           subcategoryFilter={filterState.subcategoryFilter}
           onSubcategoryChange={filterState.setSubcategoryFilter}
           sortBy={filterState.sortBy}

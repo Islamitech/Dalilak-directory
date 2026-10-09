@@ -142,6 +142,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
       onSnapChange={setSnap}
       onClose={onClose}
       placement={placement}
+      showClose={snap === 'peek'}
       ariaLabel={business.nameAr || 'تفاصيل النشاط'}
       peek={
         <div className="p-3">

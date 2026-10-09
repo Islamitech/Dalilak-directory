@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable } from '../../shared/ui';
 import { Building2, Store } from 'lucide-react';
 import { Business } from '../../types';
+import { matchesBusinessSearch } from '../../shared/lib/arabicSearch';
+import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
 import {
   searchInsideHadayekZone,
   ZoneScopedSearchResult,
@@ -48,7 +50,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
   useEffect(() => {
     const query = value.trim();
     const searchZone = resolvedZone(query);
-    if (!searchZone || !query) {
+    if (query.length < 2) {
       setResults([]);
       setIsLoading(false);
       return;
@@ -57,11 +59,20 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
     const request = ++requestRef.current;
     setIsLoading(true);
     const timer = window.setTimeout(() => {
-      searchInsideHadayekZone(searchZone, query, businesses, 8).then((nextResults) => {
+      const apply = (nextResults: ZoneScopedSearchResult[]) => {
         if (request !== requestRef.current) return;
         setResults(nextResults);
         setIsLoading(false);
-      });
+      };
+      if (searchZone) {
+        searchInsideHadayekZone(searchZone, query, businesses, 8).then(apply);
+        return;
+      }
+      const activities = businesses
+        .filter((business) => isBusinessInHadayekZone(business, 'all') && matchesBusinessSearch(business, query))
+        .slice(0, 8)
+        .map((business) => ({ type: 'business' as const, business }));
+      apply(activities);
     }, 160);
 
     return () => {
@@ -119,9 +130,9 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         value={value}
         onChange={(nextValue) => {
           onChange(nextValue);
-          setIsOpen(Boolean(resolvedZone(nextValue) && nextValue.trim()));
+          setIsOpen(nextValue.trim().length >= 2);
         }}
-        onFocus={() => setIsOpen(Boolean(resolvedZone(value) && value.trim()))}
+        onFocus={() => setIsOpen(value.trim().length >= 2)}
         onSubmit={handleSubmit}
         placeholder="ابحث عن مطعم، صيدلية، أو خدمة..."
         className="w-full"

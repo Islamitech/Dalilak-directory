@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Button } from '../../shared/ui';
 import { Store, AlertTriangle } from 'lucide-react';
 import { Business } from '../../types';
-import { getFirstStrongDirection } from '../../utils/textDirection';
+import { getFirstStrongDirection } from '../../shared/lib/textDirection';
 import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
 
 export interface ActivityDetailFooterProps {

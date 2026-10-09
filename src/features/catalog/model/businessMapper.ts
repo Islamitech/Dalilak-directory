@@ -1,5 +1,5 @@
 import { Business } from '../../../types';
-import { SUPABASE_REST_BASE } from '../../../services/supabaseClient';
+import { SUPABASE_REST_BASE } from '../../../shared/lib/supabase';
 
 export const FAST_BUSINESS_SELECT =
   'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
 import { useIntegratedFilters } from '../hooks/useIntegratedFilters';
 import { FilterDropdownMenu, FilterDropdownOption } from './FilterDropdownMenu';
-import { getCategoryGroupById, getSubcategoryById } from '../../../data/categoryTaxonomy';
+import { getCategoryGroupById, getSubcategoryById } from '../../../shared/data/categoryTaxonomy';
 
 export interface UnifiedSearchFilterBarProps {
   selectedCategory: string;

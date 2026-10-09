@@ -1,5 +1,5 @@
 import { Business } from '../types';
-import { matchesBusinessSearch } from './arabicSearch';
+import { matchesBusinessSearch } from '../shared/lib/arabicSearch';
 import { isBusinessInHadayekZone } from './hadayekZoneHelper';
 
 /** Explicit map text search is independent from residual category/district filters. */

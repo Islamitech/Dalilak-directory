@@ -12,8 +12,8 @@ console.log('🧪 Running Architecture Guard Test Suite...\n');
 // =========================================================================
 // This test uses path.win32 to simulate Windows path resolution on ANY OS (Linux, macOS, Windows).
 // Without `p.normalize(resolved)` in check-architecture.cjs, barrel resolution via
-// '/index.ts' produces mixed separators ('C:\project\src\features\atlas/index.ts')
-// which does NOT match the graph key ('C:\project\src\features\atlas\index.ts').
+// '/index.ts' produces mixed separators ('C:\project\src\features\map/index.ts')
+// which does NOT match the graph key ('C:\project\src\features\map\index.ts').
 // This assertion strictly fails without the fix on BOTH Linux and Windows.
 // =========================================================================
 console.log('--- Test 1: Platform-Independent Windows Path Normalization (path.win32) ---');
@@ -22,15 +22,15 @@ const mockFs = {
   existsSync(p) {
     // Both normalized and un-normalized Windows paths are acknowledged by filesystem
     const normalized = p.replace(/\\/g, '/');
-    return normalized === 'C:/project/src/features/atlas/index.ts';
+    return normalized === 'C:/project/src/features/map/index.ts';
   },
   statSync(p) {
     return { isFile: () => true };
   },
 };
 
-const winDir = 'C:\\project\\src\\components\\atlas';
-const winImport = '../../features/atlas';
+const winDir = 'C:\\project\\src\\components\\map';
+const winImport = '../../features/map';
 
 const resolvedWinPath = resolveImportPath(winDir, winImport, {
   path: path.win32,
@@ -47,7 +47,7 @@ if (resolvedWinPath && resolvedWinPath.includes('/')) {
 }
 
 // 2. Assert exact canonical match
-const expectedCanonicalWinPath = 'C:\\project\\src\\features\\atlas\\index.ts';
+const expectedCanonicalWinPath = 'C:\\project\\src\\features\\map\\index.ts';
 assert.strictEqual(
   resolvedWinPath,
   expectedCanonicalWinPath,
@@ -56,7 +56,7 @@ assert.strictEqual(
 
 // 3. Assert graph lookup succeeds
 const mockGraph = new Map();
-mockGraph.set(expectedCanonicalWinPath, ['C:\\project\\src\\components\\atlas\\HadayekAtlasNavigator.tsx']);
+mockGraph.set(expectedCanonicalWinPath, ['C:\\project\\src\\components\\map\\InteractiveMap.tsx']);
 
 if (!mockGraph.has(resolvedWinPath)) {
   console.error(`❌ FAILED: mockGraph.has("${resolvedWinPath}") is false! Cycle detection will fail.`);

@@ -176,36 +176,3 @@ export function getDirectoryPath(business: BusinessUrlInput): string {
   const slug = getBusinessSlug(business);
   return `/biz/${slug || business.id}`;
 }
-
-/**
- * Generates the automatic default directory link (ignoring any manual customDirectoryUrl override).
- */
-export function getAutomaticDirectoryUrl(
-  business: BusinessUrlInput,
-  options?: DirectoryUrlOptions
-): string {
-  const domain = PUBLIC_DIRECTORY_DOMAIN;
-  if (!business || !business.id) return domain;
-
-  const rawName = business.nameAr || business.nameEn || '';
-  const nameSlug = slugifyBusinessName(rawName) || 'نشاط';
-  const citySlug = business.city ? slugifyBusinessName(business.city) : '';
-  const locationPart = citySlug && !nameSlug.includes(citySlug) ? `-${citySlug}` : '';
-  const identifier = options?.includeSlug === true ? `${nameSlug}${locationPart}-${business.id}` : business.id;
-  return `${domain}/biz/${identifier}`;
-}
-
-/**
- * Returns a clean, human-friendly canonical direct public directory link for display and messaging.
- */
-export function getDisplayDirectoryUrl(
-  business: BusinessUrlInput,
-  options?: DirectoryUrlOptions
-): string {
-  const url = getPublicDirectoryUrl(business, { ...options, encode: false });
-  try {
-    return decodeURIComponent(url);
-  } catch {
-    return url;
-  }
-}

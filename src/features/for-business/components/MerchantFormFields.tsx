@@ -1,6 +1,6 @@
 import React from 'react';
 import { EGYPT_GOVERNORATES } from '../../../shared/data/geography';
-import { CATEGORY_TAXONOMY, getCategoryGroupById } from '../../../data/categoryTaxonomy';
+import { CATEGORY_TAXONOMY, getCategoryGroupById } from '../../../shared/data/categoryTaxonomy';
 import { AlertCircle } from 'lucide-react';
 
 interface MerchantFormFieldsProps {

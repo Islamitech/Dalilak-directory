@@ -1,4 +1,4 @@
-import { getCategoryGroupById, getSubcategoryById } from '../../../data/categoryTaxonomy';
+import { getCategoryGroupById, getSubcategoryById } from '../../../shared/data/categoryTaxonomy';
 import { getWhatsAppUrl as formatWhatsAppUrl } from '../../../shared/lib/whatsapp';
 
 export const FOR_BUSINESS_DRAFT_KEY = 'dalelak_for_business_draft';

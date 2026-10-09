@@ -19,7 +19,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
   };
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 text-slate-600">
+    <footer className="border-t border-[var(--logo-ink-0)] bg-[var(--logo-ink-1)] text-[var(--logo-silver-1)]">
       <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-md space-y-2">
@@ -29,12 +29,12 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
             </p>
           </div>
           <nav aria-label="روابط الدليل" className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold">
-            <a href="/map" onClick={(event) => go(event, '/map')} className="hover:text-amber-800">الخريطة</a>
-            <a href="/search" onClick={(event) => go(event, '/search')} className="hover:text-amber-800">الأنشطة</a>
-            <a href="/favorites" onClick={(event) => go(event, '/favorites')} className="hover:text-amber-800">المفضلة</a>
-            <a href="/for-business" onClick={(event) => go(event, '/for-business')} className="hover:text-amber-800">أضف نشاطك</a>
-            <a href="/pricing" onClick={(event) => go(event, '/pricing')} className="hover:text-amber-800">الباقات</a>
-            <a href="/about" onClick={(event) => go(event, '/about')} className="hover:text-amber-800">عن دليلك</a>
+            <a href="/map" onClick={(event) => go(event, '/map')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">الخريطة</a>
+            <a href="/search" onClick={(event) => go(event, '/search')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">الأنشطة</a>
+            <a href="/favorites" onClick={(event) => go(event, '/favorites')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">المفضلة</a>
+            <a href="/for-business" onClick={(event) => go(event, '/for-business')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">أضف نشاطك</a>
+            <a href="/pricing" onClick={(event) => go(event, '/pricing')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">الباقات</a>
+            <a href="/about" onClick={(event) => go(event, '/about')} className="text-[var(--logo-silver-0)] hover:text-[var(--logo-gold-1)]">عن دليلك</a>
           </nav>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -43,13 +43,13 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate }) => {
               key={category.id}
               href={`/search?cat=${encodeURIComponent(category.id)}`}
               onClick={(event) => go(event, `/search?cat=${encodeURIComponent(category.id)}`)}
-              className="rounded-pill border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-amber-300"
+              className="rounded-pill border border-[var(--logo-silver-3)] bg-[var(--logo-ink-0)] px-3 py-1 text-xs font-bold text-[var(--logo-silver-0)] hover:border-[var(--logo-gold-1)] hover:text-[var(--logo-gold-0)]"
             >
               {category.name}
             </a>
           ))}
         </div>
-        <p className="text-xs font-medium text-slate-500">© {new Date().getFullYear()} منصة دليلك. حدائق الأهرام.</p>
+        <p className="text-xs font-medium text-[var(--logo-silver-2)]">© {new Date().getFullYear()} منصة دليلك. حدائق الأهرام.</p>
       </div>
     </footer>
   );

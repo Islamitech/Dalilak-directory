@@ -1,5 +1,5 @@
 import { HADAYEK_BOUNDS, HADAYEK_VIEW_BOUNDS } from './mapBounds';
-import { CameraController } from '../../../components/map/controllers/CameraController';
+import { CameraController } from '../controllers/CameraController';
 
 import { LocationAddressData } from '../../../utils/geocoding';
 

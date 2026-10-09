@@ -1,4 +1,4 @@
-import { calculateDirectDistanceMeters, formatHadayekDistance } from '../../../data/hadayekAtlasData';
+import { calculateDirectDistanceMeters, formatHadayekDistance } from '../../../shared/data/hadayek/hadayekGeo';
 import { RealRoadRouteResult } from '../../../utils/hadayekRouting';
 
 export interface NavigationTarget {

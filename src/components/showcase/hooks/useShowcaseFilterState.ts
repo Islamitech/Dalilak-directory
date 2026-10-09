@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { resolveCategorySelection } from '../../../utils/categoryMatcher';
 import { hydrateCategoryQuery, queryFlag, querySort, queryValue, writeShowcaseQuery, type ShowcaseSort } from '../model/showcaseFilterQuery';
 
-export function useShowcaseFilterState() {
+export function useShowcaseFilterState(pathname = '') {
   const [searchQuery, setSearchQuery] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     return new URLSearchParams(window.location.search).get('q') || new URLSearchParams(window.location.search).get('search') || '';
@@ -48,8 +48,8 @@ export function useShowcaseFilterState() {
   }, []);
 
   useEffect(() => {
-    writeShowcaseQuery({ categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy });
-  }, [categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy]);
+    writeShowcaseQuery({ categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy, searchQuery });
+  }, [pathname, categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy, searchQuery]);
 
   const resetAllFilters = useCallback(() => {
     setSearchQuery('');

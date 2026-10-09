@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseHadayekBuildingAddress, normalizeHadayekZoneLetter, searchInsideHadayekZone } from '../utils/hadayekBuildingSearch';
-import { searchBuildingCoordinatesExact } from '../data/hadayekAtlasData';
+import { searchBuildingCoordinatesExact } from '../shared/data/hadayek/hadayekGeo';
 
 describe('Hadayek Building Number Search Contract (A2)', () => {
   describe('Input Table -> Expected Parse Results', () => {

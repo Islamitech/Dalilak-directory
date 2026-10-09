@@ -1,4 +1,4 @@
-import { useDirectoryLoad } from '../../contexts/DirectoryLoadContext';
+import { useDirectoryLoad } from '../../features/catalog';
 import React from 'react';
 import { Business } from '../../types';
 import { BusinessCard } from '../../features/business-details';

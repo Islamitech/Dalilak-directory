@@ -1,4 +1,4 @@
-import { MapTileLayerType } from '../../../components/map/constants/mapConstants';
+import { MapTileLayerType } from '../constants/mapConstants';
 import { HADAYEK_TILE_BOUNDS } from './mapBounds';
 
 export interface TileLayerConfig {

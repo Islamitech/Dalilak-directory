@@ -40,6 +40,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
     },
     ref
   ) => {
+    const inputId = React.useId();
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       onKeyDown?.(e);
       if (e.key === 'Enter') {
@@ -62,7 +63,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
           ref={ref}
           type="search"
           role="searchbox"
-          id="searchInput"
+          id={inputId}
           aria-label={ariaLabel}
           dir="auto"
           autoFocus={autoFocus}
@@ -81,7 +82,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
         {value.trim().length > 0 && (
           <button
             type="button"
-            id="searchClear"
+            id={`${inputId}-clear`}
             aria-label="مسح نص البحث"
             onClick={() => {
               onChange('');

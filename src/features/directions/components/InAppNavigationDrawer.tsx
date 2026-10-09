@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Pressable } from '../../../shared/ui';
 import { Car, ExternalLink, Footprints, Navigation, X } from 'lucide-react';
-import { HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_GATES } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
 import { fetchRealRoadRoute, RealRoadRouteResult } from '../../../utils/hadayekRouting';
 import {
   NavigationTarget,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { INTEGRATED_FILTER_CATEGORIES } from '../features/search/model/filterModel';
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import { matchesCategoryFilter } from '../utils/categoryMatcher';
 import { Business } from '../types';
 

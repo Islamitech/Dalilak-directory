@@ -1,6 +1,6 @@
 import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
-import { SUPABASE_ANON_KEY } from '../../../services/supabaseClient';
+import { SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
 import { SUPABASE_REST_URL, mapRawToBusiness } from './businessMapper';
 
 export interface PagedCatalogCallbacks {

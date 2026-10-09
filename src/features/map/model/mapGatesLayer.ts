@@ -1,4 +1,4 @@
-import { HADAYEK_OFFICIAL_GATES } from '../../../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_GATES } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
 import { escapeHtml } from './mapMarkerHtml';
 
 export function renderGatesMarkers(gatesLayer: any, activeZone = ''): void {

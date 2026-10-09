@@ -1,6 +1,6 @@
 import { Business } from '../../../types';
 import { classifyBusinessCategory } from '../../../utils/categoryMatcher';
-import { CATEGORY_TAXONOMY } from '../../../data/categoryTaxonomy';
+import { CATEGORY_TAXONOMY } from '../../../shared/data/categoryTaxonomy';
 
 export interface CategoryCounts {
   groups: Map<string, number>;

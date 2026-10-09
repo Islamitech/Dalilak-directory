@@ -62,13 +62,3 @@ export interface Business {
   favoriteCount?: number;
   offer?: string;
 }
-
-export interface PackageOption {
-  id: string;
-  title: string;
-  price: number;
-  priceLabel?: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-}

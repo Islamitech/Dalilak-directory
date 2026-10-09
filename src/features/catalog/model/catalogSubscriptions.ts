@@ -1,4 +1,4 @@
-import { supabase } from '../../../services/supabaseClient';
+import { supabase } from '../../../shared/lib/supabase';
 import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
 import { mapRawToBusiness } from './businessMapper';

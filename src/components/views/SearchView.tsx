@@ -6,7 +6,7 @@ import { ViewSegmentedSwitch } from '../layout/ViewSegmentedSwitch';
 import { Button } from '../../shared/ui';
 import { X } from 'lucide-react';
 import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
-import { getRecommendedGateForZone } from '../../data/hadayekAtlasData';
+import { getRecommendedGateForZone } from '../../shared/data/hadayek/hadayekGeo';
 
 export type { SearchViewProps };
 
@@ -43,7 +43,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onNavigate,
 }) => {
   const effectiveFilteredBusinesses = useMemo(() => {
-    if (filteredBusinesses && filteredBusinesses.length > 0) return filteredBusinesses;
+    if (filteredBusinesses) return filteredBusinesses;
     return computeFilteredBusinesses({
       publicBusinesses: allBusinesses,
       activityIntent: null,
@@ -99,7 +99,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
       setIsBuildingFound(true);
       return;
     }
-    import('../../data/hadayekAtlasData').then(({ searchBuildingCoordinatesExact }) => {
+    import('../../shared/data/hadayek/hadayekGeo').then(({ searchBuildingCoordinatesExact }) => {
       searchBuildingCoordinatesExact(cadastralBuilding.zoneLetter, cadastralBuilding.buildingNumber).then((coords) => {
         if (!cancelled) {
           setIsBuildingFound(Boolean(coords));

@@ -1,4 +1,4 @@
-import { createBuildingPinHtml } from '../../../components/map/badgeMarkers';
+import { createBuildingPinHtml } from '../badgeMarkers';
 
 export interface TargetBuildingData {
   zoneLetter?: string;

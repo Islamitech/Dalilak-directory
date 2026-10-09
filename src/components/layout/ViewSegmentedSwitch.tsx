@@ -54,11 +54,11 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
       aria-label="طريقة العرض"
       data-view-switch=""
       onKeyDown={handleKeyDown}
-      className={`relative inline-flex items-center p-0.5 rounded-pill select-none ${className}`}
+      className={`relative inline-flex items-center p-0.5 rounded-pill select-none bg-[var(--logo-silver-2)] ${className}`}
     >
       <div
         aria-hidden="true"
-        className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-pill bg-[var(--brand)] transition-[inset-inline-start] duration-300 ease-out pointer-events-none ${
+        className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-pill bg-[var(--logo-ink-0)] transition-[inset-inline-start] duration-300 ease-out pointer-events-none ${
           activeView === 'map' ? 'start-0.5' : 'start-[50%]'
         }`}
       />
@@ -79,7 +79,7 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
             onClick={() => onViewChange(view)}
             className={`relative z-10 inline-flex items-center justify-center rounded-pill cursor-pointer font-extrabold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
               isSm ? 'h-7 min-h-0 w-[4.15rem] gap-1 px-1.5 text-caption' : 'min-h-11 w-[6.2rem] gap-1.5 text-label'
-            } ${checked ? 'text-white' : 'text-slate-600 hover:text-slate-900'}`}
+            } ${checked ? 'text-[var(--logo-gold-1)]' : 'text-[var(--logo-ink-0)] hover:text-[var(--logo-ink-2)]'}`}
           >
             <Icon className={isSm ? 'w-3 h-3 stroke-[2.4]' : 'w-4 h-4 stroke-[2.2]'} aria-hidden="true" />
             <span>{label}</span>

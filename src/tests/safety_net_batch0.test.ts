@@ -9,7 +9,7 @@ import {
   HADAYEK_OFFICIAL_DISTRICTS,
   isPointInPolygon,
   findDistrictForCoordinates,
-} from '../data/hadayekDistrictsGeoData';
+} from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import {
   formatDisplayRating,
   sanitizeSafeUrl,
@@ -18,17 +18,17 @@ import {
   createExpandedActivityCardHtml,
   createCompactOverviewBadgeHtml,
   createCompactActivityPinHtml,
-} from '../components/map/badgeMarkers';
+} from '../features/map/badgeMarkers';
 import {
   planCameraTransitionOnZoneChange,
   planCameraTransitionOnCategoryChange,
   planCameraTransitionOnBusinessSelect,
   getVisualViewportPadding,
-} from '../components/map/utils/cameraPlanner';
+} from '../features/map/utils/cameraPlanner';
 import { normalizeBuildingQuery } from '../utils/hadayekBuildingSearch';
 import { filterDirectoryBusinesses } from '../utils/directoryFiltering';
 import { parseActivitySearchIntent } from '../utils/activitySearchIntent';
-import { groupNearbyActivities } from '../components/map/utils/spatialActivityGroups';
+import { groupNearbyActivities } from '../features/map/utils/spatialActivityGroups';
 
 // =========================================================================
 // TEST HARNESS: DUAL TEST SUITE (0-A BASELINE + 0-B TARGET VERIFICATION)

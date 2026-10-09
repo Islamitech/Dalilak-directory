@@ -1,4 +1,4 @@
-import { useDirectoryLoad } from '../../contexts/DirectoryLoadContext';
+import { useDirectoryLoad } from '../../features/catalog';
 import React, { useState, useEffect } from 'react';
 import { Business } from '../../types';
 import { UnifiedBusinessCard as BusinessCard } from '../../features/business-details';

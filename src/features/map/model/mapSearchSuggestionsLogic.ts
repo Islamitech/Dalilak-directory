@@ -5,9 +5,9 @@ import { getMapBusinessSearchMatches } from '../../../utils/mapSearch';
 import { isBusinessInHadayekZone } from '../../../utils/hadayekZoneHelper';
 import { Business } from '../../../types';
 import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
-import { searchBuildingCoordinatesExact, getRecommendedGateForZone } from '../../../data/hadayekAtlasData';
-import { getDistrictByLetter } from '../../../data/hadayekDistrictsGeoData';
-import { MAP_QUICK_CATEGORIES } from '../../../components/map/constants/mapConstants';
+import { searchBuildingCoordinatesExact, getRecommendedGateForZone } from '../../../shared/data/hadayek/hadayekGeo';
+import { getDistrictByLetter } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
+import { MAP_QUICK_CATEGORIES } from '../constants/mapConstants';
 
 export interface UseMapSearchMatchesParams {
   searchQuery: string;

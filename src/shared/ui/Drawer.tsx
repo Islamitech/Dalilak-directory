@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAccessibleDialog } from '../../hooks/useAccessibleDialog';
+import { useAccessibleDialog } from '../hooks/useAccessibleDialog';
 import { IconButton } from './IconButton';
 
 export interface DrawerProps {

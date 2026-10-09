@@ -1,4 +1,4 @@
-import { HADAYEK_BOUNDS_COORDS } from '../../../utils/hadayekTilePreloader';
+import { HADAYEK_BOUNDS_COORDS } from '../utils/hadayekTilePreloader';
 
 export const HADAYEK_BOUNDS: [[number, number], [number, number]] = [
   HADAYEK_BOUNDS_COORDS.sw,

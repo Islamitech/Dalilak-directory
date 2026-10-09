@@ -18,8 +18,8 @@ const SIZES = {
 };
 
 const VARIANTS = {
-  primary: 'bg-[var(--brand)] border-[var(--brand)] text-white hover:bg-[var(--brand-hover)] hover:border-[var(--brand-hover)]',
-  secondary: 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300',
+  primary: 'bg-[var(--logo-gold-1)] border-[var(--logo-gold-2)] text-[var(--logo-ink-core)] hover:bg-[var(--logo-gold-2)] hover:border-[var(--logo-gold-3)]',
+  secondary: 'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-600 hover:bg-slate-100',
   danger: 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100',
 };

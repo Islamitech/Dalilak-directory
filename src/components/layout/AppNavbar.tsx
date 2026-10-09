@@ -84,7 +84,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-2xs pt-[env(safe-area-inset-top)]"
+      className="app-chrome-header sticky top-0 z-40 bg-[var(--logo-silver-0)] pt-[env(safe-area-inset-top)]"
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto px-2.5 min-[360px]:px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">

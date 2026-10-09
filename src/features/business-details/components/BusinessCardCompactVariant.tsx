@@ -8,7 +8,7 @@ import {
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
 import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
-import { getFirstStrongDirection } from '../../../utils/textDirection';
+import { getFirstStrongDirection } from '../../../shared/lib/textDirection';
 import { ShieldCheck } from 'lucide-react';
 import { getBusinessEntryGate } from '../../../utils/hadayekZoneHelper';
 import type { BusinessCardVariantProps } from './BusinessCardGridVariant';

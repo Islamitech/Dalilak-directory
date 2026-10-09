@@ -1,4 +1,4 @@
-import { normalizeArabicText } from './arabicSearch';
+import { normalizeArabicText } from '../shared/lib/arabicSearch';
 import { resolveCategorySelection } from './categoryMatcher';
 const HADAYEK_DISTRICT_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح', 'ط', 'ك', 'ل', 'م', 'ن', 'س', 'ص', 'ع'];
 

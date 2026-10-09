@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { parseFavorites } from '../../../services/catalogState';
+import { parseFavorites } from '../../catalog';
 
 export const FAVORITES_STORAGE_KEY = 'dalelak_user_favorites';
 

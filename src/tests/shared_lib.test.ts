@@ -17,7 +17,7 @@ import {
   formatCount,
   formatRating,
 } from '../shared/lib';
-import { parseFavorites } from '../services/catalogState';
+import { parseFavorites } from '../features/catalog';
 import { FAVORITES_STORAGE_KEY } from '../features/favorites';
 
 describe('Shared Library: Phone & WhatsApp Utilities', () => {

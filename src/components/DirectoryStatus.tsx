@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDirectoryLoad } from '../contexts/DirectoryLoadContext';
+import { useDirectoryLoad } from '../features/catalog';
 import { useNetworkStatus } from '../shared/hooks/useNetworkStatus';
 import { Button, OfflineState } from '../shared/ui';
 

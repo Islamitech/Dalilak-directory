@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
-import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../services/supabaseClient';
+import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
 
 export function useActivityPhotos(business: Business | null): string[] {
   const [livePhotos, setLivePhotos] = useState<string[]>(() => {

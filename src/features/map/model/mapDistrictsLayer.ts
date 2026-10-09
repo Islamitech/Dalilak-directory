@@ -1,9 +1,11 @@
-import { HADAYEK_OFFICIAL_DISTRICTS } from '../../../data/hadayekDistrictsGeoData';
+import { HADAYEK_OFFICIAL_DISTRICTS } from '../../../shared/data/hadayek/hadayekDistrictsGeoData';
+import { getDistrictLabelPosition } from '../utils/districtLabelPosition';
 
 export interface DistrictPolygonItem {
   letterAr: string;
   polygon: any;
   color: string;
+  label?: any;
 }
 
 export function buildDistrictsLayer(
@@ -14,6 +16,7 @@ export function buildDistrictsLayer(
 
   districtsLayer.clearLayers();
   const polygons: DistrictPolygonItem[] = [];
+  const labeled = new Set<string>();
 
   const worldRing: [number, number][] = [
     [35.0, 25.0],
@@ -37,20 +40,38 @@ export function buildDistrictsLayer(
     district.polygons.forEach((polyCoords) => {
       const polygon = window.L.polygon(polyCoords, {
         pane: 'districtsPane',
-        color: district.color,
-        weight: 0.8,
-        opacity: 0.3,
-        fillColor: district.color,
+        color: '#334155',
+        weight: 0,
+        opacity: 0,
+        fillColor: '#334155',
         fillOpacity: 0,
         className: 'hadayek-district-polygon',
       });
 
-      polygon.on('click', () => {
+      polygon.on('click', (event: { originalEvent?: Event }) => {
+        event.originalEvent?.stopPropagation?.();
         onSelectDistrict(district.letterAr);
       });
 
       districtsLayer.addLayer(polygon);
-      polygons.push({ letterAr: district.letterAr, polygon, color: district.color });
+      let label: any;
+      if (!labeled.has(district.letterAr)) {
+        labeled.add(district.letterAr);
+        const [lat, lng] = getDistrictLabelPosition(district);
+        label = window.L.marker([lat, lng], {
+          pane: 'districtLabelsPane',
+          interactive: false,
+          keyboard: false,
+          icon: window.L.divIcon({
+            className: 'hadayek-district-label',
+            html: `<span>${district.letterAr}</span>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+          }),
+        });
+        districtsLayer.addLayer(label);
+      }
+      polygons.push({ letterAr: district.letterAr, polygon, color: district.color, label });
     });
   });
 
@@ -63,48 +84,29 @@ export function updateDistrictHighlightStyles(
   zoneLetter: string,
   shouldHighlight: boolean
 ) {
-  if (mask) {
-    if (shouldHighlight) {
-      const activeDistrict = HADAYEK_OFFICIAL_DISTRICTS.find((d) => d.letterAr === zoneLetter);
-      if (activeDistrict && activeDistrict.polygons && activeDistrict.polygons.length > 0) {
-        const worldRing: [number, number][] = [
-          [35.0, 25.0],
-          [35.0, 37.0],
-          [25.0, 37.0],
-          [25.0, 25.0],
-        ];
-        mask.setLatLngs([worldRing, ...activeDistrict.polygons]);
-        mask.setStyle({ fillOpacity: 0.04 });
-      } else {
-        mask.setStyle({ fillOpacity: 0.0 });
-      }
-    } else {
-      mask.setStyle({ fillOpacity: 0.0 });
-    }
-  }
+  mask?.setStyle({ fillOpacity: 0 });
 
-  polygons.forEach(({ letterAr, polygon, color }) => {
-    const isSelected = letterAr === zoneLetter;
+  polygons.forEach(({ letterAr, polygon, label }) => {
+    const isSelected = shouldHighlight && letterAr === zoneLetter;
     const path = polygon.getElement?.();
 
     if (isSelected) {
       polygon.setStyle({
-        color: '#d97706',
-        weight: 2.5,
-        opacity: 1.0,
-        fillColor: '#f59e0b',
-        fillOpacity: 0.0,
+        color: '#334155',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0,
       });
       if (path) path.classList.add('selected-district-polygon-focus');
     } else {
       polygon.setStyle({
-        color,
-        weight: 0.8,
-        opacity: shouldHighlight ? 0.0 : 0.25,
-        fillColor: color,
+        color: '#334155',
+        weight: 0,
+        opacity: 0,
         fillOpacity: 0,
       });
       if (path) path.classList.remove('selected-district-polygon-focus');
     }
+    label?.setOpacity(1);
   });
 }

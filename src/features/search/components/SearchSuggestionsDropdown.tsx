@@ -3,7 +3,7 @@ import { Pressable } from '../../../shared/ui';
 import { History, Sparkles, Building2 } from 'lucide-react';
 import { Business } from '../../../types';
 import { parseHadayekBuildingAddress } from '../../../utils/hadayekBuildingSearch';
-import { getFirstStrongDirection } from '../../../utils/textDirection';
+import { getFirstStrongDirection } from '../../../shared/lib/textDirection';
 
 interface SearchSuggestionsDropdownProps {
   suggestions: Business[];

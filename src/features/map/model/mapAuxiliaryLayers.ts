@@ -6,7 +6,7 @@ import { renderGatesMarkers } from './mapGatesLayer';
 import { renderRouteLayer, ActiveRouteData } from './mapRouteLayer';
 import { renderTargetBuildingMarker, TargetBuildingData } from './mapTargetBuildingLayer';
 import { renderSelectedBusinessMarker } from './mapSelectedMarker';
-import type { MapViewportSnapshot } from '../../../components/map/state/mapViewport';
+import type { MapViewportSnapshot } from '../state/mapViewport';
 
 export interface UseMapPinsClusteringProps {
   mapInstance: any;
@@ -27,6 +27,7 @@ export interface UseMapPinsClusteringProps {
   activeRoute?: ActiveRouteData | null;
   viewportSnapshot?: MapViewportSnapshot | null;
   onViewportSnapshotChange?: (snapshot: MapViewportSnapshot) => void;
+  resultsReady?: boolean;
 }
 
 export interface SyncAuxiliaryLayersParams {
@@ -54,7 +55,7 @@ export interface SyncAuxiliaryLayersParams {
 export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
   if (!p.layers) return;
 
-  const shouldHighlight = Boolean(p.effectiveZone) && !p.buildingSearchActive && !p.targetBuilding && (!p.effectiveCategory || p.effectiveCategory === 'all');
+  const shouldHighlight = Boolean(p.effectiveZone) && !p.buildingSearchActive && !p.targetBuilding;
   updateDistrictHighlightStyles(p.districts, p.mask, p.effectiveZone, shouldHighlight);
 
   if (p.showHadayekGates) {

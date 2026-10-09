@@ -247,10 +247,3 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
     ],
   },
 ];
-
-export const BUSINESS_CATEGORIES: string[] = CATEGORY_GROUPS.flatMap((g) => g.items);
-
-export function getGroupFromCategory(catName?: string): CategoryGroup | undefined {
-  if (!catName) return undefined;
-  return CATEGORY_GROUPS.find((g) => g.items.includes(catName));
-}

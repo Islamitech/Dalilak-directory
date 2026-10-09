@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CameraController } from '../components/map/controllers/CameraController';
+import { CameraController } from '../features/map/controllers/CameraController';
 
 describe('CameraController', () => {
   it('enforces camera priority and cancels a pending flight on user pointer input', () => {

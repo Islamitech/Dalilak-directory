@@ -1,11 +1,11 @@
-import { normalizeArabicText } from './arabicSearch';
+import { normalizeArabicText } from '../shared/lib/arabicSearch';
 import {
   CATEGORY_TAXONOMY,
   CategorySubcategory,
   CategoryTaxonomyGroup,
   getCategoryGroupById,
   getSubcategoryById,
-} from '../data/categoryTaxonomy';
+} from '../shared/data/categoryTaxonomy';
 
 export interface BusinessOrLeadEntity {
   category?: string | null;
@@ -183,21 +183,3 @@ export function matchesCategoryFilter(entity: BusinessOrLeadEntity, categoryFilt
   if (selection.mainCategoryId === 'all' && selection.subcategoryId === 'all') return !categoryFilter || categoryFilter === 'all';
   return matchesCategorySelection(entity, selection.mainCategoryId, selection.subcategoryId);
 }
-
-export function resolveCanonicalCategoryGroup(categoryInput: string): string {
-  const selection = resolveCategorySelection(categoryInput);
-  return getCategoryGroupById(selection.mainCategoryId)?.label || categoryInput;
-}
-
-export function getCategoryGroupFor(category?: string | null, description?: string | null): string {
-  const classification = classifyBusinessCategory({ category, description });
-  return getCategoryGroupById(classification.mainCategoryId)?.label || 'أنشطة وخدمات عامة أخرى';
-}
-
-export const CATEGORY_ALIASES: Record<string, string> = Object.fromEntries(
-  CATEGORY_TAXONOMY.flatMap((group) => group.aliases.map((alias) => [alias, group.label]))
-);
-
-export const GROUP_KEYWORDS: Record<string, string[]> = Object.fromEntries(
-  CATEGORY_TAXONOMY.map((group) => [group.label, Array.from(new Set(group.children.flatMap((child) => child.aliases)))])
-);

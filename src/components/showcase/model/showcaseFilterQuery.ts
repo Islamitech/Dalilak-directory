@@ -42,6 +42,7 @@ export function writeShowcaseQuery(state: {
   verifiedOnly: boolean;
   hideActivities: boolean;
   sortBy: string;
+  searchQuery?: string;
 }): void {
   if (typeof window === 'undefined') return;
   const path = window.location.pathname;
@@ -52,12 +53,23 @@ export function writeShowcaseQuery(state: {
   else url.searchParams.set('cat', state.categoryFilter);
   if (state.subcategoryFilter === 'all') url.searchParams.delete('subcat');
   else url.searchParams.set('subcat', state.subcategoryFilter);
-  if (!state.hadayekZoneFilter || state.hadayekZoneFilter === 'all') url.searchParams.delete('zone');
-  else url.searchParams.set('zone', state.hadayekZoneFilter);
+  const buildingLocked = url.searchParams.has('bldg');
+  if (!buildingLocked) {
+    if (!state.hadayekZoneFilter || state.hadayekZoneFilter === 'all') url.searchParams.delete('zone');
+    else url.searchParams.set('zone', state.hadayekZoneFilter);
+  } else if (state.hadayekZoneFilter && state.hadayekZoneFilter !== 'all') {
+    url.searchParams.set('zone', state.hadayekZoneFilter);
+  }
   bit('open', state.openNowOnly);
   bit('verified', state.verifiedOnly);
   bit('hide', state.hideActivities);
   if (state.sortBy === 'default') url.searchParams.delete('sort');
   else url.searchParams.set('sort', state.sortBy);
-  window.history.replaceState(window.history.state, '', url.toString());
+  const query = (state.searchQuery || '').trim();
+  if (query) url.searchParams.set('q', query);
+  else url.searchParams.delete('q');
+  url.searchParams.delete('search');
+  const next = `${url.pathname}${url.search}`;
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (next !== current) window.history.replaceState(window.history.state, '', next);
 }

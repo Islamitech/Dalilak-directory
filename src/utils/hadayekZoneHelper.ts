@@ -1,9 +1,8 @@
 import { Business } from '../types';
-import { findDistrictForCoordinates, HADAYEK_OFFICIAL_DISTRICTS } from '../data/hadayekDistrictsGeoData';
-import { HADAYEK_GATES, getHadayekZone, getRecommendedGateForZone } from '../data/hadayekAtlasData';
-import { CATEGORY_GROUPS } from '../shared/data/categories';
+import { findDistrictForCoordinates, HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
+import { HADAYEK_GATES, getHadayekZone, getRecommendedGateForZone } from '../shared/data/hadayek/hadayekGeo';
 import { matchesCategoryFilter } from './categoryMatcher';
-import { normalizeArabicText } from './arabicSearch';
+import { normalizeArabicText } from '../shared/lib/arabicSearch';
 import { isCitywideFilterZoom } from './mapZoomPolicy';
 
 const ZONE_CACHE_LIMIT = 5000;
@@ -170,15 +169,13 @@ export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): bool
       return getBusinessHadayekZoneLetter(biz) !== null;
     }
 
-    // Textual verification fallback
+    // Textual fallback only for an explicit district name. A bare «الأهرام»
+    // or «منطقة» also matches places outside Hadayek Al-Ahram.
     return (
       normCorpus.includes('حدايق الاهرام') ||
       normCorpus.includes('حدائق الاهرام') ||
       normCorpus.includes('هضبه الاهرام') ||
-      normCorpus.includes('هضبة الاهرام') ||
-      normCorpus.includes('الاهرام') ||
-      normCorpus.includes('منطقه ') ||
-      normCorpus.includes('بوابه ')
+      normCorpus.includes('هضبة الاهرام')
     );
   }
 
@@ -293,61 +290,6 @@ export function filterBusinessesForMap(
 
     return isBusinessInHadayekZone(b, 'all');
   });
-}
-
-export interface AvailableCategoryItem {
-  name: string;
-  count: number;
-}
-
-export interface AvailableCategoryGroup {
-  group: string;
-  icon?: string;
-  items: AvailableCategoryItem[];
-  totalCount: number;
-}
-
-/**
- * Calculates dynamically which category groups and specific categories
- * exist among businesses in the given zone.
- * Only returns groups and items with count > 0.
- */
-export function getAvailableCategoryGroupsInZone(
-  businesses: Business[],
-  zoneFilter: string
-): AvailableCategoryGroup[] {
-  const zoneBusinesses = getBusinessesInZone(businesses, zoneFilter);
-  if (zoneBusinesses.length === 0) return [];
-
-  const result: AvailableCategoryGroup[] = [];
-
-  for (const catGroup of CATEGORY_GROUPS) {
-    const matchingItems: AvailableCategoryItem[] = [];
-    let groupTotalCount = 0;
-
-    // Check count for each specific sub-item
-    for (const item of catGroup.items) {
-      const count = zoneBusinesses.filter((b) => matchesCategoryFilter(b, item)).length;
-      if (count > 0) {
-        matchingItems.push({ name: item, count });
-      }
-    }
-
-    // Check overall group count
-    groupTotalCount = zoneBusinesses.filter((b) => matchesCategoryFilter(b, catGroup.group)).length;
-
-    // If at least one item or the group has businesses, include it
-    if (groupTotalCount > 0 || matchingItems.length > 0) {
-      result.push({
-        group: catGroup.group,
-        icon: catGroup.icon,
-        items: matchingItems,
-        totalCount: Math.max(groupTotalCount, matchingItems.reduce((acc, it) => acc + it.count, 0)),
-      });
-    }
-  }
-
-  return result;
 }
 
 /**
