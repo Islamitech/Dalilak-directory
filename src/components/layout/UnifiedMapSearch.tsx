@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable } from '../../shared/ui';
-import { Building2, Store } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Business } from '../../types';
 import { matchesBusinessSearch } from '../../shared/lib/arabicSearch';
 import { isBusinessInHadayekZone } from '../../utils/hadayekZoneHelper';
@@ -197,19 +197,13 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
                   onClick={() => selectActivity(result.business)}
                   className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start transition-colors hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-700">
-                    <Store className="h-4 w-4" />
-                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-extrabold text-slate-900">
+                    <span className="block text-xs font-extrabold leading-snug text-slate-900 line-clamp-2">
                       {result.business.nameAr}
                     </span>
                     <span className="mt-0.5 block truncate text-caption font-bold text-slate-500">
                       {result.business.category || result.business.street || (resolvedZone(value) ? `منطقة ${resolvedZone(value)}` : '')}
                     </span>
-                  </span>
-                  <span className="rounded-pill bg-amber-100 px-2 py-1 text-caption font-extrabold text-amber-900">
-                    نشاط
                   </span>
                 </Pressable>
               ))}
