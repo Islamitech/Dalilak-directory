@@ -8,7 +8,7 @@ import { getPublicDirectoryUrl } from '../../../../utils/directoryUrl';
 import { ButtonLink } from '../../../../shared/ui/Button';
 import { IconButton } from '../../../../shared/ui/IconButton';
 
-const DENSE = 'px-2! gap-1!';
+const DENSE = 'min-h-11! px-2! gap-1!';
 
 export interface BusinessCardActionButtonsProps {
   business: Business;
@@ -98,7 +98,7 @@ export const BusinessCardActionButtons: React.FC<BusinessCardActionButtonsProps>
               rel="noopener noreferrer"
               variant="secondary"
               size="md"
-              leadingIcon={<MessageCircle className="text-white fill-white/20" />}
+              leadingIcon={<MessageCircle />}
               className={`${DENSE} dl-btn-whatsapp`}
               truncateLabel={false}
               title="مراسلة واتساب فورية"

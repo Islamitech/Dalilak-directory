@@ -576,11 +576,8 @@
     border-color: #e2e8f0;
   }
 
-  .dl-sp small {
-    font-size: 12px;
-    opacity: 0.8;
-    font-weight: 700;
-    margin-inline-start: 2px;
+  .dl-sp.dl-closed small {
+    color: #334155;
   }
 
   .dl-pd {
@@ -669,7 +666,7 @@
 
   .dl-rw {
     font-weight: 700;
-    color: #b5871f;
+    color: #7a5a12;
   }
 
   .dl-rc {
@@ -793,7 +790,7 @@
   .dl-btn-whatsapp {
     background-color: #25d366 !important;
     border-color: #25d366 !important;
-    color: #ffffff !important;
+    color: var(--logo-ink-0) !important;
     font-weight: 800;
     box-shadow: 0 2px 8px rgba(37, 211, 102, 0.22);
   }
@@ -801,7 +798,7 @@
   .dl-btn-whatsapp:hover {
     background-color: #20bd5a !important;
     border-color: #20bd5a !important;
-    color: #ffffff !important;
+    color: var(--logo-ink-0) !important;
   }
 
   .dl-btn-ink {
