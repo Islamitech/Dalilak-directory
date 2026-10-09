@@ -9,7 +9,6 @@ import {
   ListFilter,
   Heart,
   Info,
-  WifiOff,
 } from 'lucide-react';
 import { useDrawerFocusTrap } from './hooks/useDrawerFocusTrap';
 import { Button, ButtonLink } from '../../shared/ui';
@@ -159,7 +158,6 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
         {/* Footer info links */}
         <div className="shrink-0 space-y-1.5 border-t border-slate-200 bg-slate-50/50 p-4">
           <span className="text-caption font-bold text-slate-400 px-2">المنصة</span>
-          <div className="flex items-center gap-2">
           <ButtonLink
             href="/about"
             onClick={(e) => {
@@ -167,20 +165,11 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
               onClose();
             }}
             variant="secondary"
-            className="flex-1"
+            fullWidth
             leadingIcon={<Info className="text-slate-400" />}
           >
             عن دليلك
           </ButtonLink>
-          <ButtonLink
-            href="/offline.html"
-            variant="secondary"
-            className="flex-1"
-            leadingIcon={<WifiOff className="text-slate-400" />}
-          >
-            دليل الأوفلاين
-          </ButtonLink>
-          </div>
         </div>
       </div>
     </div>
