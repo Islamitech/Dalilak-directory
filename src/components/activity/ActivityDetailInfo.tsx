@@ -85,7 +85,7 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
         >
           <span className="dl-gmark" aria-hidden="true" />
           <b>{business.googleRating!.toFixed(1)}</b>
-          {reviewCount ? <span>({reviewCount} تقييماً)</span> : null}
+          {reviewCount ? <span>({reviewCount})</span> : null}
         </p>
       )}
 
