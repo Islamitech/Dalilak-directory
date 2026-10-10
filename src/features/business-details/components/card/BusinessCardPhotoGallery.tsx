@@ -95,7 +95,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
                 loading={priority && idx === 0 ? 'eager' : 'lazy'}
                 fetchPriority={priority && idx === 0 ? 'high' : 'auto'}
                 decoding="async"
-                className={loadedPhotos[idx] ? 'dl-in' : ''}
+                className={[priority && idx === 0 ? 'dl-lcp' : '', loadedPhotos[idx] ? 'dl-in' : ''].filter(Boolean).join(' ')}
                 onLoad={() => setLoadedPhotos((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }))}
                 onError={(event) => {
                   const img = event.currentTarget;
@@ -126,7 +126,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
               loading={priority ? 'eager' : 'lazy'}
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
-              className={fallbackLoaded ? 'dl-in' : ''}
+              className={[priority ? 'dl-lcp' : '', fallbackLoaded ? 'dl-in' : ''].filter(Boolean).join(' ')}
               onLoad={() => setFallbackLoaded(true)}
               onError={() => setFallbackLoaded(true)}
             />

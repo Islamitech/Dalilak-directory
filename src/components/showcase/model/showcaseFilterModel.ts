@@ -124,7 +124,13 @@ export function computeFilteredBusinesses({
     hasVideoOnly;
 
   if (!hasUserFilters) {
-    return shuffleBusinessesWithSeed(list, shuffleSeed);
+    // Keep the first screen stable when later pages arrive, so its photo stays the LCP element.
+    const firstScreen = list.slice(0, 12);
+    const rest = list.slice(12);
+    return [
+      ...shuffleBusinessesWithSeed(firstScreen, shuffleSeed),
+      ...shuffleBusinessesWithSeed(rest, shuffleSeed + 1),
+    ];
   }
 
   return [...list].sort((a, b) => {

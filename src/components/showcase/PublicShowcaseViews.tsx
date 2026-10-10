@@ -11,13 +11,6 @@ const ForBusinessView = React.lazy(() => import('../../features/for-business').t
 const BusinessPricingView = React.lazy(() => import('../views/BusinessPricingView').then((m) => ({ default: m.BusinessPricingView })));
 const AboutView = React.lazy(() => import('../views/AboutView').then((m) => ({ default: m.AboutView })));
 
-// Defer non-critical view prefetching strictly to browser idle periods to prevent main-thread blocking
-if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-  window.requestIdleCallback(() => {
-    void import('../views/MapView');
-  }, { timeout: 4000 });
-}
-
 export interface PublicShowcaseViewsProps {
   currentPath: string;
   filterState: ReturnType<typeof useShowcaseFilterState>;

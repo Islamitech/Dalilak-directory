@@ -54,6 +54,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   useEffect(() => {
     if (!business || business.verificationStatus === 'rejected') return;
     setSnap('full');
+    window.dispatchEvent(new Event('directory:subscribe'));
     window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: true } }));
     return () => {
       window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } }));

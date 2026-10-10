@@ -126,7 +126,7 @@ export const BusinessCardGrid: React.FC<BusinessCardGridProps> = ({
             isFavorite={favorites.includes(biz.id)}
             userCoords={userCoords}
             onOpenVideoModal={onOpenVideoModal}
-            priority={index < 2}
+            priority={index === 0}
           />
         ))}
       </div>

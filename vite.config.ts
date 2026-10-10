@@ -39,7 +39,7 @@ export default defineConfig({
       srcDir: 'src/pwa',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: 'script-defer',
       manifest: false,
       includeAssets: ['favicon.svg', 'offline.html', 'logo.png', 'icon-192.png', 'icon-512.png'],
       injectManifest: {

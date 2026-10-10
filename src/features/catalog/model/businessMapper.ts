@@ -1,10 +1,10 @@
 import { Business } from '../../../types';
 import { SUPABASE_REST_BASE } from '../../../shared/lib/supabase';
+import { FAST_BUSINESS_SELECT, catalogQuery } from '../../../shared/catalogQuery';
 
-export const FAST_BUSINESS_SELECT =
-  'id,name_ar,name_en,category,governorate,city,street,landmark,phone,secondary_phone,working_hours,description,lat,lng,package_id,package_name,package_price,verification_status,notes,created_at,cover_photo';
+export { FAST_BUSINESS_SELECT, LIST_BUSINESS_SELECT } from '../../../shared/catalogQuery';
 
-export const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/businesses?select=${FAST_BUSINESS_SELECT}&package_id=neq.pkg_interested_lead&verification_status=eq.verified&order=created_at.desc,id.asc`;
+export const SUPABASE_REST_URL = `${SUPABASE_REST_BASE}/${catalogQuery(FAST_BUSINESS_SELECT)}`;
 
 export const BIDI_CONTROL_REGEX = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069\uFEFF]/g;
 

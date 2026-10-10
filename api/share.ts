@@ -1,8 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { findPublicBusiness, findPublicBusinessWithStatus, loadPublicDirectory, publicBusinessSlug } from '../src/server/directoryData.js';
+import { findPublicBusiness, findPublicBusinessWithStatus, loadPublicDirectory, publicBusinessSlug, SUPABASE_URL, SUPABASE_ANON_KEY } from '../src/server/directoryData.js';
+import { LIST_BUSINESS_SELECT, catalogQuery } from '../src/shared/catalogQuery.js';
 import { resolveRequestOrigin } from '../src/server/httpSecurity.js';
 import { escapeHtml, getBaseTemplate, resolveSchemaType, slugify } from '../src/server/share/template.js';
+
+function listHeadScript(): string {
+  const url = `${SUPABASE_URL}/rest/v1/${catalogQuery(LIST_BUSINESS_SELECT)}`;
+  const payload = JSON.stringify({ url, key: SUPABASE_ANON_KEY }).replace(/</g, '\\u003c');
+  return `<script>(function(){var c=${payload};window.__dalilakListPage=fetch(c.url,{headers:{apikey:c.key,Authorization:"Bearer "+c.key,Range:"0-59","Range-Unit":"items",Prefer:"count=exact",Accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error("list");var total=Number((r.headers.get("content-range")||"").split("/")[1]);return r.json().then(function(rows){return {rows:rows,total:total};});});})();</script>\n`;
+}
 
 const DUPLICATE_REDIRECTS: Record<string, string> = {
   'biz_atlas_1789859443844_ocx4v': 'biz_atlas_1789859433981_gagii',
@@ -135,6 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ],
       };
       const jsonLdTag = `<script type="application/ld+json">${JSON.stringify(jsonLdData).replace(/</g, '\\u003c')}</script>`;
+      const listHeadTag = pageKey === 'search' ? listHeadScript() : '';
 
       let template = getBaseTemplate();
       if (!template) {
@@ -164,9 +172,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Canonical URL
       html = html.replace(/<link\s+rel="canonical"\s+href=".*?"\s*\/?>/gi, () => `<link rel="canonical" href="${escapeHtml(canonicalPageUrl)}" />`);
 
-      // Inject JSON-LD
+      // Inject JSON-LD and the early list request for /search
       if (html.includes('</head>')) {
-        html = html.replace('</head>', `  ${jsonLdTag}\n</head>`);
+        html = html.replace('</head>', `  ${listHeadTag}${jsonLdTag}\n</head>`);
       }
 
       // Pre-rendered crawler snapshot

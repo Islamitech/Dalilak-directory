@@ -9,16 +9,23 @@ export interface SubscriptionHandlers {
 }
 
 export function setupCatalogSubscriptions(handlers: SubscriptionHandlers) {
-  const channel = supabase
-    .channel('dalelak-public-directory-realtime')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, (payload: any) => {
-      const id = payload.eventType === 'DELETE' ? payload.old?.id : payload.new?.id;
-      if (!id) return;
-      const row = payload.eventType === 'DELETE' || !isPublicBusiness(payload.new) ? null : mapRawToBusiness(payload.new);
-      const value = row && isPublicBusiness(row) ? row : null;
-      handlers.onRealtimePayload(id, value);
-    })
-    .subscribe();
+  let channel: ReturnType<typeof supabase.channel> | null = null;
+  let started = false;
+  const startRealtime = () => {
+    if (started) return;
+    started = true;
+    channel = supabase
+      .channel('dalelak-public-directory-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, (payload: any) => {
+        const id = payload.eventType === 'DELETE' ? payload.old?.id : payload.new?.id;
+        if (!id) return;
+        const row = payload.eventType === 'DELETE' || !isPublicBusiness(payload.new) ? null : mapRawToBusiness(payload.new);
+        const value = row && isPublicBusiness(row) ? row : null;
+        handlers.onRealtimePayload(id, value);
+      })
+      .subscribe();
+  };
+  window.addEventListener('directory:subscribe', startRealtime);
 
   const sync = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('dalelak_data_sync_channel') : null;
   if (sync) {
@@ -31,8 +38,9 @@ export function setupCatalogSubscriptions(handlers: SubscriptionHandlers) {
   window.addEventListener('directory:retry', handleDirectoryRetry);
 
   return () => {
+    window.removeEventListener('directory:subscribe', startRealtime);
     window.removeEventListener('directory:retry', handleDirectoryRetry);
-    void supabase.removeChannel(channel);
+    if (channel) void supabase.removeChannel(channel);
     sync?.close();
   };
 }
