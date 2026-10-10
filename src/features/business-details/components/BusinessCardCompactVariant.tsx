@@ -7,7 +7,7 @@ import {
   getBusinessOpenStatus,
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
-import { getCategoryFallbackCover } from '../../../utils/categoryPhotos';
+import { getCategoryFallbackCover, isValidPhotoUrl } from '../../../utils/categoryPhotos';
 import { getFirstStrongDirection } from '../../../shared/lib/textDirection';
 import { ShieldCheck } from 'lucide-react';
 import { getBusinessEntryGate } from '../../../utils/hadayekZoneHelper';
@@ -20,11 +20,9 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
   priority = false,
 }) => {
   const fallbackCover = getCategoryFallbackCover(business.category);
-  const mainPhoto =
-    business.coverPhoto ||
-    (business.photos && business.photos.length > 0
-      ? business.photos[0]
-      : fallbackCover);
+  const validPhotos = (business.photos || []).filter(isValidPhotoUrl);
+  const rawCover = isValidPhotoUrl(business.coverPhoto) ? business.coverPhoto : null;
+  const mainPhoto = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallbackCover);
 
   const openStatus = getBusinessOpenStatus(business.workingHours);
   const distanceKm =
@@ -51,6 +49,13 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
         className="w-16 h-16 rounded-md object-cover shrink-0 bg-slate-100"
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : 'auto'}
+        onError={(e) => {
+          const img = e.currentTarget;
+          if (img.dataset.fallback !== '1' && fallbackCover && img.src !== fallbackCover) {
+            img.dataset.fallback = '1';
+            img.src = fallbackCover;
+          }
+        }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">

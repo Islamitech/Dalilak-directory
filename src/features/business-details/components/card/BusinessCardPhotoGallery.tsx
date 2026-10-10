@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Pressable } from '../../../../shared/ui';
 import { Business } from '../../../../types';
 import { getOptimizedImageUrl } from '../../../../utils/imageOptimizer';
-import { getCategoryFallbackCover } from '../../../../utils/categoryPhotos';
+import { getCategoryFallbackCover, isValidPhotoUrl } from '../../../../utils/categoryPhotos';
 import { displayBusinessName } from '../../../../shared/lib/format';
 import { ShieldCheck, Heart, Play, MapPin, Store } from 'lucide-react';
 import { BusinessCardGalleryNav } from './BusinessCardGalleryNav';
@@ -41,23 +41,18 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
   const [loadedPhotos, setLoadedPhotos] = useState<Record<number, boolean>>({});
   const [fallbackLoaded, setFallbackLoaded] = useState(false);
 
-  const rawPhotos = business.photos && business.photos.length > 0 ? business.photos : business.coverPhoto ? [business.coverPhoto] : [];
+  const fallbackCover = getCategoryFallbackCover(business.category);
+  const rawList = business.photos && business.photos.length > 0 ? business.photos : business.coverPhoto ? [business.coverPhoto] : [];
+  const rawPhotos = rawList.filter(isValidPhotoUrl);
   const gallery = rawPhotos.slice(0, 4);
   const hasMultiple = gallery.length > 1;
   const isVerified = business.verificationStatus === 'verified' || business.packageId?.includes('verified');
   const hasVideo = Boolean(business.videoUrl || (business as unknown as { videos?: string[] }).videos?.length);
-  const fallbackCover = getCategoryFallbackCover(business.category);
   const displayName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
   const withoutNotes = displayName.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
-  const cardTitle =
-    withoutNotes
-      .split(/\s+\|\s+|\s+[–—-]\s+/)
-      .map((part) => part.trim())
-      .find((part) => /[\u0600-\u06FF]/.test(part)) || withoutNotes || displayName;
+  const cardTitle = withoutNotes.split(/\s+\|\s+|\s+[–—-]\s+/).map((p) => p.trim()).find((p) => /[\u0600-\u06FF]/.test(p)) || withoutNotes || displayName;
   const currentPhoto = gallery[currentSlide] || (gallery.length === 0 ? fallbackCover : '');
-  const showIllustrative = Boolean(
-    currentPhoto && (currentPhoto.includes('images.unsplash.com') || currentPhoto === fallbackCover)
-  );
+  const showIllustrative = Boolean(currentPhoto && (currentPhoto.includes('images.unsplash.com') || currentPhoto === fallbackCover));
 
   const handleScroll = useCallback(() => {
     const rail = railRef.current;
@@ -106,10 +101,13 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
                   const img = event.currentTarget;
                   if (fallbackCover && img.dataset.fallback !== '1') {
                     img.dataset.fallback = '1';
+                    img.removeAttribute('srcset');
+                    img.srcset = '';
                     img.src = fallbackCover;
+                    setLoadedPhotos((prev) => ({ ...prev, [idx]: true }));
                     return;
                   }
-                  setLoadedPhotos((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
+                  setLoadedPhotos((prev) => ({ ...prev, [idx]: true }));
                 }}
               />
             </div>
@@ -130,6 +128,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
               decoding="async"
               className={fallbackLoaded ? 'dl-in' : ''}
               onLoad={() => setFallbackLoaded(true)}
+              onError={() => setFallbackLoaded(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-900">

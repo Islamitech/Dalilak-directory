@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
 import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
+import { isValidPhotoUrl } from '../../../utils/categoryPhotos';
 
 export function useActivityPhotos(business: Business | null): string[] {
   const [livePhotos, setLivePhotos] = useState<string[]>(() => {
@@ -71,21 +72,15 @@ export function useActivityPhotos(business: Business | null): string[] {
 
     if (Array.isArray(sourcePhotos) && sourcePhotos.length > 0) {
       sourcePhotos.forEach((p) => {
-        if (p && typeof p === 'string' && p.trim() && !list.includes(p.trim())) {
+        if (isValidPhotoUrl(p) && !list.includes(p.trim())) {
           list.push(p.trim());
         }
       });
-      if (
-        business.coverPhoto &&
-        typeof business.coverPhoto === 'string' &&
-        business.coverPhoto.trim() &&
-        !business.coverPhoto.startsWith('data:') &&
-        !list.includes(business.coverPhoto.trim())
-      ) {
-        list.unshift(business.coverPhoto.trim());
+      if (isValidPhotoUrl(business.coverPhoto) && !list.includes(business.coverPhoto!.trim())) {
+        list.unshift(business.coverPhoto!.trim());
       }
-    } else if (business.coverPhoto && typeof business.coverPhoto === 'string' && business.coverPhoto.trim()) {
-      list.push(business.coverPhoto.trim());
+    } else if (isValidPhotoUrl(business.coverPhoto)) {
+      list.push(business.coverPhoto!.trim());
     }
     return list;
   }, [business, livePhotos]);

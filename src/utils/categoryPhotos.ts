@@ -94,3 +94,16 @@ export function getCategoryFallbackCover(categoryNameOrType?: string): string {
 
   return CATEGORY_DEFAULT_PHOTOS.default;
 }
+
+/**
+ * فحص صحة وصلاحية رابط الصورة واستبعاد الروابط المعطلة أو التالفة
+ */
+export function isValidPhotoUrl(url?: string | null): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (trimmed.length < 10) return false;
+  if (trimmed.startsWith('data:')) return false;
+  // Exclude dead Google Places API media URLs that return 429 quota exhaustion
+  if (trimmed.includes('places.googleapis.com')) return false;
+  return true;
+}

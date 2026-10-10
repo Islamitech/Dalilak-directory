@@ -5,11 +5,14 @@
 
 export function getOptimizedImageUrl(url: string | undefined | null, width = 600, height?: number): string {
   if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (trimmed.length === 0 || trimmed.includes('places.googleapis.com')) return '';
+
+  const targetHeight = height || Math.round(width * 0.75);
 
   // 1. Google Place Photos & User Content CDN (responsive WebP resize)
-  if (url.includes('googleusercontent.com') || url.includes('ggpht.com')) {
-    const [base] = url.split('=');
-    const targetHeight = height || Math.round(width * 0.75);
+  if (trimmed.includes('googleusercontent.com') || trimmed.includes('ggpht.com')) {
+    const [base] = trimmed.split('=');
     return `${base}=w${width}-h${targetHeight}-n-rw`;
   }
 

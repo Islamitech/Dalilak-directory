@@ -4,6 +4,7 @@ import { AlertCircle, Camera, CheckCheck, Heart, MapPin, Play, Share2, ShieldChe
 import { Business } from '../../types';
 import { displayBusinessName } from '../../shared/lib/format';
 import { getCategoryVisual } from '../../utils/categoryVisuals';
+import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
 
 export interface ActivityDetailHeaderProps {
   business: Business;
@@ -31,8 +32,11 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
   copyError = false,
 }) => {
   const visual = getCategoryVisual(business.category);
-  const mainPhoto = photos.length > 0 ? photos[0] : (business.coverPhoto || null);
-  const hasPhotos = photos.length > 0 || Boolean(mainPhoto);
+  const fallbackCover = getCategoryFallbackCover(business.category);
+  const validPhotos = photos.filter(isValidPhotoUrl);
+  const rawCover = isValidPhotoUrl(business.coverPhoto) ? business.coverPhoto : null;
+  const mainPhoto = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallbackCover);
+  const hasPhotos = validPhotos.length > 0 || Boolean(rawCover);
   const isVerified = business.verificationStatus === 'verified' || Boolean(business.packageId?.includes('verified'));
   const rawName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
   const displayName = rawName
@@ -63,9 +67,16 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
             alt=""
             className="dl-dh-full-img"
             loading="eager"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (fallbackCover && img.dataset.fallback !== '1' && img.src !== fallbackCover) {
+                img.dataset.fallback = '1';
+                img.src = fallbackCover;
+              }
+            }}
           />
           <div className="dl-dh-full-overlay" />
-          {mainPhoto.includes('images.unsplash.com') && (
+          {(mainPhoto.includes('images.unsplash.com') || !hasPhotos) && (
             <span className="absolute bottom-3 start-3 z-10 text-caption font-extrabold text-white bg-slate-950/70 rounded-pill px-2.5 py-1">
               صورة توضيحية
             </span>

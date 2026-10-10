@@ -92,6 +92,13 @@ export const ShowcasePhotoLightbox: React.FC<ShowcasePhotoLightboxProps> = ({
           draggable={false}
           className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain animate-fade-in-scale pointer-events-none select-none"
           onClick={(e) => e.stopPropagation()}
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.dataset.fallback !== '1') {
+              img.dataset.fallback = '1';
+              img.src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=75';
+            }
+          }}
         />
         {/* Anti-Extraction Transparent Protection Shield */}
         <div 

@@ -3,7 +3,7 @@ import { Pressable, Button } from '../../shared/ui';
 import { Store, AlertTriangle } from 'lucide-react';
 import { Business } from '../../types';
 import { getFirstStrongDirection } from '../../shared/lib/textDirection';
-import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
+import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
 
 export interface ActivityDetailFooterProps {
   business: Business;
@@ -28,10 +28,10 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
           <h4>أنشطة مشابهة</h4>
           <div className="dl-g">
             {similarPlaces.map((sim) => {
-              const simCover =
-                sim.coverPhoto ||
-                (sim.photos && sim.photos[0]) ||
-                getCategoryFallbackCover(sim.category);
+              const fallback = getCategoryFallbackCover(sim.category);
+              const validPhotos = (sim.photos || []).filter(isValidPhotoUrl);
+              const rawCover = isValidPhotoUrl(sim.coverPhoto) ? sim.coverPhoto : null;
+              const simCover = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallback);
 
               return (
                 <Pressable
@@ -44,6 +44,13 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
                     alt=""
                     className="dl-sm-img"
                     loading="lazy"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (fallback && img.dataset.fallback !== '1' && img.src !== fallback) {
+                        img.dataset.fallback = '1';
+                        img.src = fallback;
+                      }
+                    }}
                   />
                   <div className="dl-w">
                     <b dir={getFirstStrongDirection(sim.nameAr)}>

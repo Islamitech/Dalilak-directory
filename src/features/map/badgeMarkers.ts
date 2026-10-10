@@ -1,7 +1,13 @@
-﻿import { Business } from '../../types';
+import { Business } from '../../types';
 import { escapeHtml } from './constants/mapConstants';
 import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
-import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
+import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
+
+function getValidBusinessPhoto(biz: Business, fallbackCover: string): string {
+  const validCover = isValidPhotoUrl(biz.coverPhoto) ? biz.coverPhoto : null;
+  const validPhotos = (biz.photos || []).filter(isValidPhotoUrl);
+  return validCover || (validPhotos.length > 0 ? validPhotos[0] : fallbackCover);
+}
 import {
   getBusinessOpenStatus,
   getBusinessMapDetails,
@@ -284,7 +290,7 @@ export function renderUnifiedCompactCardHtml(
   const safeName = escapeHtml(displayBusinessName(biz.nameAr, biz.nameEn) || 'منشأة معتمدة');
   const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
   const fallbackCover = getCategoryFallbackCover(biz.category);
-  const rawPhoto = biz.coverPhoto || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : fallbackCover);
+  const rawPhoto = getValidBusinessPhoto(biz, fallbackCover);
   const photoUrl = getOptimizedImageUrl(rawPhoto, 240, 240);
 
   // Determine district / location label
@@ -459,7 +465,7 @@ export function createExpandedActivityCardHtml(
   const safeName = escapeHtml(displayBusinessName(biz.nameAr, biz.nameEn) || 'منشأة معتمدة');
   const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
   const fallbackCover = getCategoryFallbackCover(biz.category);
-  const rawPhoto = biz.coverPhoto || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : fallbackCover);
+  const rawPhoto = getValidBusinessPhoto(biz, fallbackCover);
   const photoUrl = getOptimizedImageUrl(rawPhoto, 640, 280);
   const openStatus = getBusinessOpenStatus(biz.workingHours);
 
@@ -666,7 +672,7 @@ export function createLightweightBadgeHtml(
   const safeName = escapeHtml(displayBusinessName(biz.nameAr, biz.nameEn) || 'منشأة معتمدة');
   const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
   const fallbackCover = getCategoryFallbackCover(biz.category);
-  const rawPhoto = biz.coverPhoto || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : fallbackCover);
+  const rawPhoto = getValidBusinessPhoto(biz, fallbackCover);
   const photoUrl = getOptimizedImageUrl(rawPhoto, 640, 280);
   const openStatus = getBusinessOpenStatus(biz.workingHours);
 
