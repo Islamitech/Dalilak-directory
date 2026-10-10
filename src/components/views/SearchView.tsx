@@ -3,10 +3,12 @@ import { type SearchViewProps, CadastralBuildingCard, UnifiedSearchFilterBar } f
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { BusinessCardGrid } from '../../components/cards/BusinessCardGrid';
 import { ViewSegmentedSwitch } from '../layout/ViewSegmentedSwitch';
+import { ActivityListHeader } from './ActivityListHeader';
 import { Button } from '../../shared/ui';
 import { X } from 'lucide-react';
 import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
 import { getRecommendedGateForZone } from '../../shared/data/hadayek/hadayekGeo';
+import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
 
 export type { SearchViewProps };
 
@@ -41,6 +43,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onResetAllFilters,
   hasActiveFilters = false,
   onNavigate,
+  directoryScope = 'hadayek',
+  onDirectoryScopeChange,
 }) => {
   const effectiveFilteredBusinesses = useMemo(() => {
     if (filteredBusinesses) return filteredBusinesses;
@@ -92,6 +96,10 @@ export const SearchView: React.FC<SearchViewProps> = ({
   }, [searchQuery, selectedZone]);
 
   const [isBuildingFound, setIsBuildingFound] = useState<boolean>(true);
+  const scopeCatalog = useMemo(
+    () => (directoryScope === 'all' ? allBusinesses : filterBusinessesForMap(allBusinesses, 'all', 'all', false)),
+    [allBusinesses, directoryScope]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -151,6 +159,17 @@ export const SearchView: React.FC<SearchViewProps> = ({
       className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 pt-2 pb-[calc(96px+env(safe-area-inset-bottom,0px))] bg-[var(--bg)]"
       dir="rtl"
     >
+      <ActivityListHeader
+        shown={effectiveFilteredBusinesses.length}
+        total={scopeCatalog.length}
+        filtered={hasActiveFilters}
+        loading={loading}
+        categoryId={categoryFilter}
+        subcategoryId={subcategoryFilter}
+        zone={selectedZone}
+        scope={directoryScope}
+        onScopeChange={onDirectoryScopeChange}
+      />
       <div className="sticky top-[calc(var(--app-header-h,var(--header-h))+0.5rem)] z-30 flex justify-center pointer-events-none mb-4">
         <div className="pointer-events-auto flex flex-nowrap items-center justify-center gap-2 max-w-full">
           <div className="shrink-0 rounded-pill bg-white border border-slate-200/80 shadow-sm p-0.5">
@@ -170,7 +189,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
               onCategoryChange={onCategoryChange}
               selectedZone={selectedZone}
               onZoneChange={onZoneChange}
-              businesses={allBusinesses}
+              businesses={scopeCatalog}
+              showZone={directoryScope === 'hadayek'}
               variant="list"
             />
           </div>

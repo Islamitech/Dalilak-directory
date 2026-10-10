@@ -25,6 +25,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onExploreDirectory, onResetFilters, filtersActive = false, activeRoute: externalActiveRoute, onUpdateRoute,
   onStartNavigation: externalOnStartNavigation, onClearBuilding,
   focusedBusiness, onClearFocusedBusiness, resultsReady = false,
+  directoryScope = 'hadayek', onDirectoryScopeChange,
 }) => {
   const directoryLoad = useDirectoryLoad();
   const searchPending = useDirectorySearchPending();
@@ -126,6 +127,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     viewportSnapshot: interactionState.viewport,
     onViewportSnapshotChange,
     resultsReady,
+    directoryScope,
   });
 
   const isInitialLoading = businesses.length === 0 && directoryLoad.pending;
@@ -177,7 +179,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           matchingBusinessesCount={matchingBusinessesCount}
         />
 
-        {/* Hide the filter bar while navigating so the route gets the whole map */}
         {!navigationTargetState && (
           <MapViewTopBarContainer
             mode={mode}
@@ -194,6 +195,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             matchingCount={matchingBusinessesCount}
             filtersActive={filtersActive}
             onResetAll={onResetFilters ?? (() => { onSearchChange?.(''); onCategoryChange?.('all'); onSelectZone?.('all'); })}
+            directoryScope={directoryScope}
+            onDirectoryScopeChange={onDirectoryScopeChange}
           />
         )}
 

@@ -11,6 +11,7 @@ export interface UnifiedSearchFilterBarProps {
   onZoneChange: (zone: string) => void;
   businesses: Business[];
   variant?: 'list' | 'map';
+  showZone?: boolean;
   className?: string;
   // Optional props for backward compatibility
   searchQuery?: string;
@@ -27,6 +28,7 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
   selectedZone,
   onZoneChange,
   businesses,
+  showZone = true,
   className = '',
   searchQuery = '',
   onSearchChange,
@@ -127,6 +129,7 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
         maxLabelWidthClass="max-w-14"
       />
 
+      {showZone && (
       <FilterDropdownMenu
         compact
         label="المنطقة"
@@ -143,6 +146,7 @@ export const UnifiedSearchFilterBar: React.FC<UnifiedSearchFilterBarProps> = ({
         menuWidthClass="w-48 sm:w-52"
         maxLabelWidthClass="max-w-12"
       />
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
 import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
-import { collectDisplayPhotos } from '../../../utils/categoryPhotos';
+import { collectRealPhotos } from '../../../utils/categoryPhotos';
 
 export function useActivityPhotos(business: Business | null): string[] {
   const [livePhotos, setLivePhotos] = useState<string[]>(() => {
@@ -68,8 +68,8 @@ export function useActivityPhotos(business: Business | null): string[] {
 
   return useMemo(() => {
     if (!business) return [];
-    const fromDatabase = collectDisplayPhotos(livePhotos, business.coverPhoto);
+    const fromDatabase = collectRealPhotos(livePhotos, business.coverPhoto);
     if (fromDatabase.length > 0) return fromDatabase;
-    return collectDisplayPhotos(business.photos, business.coverPhoto);
+    return collectRealPhotos(business.photos, business.coverPhoto);
   }, [business, livePhotos]);
 }

@@ -4,6 +4,7 @@ import { InteractiveMap, stashCameraReturn, useMapViewUrlState } from '../../fea
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
+import { hasMapCoordinates, type DirectoryScope } from '../../utils/directoryScope';
 import {
   getHadayekZone,
   getRecommendedGateForZone,
@@ -35,6 +36,8 @@ export interface MapViewProps {
   lng?: number;
   focusedBusiness?: Business | null;
   onClearFocusedBusiness?: () => void;
+  directoryScope?: DirectoryScope;
+  onDirectoryScopeChange?: (scope: DirectoryScope) => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -63,6 +66,8 @@ export const MapView: React.FC<MapViewProps> = ({
   lng = 31.1002,
   focusedBusiness,
   onClearFocusedBusiness,
+  directoryScope = 'hadayek',
+  onDirectoryScopeChange,
 }) => {
   const {
     activeZoneLetter,
@@ -134,6 +139,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const activityIntent = useMemo(() => parseActivitySearchIntent(searchQuery || ''), [searchQuery]);
 
   const effectiveFilteredBusinesses = useMemo(() => {
+    const openScope = directoryScope === 'all';
     const listed = computeFilteredBusinesses({
       publicBusinesses: businesses,
       activityIntent,
@@ -152,7 +158,7 @@ export const MapView: React.FC<MapViewProps> = ({
       shuffleSeed: 1,
       pinnedDirectBizId: null,
     });
-    return filterBusinessesForMap(listed, 'all', 'all', false);
+    return openScope ? listed.filter(hasMapCoordinates) : filterBusinessesForMap(listed, 'all', 'all', false);
   }, [
     businesses,
     activityIntent,
@@ -162,6 +168,7 @@ export const MapView: React.FC<MapViewProps> = ({
     verifiedOnly,
     sortBy,
     userCoords,
+    directoryScope,
   ]);
 
   return (
@@ -178,7 +185,9 @@ export const MapView: React.FC<MapViewProps> = ({
           categoryFilter={categoryFilter}
           onCategoryChange={onCategoryChange}
           targetBuilding={targetBuilding}
-          showHadayekGates={true}
+          showHadayekGates={directoryScope === 'hadayek'}
+          directoryScope={directoryScope}
+          onDirectoryScopeChange={onDirectoryScopeChange}
           selectedZone={activeZoneLetter}
           onSelectZone={handleSelectZoneJump}
           onSelectBusiness={onOpenBusiness}

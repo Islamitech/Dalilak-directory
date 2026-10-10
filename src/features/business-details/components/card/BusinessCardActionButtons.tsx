@@ -16,7 +16,7 @@ export interface BusinessCardActionButtonsProps {
 }
 
 /**
- * Card footer: primary call + prominent WhatsApp + neutral directions + quick share.
+ * Card footer: quiet call and directions, with WhatsApp as the one strong action.
  * Unavailable actions are omitted instead of rendered disabled so the
  * remaining buttons stretch to fill the row.
  */
@@ -80,7 +80,7 @@ export const BusinessCardActionButtons: React.FC<BusinessCardActionButtonsProps>
           {hasPhone && (
             <ButtonLink
               href={`tel:${rawPhone.replace(/[^\d+]/g, '')}`}
-              variant="primary"
+              variant="secondary"
               size="md"
               leadingIcon={<Phone />}
               className={DENSE}
@@ -115,7 +115,7 @@ export const BusinessCardActionButtons: React.FC<BusinessCardActionButtonsProps>
             size="md"
             leadingIcon={<Navigation />}
             trailing={distanceLabel}
-            className={`${DENSE} dl-btn-ink`}
+            className={DENSE}
             truncateLabel={false}
             title="الاتجاهات على خرائط Google"
             aria-label={distanceLabel ? `الاتجاهات، على بعد ${distanceLabel}` : 'الاتجاهات'}

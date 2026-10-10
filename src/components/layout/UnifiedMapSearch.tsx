@@ -17,6 +17,7 @@ interface UnifiedMapSearchProps {
   onChange: (value: string) => void;
   zone?: string;
   businesses: Business[];
+  confineToHadayek?: boolean;
   onSelectBuilding: (building: {
     buildingNumber: string;
     zoneLetter: string;
@@ -31,6 +32,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
   onChange,
   zone,
   businesses,
+  confineToHadayek = true,
   onSelectBuilding,
   onSelectBusiness,
 }) => {
@@ -69,7 +71,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         return;
       }
       const activities = businesses
-        .filter((business) => isBusinessInHadayekZone(business, 'all') && matchesBusinessSearch(business, query))
+        .filter((business) => (!confineToHadayek || isBusinessInHadayekZone(business, 'all')) && matchesBusinessSearch(business, query))
         .slice(0, 8)
         .map((business) => ({ type: 'business' as const, business }));
       apply(activities);
@@ -79,7 +81,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
       window.clearTimeout(timer);
       requestRef.current++;
     };
-  }, [businesses, value, zone]);
+  }, [businesses, value, zone, confineToHadayek]);
 
   useEffect(() => {
     if (!isOpen) return;

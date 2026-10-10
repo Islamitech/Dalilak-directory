@@ -8,8 +8,8 @@
   color: var(--color-text-primary, #0f172a);
 
   /* Prototype Design Tokens (Light Theme with WCAG 2.2 AAA Contrast Remediation) */
-  --bg: #f8f9fb;
-  --bg-2: #f0f3f6;
+  --bg: #f6f3ec;
+  --bg-2: #efeae2;
   --surface: #ffffff;
   --surface-hover: #fafbfc;
   --border: #e2e8f0;
@@ -125,7 +125,7 @@ option {
   --color-info-subtle: #eff6ff;
   --color-info-border: #bfdbfe;
 
-  --color-bg-primary: #f8f9fb;
+  --color-bg-primary: #f6f3ec;
   --color-bg-surface: #ffffff;
   --color-bg-card: #ffffff;
   --color-text-primary: #0a0f1d;

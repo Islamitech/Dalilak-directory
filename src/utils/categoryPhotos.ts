@@ -127,3 +127,11 @@ export function collectDisplayPhotos(
   for (const photo of photos || []) rememberPhoto(photo, real, stock);
   return real.length > 0 ? real : stock;
 }
+
+/** Real photos only. Stock illustrations stay out of the directory cards. */
+export function collectRealPhotos(
+  photos?: readonly (string | null | undefined)[] | null,
+  coverPhoto?: string | null
+): string[] {
+  return collectDisplayPhotos(photos, coverPhoto).filter((src) => !src.includes('images.unsplash.com'));
+}

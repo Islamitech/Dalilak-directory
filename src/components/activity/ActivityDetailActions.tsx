@@ -9,25 +9,30 @@ export interface ActivityDetailQuickActionsProps {
   effectiveUrl: string | null;
   smartWhatsAppUrl: string;
   onShowOnMap?: (biz: Business) => void;
+  onDirections?: () => void;
 }
 
 /**
- * Quick actions of the detail modal. Same variants as the list card buttons;
- * unavailable actions are omitted rather than rendered disabled.
+ * Quiet call and directions, with WhatsApp as the one strong action.
+ * Unavailable actions are omitted rather than rendered disabled.
  */
 export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProps> = ({
   business,
   effectiveUrl,
   smartWhatsAppUrl,
   onShowOnMap,
+  onDirections,
 }) => {
   const rawPhone = (business.phone || '').trim();
   const hasPhone = Boolean(rawPhone && rawPhone.length > 3);
   const hasWhatsApp = Boolean(smartWhatsAppUrl);
 
   const handleDirections = () => {
+    if (onDirections) {
+      onDirections();
+      return;
+    }
     if (onShowOnMap) {
-      // Open the map on this activity and start in-app navigation right away.
       requestBusinessNavigation(business.id);
       onShowOnMap(business);
     } else if (effectiveUrl) {
@@ -40,7 +45,7 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
       {hasPhone && (
         <ButtonLink
           href={`tel:${rawPhone.replace(/[^\d+]/g, '')}`}
-          variant="primary"
+          variant="secondary"
           size="md"
           leadingIcon={<Phone />}
           className="px-2.5! gap-1!"
@@ -57,8 +62,8 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
           rel="noopener noreferrer"
           variant="secondary"
           size="md"
-          leadingIcon={<MessageCircle className="text-green-600" />}
-          className="px-2.5! gap-1!"
+          leadingIcon={<MessageCircle />}
+          className="px-2.5! gap-1! dl-btn-whatsapp"
           title="مراسلة واتساب"
         >
           واتساب
@@ -69,7 +74,7 @@ export const ActivityDetailQuickActions: React.FC<ActivityDetailQuickActionsProp
         variant="secondary"
         size="md"
         onClick={handleDirections}
-        leadingIcon={<Navigation className="text-blue-600" />}
+        leadingIcon={<Navigation />}
         className="px-2.5! gap-1!"
         title="الاتجاهات على الخريطة"
         aria-label="الاتجاهات على الخريطة"

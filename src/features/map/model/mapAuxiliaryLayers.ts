@@ -55,11 +55,22 @@ export interface SyncAuxiliaryLayersParams {
 export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
   if (!p.layers) return;
 
-  const shouldHighlight = Boolean(p.effectiveZone) && !p.buildingSearchActive && !p.targetBuilding;
+  const shouldHighlight = Boolean(p.effectiveZone) && p.showHadayekGates && !p.buildingSearchActive && !p.targetBuilding;
   updateDistrictHighlightStyles(p.districts, p.mask, p.effectiveZone, shouldHighlight);
 
   if (p.showHadayekGates) {
     renderGatesMarkers(p.layers.gatesLayerGroup, p.effectiveZone);
+    p.districts.forEach(({ polygon }) => {
+      const el = polygon.getElement?.();
+      if (el) el.style.pointerEvents = '';
+    });
+  } else {
+    p.layers.gatesLayerGroup?.clearLayers();
+    p.districts.forEach(({ polygon, label }) => {
+      label?.setOpacity(0);
+      const el = polygon.getElement?.();
+      if (el) el.style.pointerEvents = 'none';
+    });
   }
 
   // While a route is active the destination pin of the route replaces the target-building pin.

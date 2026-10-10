@@ -18,6 +18,8 @@ export interface MapViewTopBarContainerProps {
   matchingCount?: number;
   onResetAll?: () => void;
   filtersActive?: boolean;
+  directoryScope?: 'hadayek' | 'all';
+  onDirectoryScopeChange?: (scope: 'hadayek' | 'all') => void;
 }
 
 export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
@@ -35,6 +37,8 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
   matchingCount,
   onResetAll,
   filtersActive,
+  directoryScope = 'hadayek',
+  onDirectoryScopeChange,
 }) => {
   if (mode !== 'view' || Math.abs(lat - 29.9683) >= 0.06 || Math.abs(lng - 31.1002) >= 0.06) {
     return null;
@@ -51,6 +55,8 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
         onCategoryChange={onCategoryChange}
         selectedZone={activeZone || 'all'}
         onZoneChange={onSelectZone}
+        directoryScope={directoryScope}
+        onDirectoryScopeChange={onDirectoryScopeChange}
       />
       <MapCanvasTransit
         count={matchingCount ?? 0}

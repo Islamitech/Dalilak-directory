@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
+import { useDirectoryLoad } from '../../../features/catalog';
 import { Business } from '../../../types';
 import { parseActivitySearchIntent } from '../../../utils/activitySearchIntent';
 import { filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
+import type { DirectoryScope } from '../../../utils/directoryScope';
 import { computeFilteredBusinesses } from '../model/showcaseFilterModel';
 import type { ShowcaseSort } from '../model/showcaseFilterQuery';
 
@@ -22,6 +24,7 @@ interface DirectoryBusinessesInput {
   userCoords: { lat: number; lng: number } | null;
   shuffleSeed: number;
   pinnedDirectBizId: string | null;
+  directoryScope: DirectoryScope;
 }
 
 /** One Hadayek result set for the map and the activity list. */
@@ -41,16 +44,22 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
     userCoords,
     shuffleSeed,
     pinnedDirectBizId,
+    directoryScope,
   } = input;
+  const catalogSettled = !useDirectoryLoad().pending;
 
   return useMemo(() => {
-    const listed = computeFilteredBusinesses({
-      publicBusinesses,
+    const openScope = directoryScope === 'all';
+    const source = openScope
+      ? publicBusinesses
+      : filterBusinessesForMap(publicBusinesses, 'all', 'all', false);
+    return computeFilteredBusinesses({
+      publicBusinesses: source,
       activityIntent,
       deferredSearchQuery,
       categoryFilter: activityIntent ? 'all' : categoryFilter,
       subcategoryFilter: activityIntent ? 'all' : subcategoryFilter,
-      effectiveSearchZone,
+      effectiveSearchZone: openScope ? 'all' : effectiveSearchZone,
       govFilter: 'all',
       cityFilter: 'all',
       openNowOnly,
@@ -59,10 +68,10 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
       hasVideoOnly,
       sortBy,
       userCoords,
-      shuffleSeed,
+      shuffleSeed: openScope ? shuffleSeed + 1000003 : shuffleSeed,
       pinnedDirectBizId,
+      catalogSettled,
     });
-    return filterBusinessesForMap(listed, effectiveSearchZone || 'all', 'all', false);
   }, [
     publicBusinesses,
     activityIntent,
@@ -78,5 +87,7 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
     userCoords,
     shuffleSeed,
     pinnedDirectBizId,
+    catalogSettled,
+    directoryScope,
   ]);
 }

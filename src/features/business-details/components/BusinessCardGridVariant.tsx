@@ -84,6 +84,7 @@ export const BusinessCardGridVariant: React.FC<BusinessCardVariantProps> = ({
 
       {/* 2. Body: Working Hours, Distance, Ratings, Offer */}
       <div className="dl-hbd">
+        <p className="dl-hcat-quiet">{business.category}</p>
         {hasHours && (
           <div className="dl-hrow">
             <span className={`dl-sp ${openStatus.isOpen ? 'dl-open' : 'dl-closed'}`}>

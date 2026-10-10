@@ -3,6 +3,7 @@ import { useMapPinsClustering } from './useMapPinsClustering';
 import { useMapGeolocation } from './useMapGeolocation';
 import { useMapSearch } from './useMapSearch';
 import { useTargetBuildingCamera } from './useTargetBuildingCamera';
+import { useMapPlaceFrame } from './useMapPlaceFrame';
 import { Business } from '../../../types';
 
 export interface UseMapPinsAndSearchParams {
@@ -25,10 +26,12 @@ export interface UseMapPinsAndSearchParams {
   viewportSnapshot: any;
   onViewportSnapshotChange: (v: any) => void;
   resultsReady?: boolean;
+  directoryScope?: 'hadayek' | 'all';
 }
 
 export function useMapPinsAndSearch(p: UseMapPinsAndSearchParams) {
   useTargetBuildingCamera(p.effectiveTargetBuilding, p.mapInstance);
+  useMapPlaceFrame(p.mapInstance, p.directoryScope || 'hadayek', p.businesses, p.mode);
 
   useMapPinsClustering({
     mapInstance: p.mapInstance,

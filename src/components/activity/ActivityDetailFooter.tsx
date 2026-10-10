@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, Button } from '../../shared/ui';
 import { Store, AlertTriangle } from 'lucide-react';
 import { Business } from '../../types';
 import { getFirstStrongDirection } from '../../shared/lib/textDirection';
-import { collectDisplayPhotos, getCategoryFallbackCover } from '../../utils/categoryPhotos';
+import { collectRealPhotos } from '../../utils/categoryPhotos';
+import { getCategoryVisual } from '../../utils/categoryVisuals';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 
 export interface ActivityDetailFooterProps {
   business: Business;
@@ -14,6 +16,23 @@ export interface ActivityDetailFooterProps {
   onNavigateToBusinessClaim?: (biz: Business) => void;
 }
 
+function SimilarMark({ business }: { business: Business }) {
+  const cover = collectRealPhotos(business.photos, business.coverPhoto)[0];
+  const [failed, setFailed] = useState(false);
+  if (!cover || failed) {
+    return <span className="dl-sm-ico">{getCategoryVisual(business.category, 'light').icon}</span>;
+  }
+  return (
+    <img
+      src={getOptimizedImageUrl(cover, 96, 96)}
+      alt=""
+      className="dl-sm-img"
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
   business,
   similarPlaces,
@@ -22,54 +41,31 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
 }) => {
   return (
     <div className="space-y-3 pt-1">
-      {/* 3. Similar Activities */}
       {similarPlaces.length > 0 && (
         <div className="dl-sm">
           <h4>أنشطة مشابهة</h4>
           <div className="dl-g">
-            {similarPlaces.map((sim) => {
-              const fallback = getCategoryFallbackCover(sim.category);
-              const simCover = collectDisplayPhotos(sim.photos, sim.coverPhoto)[0] || fallback;
-
-              return (
-                <Pressable
-                  key={sim.id}
-                  type="button"
-                  onClick={() => onSelectBusiness && onSelectBusiness(sim)}
-                >
-                  <img
-                    src={simCover}
-                    alt=""
-                    className="dl-sm-img"
-                    loading="lazy"
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      if (fallback && img.dataset.fallback !== '1' && img.src !== fallback) {
-                        img.dataset.fallback = '1';
-                        img.src = fallback;
-                      }
-                    }}
-                  />
-                  <div className="dl-w">
-                    <b dir={getFirstStrongDirection(sim.nameAr)}>
-                      <bdi dir="auto">{sim.nameAr}</bdi>
-                    </b>
-                    <small>{sim.category}</small>
-                  </div>
-                </Pressable>
-              );
-            })}
+            {similarPlaces.map((sim) => (
+              <Pressable key={sim.id} type="button" onClick={() => onSelectBusiness && onSelectBusiness(sim)}>
+                <SimilarMark business={sim} />
+                <div className="dl-w">
+                  <b dir={getFirstStrongDirection(sim.nameAr)}>
+                    <bdi dir="auto">{sim.nameAr}</bdi>
+                  </b>
+                  <small>{sim.category}</small>
+                </div>
+              </Pressable>
+            ))}
           </div>
         </div>
       )}
 
-      {/* 4. Claim & Report WhatsApp Links */}
       <div className="dl-cr">
         <Button
           variant="ghost"
           size="sm"
           leadingIcon={<Store />}
-          className="text-amber-700"
+          className="text-slate-400!"
           onClick={() => {
             if (onNavigateToBusinessClaim) {
               onNavigateToBusinessClaim(business);

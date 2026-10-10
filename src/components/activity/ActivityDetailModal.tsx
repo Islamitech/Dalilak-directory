@@ -191,6 +191,14 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               effectiveUrl={effectiveUrl}
               smartWhatsAppUrl={smartWhatsAppUrl}
               onShowOnMap={onShowOnMap}
+              onDirections={() => {
+                if (onShowOnMap) {
+                  requestBusinessNavigation(business.id, entryGate?.id);
+                  onShowOnMap(business);
+                } else if (effectiveUrl) {
+                  window.open(effectiveUrl, '_blank', 'noopener,noreferrer');
+                }
+              }}
             />
           </div>
       </div>

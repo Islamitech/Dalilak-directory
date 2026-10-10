@@ -51,4 +51,6 @@ export interface InteractiveMapProps {
   onClearFocusedBusiness?: () => void;
   /** Businesses were already filtered for the directory. Do not filter them again. */
   resultsReady?: boolean;
+  directoryScope?: 'hadayek' | 'all';
+  onDirectoryScopeChange?: (scope: 'hadayek' | 'all') => void;
 }

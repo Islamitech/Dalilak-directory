@@ -14,7 +14,14 @@ export interface CategoryVisual {
   icon: React.ReactNode;
 }
 
-export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
+type CategoryTone = 'dark' | 'light';
+
+function categoryIcon(Icon: typeof Store, tone: CategoryTone) {
+  const color = tone === 'light' ? 'text-[var(--brand-ink)]' : 'text-white';
+  return <Icon className={`w-10 h-10 ${color}`} strokeWidth={1.8} />;
+}
+
+export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTone = 'dark'): CategoryVisual {
   const text = (categoryNameOrType || '').toLowerCase();
 
   if (
@@ -29,7 +36,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-medical)',
-      icon: <Pill className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(Pill, tone),
     };
   }
 
@@ -48,7 +55,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-food)',
-      icon: <Utensils className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(Utensils, tone),
     };
   }
 
@@ -65,7 +72,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-shop)',
-      icon: <ShoppingBag className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(ShoppingBag, tone),
     };
   }
 
@@ -81,7 +88,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-fashion)',
-      icon: <Shirt className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(Shirt, tone),
     };
   }
 
@@ -94,7 +101,7 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-auto)',
-      icon: <Car className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(Car, tone),
     };
   }
 
@@ -108,12 +115,12 @@ export function getCategoryVisual(categoryNameOrType?: string): CategoryVisual {
   ) {
     return {
       gradient: 'var(--cat-grad-edu)',
-      icon: <GraduationCap className="w-10 h-10 text-white" strokeWidth={1.8} />,
+      icon: categoryIcon(GraduationCap, tone),
     };
   }
 
   return {
     gradient: 'var(--cat-grad-food)',
-    icon: <Store className="w-10 h-10 text-white" strokeWidth={1.8} />,
+    icon: categoryIcon(Store, tone),
   };
 }

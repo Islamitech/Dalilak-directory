@@ -17,6 +17,7 @@ export interface AppNavbarProps {
   onSearchChange?: (query: string) => void;
   favoritesCount?: number;
   buildingSearchZone?: string;
+  confineToHadayek?: boolean;
   businesses?: Business[];
   onSelectBusiness?: (business: Business) => void;
 }
@@ -43,6 +44,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   onSearchChange,
   favoritesCount = 0,
   buildingSearchZone,
+  confineToHadayek = true,
   businesses = [],
   onSelectBusiness,
 }) => {
@@ -156,6 +158,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
                 value={searchQuery}
                 onChange={onSearchChange}
                 zone={buildingSearchZone}
+                confineToHadayek={confineToHadayek}
                 businesses={businesses}
                 onSelectBusiness={onSelectBusiness}
                 onSelectBuilding={(building) => {

@@ -5,6 +5,7 @@ import {
   shuffleBusinessesWithSeed,
 } from '../../../utils/directoryEnhancements';
 import { filterDirectoryBusinesses } from '../../../utils/directoryFiltering';
+import { orderUnfilteredPreview } from './previewOrder';
 
 export interface FilterBusinessesParams {
   publicBusinesses: Business[];
@@ -23,6 +24,8 @@ export interface FilterBusinessesParams {
   userCoords: { lat: number; lng: number } | null;
   shuffleSeed: number;
   pinnedDirectBizId: string | null;
+  /** False while a cold catalog sync is still paging in. */
+  catalogSettled?: boolean;
 }
 
 export function computeFilteredBusinesses({
@@ -42,6 +45,7 @@ export function computeFilteredBusinesses({
   userCoords,
   shuffleSeed,
   pinnedDirectBizId,
+  catalogSettled = true,
 }: FilterBusinessesParams): Business[] {
   const list = filterDirectoryBusinesses(publicBusinesses, {
     activityIntent,
@@ -124,13 +128,7 @@ export function computeFilteredBusinesses({
     hasVideoOnly;
 
   if (!hasUserFilters) {
-    // Keep the first screen stable when later pages arrive, so its photo stays the LCP element.
-    const firstScreen = list.slice(0, 12);
-    const rest = list.slice(12);
-    return [
-      ...shuffleBusinessesWithSeed(firstScreen, shuffleSeed),
-      ...shuffleBusinessesWithSeed(rest, shuffleSeed + 1),
-    ];
+    return orderUnfilteredPreview(list, shuffleSeed, catalogSettled);
   }
 
   return [...list].sort((a, b) => {

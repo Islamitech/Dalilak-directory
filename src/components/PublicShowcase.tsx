@@ -150,6 +150,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     userCoords: geo.userCoords,
     shuffleSeed: filterState.shuffleSeed,
     pinnedDirectBizId,
+    directoryScope: filterState.directoryScope,
   });
 
   const isMapRoute = currentPath === '/' || currentPath === '/map';
@@ -176,6 +177,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         onSearchChange={filterState.setSearchQuery}
         favoritesCount={favorites.length}
         buildingSearchZone={filterState.hadayekZoneFilter}
+        confineToHadayek={filterState.directoryScope === 'hadayek'}
         businesses={publicBusinesses}
         onSelectBusiness={handleOpenBusiness}
       />

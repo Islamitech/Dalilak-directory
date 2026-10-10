@@ -90,6 +90,8 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           lng={mapCenter.lng}
           focusedBusiness={focusedMapBiz}
           onClearFocusedBusiness={() => setFocusedMapBiz(null)}
+          directoryScope={filterState.directoryScope}
+          onDirectoryScopeChange={filterState.setDirectoryScope}
         />
       );
 
@@ -131,6 +133,8 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           onOpenVideoModal={(b) => setSelectedVideoBiz(b)}
           onNavigate={handleNavigate}
           onReshuffle={handleReshuffle}
+          directoryScope={filterState.directoryScope}
+          onDirectoryScopeChange={filterState.setDirectoryScope}
         />
       );
 

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { resolveCategorySelection } from '../../../utils/categoryMatcher';
 import { readSessionShuffleSeed, rememberSessionShuffleSeed } from '../../../utils/directoryEnhancements';
-import { hydrateCategoryQuery, queryFlag, querySort, queryValue, writeShowcaseQuery, type ShowcaseSort } from '../model/showcaseFilterQuery';
+import { hasShowcaseFilters, hydrateCategoryQuery, queryFlag, querySort, queryValue, writeShowcaseQuery, type ShowcaseSort } from '../model/showcaseFilterQuery';
+import { readDirectoryScope, rememberDirectoryScope, type DirectoryScope } from '../../../utils/directoryScope';
 
 export function useShowcaseFilterState(pathname = '') {
   const [searchQuery, setSearchQuery] = useState<string>(() => {
@@ -11,6 +12,7 @@ export function useShowcaseFilterState(pathname = '') {
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [govFilter, setGovFilter] = useState<string>('الجيزة');
   const [cityFilter, setCityFilter] = useState<string>('حدائق الأهرام');
+  const [directoryScope, setDirectoryScopeState] = useState<DirectoryScope>(readDirectoryScope);
   const [hadayekZoneFilter, setHadayekZoneFilter] = useState<string>(() => queryValue('zone') || 'all');
   const [categoryFilter, setCategoryFilter] = useState<string>(() => queryValue('cat') || 'all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
@@ -54,6 +56,12 @@ export function useShowcaseFilterState(pathname = '') {
     writeShowcaseQuery({ categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy, searchQuery });
   }, [pathname, categoryFilter, subcategoryFilter, hadayekZoneFilter, openNowOnly, verifiedOnly, hideActivities, sortBy, searchQuery]);
 
+  const setDirectoryScope = useCallback((next: DirectoryScope) => {
+    setDirectoryScopeState(next);
+    rememberDirectoryScope(next);
+    if (next === 'all') setHadayekZoneFilter('all');
+  }, []);
+
   const resetAllFilters = useCallback(() => {
     setSearchQuery('');
     setGovFilter('الجيزة');
@@ -69,19 +77,10 @@ export function useShowcaseFilterState(pathname = '') {
     setSortBy('default');
   }, []);
 
-  const hasActiveFilters =
-    searchQuery !== '' ||
-    (govFilter !== 'الجيزة' && govFilter !== 'all') ||
-    (cityFilter !== 'حدائق الأهرام' && cityFilter !== 'all') ||
-    hadayekZoneFilter !== 'all' ||
-    categoryFilter !== 'all' ||
-    subcategoryFilter !== 'all' ||
-    openNowOnly ||
-    verifiedOnly ||
-    hideActivities ||
-    hasRatingOnly ||
-    hasVideoOnly ||
-    sortBy !== 'default';
+  const hasActiveFilters = hasShowcaseFilters({
+    searchQuery, govFilter, cityFilter, hadayekZoneFilter, categoryFilter, subcategoryFilter,
+    openNowOnly, verifiedOnly, hideActivities, hasRatingOnly, hasVideoOnly, sortBy,
+  });
 
   return {
     searchQuery,
@@ -91,6 +90,8 @@ export function useShowcaseFilterState(pathname = '') {
     setGovFilter,
     cityFilter,
     setCityFilter,
+    directoryScope,
+    setDirectoryScope,
     hadayekZoneFilter,
     setHadayekZoneFilter,
     categoryFilter,

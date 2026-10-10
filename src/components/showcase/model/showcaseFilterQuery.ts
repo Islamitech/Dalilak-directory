@@ -29,6 +29,36 @@ export function hydrateCategoryQuery(
   return { main: selection.mainCategoryId, sub, q: queryValue('q') || queryValue('search') };
 }
 
+export function hasShowcaseFilters(input: {
+  searchQuery: string;
+  govFilter: string;
+  cityFilter: string;
+  hadayekZoneFilter: string;
+  categoryFilter: string;
+  subcategoryFilter: string;
+  openNowOnly: boolean;
+  verifiedOnly: boolean;
+  hideActivities: boolean;
+  hasRatingOnly: boolean;
+  hasVideoOnly: boolean;
+  sortBy: string;
+}): boolean {
+  return (
+    input.searchQuery !== '' ||
+    (input.govFilter !== 'الجيزة' && input.govFilter !== 'all') ||
+    (input.cityFilter !== 'حدائق الأهرام' && input.cityFilter !== 'all') ||
+    input.hadayekZoneFilter !== 'all' ||
+    input.categoryFilter !== 'all' ||
+    input.subcategoryFilter !== 'all' ||
+    input.openNowOnly ||
+    input.verifiedOnly ||
+    input.hideActivities ||
+    input.hasRatingOnly ||
+    input.hasVideoOnly ||
+    input.sortBy !== 'default'
+  );
+}
+
 export function querySort(): ShowcaseSort {
   const value = queryValue('sort');
   return (SORTS as readonly string[]).includes(value || '') ? (value as ShowcaseSort) : 'default';

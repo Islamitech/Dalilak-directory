@@ -36,4 +36,6 @@ export interface SearchViewProps {
   onOpenVideoModal?: (biz: Business) => void;
   onNavigate: (path: string) => void;
   onReshuffle?: () => void;
+  directoryScope?: 'hadayek' | 'all';
+  onDirectoryScopeChange?: (scope: 'hadayek' | 'all') => void;
 }

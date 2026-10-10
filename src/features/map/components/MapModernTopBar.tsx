@@ -2,6 +2,8 @@ import React from 'react';
 import { Business } from '../../../types';
 import { ViewSegmentedSwitch } from '../../../components/layout/ViewSegmentedSwitch';
 import { UnifiedSearchFilterBar } from '../../search';
+import { DirectoryScopeSwitch } from '../../../components/views/DirectoryScopeSwitch';
+import type { DirectoryScope } from '../../../utils/directoryScope';
 
 export interface MapModernTopBarProps {
   onViewList?: () => void;
@@ -12,6 +14,8 @@ export interface MapModernTopBarProps {
   onCategoryChange?: (category: string) => void;
   selectedZone?: string;
   onZoneChange?: (zone: string) => void;
+  directoryScope?: DirectoryScope;
+  onDirectoryScopeChange?: (scope: DirectoryScope) => void;
 }
 
 /** Map/list switch plus the same category and zone filters as the activity list. */
@@ -24,6 +28,8 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   onCategoryChange,
   selectedZone = 'all',
   onZoneChange,
+  directoryScope = 'hadayek',
+  onDirectoryScopeChange,
 }) => {
   return (
     <div dir="rtl" data-map-top-bar className="absolute top-2 inset-x-2 sm:inset-x-4 z-[1000] pointer-events-none">
@@ -37,7 +43,12 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             }}
           />
         </div>
-        {onCategoryChange && onZoneChange && (
+        {onDirectoryScopeChange && (
+          <div className="pointer-events-auto rounded-pill bg-white/92 p-0.5 shadow-sm backdrop-blur-md border border-slate-200/80">
+            <DirectoryScopeSwitch scope={directoryScope} onChange={onDirectoryScopeChange} />
+          </div>
+        )}
+        {onCategoryChange && (
           <div className="pointer-events-auto rounded-pill bg-white/92 px-1 py-0.5 shadow-sm backdrop-blur-md border border-slate-200/80">
             <UnifiedSearchFilterBar
               businesses={businesses}
@@ -46,7 +57,8 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
               selectedCategory={categoryFilter}
               onCategoryChange={onCategoryChange}
               selectedZone={selectedZone}
-              onZoneChange={onZoneChange}
+              onZoneChange={onZoneChange || (() => {})}
+              showZone={directoryScope === 'hadayek' && Boolean(onZoneChange)}
               variant="map"
             />
           </div>
