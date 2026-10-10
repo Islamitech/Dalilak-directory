@@ -40,7 +40,7 @@ test.describe('map repair mobile safety net', () => {
     const filterBtn = page.locator('button[aria-label="تصفية حسب نوع النشاط"]').first();
     await expect(filterBtn).toBeVisible({ timeout: 20_000 });
     const box = await filterBtn.boundingBox();
-    expect(box?.height).toBeGreaterThanOrEqual(36);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
     const locateBtn = page.getByRole('button', { name: 'تحديد موقعي الحالي' });
     await expect(locateBtn).toBeVisible();
     const locateBox = await locateBtn.boundingBox();

@@ -168,7 +168,7 @@ async function runBehavioralTests() {
 
         // Condition wait: trigger button displays selected category label
         await page.waitForFunction(
-          (btn) => btn.innerText.includes('مطاعم') || btn.getAttribute('aria-expanded') === 'false',
+          (btn) => btn && btn.innerText.includes('مطاعم'),
           await catTrigger.elementHandle(),
           { timeout: 7000 }
         );
@@ -265,7 +265,7 @@ async function runBehavioralTests() {
         results.push({ contract: '3. Favorite Filter & Unified Strip Controls', status: 'PASS' });
       } catch (err) {
         console.error('✗ Contract 3 Failed with error stack:\n', err);
-        results.push({ contract: '3. Favorite Filter & Sort Cycle', status: 'FAIL', error: err.message });
+        results.push({ contract: '3. Favorite Filter & Unified Strip Controls', status: 'FAIL', error: err.message });
         throw err;
       } finally {
         await context.close();
