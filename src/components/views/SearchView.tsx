@@ -112,7 +112,12 @@ export const SearchView: React.FC<SearchViewProps> = ({
   }, [cadastralBuilding?.zoneLetter, cadastralBuilding?.buildingNumber]);
 
   useEffect(() => {
-    const saved = Number(sessionStorage.getItem('dalilak:list-scroll') || 0);
+    let saved = 0;
+    try {
+      saved = Number(sessionStorage.getItem('dalilak:list-scroll') || 0);
+    } catch {
+      return;
+    }
     if (saved > 0) {
       let tries = 0;
       const restore = () => {
@@ -128,7 +133,11 @@ export const SearchView: React.FC<SearchViewProps> = ({
       if (window.location.pathname !== '/search') return;
       const scroller = document.scrollingElement;
       if (window.scrollY === 0 && scroller && scroller.scrollHeight <= scroller.clientHeight + 1) return;
-      sessionStorage.setItem('dalilak:list-scroll', String(window.scrollY));
+      try {
+        sessionStorage.setItem('dalilak:list-scroll', String(window.scrollY));
+      } catch {
+        /* sessionStorage unavailable */
+      }
     };
     window.addEventListener('scroll', persist, { passive: true });
     return () => {
