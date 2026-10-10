@@ -732,12 +732,22 @@ body:has([role="dialog"][aria-modal="true"]) .dl-card * {
   transition: none !important;
 }
 
-/* Keep the map zoom/locate controls above the unified map sheet while it is open */
+/* Keep the map zoom/locate controls above the unified map sheet while it is open (mobile only) */
 .map-icon-controls {
   transition: bottom 0.25s ease;
 }
-div:has(> [data-map-sheet]) .map-icon-controls {
-  bottom: calc(var(--map-sheet-h, 0px) + 24px) !important;
+@media (max-width: 1023px) {
+  div:has(> [data-map-sheet]) .map-icon-controls {
+    bottom: calc(var(--map-sheet-h, 0px) + 24px) !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* ── Navigation pins & route ── */

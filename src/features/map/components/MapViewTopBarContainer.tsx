@@ -40,7 +40,7 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
   directoryScope = 'hadayek',
   onDirectoryScopeChange,
 }) => {
-  if (mode !== 'view' || Math.abs(lat - 29.9683) >= 0.06 || Math.abs(lng - 31.1002) >= 0.06) {
+  if (mode !== 'view') {
     return null;
   }
 

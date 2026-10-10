@@ -159,17 +159,6 @@ export const SearchView: React.FC<SearchViewProps> = ({
       className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 pt-2 pb-[calc(96px+env(safe-area-inset-bottom,0px))] bg-[var(--bg)]"
       dir="rtl"
     >
-      <ActivityListHeader
-        shown={effectiveFilteredBusinesses.length}
-        total={scopeCatalog.length}
-        filtered={hasActiveFilters}
-        loading={loading}
-        categoryId={categoryFilter}
-        subcategoryId={subcategoryFilter}
-        zone={selectedZone}
-        scope={directoryScope}
-        onScopeChange={onDirectoryScopeChange}
-      />
       <div className="sticky top-[calc(var(--app-header-h,var(--header-h))+0.5rem)] z-30 flex justify-center pointer-events-none mb-4">
         <div className="pointer-events-auto flex flex-nowrap items-center justify-center gap-2 max-w-full">
           <div className="shrink-0 rounded-pill bg-white border border-slate-200/80 shadow-sm p-0.5">
@@ -196,6 +185,18 @@ export const SearchView: React.FC<SearchViewProps> = ({
           </div>
         </div>
       </div>
+
+      <ActivityListHeader
+        shown={effectiveFilteredBusinesses.length}
+        total={scopeCatalog.length}
+        filtered={hasActiveFilters}
+        loading={loading}
+        categoryId={categoryFilter}
+        subcategoryId={subcategoryFilter}
+        zone={selectedZone}
+        scope={directoryScope}
+        onScopeChange={onDirectoryScopeChange}
+      />
 
       {cadastralBuilding && (
         <div className="mb-4">

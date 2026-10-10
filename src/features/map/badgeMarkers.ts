@@ -456,7 +456,7 @@ export function createExpandedActivityCardHtml(
   isSelected: boolean = true
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number]; fallbackCover: string } {
   const cardWidth = 256;
-  const photoHeight = 132;
+  const photoHeight = 100;
   const pointerHeight = 9;
 
   const isVerified = biz.verificationStatus === 'verified';

@@ -32,9 +32,9 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
   onDirectoryScopeChange,
 }) => {
   return (
-    <div dir="rtl" data-map-top-bar className="absolute top-2 inset-x-2 sm:inset-x-4 z-[1000] pointer-events-none">
-      <div className="relative mx-auto flex max-w-full flex-wrap items-center justify-center gap-1.5">
-        <div className="pointer-events-auto shrink-0 rounded-pill bg-white/92 p-0.5 shadow-sm backdrop-blur-md border border-slate-200/80">
+    <div dir="rtl" data-map-top-bar className="absolute top-2 inset-x-2 sm:inset-x-4 z-[1000] pointer-events-none flex justify-center">
+      <div className="pointer-events-auto flex flex-nowrap overflow-x-auto no-scrollbar items-center justify-center gap-2 max-w-full py-1">
+        <div className="shrink-0 rounded-pill bg-white border border-slate-200/80 shadow-sm p-0.5">
           <ViewSegmentedSwitch
             activeView="map"
             size="sm"
@@ -43,13 +43,8 @@ export const MapModernTopBar: React.FC<MapModernTopBarProps> = ({
             }}
           />
         </div>
-        {onDirectoryScopeChange && (
-          <div className="pointer-events-auto rounded-pill bg-white/92 p-0.5 shadow-sm backdrop-blur-md border border-slate-200/80">
-            <DirectoryScopeSwitch scope={directoryScope} onChange={onDirectoryScopeChange} />
-          </div>
-        )}
         {onCategoryChange && (
-          <div className="pointer-events-auto rounded-pill bg-white/92 px-1 py-0.5 shadow-sm backdrop-blur-md border border-slate-200/80">
+          <div className="rounded-pill bg-white border border-slate-200/80 shadow-sm px-1 py-0.5">
             <UnifiedSearchFilterBar
               businesses={businesses}
               searchQuery={searchQuery}
