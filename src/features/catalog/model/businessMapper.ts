@@ -1,5 +1,5 @@
 import { Business } from '../../../types';
-import { SUPABASE_REST_BASE } from '../../../shared/lib/supabase';
+import { SUPABASE_REST_BASE } from '../../../shared/lib/supabaseConfig';
 import { FAST_BUSINESS_SELECT, catalogQuery } from '../../../shared/catalogQuery';
 import { collectDisplayPhotos } from '../../../utils/categoryPhotos';
 

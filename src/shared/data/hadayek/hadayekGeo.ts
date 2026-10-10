@@ -452,88 +452,68 @@ export function getRecommendedGateForZone(letterOrId: string): {
   return { primaryGate, secondaryGate };
 }
 
-let cachedBuildingsDB: Record<string, Array<{ lat: number; lng: number }>> | null = null;
+const ZONE_SLUG_MAP: Record<string, () => Promise<{ default: Record<string, number[]> }>> = {
+  'أ': () => import('./zones/zone_a.json'),
+  'ب': () => import('./zones/zone_b.json'),
+  'ج': () => import('./zones/zone_g.json'),
+  'د': () => import('./zones/zone_d.json'),
+  'هـ': () => import('./zones/zone_h.json'),
+  'و': () => import('./zones/zone_w.json'),
+  'ز': () => import('./zones/zone_z.json'),
+  'ح': () => import('./zones/zone_ha.json'),
+  'ط': () => import('./zones/zone_t.json'),
+  'ك': () => import('./zones/zone_k.json'),
+  'ل': () => import('./zones/zone_l.json'),
+  'م': () => import('./zones/zone_m.json'),
+  'ن': () => import('./zones/zone_n.json'),
+  'س': () => import('./zones/zone_s.json'),
+  'ع': () => import('./zones/zone_ain.json'),
+  'ص': () => import('./zones/zone_sad.json'),
+};
 
-async function getBuildingsDB(): Promise<Record<string, Array<{ lat: number; lng: number }>> | null> {
-  if (!cachedBuildingsDB) {
-    try {
-      const mod = await import('./hadayekBuildingsCoords.json');
-      cachedBuildingsDB = (mod as any).default || mod;
-    } catch (e) {
-      console.warn('[HadayekAtlas] Failed to load offline buildings DB dynamically:', e);
-      return null;
-    }
-  }
-  return cachedBuildingsDB;
+function normalizeZoneLetterForAtlas(zoneLetter: string): string | null {
+  if (!zoneLetter) return null;
+  const clean = zoneLetter.replace(/^منطقة\s+/, '').replace(/\u0640/g, '').trim();
+  if (clean === 'ا' || clean === 'أ' || clean === 'إ' || clean === 'آ') return 'أ';
+  if (clean === 'ه' || clean === 'ة' || clean === 'هـ') return 'هـ';
+  if (clean in ZONE_SLUG_MAP) return clean;
+  return null;
 }
 
-// Helper: Ray-casting algorithm to check if a point is inside a polygon
-function pointInPolygon(point: [number, number], vs: [number, number][]) {
-  let x = point[0], y = point[1];
-  let inside = false;
-  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-    let xi = vs[i][0], yi = vs[i][1];
-    let xj = vs[j][0], yj = vs[j][1];
-    let intersect = ((yi > y) !== (yj > y))
-        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
+const zoneCache = new Map<string, Record<string, number[]>>();
+
+export async function loadHadayekZoneBuildings(zoneLetter: string): Promise<Record<string, number[]> | null> {
+  const canonical = normalizeZoneLetterForAtlas(zoneLetter);
+  if (!canonical || !ZONE_SLUG_MAP[canonical]) return null;
+
+  const cached = zoneCache.get(canonical);
+  if (cached) return cached;
+
+  try {
+    const mod = await ZONE_SLUG_MAP[canonical]();
+    const data = (mod as any).default || mod;
+    zoneCache.set(canonical, data);
+    return data;
+  } catch (err) {
+    console.warn(`[HadayekAtlas] Failed to load zone ${canonical}:`, err);
+    return null;
   }
-  return inside;
 }
 
 export async function searchBuildingCoordinatesExact(
   zoneLetter: string,
   buildingNumber: string
 ): Promise<{ lat: number; lng: number } | null> {
-  // Clean building number
   const numMatch = buildingNumber.match(/\d+/);
   if (!numMatch) return null;
   const cleanNum = numMatch[0];
 
-  const [buildingsDB, { getDistrictByLetter, isPointInPolygon, findDistrictForCoordinates }] = await Promise.all([
-    getBuildingsDB(),
-    import('./hadayekDistrictsGeoData'),
-  ]);
-  const district = getDistrictByLetter(zoneLetter);
-
-  // 1. FAST LOCAL DATABASE LOOKUP (O(1) Offline Background DB - Lazy Loaded)
-  if (buildingsDB && (buildingsDB as any)[cleanNum]) {
-    const records = (buildingsDB as any)[cleanNum] as Array<{ lat: number; lng: number }>;
-    if (district && district.polygons) {
-      // Step A: Check which record actually falls inside this zone's polygon rings
-      for (const rec of records) {
-        for (const poly of district.polygons) {
-          if (isPointInPolygon(rec.lat, rec.lng, poly)) {
-            return { lat: rec.lat, lng: rec.lng };
-          }
-        }
-      }
-
-      // Step B: Strict boundary fallback - ONLY if the candidate point is NOT inside another official district
-      let closestRec: { lat: number; lng: number } | null = null;
-      let minDistance = Infinity;
-      for (const rec of records) {
-        // Guard: If point belongs to another official district, NEVER hijack it!
-        const ownerDistrict = findDistrictForCoordinates(rec.lat, rec.lng);
-        if (ownerDistrict && ownerDistrict.letterAr !== district.letterAr) {
-          continue;
-        }
-
-        const d = calculateDirectDistanceMeters(rec.lat, rec.lng, district.centerLat, district.centerLng);
-        if (d < 300 && d < minDistance) {
-          minDistance = d;
-          closestRec = { lat: rec.lat, lng: rec.lng };
-        }
-      }
-      if (closestRec) {
-        return closestRec;
-      }
-    } else if (records.length === 1 && !district) {
-      return { lat: records[0].lat, lng: records[0].lng };
-    }
+  const zoneData = await loadHadayekZoneBuildings(zoneLetter);
+  if (zoneData && zoneData[cleanNum]) {
+    const [lat, lng] = zoneData[cleanNum];
+    return { lat, lng };
   }
 
-  // Not found in cadastral database: return null (never fabricate fake centroid locations)
   return null;
 }
 

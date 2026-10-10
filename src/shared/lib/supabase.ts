@@ -1,28 +1,67 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabaseConfig';
 
-const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+export * from './supabaseConfig';
 
-if (!envUrl || !envKey) {
-  throw new Error(
-    'Missing required Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be configured.'
-  );
+let clientPromise: Promise<SupabaseClient> | null = null;
+
+export async function getSupabase(): Promise<SupabaseClient> {
+  if (!clientPromise) {
+    clientPromise = import('@supabase/supabase-js').then(({ createClient }) => {
+      return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+        global: {
+          headers: {
+            'x-application-name': 'dalelak-public-directory',
+          },
+        },
+      });
+    });
+  }
+  return clientPromise;
 }
 
-export const SUPABASE_URL: string = envUrl;
-export const SUPABASE_ANON_KEY: string = envKey;
+export const getSupabaseClient = getSupabase;
 
-export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-  global: {
-    headers: {
-      'x-application-name': 'dalelak-public-directory',
-    },
-  },
-});
+export const supabase = {
+  channel(name: string) {
+    let internalChannel: any = null;
+    let pendingHandlers: Array<{ event: string; filter: any; callback: (payload: any) => void }> = [];
 
-export const SUPABASE_BASE_URL: string = SUPABASE_URL.replace(/\/+$/, '');
-export const SUPABASE_REST_BASE: string = `${SUPABASE_BASE_URL}/rest/v1`;
+    const channelObj = {
+      on(event: string, filter: any, callback: (payload: any) => void) {
+        if (internalChannel) {
+          internalChannel.on(event, filter, callback);
+        } else {
+          pendingHandlers.push({ event, filter, callback });
+        }
+        return channelObj;
+      },
+      subscribe(callback?: (status: string, err?: any) => void) {
+        void getSupabase().then((client) => {
+          internalChannel = client.channel(name);
+          for (const h of pendingHandlers) {
+            internalChannel.on(h.event, h.filter, h.callback);
+          }
+          pendingHandlers = [];
+          internalChannel.subscribe(callback);
+        });
+        return channelObj;
+      },
+      get _rawChannel() {
+        return internalChannel;
+      },
+    };
+    return channelObj;
+  },
+  async removeChannel(channel: any) {
+    const client = await getSupabase();
+    const raw = channel && channel._rawChannel ? channel._rawChannel : channel;
+    if (raw) {
+      return client.removeChannel(raw);
+    }
+  },
+};

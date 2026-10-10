@@ -6,6 +6,7 @@ import {
   getRecommendedGateForZone,
   calculateDirectDistanceMeters,
   formatHadayekDistance,
+  loadHadayekZoneBuildings,
 } from '../shared/data/hadayek/hadayekGeo';
 import { isBusinessInHadayekZone } from './hadayekZoneHelper';
 
@@ -28,17 +29,10 @@ export interface BusinessZoneSearchResult {
 
 export type ZoneScopedSearchResult = BuildingSearchResult | BusinessZoneSearchResult;
 
-let cachedKeys: string[] | null = null;
-async function getBuildingKeys(): Promise<string[]> {
-  if (cachedKeys) return cachedKeys;
-  try {
-    const mod = await import('../shared/data/hadayek/hadayekBuildingsCoords.json');
-    const db = (mod as any).default || mod;
-    cachedKeys = Object.keys(db);
-    return cachedKeys;
-  } catch {
-    return [];
-  }
+async function getBuildingKeys(zoneLetter?: string): Promise<string[]> {
+  if (!zoneLetter) return [];
+  const zoneBuildings = await loadHadayekZoneBuildings(zoneLetter);
+  return zoneBuildings ? Object.keys(zoneBuildings) : [];
 }
 
 /**
@@ -67,7 +61,7 @@ export async function searchInsideHadayekZone(
   const digitMatch = cleanQuery.match(/\d+/);
   if (digitMatch) {
     const digitQuery = digitMatch[0];
-    const allKeys = await getBuildingKeys();
+    const allKeys = await getBuildingKeys(zoneLetter);
 
     // Priority 1: Exact digit match
     const candidateNumbers: string[] = [];

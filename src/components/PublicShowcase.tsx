@@ -84,6 +84,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     if ((url.pathname === '/' || url.pathname === '/map') && !url.searchParams.has('zone') && !fromDirectory) {
       filterState.setHadayekZoneFilter('all');
     }
+    const zone = url.searchParams.get('zone');
+    if (zone) filterState.setHadayekZoneFilter(zone);
     const cat = url.searchParams.get('cat');
     if (cat) filterState.handleCategoryChange(cat);
     routing.navigate(`${url.pathname}${url.search}`);

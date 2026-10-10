@@ -1,4 +1,3 @@
-import { supabase } from '../../../shared/lib/supabase';
 import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
 import { mapRawToBusiness } from './businessMapper';
@@ -9,11 +8,12 @@ export interface SubscriptionHandlers {
 }
 
 export function setupCatalogSubscriptions(handlers: SubscriptionHandlers) {
-  let channel: ReturnType<typeof supabase.channel> | null = null;
+  let channel: any = null;
   let started = false;
-  const startRealtime = () => {
+  const startRealtime = async () => {
     if (started) return;
     started = true;
+    const { supabase } = await import('../../../shared/lib/supabase');
     channel = supabase
       .channel('dalelak-public-directory-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, (payload: any) => {
@@ -40,7 +40,11 @@ export function setupCatalogSubscriptions(handlers: SubscriptionHandlers) {
   return () => {
     window.removeEventListener('directory:subscribe', startRealtime);
     window.removeEventListener('directory:retry', handleDirectoryRetry);
-    if (channel) void supabase.removeChannel(channel);
+    if (channel) {
+      void import('../../../shared/lib/supabase').then(({ supabase }) => {
+        void supabase.removeChannel(channel);
+      });
+    }
     sync?.close();
   };
 }

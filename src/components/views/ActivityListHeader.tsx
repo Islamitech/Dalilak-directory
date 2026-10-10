@@ -48,7 +48,7 @@ export const ActivityListHeader: React.FC<ActivityListHeaderProps> = ({
   const hadayek = scope === 'hadayek';
 
   return (
-    <header className="dl-list-intro">
+    <header className="dl-list-intro list-header">
       <div className="dl-list-scope">
         <p className="dl-list-kicker">{hadayek ? 'دليلك · حدائق الأهرام' : 'دليلك'}</p>
         {onScopeChange && <DirectoryScopeSwitch scope={scope} onChange={onScopeChange} />}

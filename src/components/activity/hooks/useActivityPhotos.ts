@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
-import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
+import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabaseConfig';
 import { collectRealPhotos } from '../../../utils/categoryPhotos';
 
 export function useActivityPhotos(business: Business | null): string[] {

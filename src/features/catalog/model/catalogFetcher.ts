@@ -1,6 +1,6 @@
 import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
-import { SUPABASE_ANON_KEY, SUPABASE_REST_BASE } from '../../../shared/lib/supabase';
+import { SUPABASE_ANON_KEY, SUPABASE_REST_BASE } from '../../../shared/lib/supabaseConfig';
 import { LIST_BUSINESS_SELECT, catalogQuery } from '../../../shared/catalogQuery';
 import { FAST_BUSINESS_SELECT, mapRawToBusiness } from './businessMapper';
 

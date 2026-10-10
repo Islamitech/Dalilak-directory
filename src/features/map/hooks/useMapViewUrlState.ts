@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Business } from '../../../types';
 import { searchBuildingCoordinatesExact } from '../../../shared/data/hadayek/hadayekGeo';
 
+function syncUrlParams(zone: string, bldg: string) {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (zone) url.searchParams.set('zone', zone);
+  else url.searchParams.delete('zone');
+  if (bldg) url.searchParams.set('bldg', bldg);
+  else url.searchParams.delete('bldg');
+  window.history.replaceState({}, '', url.toString());
+}
+
 export function useMapViewUrlState(
   focusedBusiness?: Business | null,
   selectedZone?: string,
@@ -55,17 +65,13 @@ export function useMapViewUrlState(
     if (selectedZone !== undefined) {
       const cleanZone = selectedZone === 'all' ? '' : selectedZone;
       if (cleanZone !== activeZoneLetter) {
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        if (urlParams?.get('bldg') && urlParams?.get('zone') === activeZoneLetter) return;
         setActiveZoneLetter(cleanZone);
-        if (typeof window !== 'undefined') {
-          const newUrl = new URL(window.location.href);
-          if (cleanZone) newUrl.searchParams.set('zone', cleanZone);
-          else newUrl.searchParams.delete('zone');
-          newUrl.searchParams.delete('bldg');
-          window.history.replaceState({}, '', newUrl.toString());
-        }
+        syncUrlParams(cleanZone, '');
       }
     }
-  }, [selectedZone]);
+  }, [selectedZone, activeZoneLetter]);
 
   const selectZone = useCallback((zoneLetter: string) => {
     const nextZone = zoneLetter === 'all' || !zoneLetter ? '' : zoneLetter;
@@ -73,13 +79,7 @@ export function useMapViewUrlState(
     setActiveBuildingNumber('');
     setExactBuildingCoords(null);
     onZoneChange?.(nextZone || 'all');
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      if (nextZone) newUrl.searchParams.set('zone', nextZone);
-      else newUrl.searchParams.delete('zone');
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
+    syncUrlParams(nextZone, '');
   }, [onZoneChange]);
 
   const clearTarget = useCallback(() => {
@@ -87,23 +87,14 @@ export function useMapViewUrlState(
     setActiveBuildingNumber('');
     setExactBuildingCoords(null);
     onZoneChange?.('all');
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('zone');
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
+    syncUrlParams('', '');
   }, [onZoneChange]);
 
   const clearBuilding = useCallback(() => {
     setActiveBuildingNumber('');
     setExactBuildingCoords(null);
-    if (typeof window !== 'undefined') {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('bldg');
-      window.history.replaceState({}, '', newUrl.toString());
-    }
-  }, []);
+    syncUrlParams(activeZoneLetter, '');
+  }, [activeZoneLetter]);
 
   return {
     activeZoneLetter,
