@@ -160,8 +160,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
       dir="rtl"
     >
       <div className="sticky top-[calc(var(--app-header-h,var(--header-h))+0.5rem)] z-30 flex justify-center pointer-events-none mb-4">
-        <div className="pointer-events-auto flex flex-nowrap items-center justify-center gap-2 max-w-full">
-          <div className="shrink-0 rounded-pill bg-white border border-slate-200/80 shadow-sm p-0.5">
+        <div className="pointer-events-auto flex flex-nowrap overflow-x-auto no-scrollbar items-center justify-center gap-2 max-w-full py-1">
+          <div className="shrink-0 rounded-pill bg-white/95 border border-slate-200/80 shadow-sm backdrop-blur-md p-0.5">
             <ViewSegmentedSwitch
               activeView="list"
               size="sm"
@@ -170,7 +170,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
               }}
             />
           </div>
-          <div className="rounded-pill bg-white border border-slate-200/80 shadow-sm px-1 py-0.5">
+          <div className="rounded-pill bg-white/95 border border-slate-200/80 shadow-sm backdrop-blur-md px-1 py-0.5">
             <UnifiedSearchFilterBar
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
