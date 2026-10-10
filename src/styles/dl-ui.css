@@ -812,6 +812,7 @@
     background-color: var(--logo-ink-0) !important;
     border-color: var(--logo-ink-0) !important;
     color: var(--logo-silver-0) !important;
+    min-width: 76px;
   }
 
   .dl-btn-ink:hover {
