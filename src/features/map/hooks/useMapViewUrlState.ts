@@ -55,8 +55,8 @@ export function useMapViewUrlState(
     }
     const currentReqId = ++buildingSearchReqIdRef.current;
     searchBuildingCoordinatesExact(activeZoneLetter, activeBuildingNumber).then((coords) => {
-      if (buildingSearchReqIdRef.current === currentReqId && coords) {
-        setExactBuildingCoords(coords);
+      if (buildingSearchReqIdRef.current === currentReqId) {
+        setExactBuildingCoords(coords || null);
       }
     });
   }, [activeZoneLetter, activeBuildingNumber]);
@@ -68,6 +68,8 @@ export function useMapViewUrlState(
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
         if (urlParams?.get('bldg') && urlParams?.get('zone') === activeZoneLetter) return;
         setActiveZoneLetter(cleanZone);
+        setActiveBuildingNumber('');
+        setExactBuildingCoords(null);
         syncUrlParams(cleanZone, '');
       }
     }

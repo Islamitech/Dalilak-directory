@@ -30,6 +30,11 @@ export const supabase = {
   channel(name: string) {
     let internalChannel: any = null;
     let pendingHandlers: Array<{ event: string; filter: any; callback: (payload: any) => void }> = [];
+    let isCancelled = false;
+    let resolveInternalChannel: ((ch: any) => void) | null = null;
+    const internalChannelPromise = new Promise<any>((resolve) => {
+      resolveInternalChannel = resolve;
+    });
 
     const channelObj = {
       on(event: string, filter: any, callback: (payload: any) => void) {
@@ -41,27 +46,64 @@ export const supabase = {
         return channelObj;
       },
       subscribe(callback?: (status: string, err?: any) => void) {
-        void getSupabase().then((client) => {
-          internalChannel = client.channel(name);
-          for (const h of pendingHandlers) {
-            internalChannel.on(h.event, h.filter, h.callback);
-          }
-          pendingHandlers = [];
-          internalChannel.subscribe(callback);
-        });
+        void getSupabase()
+          .then((client) => {
+            if (isCancelled) {
+              resolveInternalChannel?.(null);
+              return;
+            }
+            internalChannel = client.channel(name);
+            resolveInternalChannel?.(internalChannel);
+            for (const h of pendingHandlers) {
+              internalChannel.on(h.event, h.filter, h.callback);
+            }
+            pendingHandlers = [];
+            if (!isCancelled) {
+              internalChannel.subscribe(callback);
+            } else {
+              void client.removeChannel(internalChannel);
+            }
+          })
+          .catch((err) => {
+            resolveInternalChannel?.(null);
+            callback?.('CHANNEL_ERROR', err);
+          });
         return channelObj;
+      },
+      unsubscribe(callback?: (status: string, err?: any) => void) {
+        isCancelled = true;
+        if (internalChannel) {
+          return internalChannel.unsubscribe(callback);
+        }
       },
       get _rawChannel() {
         return internalChannel;
+      },
+      get _channelPromise() {
+        return internalChannelPromise;
+      },
+      _cancel() {
+        isCancelled = true;
       },
     };
     return channelObj;
   },
   async removeChannel(channel: any) {
+    if (!channel) return;
+    if (channel._cancel) {
+      channel._cancel();
+    }
     const client = await getSupabase();
-    const raw = channel && channel._rawChannel ? channel._rawChannel : channel;
-    if (raw) {
-      return client.removeChannel(raw);
+    if (channel._channelPromise) {
+      const raw = await channel._channelPromise;
+      if (raw) {
+        return client.removeChannel(raw);
+      }
+    } else {
+      const raw = channel._rawChannel || channel;
+      if (raw) {
+        return client.removeChannel(raw);
+      }
     }
   },
 };

@@ -103,6 +103,28 @@ describe('Hadayek Building Number Search Contract (A2)', () => {
       expect(buildingResults.length).toBeGreaterThan(0);
       expect((buildingResults[0] as any).lat).toBeCloseTo(29.969, 1);
     });
+
+    it('resolves exact coordinates with leading zeros (e.g. "0265")', async () => {
+      const coords = await searchBuildingCoordinatesExact('ح', '0265');
+      expect(coords).not.toBeNull();
+      expect(coords?.lat).toBeCloseTo(29.969, 1);
+    });
+
+    it('resolves exact coordinates with parenthesized zone (e.g. "منطقة (ح)")', async () => {
+      const coords = await searchBuildingCoordinatesExact('منطقة (ح)', '265');
+      expect(coords).not.toBeNull();
+      expect(coords?.lat).toBeCloseTo(29.969, 1);
+    });
+
+    it('resolves exact coordinates with zone slug (e.g. "zone_ha" or "ha")', async () => {
+      const coordsSlug = await searchBuildingCoordinatesExact('zone_ha', '265');
+      expect(coordsSlug).not.toBeNull();
+      expect(coordsSlug?.lat).toBeCloseTo(29.969, 1);
+
+      const coordsLetter = await searchBuildingCoordinatesExact('ha', '265');
+      expect(coordsLetter).not.toBeNull();
+      expect(coordsLetter?.lat).toBeCloseTo(29.969, 1);
+    });
   });
 
   describe('Zone Letter Normalization', () => {

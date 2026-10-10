@@ -26,4 +26,15 @@ describe('map interaction state', () => {
     expect(state).toMatchObject({ searchQuery: 'صيدلية ألفا', selectedZone: 'ب', categoryFilter: 'مطاعم', selectedBusiness: pharmacy, viewport });
     expect(mapStateReducer(state, { type: 'category/set', category: 'all' }).selectedBusiness).toBe(pharmacy);
   });
+
+  it('guarantees searchBuildingCoordinatesExact returns null for unknown buildings without coordinate bleeding', async () => {
+    const { searchBuildingCoordinatesExact } = await import('../shared/data/hadayek/hadayekGeo');
+    const known = await searchBuildingCoordinatesExact('ح', '265');
+    expect(known).not.toBeNull();
+    expect(known?.lat).toBeDefined();
+
+    const unknown = await searchBuildingCoordinatesExact('ح', '999');
+    expect(unknown).toBeNull();
+  });
 });
+

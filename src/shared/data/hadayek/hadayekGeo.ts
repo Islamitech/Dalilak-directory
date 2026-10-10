@@ -471,12 +471,54 @@ const ZONE_SLUG_MAP: Record<string, () => Promise<{ default: Record<string, numb
   'ص': () => import('./zones/zone_sad.json'),
 };
 
+const ZONE_ALIAS_MAP: Record<string, string> = {
+  // Canonical Arabic
+  'أ': 'أ', 'ا': 'أ', 'إ': 'أ', 'آ': 'أ', 'ء': 'أ',
+  'ب': 'ب',
+  'ج': 'ج',
+  'د': 'د',
+  'هـ': 'هـ', 'ه': 'هـ', 'ة': 'هـ',
+  'و': 'و',
+  'ز': 'ز',
+  'ح': 'ح',
+  'ط': 'ط',
+  'ك': 'ك',
+  'ل': 'ل',
+  'م': 'م',
+  'ن': 'ن',
+  'س': 'س',
+  'ص': 'ص',
+  'ع': 'ع',
+  // Latin / Slugs
+  'a': 'أ', 'zone_a': 'أ', 'district a': 'أ',
+  'b': 'ب', 'zone_b': 'ب', 'district b': 'ب',
+  'g': 'ج', 'zone_g': 'ج', 'district g': 'ج',
+  'd': 'د', 'zone_d': 'د', 'district d': 'د',
+  'h': 'هـ', 'zone_h': 'هـ', 'district h': 'هـ',
+  'w': 'و', 'zone_w': 'و', 'district w': 'و',
+  'z': 'ز', 'zone_z': 'ز', 'district z': 'ز',
+  'ha': 'ح', 'zone_ha': 'ح', 'district ha': 'ح',
+  't': 'ط', 'zone_t': 'ط', 'district t': 'ط',
+  'k': 'ك', 'zone_k': 'ك', 'district k': 'ك',
+  'l': 'ل', 'zone_l': 'ل', 'district l': 'ل',
+  'm': 'م', 'zone_m': 'م', 'district m': 'م',
+  'n': 'ن', 'zone_n': 'ن', 'district n': 'ن',
+  's': 'س', 'zone_s': 'س', 'district s': 'س',
+  'sad': 'ص', 'zone_sad': 'ص', 'district sad': 'ص',
+  'ain': 'ع', 'zone_ain': 'ع', 'district ain': 'ع',
+};
+
 function normalizeZoneLetterForAtlas(zoneLetter: string): string | null {
   if (!zoneLetter) return null;
-  const clean = zoneLetter.replace(/^منطقة\s+/, '').replace(/\u0640/g, '').trim();
-  if (clean === 'ا' || clean === 'أ' || clean === 'إ' || clean === 'آ') return 'أ';
-  if (clean === 'ه' || clean === 'ة' || clean === 'هـ') return 'هـ';
-  if (clean in ZONE_SLUG_MAP) return clean;
+  const clean = zoneLetter
+    .replace(/[()[\]{}«»"']/g, '')
+    .replace(/^منطق[ةه]\s+/i, '')
+    .replace(/\u0640/g, '')
+    .trim()
+    .toLowerCase();
+
+  if (ZONE_ALIAS_MAP[clean]) return ZONE_ALIAS_MAP[clean];
+  if (ZONE_SLUG_MAP[clean]) return clean;
   return null;
 }
 
@@ -506,12 +548,16 @@ export async function searchBuildingCoordinatesExact(
 ): Promise<{ lat: number; lng: number } | null> {
   const numMatch = buildingNumber.match(/\d+/);
   if (!numMatch) return null;
-  const cleanNum = numMatch[0];
+  const rawNum = numMatch[0];
+  const trimmedLeadingZeros = String(parseInt(rawNum, 10));
 
   const zoneData = await loadHadayekZoneBuildings(zoneLetter);
-  if (zoneData && zoneData[cleanNum]) {
-    const [lat, lng] = zoneData[cleanNum];
-    return { lat, lng };
+  if (zoneData) {
+    const point = zoneData[rawNum] || zoneData[trimmedLeadingZeros];
+    if (point) {
+      const [lat, lng] = point;
+      return { lat, lng };
+    }
   }
 
   return null;

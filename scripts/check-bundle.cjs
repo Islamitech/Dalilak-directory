@@ -10,7 +10,7 @@ if (!fs.existsSync(DIST)) {
 }
 
 const BUDGETS = [
-  { pattern: /^assets\/index-.*\.js$/, maxKb: 155, name: 'Main Entry Bundle (index-*.js)' },
+  { pattern: /^assets\/index-.*\.js$/, maxKb: 155, name: 'Main Entry Bundle (index-*.js)', isMainEntry: true },
   { pattern: /^assets\/index-.*\.css$/, maxKb: 161, name: 'Global Stylesheet (index-*.css)' },
   { pattern: /^assets\/react-vendor-.*\.js$/, maxKb: 250, name: 'React Vendor Chunk' },
   { pattern: /^assets\/supabase-vendor-.*\.js$/, maxKb: 245, name: 'Supabase Vendor Chunk' },
@@ -19,7 +19,7 @@ const BUDGETS = [
   { pattern: /^assets\/ActivityDetailModal-.*\.js$/, maxKb: 15, name: 'Activity Detail Modal Lazy Chunk' },
   { pattern: /^assets\/atlas-geodata-.*\.js$/, maxKb: 14, name: 'Atlas Geodata Chunk' },
   { pattern: /^assets\/UnifiedBusinessCard-.*\.js$/, maxKb: 42, name: 'Unified Business Card Chunk' },
-  { pattern: /^assets\/zone_.*\.js$/, maxKb: 18, name: 'Hadayek Zone Coordinates Chunk' },
+  { pattern: /^assets\/zone_.*\.js$/, maxKb: 18, name: 'Hadayek Zone Coordinates Chunk', checkAll: true },
 ];
 
 function getFiles(dir) {
@@ -33,36 +33,51 @@ function getFiles(dir) {
 }
 
 const files = getFiles(DIST);
+const indexHtmlPath = path.join(DIST, 'index.html');
+const indexHtml = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, 'utf8') : '';
+const mainEntryMatch = indexHtml.match(/src="\/assets\/(index-[^"]+\.js)"/);
+const mainEntryRelativePath = mainEntryMatch ? `assets/${mainEntryMatch[1]}` : null;
 let failed = false;
 
 console.log('\n========================================');
 console.log('📦 DALILAK BUNDLE BUDGET ENFORCEMENT');
 console.log('========================================');
 
-BUDGETS.forEach(({ pattern, maxKb, name }) => {
-  const match = files.find((f) => {
+BUDGETS.forEach(({ pattern, maxKb, name, isMainEntry, checkAll }) => {
+  const matches = files.filter((f) => {
     const rel = path.relative(DIST, f).replace(/\\/g, '/');
     return pattern.test(rel);
   });
 
-  if (!match) {
+  if (matches.length === 0) {
     console.warn(`⚠️  Warning: Target chunk for "${name}" not found.`);
     return;
   }
 
-  const content = fs.readFileSync(match);
-  const rawKb = content.length / 1000;
-  const gzipKb = zlib.gzipSync(content).length / 1000;
-  const relPath = path.relative(DIST, match).replace(/\\/g, '/');
+  const targetsToCheck = (() => {
+    if (checkAll) return matches;
+    if (isMainEntry && mainEntryRelativePath) {
+      const entryFile = matches.find((f) => path.relative(DIST, f).replace(/\\/g, '/') === mainEntryRelativePath);
+      if (entryFile) return [entryFile];
+    }
+    return [matches.sort((a, b) => fs.statSync(b).size - fs.statSync(a).size)[0]];
+  })();
 
-  const status = rawKb <= maxKb ? '✅ PASS' : '❌ FAIL (EXCEEDED)';
-  console.log(
-    `${status} [${name}]\n   File: ${relPath}\n   Raw: ${rawKb.toFixed(2)} kB / Budget: ${maxKb} kB (Gzip: ${gzipKb.toFixed(2)} kB)`
-  );
+  targetsToCheck.forEach((match) => {
+    const content = fs.readFileSync(match);
+    const rawKb = content.length / 1000;
+    const gzipKb = zlib.gzipSync(content).length / 1000;
+    const relPath = path.relative(DIST, match).replace(/\\/g, '/');
 
-  if (rawKb > maxKb) {
-    failed = true;
-  }
+    const status = rawKb <= maxKb ? '✅ PASS' : '❌ FAIL (EXCEEDED)';
+    console.log(
+      `${status} [${name}]\n   File: ${relPath}\n   Raw: ${rawKb.toFixed(2)} kB / Budget: ${maxKb} kB (Gzip: ${gzipKb.toFixed(2)} kB)`
+    );
+
+    if (rawKb > maxKb) {
+      failed = true;
+    }
+  });
 });
 
 console.log('========================================\n');

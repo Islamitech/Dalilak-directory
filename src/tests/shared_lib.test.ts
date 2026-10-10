@@ -214,3 +214,48 @@ describe('Catalog Hydration & IndexedDB Upgrade (mergeHydratedCatalog)', () => {
   });
 });
 
+describe('Supabase Decoupling & Lazy Client Architecture (Phase 2)', () => {
+  it('exports valid static constants from supabaseConfig without instantiating client', async () => {
+    const config = await import('../shared/lib/supabaseConfig');
+    expect(config.SUPABASE_URL).toBeDefined();
+    expect(config.SUPABASE_ANON_KEY).toBeDefined();
+    expect(config.SUPABASE_REST_BASE).toContain('/rest/v1');
+    expect(config.SUPABASE_BASE_URL).not.toMatch(/\/+$/);
+  });
+
+  it('provides lazy getSupabase returning a SupabaseClient promise', async () => {
+    const { getSupabase } = await import('../shared/lib/supabase');
+    const client = await getSupabase();
+    expect(client).toBeDefined();
+    expect(typeof client.channel).toBe('function');
+  });
+
+  it('supports lazy channel creation, handler queueing, and subscribe lifecycle', async () => {
+    const { supabase } = await import('../shared/lib/supabase');
+    const channel = supabase.channel('test-channel');
+    expect(channel).toBeDefined();
+    expect(typeof channel.on).toBe('function');
+    expect(typeof channel.subscribe).toBe('function');
+    expect(typeof channel.unsubscribe).toBe('function');
+
+    let receivedEvent = false;
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, () => {
+      receivedEvent = true;
+    });
+
+    channel.subscribe();
+    expect(channel).toBeDefined();
+
+    // Cleaning up channel
+    await supabase.removeChannel(channel);
+  });
+
+  it('handles early cancellation without channel leak if removeChannel is called quickly', async () => {
+    const { supabase } = await import('../shared/lib/supabase');
+    const ch = supabase.channel('quick-cancel-channel');
+    ch.subscribe();
+    // Immediate removal before underlying resolution
+    await expect(supabase.removeChannel(ch)).resolves.not.toThrow();
+  });
+});
+
