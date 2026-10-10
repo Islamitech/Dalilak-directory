@@ -760,6 +760,11 @@
     margin-inline-start: 2px;
   }
 
+  .dl-sp.dl-open small {
+    opacity: 1;
+    color: #065f46;
+  }
+
   .dl-sp.dl-closed small {
     color: #334155;
   }

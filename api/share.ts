@@ -198,8 +198,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     </main>
   </div>`;
 
-      if (html.includes('<div id="root"></div>')) {
+      const rootPattern = /<div id="root">[\s\S]*?<\/div>(?=\s*(?:<script|<\/body>|$))/;
+      if (rootPattern.test(html)) {
+        html = html.replace(rootPattern, staticSnapshot);
+      } else if (html.includes('<div id="root"></div>')) {
         html = html.replace('<div id="root"></div>', staticSnapshot);
+      } else if (html.includes('<div id="root">')) {
+        html = html.replace('<div id="root">', staticSnapshot);
       }
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -581,8 +586,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     </main>
   </div>`;
 
-      if (html.includes('<div id="root"></div>')) {
+      const rootPattern = /<div id="root">[\s\S]*?<\/div>(?=\s*(?:<script|<\/body>|$))/;
+      if (rootPattern.test(html)) {
+        html = html.replace(rootPattern, semanticSnapshotHtml);
+      } else if (html.includes('<div id="root"></div>')) {
         html = html.replace('<div id="root"></div>', semanticSnapshotHtml);
+      } else if (html.includes('<div id="root">')) {
+        html = html.replace('<div id="root">', semanticSnapshotHtml);
       }
     }
 

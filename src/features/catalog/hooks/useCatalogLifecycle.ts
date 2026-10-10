@@ -40,7 +40,7 @@ export function useCatalogLifecycle(): UseCatalogLifecycleResult {
     let active = true;
     hydrateFromIndexedDb().then((publicCatalog) => {
       if (!active || !publicCatalog.length) return;
-      setBusinesses((current) => (current.length ? current : publicCatalog));
+      setBusinesses((current) => (publicCatalog.length >= current.length ? publicCatalog : current));
       setLoading(false);
       setDirectoryLoad((curr) => (curr.pending ? { pending: false, error: '' } : curr));
     }).finally(() => { if (active) setCatalogCacheReady(true); });
