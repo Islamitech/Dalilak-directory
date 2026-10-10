@@ -5,6 +5,13 @@ export function mergeCatalog(snapshot:Business[],overrides:Map<string,Business|n
  for(const [id,b] of overrides){if(b&&isPublicBusiness(b))map.set(id,b);else map.delete(id);}
  return [...map.values()].sort((a,b)=>(b.createdDate||'').localeCompare(a.createdDate||'')||a.id.localeCompare(b.id));
 }
+export function mergeHydratedCatalog(current: Business[], publicCatalog: Business[]): Business[] {
+  if (!current.length && !publicCatalog.length) return [];
+  const map = new Map<string, Business>();
+  for (const b of current) { if (b && isPublicBusiness(b)) map.set(b.id, b); }
+  for (const b of publicCatalog) { if (b && isPublicBusiness(b)) map.set(b.id, b); }
+  return [...map.values()].sort((a, b) => (b.createdDate || '').localeCompare(a.createdDate || '') || a.id.localeCompare(b.id));
+}
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;

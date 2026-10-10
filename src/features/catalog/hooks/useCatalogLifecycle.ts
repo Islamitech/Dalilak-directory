@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Business } from '../../../types';
-import { mergeCatalog, catalogsEqual } from '../model/catalogState';
+import { mergeCatalog, catalogsEqual, mergeHydratedCatalog } from '../model/catalogState';
 import { writeCatalogCache } from '../model/catalogCache';
 import { getSafeCacheList } from '../model/businessMapper';
 import {
@@ -40,7 +40,10 @@ export function useCatalogLifecycle(): UseCatalogLifecycleResult {
     let active = true;
     hydrateFromIndexedDb().then((publicCatalog) => {
       if (!active || !publicCatalog.length) return;
-      setBusinesses((current) => (publicCatalog.length >= current.length ? publicCatalog : current));
+      setBusinesses((current) => {
+        const merged = mergeHydratedCatalog(current, publicCatalog);
+        return catalogsEqual(current, merged) ? current : merged;
+      });
       setLoading(false);
       setDirectoryLoad((curr) => (curr.pending ? { pending: false, error: '' } : curr));
     }).finally(() => { if (active) setCatalogCacheReady(true); });

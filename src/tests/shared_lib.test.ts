@@ -18,6 +18,7 @@ import {
   formatRating,
 } from '../shared/lib';
 import { parseFavorites } from '../features/catalog';
+import { mergeHydratedCatalog } from '../features/catalog/model/catalogState';
 import { FAVORITES_STORAGE_KEY } from '../features/favorites';
 
 describe('Shared Library: Phone & WhatsApp Utilities', () => {
@@ -139,3 +140,77 @@ describe('Favorites Storage Format & Backward Compatibility (716b654)', () => {
     ]);
   });
 });
+
+describe('Catalog Hydration & IndexedDB Upgrade (mergeHydratedCatalog)', () => {
+  const bizA: any = {
+    id: 'biz_a',
+    nameAr: 'محل ألف',
+    category: 'مطاعم',
+    verificationStatus: 'verified',
+    status: 'published',
+    createdDate: '2026-01-01T00:00:00Z',
+    phone: '01011111111',
+  };
+  const bizA_Upgraded: any = {
+    id: 'biz_a',
+    nameAr: 'محل ألف المطور',
+    category: 'مطاعم',
+    verificationStatus: 'verified',
+    status: 'published',
+    createdDate: '2026-01-01T00:00:00Z',
+    phone: '01099999999',
+  };
+  const bizB: any = {
+    id: 'biz_b',
+    nameAr: 'محل باء',
+    category: 'تسوق',
+    verificationStatus: 'verified',
+    status: 'published',
+    createdDate: '2026-01-02T00:00:00Z',
+  };
+  const bizC: any = {
+    id: 'biz_c',
+    nameAr: 'محل جيم',
+    category: 'خدمات',
+    verificationStatus: 'verified',
+    status: 'published',
+    createdDate: '2026-01-03T00:00:00Z',
+  };
+
+  it('hydrates publicCatalog when current localStorage cache is empty', () => {
+    const result = mergeHydratedCatalog([], [bizA, bizB]);
+    expect(result.length).toBe(2);
+    expect(result[0].id).toBe('biz_b'); // newer createdDate
+    expect(result[1].id).toBe('biz_a');
+  });
+
+  it('retains current cache when hydrated IndexedDB is empty', () => {
+    const result = mergeHydratedCatalog([bizA], []);
+    expect(result.length).toBe(1);
+    expect(result[0].nameAr).toBe('محل ألف');
+  });
+
+  it('merges and upgrades records from IndexedDB over localStorage even when localStorage has data', () => {
+    // Current localStorage has bizA (old phone) and bizB
+    const current = [bizA, bizB];
+    // IndexedDB has upgraded bizA and newly discovered bizC
+    const idbCatalog = [bizA_Upgraded, bizC];
+
+    const merged = mergeHydratedCatalog(current, idbCatalog);
+
+    // Should contain all 3 businesses (biz_c, biz_b, biz_a)
+    expect(merged.length).toBe(3);
+
+    // biz_a should be upgraded with the new phone
+    const foundA = merged.find((b) => b.id === 'biz_a');
+    expect(foundA?.phone).toBe('01099999999');
+    expect(foundA?.nameAr).toBe('محل ألف المطور');
+
+    // biz_b from localStorage should be preserved
+    expect(merged.some((b) => b.id === 'biz_b')).toBe(true);
+
+    // biz_c from IndexedDB should be merged
+    expect(merged.some((b) => b.id === 'biz_c')).toBe(true);
+  });
+});
+

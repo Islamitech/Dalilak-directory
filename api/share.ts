@@ -16,6 +16,22 @@ const DUPLICATE_REDIRECTS: Record<string, string> = {
   'biz_atlas_1789859443844_ocx4v': 'biz_atlas_1789859433981_gagii',
 };
 
+function injectCrawlerSnapshot(html: string, snapshotHtml: string): string {
+  const rootWithContentPattern = /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>(?=\s*(?:<!--[\s\S]*?-->\s*)*(?:<script|<\/body>|$))/i;
+  if (rootWithContentPattern.test(html)) {
+    return html.replace(rootWithContentPattern, snapshotHtml);
+  }
+  const emptyRootPattern = /<div\s+id=["']root["'][^>]*><\/div>/i;
+  if (emptyRootPattern.test(html)) {
+    return html.replace(emptyRootPattern, snapshotHtml);
+  }
+  const broadRootPattern = /<div\s+id=["']root["'][^>]*>[\s\S]*?(?=\s*(?:<script|<\/body>|$))/i;
+  if (broadRootPattern.test(html)) {
+    return html.replace(broadRootPattern, snapshotHtml);
+  }
+  return html.replace(/<div\s+id=["']root["'][^>]*>/i, snapshotHtml);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const rawBizQuery = req.query.biz || req.query.id;
@@ -198,14 +214,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     </main>
   </div>`;
 
-      const rootPattern = /<div id="root">[\s\S]*?<\/div>(?=\s*(?:<script|<\/body>|$))/;
-      if (rootPattern.test(html)) {
-        html = html.replace(rootPattern, staticSnapshot);
-      } else if (html.includes('<div id="root"></div>')) {
-        html = html.replace('<div id="root"></div>', staticSnapshot);
-      } else if (html.includes('<div id="root">')) {
-        html = html.replace('<div id="root">', staticSnapshot);
-      }
+      html = injectCrawlerSnapshot(html, staticSnapshot);
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
@@ -586,14 +595,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     </main>
   </div>`;
 
-      const rootPattern = /<div id="root">[\s\S]*?<\/div>(?=\s*(?:<script|<\/body>|$))/;
-      if (rootPattern.test(html)) {
-        html = html.replace(rootPattern, semanticSnapshotHtml);
-      } else if (html.includes('<div id="root"></div>')) {
-        html = html.replace('<div id="root"></div>', semanticSnapshotHtml);
-      } else if (html.includes('<div id="root">')) {
-        html = html.replace('<div id="root">', semanticSnapshotHtml);
-      }
+      html = injectCrawlerSnapshot(html, semanticSnapshotHtml);
     }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

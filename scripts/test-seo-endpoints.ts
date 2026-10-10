@@ -113,6 +113,42 @@ async function runTests() {
   const catTitleMatch = searchHtml.match(/<title>(.*?)<\/title>/);
   console.log('Search ?cat=food Title:', catTitleMatch ? catTitleMatch[1] : 'NONE');
   console.log('Search has crawler snapshot:', searchHtml.includes('المطاعم والكافيهات والمأكولات'));
+
+  console.log('\n--- 4. Testing Business Detail Share Generation ---');
+  let bizHtml = '';
+  let bizStatus = 0;
+  const mockBizRes: any = {
+    setHeader: () => {},
+    status: (code: number) => {
+      bizStatus = code;
+      return {
+        send: (html: string) => {
+          bizHtml = html;
+        }
+      };
+    },
+    redirect: (code: number, url: string) => {
+      console.error(`Biz redirected to ${url} (status: ${code})`);
+    }
+  };
+
+  await shareHandler({
+    query: { biz: 'biz_fixture_1' },
+    headers: { host: 'www.dalilaak.com' }
+  } as any, mockBizRes);
+
+  const bizTitleMatch = bizHtml.match(/<title>(.*?)<\/title>/);
+  const bizTitle = bizTitleMatch ? bizTitleMatch[1] : 'NONE';
+  const bizCanonicalMatch = bizHtml.match(/<link\s+rel="canonical"\s+href="(.*?)"/);
+  const bizCanonical = bizCanonicalMatch ? bizCanonicalMatch[1] : 'NONE';
+  const bizHasSnapshot = bizHtml.includes('dalilak-crawler-snapshot');
+  const bizHasName = bizHtml.includes('نشاط تجريبي');
+  const bizHasJsonLd = bizHtml.includes('application/ld+json');
+
+  console.log(`Biz [biz_fixture_1] -> Status: ${bizStatus}, Title: "${bizTitle}", Canonical: "${bizCanonical}", Snapshot: ${bizHasSnapshot}, Contains Name: ${bizHasName}, JSON-LD: ${bizHasJsonLd}`);
+  if (!bizHasSnapshot || !bizHasName) {
+    throw new Error('Business detail crawler snapshot injection failed!');
+  }
 }
 
 runTests().catch(err => {
