@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Lock, Phone, ShieldCheck } from 'lucide-react';
 import { Business } from '../../types';
-import {
-  getBusinessMapDetails,
-  downloadBusinessVCard,
-  getSmartWhatsAppUrl,
-  getBusinessOpenStatus,
-} from '../../utils/directoryEnhancements';
+import { getBusinessMapDetails, downloadBusinessVCard, getSmartWhatsAppUrl, getBusinessOpenStatus } from '../../utils/directoryEnhancements';
 import { getPublicDirectoryUrl } from '../../utils/directoryUrl';
 import { Modal, Button, ButtonLink, Pressable, EntitySheet, type EntitySheetSnap } from '../../shared/ui';
 import { getBusinessEntryGate, formatBusinessAreaLabel } from '../../utils/hadayekZoneHelper';
@@ -140,6 +135,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         placement={placement}
         showClose={snap === 'peek'}
         ariaLabel={business.nameAr || 'تفاصيل النشاط'}
+        ariaLabelledBy="activity-detail-modal-title"
         peek={
           <div className="ps-3 pe-14 py-2 flex items-center gap-2.5 h-[80px]">
             <Pressable

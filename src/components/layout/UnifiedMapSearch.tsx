@@ -136,7 +136,8 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         }}
         onFocus={() => setIsOpen(value.trim().length >= 2)}
         onSubmit={handleSubmit}
-        placeholder="ابحث عن نشاط"
+        placeholder="ابحث عن نشاط أو مبنى..."
+        aria-label="البحث عن نشاط أو مبنى"
         className="w-full"
       />
 
@@ -173,7 +174,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-extrabold text-slate-900">
-                      عمارة رقم {result.buildingNumber}
+                      عمارة {result.buildingNumber}
                     </span>
                     <span className="mt-0.5 block truncate text-caption font-bold text-slate-500">
                       {result.zoneName}

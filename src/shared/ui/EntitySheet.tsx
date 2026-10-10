@@ -11,6 +11,7 @@ export interface EntitySheetProps {
   onSnapChange: (snap: EntitySheetSnap) => void;
   onClose: () => void;
   ariaLabel: string;
+  ariaLabelledBy?: string;
   /** Compact preview. Shown only while the sheet is peeked. */
   peek?: React.ReactNode;
   /** Half and full body. */
@@ -30,6 +31,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
   onSnapChange,
   onClose,
   ariaLabel,
+  ariaLabelledBy,
   peek,
   children,
   placement = 'map',
@@ -146,6 +148,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
         role={isFull ? 'dialog' : 'region'}
         aria-modal={isFull || undefined}
         aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
         dir="rtl"
         className={`dl-esheet pointer-events-auto text-start font-['Cairo',sans-serif] ${isDragging ? 'is-dragging' : ''}`}

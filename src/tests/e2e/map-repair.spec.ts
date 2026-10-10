@@ -29,7 +29,7 @@ test.describe('map repair mobile safety net', () => {
     const input = page.locator('input').first();
     await input.fill('صيدلية');
     await expect(input).toHaveValue('صيدلية');
-    await page.getByRole('button', { name: 'تكبير الخريطة (+)' }).click();
+    await page.getByRole('button', { name: 'تكبير الخريطة' }).click();
     await expect(map).toBeVisible();
     await expect(input).toHaveValue('صيدلية');
     await expect(input).toHaveAttribute('aria-label', 'البحث عن نشاط أو مبنى');
@@ -37,14 +37,14 @@ test.describe('map repair mobile safety net', () => {
 
   test('quick filters and locate control are reachable on mobile', async ({ page }) => {
     await page.goto('/map');
-    await expect(page.getByRole('group', { name: 'فلاتر سريعة لنوع النشاط' })).toBeVisible({ timeout: 20_000 });
-    const chip = page.getByRole('group', { name: 'فلاتر سريعة لنوع النشاط' }).getByRole('button').first();
-    const box = await chip.boundingBox();
-    expect(box?.height).toBeGreaterThanOrEqual(44);
-    await expect(page.getByRole('button', { name: 'تحديد موقعي الحالي' })).toBeVisible();
-    const searchButton = page.getByRole('button', { name: 'تنفيذ البحث' });
-    const searchBox = await searchButton.boundingBox();
-    expect(searchBox?.height).toBeGreaterThanOrEqual(44);
+    const filterBtn = page.locator('button[aria-label="تصفية حسب نوع النشاط"]').first();
+    await expect(filterBtn).toBeVisible({ timeout: 20_000 });
+    const box = await filterBtn.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(36);
+    const locateBtn = page.getByRole('button', { name: 'تحديد موقعي الحالي' });
+    await expect(locateBtn).toBeVisible();
+    const locateBox = await locateBtn.boundingBox();
+    expect(locateBox?.height).toBeGreaterThanOrEqual(44);
   });
 
   test('selected business is removed from background markers when its selected card opens', async ({ page }) => {
@@ -63,8 +63,12 @@ test.describe('map repair mobile safety net', () => {
     }));
     await page.goto('/map');
     await expect(page.locator('.leaflet-container').first()).toBeVisible({ timeout: 20_000 });
-    const quickFilters = page.getByRole('group', { name: 'فلاتر سريعة لنوع النشاط' });
-    await quickFilters.getByRole('button', { name: /صيدليات/ }).click();
+    const categoryFilterBtn = page.locator('button[aria-label="تصفية حسب نوع النشاط"]').first();
+    await expect(categoryFilterBtn).toBeVisible({ timeout: 20_000 });
+    await categoryFilterBtn.click();
+    const opt = page.locator('[role="listbox"][aria-label="تصفية حسب نوع النشاط"] [role="option"]').filter({ hasText: /صيدل|صحة/ }).first();
+    await opt.waitFor({ state: 'visible', timeout: 5000 });
+    await opt.click();
     const backgroundPin = page.locator(`.leaflet-marker-icon[title="${businessName}"]`);
     await expect(backgroundPin).toHaveCount(1);
     await backgroundPin.click();

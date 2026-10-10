@@ -26,7 +26,7 @@ export function renderSelectedBusinessMarker(
   const pinData = createCompactActivityPinHtml(selectedBiz, true, false, undefined, [0, 0], true);
 
   const bizIcon = window.L.divIcon({
-    className: 'custom-biz-pin selected-glowing-pin animate-scale-in',
+    className: 'custom-biz-pin selected-glowing-pin selected-compact-card animate-scale-in',
     html: pinData.html,
     iconSize: pinData.iconSize,
     iconAnchor: pinData.iconAnchor,

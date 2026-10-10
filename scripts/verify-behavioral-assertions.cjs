@@ -156,33 +156,38 @@ async function runBehavioralTests() {
         await page.goto(`${baseUrl}/search`, { waitUntil: 'domcontentloaded' });
         await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
 
-        // Find category pills in CategoryBar
-        const catBtn = page.locator('nav[aria-label*="تصنيفات"] button').filter({ hasText: 'المطاعم' }).first();
-        await catBtn.waitFor({ state: 'visible', timeout: 7000 });
-        await catBtn.click();
+        // Open Category dropdown in UnifiedSearchFilterBar
+        const catTrigger = page.locator('button[aria-label="تصفية حسب نوع النشاط"]').first();
+        await catTrigger.waitFor({ state: 'visible', timeout: 7000 });
+        await catTrigger.click();
 
-        // Condition wait: button attribute indicates selected state
+        // Select 'مطاعم' option from listbox
+        const catOption = page.locator('[role="listbox"][aria-label="تصفية حسب نوع النشاط"] [role="option"]').filter({ hasText: 'مطاعم' }).first();
+        await catOption.waitFor({ state: 'visible', timeout: 7000 });
+        await catOption.click();
+
+        // Condition wait: trigger button displays selected category label
         await page.waitForFunction(
-          (btn) => btn.getAttribute('aria-pressed') === 'true',
-          await catBtn.elementHandle(),
+          (btn) => btn.innerText.includes('مطاعم') || btn.getAttribute('aria-expanded') === 'false',
+          await catTrigger.elementHandle(),
           { timeout: 7000 }
         );
-        const isSelected = await catBtn.evaluate((el) => el.getAttribute('aria-pressed') === 'true');
-        assert.ok(isSelected, 'Category pill must indicate active/selected state when clicked');
+        const triggerText = await catTrigger.innerText();
+        assert.ok(triggerText.includes('مطاعم'), 'Category dropdown trigger must display selected category name');
 
-        // Reset to all
-        const allBtn = page.locator('nav[aria-label*="تصنيفات"] button').filter({ hasText: 'كافة الأنشطة' }).first();
-        await allBtn.waitFor({ state: 'visible', timeout: 7000 });
-        await allBtn.click();
+        // Condition wait: category filtering hides non-matching biz_alpha (صيدلية) and keeps biz_beta (مطعم)
+        await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'hidden', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_beta"]').isVisible(), 'Matching category business must be visible');
 
-        // Condition wait: all category button is active
-        await page.waitForFunction(
-          (btn) => btn.getAttribute('aria-pressed') === 'true',
-          await allBtn.elementHandle(),
-          { timeout: 7000 }
-        );
-        const allSelected = await allBtn.evaluate((el) => el.getAttribute('aria-pressed') === 'true');
-        assert.ok(allSelected, 'All category pill must be selected after reset');
+        // Reset to all categories
+        await catTrigger.click();
+        const allOption = page.locator('[role="listbox"][aria-label="تصفية حسب نوع النشاط"] [role="option"]').filter({ hasText: 'الكل' }).first();
+        await allOption.waitFor({ state: 'visible', timeout: 7000 });
+        await allOption.click();
+
+        // Condition wait: all businesses restored
+        await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').isVisible(), 'All businesses restored after reset');
 
         console.log('✓ Contract 2 Passed: Category filtering updates selection state and resets cleanly.');
         results.push({ contract: '2. Category Filter', status: 'PASS' });
@@ -196,9 +201,9 @@ async function runBehavioralTests() {
     }
 
     // -------------------------------------------------------------
-    // Contract 3: Favorite Filter + Sort Cycle
+    // Contract 3: Favorite Filter & Unified Strip Controls
     // -------------------------------------------------------------
-    console.log('\n--- Contract 3: Favorite Filter + Sort Cycle ---');
+    console.log('\n--- Contract 3: Favorite Filter & Unified Strip Controls ---');
     {
       const { context, page } = await setupContext(browser, { width: 390, height: 844 });
       try {
@@ -206,50 +211,58 @@ async function runBehavioralTests() {
         await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
 
         // 1. Toggle favorite on first card
-        const favBtn = page.locator('[data-biz-id="biz_alpha"] .card-fav').first();
+        const favBtn = page.locator('[data-biz-id="biz_alpha"] [data-testid="favorite-button"], [data-biz-id="biz_alpha"] .dl-hrt button').first();
         await favBtn.waitFor({ state: 'visible', timeout: 7000 });
         await favBtn.click();
 
         // Condition wait: favorite state is active
         await page.waitForFunction(() => {
-          const fav = document.querySelector('[data-biz-id="biz_alpha"] .card-fav');
-          return fav && (fav.classList.contains('bg-rose-500') || fav.getAttribute('aria-label')?.includes('إزالة'));
+          const fav = document.querySelector('[data-biz-id="biz_alpha"] [data-testid="favorite-button"]') || document.querySelector('[data-biz-id="biz_alpha"] .dl-hrt button');
+          return fav && (fav.classList.contains('dl-on') || fav.getAttribute('aria-pressed') === 'true' || fav.getAttribute('aria-label')?.includes('إزالة'));
         }, { timeout: 7000 });
 
-        // 2. Click favorites filter chip (#favToolBtn)
-        const favToolBtn = page.locator('#favToolBtn').first();
-        await favToolBtn.waitFor({ state: 'visible', timeout: 7000 });
-        await favToolBtn.click();
+        // 2. Open mobile drawer to navigate to Favorites (/favorites)
+        const moreBtn = page.locator('button[aria-label*="المزيد"]').first();
+        await moreBtn.waitFor({ state: 'visible', timeout: 7000 });
+        await moreBtn.click();
 
-        // Condition wait: non-favorited item biz_beta is hidden
-        await page.locator('[data-biz-id="biz_beta"]').first().waitFor({ state: 'hidden', timeout: 7000 });
-        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').isVisible(), 'Favorited item biz_alpha must remain visible');
+        const drawerFavLink = page.locator('[role="dialog"][aria-labelledby="navbar-drawer-title"] button, [role="dialog"][aria-labelledby="navbar-drawer-title"] a').filter({ hasText: 'المفضلة' }).first();
+        await drawerFavLink.waitFor({ state: 'visible', timeout: 7000 });
+        await drawerFavLink.click();
 
-        // Unfilter favorites
-        await favToolBtn.click();
+        // Condition wait: URL transitions to /favorites and only favorited item biz_alpha is shown
+        await page.waitForURL((url) => url.pathname.includes('/favorites'), { timeout: 7000 });
+        await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').isVisible(), 'Favorited item biz_alpha must remain visible in Favorites view');
+
+        // Return to Search
+        await page.goto(`${baseUrl}/search`, { waitUntil: 'domcontentloaded' });
         await page.locator('[data-biz-id="biz_beta"]').first().waitFor({ state: 'visible', timeout: 7000 });
-        assert.ok(await page.locator('[data-biz-id="biz_beta"]').isVisible(), 'Non-favorited item restored after unfiltering');
+        assert.ok(await page.locator('[data-biz-id="biz_beta"]').isVisible(), 'Non-favorited item restored after returning to catalog');
 
-        // 3. Sort cycle button (#sortBtn)
-        const sortBtn = page.locator('#sortBtn').first();
-        await sortBtn.waitFor({ state: 'visible', timeout: 7000 });
-        const initialSortText = (await sortBtn.innerText()).trim();
-        await sortBtn.click();
+        // 3. Zone filter dropdown in unified glass strip
+        const zoneTrigger = page.locator('button[aria-label="تصفية حسب المنطقة"]').first();
+        await zoneTrigger.waitFor({ state: 'visible', timeout: 7000 });
+        await zoneTrigger.click();
 
-        // Condition wait: sort label changes
-        await page.waitForFunction(
-          (initial) => {
-            const btn = document.querySelector('#sortBtn');
-            return btn && btn.innerText.trim() !== initial;
-          },
-          initialSortText,
-          { timeout: 7000 }
-        );
-        const nextSortText = (await sortBtn.innerText()).trim();
-        assert.notEqual(initialSortText, nextSortText, 'Sort cycle button must change label on click');
+        const zoneOption = page.locator('[role="listbox"][aria-label="تصفية حسب المنطقة"] [role="option"]').filter({ hasText: 'منطقة ب' }).first();
+        await zoneOption.waitFor({ state: 'visible', timeout: 7000 });
+        await zoneOption.click();
 
-        console.log('✓ Contract 3 Passed: Favorite filter and sort cycle button assert correctly.');
-        results.push({ contract: '3. Favorite Filter & Sort Cycle', status: 'PASS' });
+        // Condition wait: biz_beta (منطقة أ) is filtered out, biz_alpha (منطقة ب) remains visible
+        await page.locator('[data-biz-id="biz_beta"]').first().waitFor({ state: 'hidden', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').isVisible(), 'Zone B item biz_alpha must remain visible');
+
+        // Reset zone filter to all
+        await zoneTrigger.click();
+        const allZoneOption = page.locator('[role="listbox"][aria-label="تصفية حسب المنطقة"] [role="option"]').filter({ hasText: 'كل مناطق' }).first();
+        await allZoneOption.waitFor({ state: 'visible', timeout: 7000 });
+        await allZoneOption.click();
+        await page.locator('[data-biz-id="biz_beta"]').first().waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_beta"]').isVisible(), 'All items restored after resetting zone filter');
+
+        console.log('✓ Contract 3 Passed: Favorite flow and unified glass strip zone controls assert correctly.');
+        results.push({ contract: '3. Favorite Filter & Unified Strip Controls', status: 'PASS' });
       } catch (err) {
         console.error('✗ Contract 3 Failed with error stack:\n', err);
         results.push({ contract: '3. Favorite Filter & Sort Cycle', status: 'FAIL', error: err.message });
@@ -260,27 +273,27 @@ async function runBehavioralTests() {
     }
 
     // -------------------------------------------------------------
-    // Contract 4: Desktop Two-Pane at >= 1024px
+    // Contract 4: Desktop Viewport at >= 1024px
     // -------------------------------------------------------------
-    console.log('\n--- Contract 4: Desktop Two-Pane at >= 1024px ---');
+    console.log('\n--- Contract 4: Desktop Viewport at >= 1024px ---');
     {
       const { context, page } = await setupContext(browser, { width: 1280, height: 800 });
       try {
         await page.goto(`${baseUrl}/search`, { waitUntil: 'domcontentloaded' });
-
-        // Condition waits: list cards and leaflet map canvas render concurrently
         await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').first().isVisible(), 'List card must be visible on desktop search');
+
+        // Navigate to map on desktop
+        await page.goto(`${baseUrl}/map`, { waitUntil: 'domcontentloaded' });
         const mapCanvas = page.locator('.leaflet-container').first();
         await mapCanvas.waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await mapCanvas.isVisible(), 'Map with Leaflet canvas must be visible on desktop at 1280px');
 
-        assert.ok(await page.locator('[data-biz-id="biz_alpha"]').first().isVisible(), 'List card must be visible');
-        assert.ok(await mapCanvas.isVisible(), 'Map pane with Leaflet canvas must be concurrently visible at 1280px');
-
-        console.log('✓ Contract 4 Passed: Desktop two-pane concurrently renders list and map at 1280px.');
-        results.push({ contract: '4. Desktop Two-Pane (>=1024px)', status: 'PASS' });
+        console.log('✓ Contract 4 Passed: Desktop views render list grid and map cleanly at 1280px.');
+        results.push({ contract: '4. Desktop Viewport (>=1024px)', status: 'PASS' });
       } catch (err) {
         console.error('✗ Contract 4 Failed with error stack:\n', err);
-        results.push({ contract: '4. Desktop Two-Pane (>=1024px)', status: 'FAIL', error: err.message });
+        results.push({ contract: '4. Desktop Viewport (>=1024px)', status: 'FAIL', error: err.message });
         throw err;
       } finally {
         await context.close();

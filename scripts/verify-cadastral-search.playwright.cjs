@@ -71,7 +71,7 @@ async function run() {
     if (vp.isMobile) {
       await page.goto(`${baseUrl}/search`);
       await page.waitForTimeout(600);
-      const searchInput = page.locator('input[aria-label="البحث في الدليل"]').first();
+      const searchInput = page.locator('input[aria-label="البحث عن نشاط أو مبنى"], input[aria-label="البحث في الدليل"], input[type="search"]').first();
       await searchInput.waitFor({ timeout: 5000 });
       await searchInput.fill('265 ح');
     } else {
@@ -123,9 +123,10 @@ async function run() {
     await page.waitForTimeout(800);
     const mapInput = page.locator('input[aria-label="البحث عن نشاط أو مبنى"]').first();
     await mapInput.waitFor({ timeout: 5000 });
+    await mapInput.click();
     await mapInput.fill('265 ح');
     await page.waitForTimeout(800);
-    const mapSuggestion = page.locator('button:has-text("عمارة 265")').first();
+    const mapSuggestion = page.locator('button:has-text("عمارة 265"), [role="option"]:has-text("265"), button:has-text("265")').first();
     await mapSuggestion.waitFor({ timeout: 5000 });
     assert.strictEqual(await mapSuggestion.isVisible(), true, `Map dropdown must show building suggestion at ${vp.name}`);
     await mapSuggestion.click();
