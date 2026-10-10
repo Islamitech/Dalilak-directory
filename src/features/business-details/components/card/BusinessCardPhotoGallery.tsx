@@ -19,10 +19,9 @@ export interface BusinessCardPhotoGalleryProps {
 }
 
 function previewAreaLabel(area: string): string {
-  const parts = area.split(' · ').map((part) => part.trim()).filter(Boolean);
-  const city = parts[0] || '';
-  const zone = parts.find((part) => /^منطقة\s/.test(part)) || '';
-  const street = parts.find((part) => part !== city && part !== zone) || '';
+  const parts = area.split(' · ').map((p) => p.trim()).filter(Boolean);
+  const city = parts[0] || '', zone = parts.find((p) => /^منطقة\s/.test(p)) || '';
+  const street = parts.find((p) => p !== city && p !== zone) || '';
   const shortStreet = street && street.length <= 28 && !/[،,]|محافظة|مصر/.test(street) ? street : '';
   return [city, shortStreet].filter(Boolean).join(' · ');
 }
@@ -93,6 +92,8 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
             <div key={idx} className={`dl-slide ${loadedPhotos[idx] ? '' : 'dl-sk'}`}>
               <img
                 src={getOptimizedImageUrl(src, 480, 360)}
+                srcSet={`${getOptimizedImageUrl(src, 360, 270)} 360w, ${getOptimizedImageUrl(src, 480, 360)} 480w`}
+                sizes="(max-width: 640px) 100vw, 480px"
                 alt=""
                 width="480"
                 height="360"
@@ -118,11 +119,14 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
         <div className={`dl-slide ${fallbackCover && !fallbackLoaded ? 'dl-sk' : ''}`}>
           {fallbackCover ? (
             <img
-              src={fallbackCover}
+              src={getOptimizedImageUrl(fallbackCover, 480, 360)}
+              srcSet={`${getOptimizedImageUrl(fallbackCover, 360, 270)} 360w, ${getOptimizedImageUrl(fallbackCover, 480, 360)} 480w`}
+              sizes="(max-width: 640px) 100vw, 480px"
               alt=""
               width="480"
               height="360"
-              loading="lazy"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
               className={fallbackLoaded ? 'dl-in' : ''}
               onLoad={() => setFallbackLoaded(true)}

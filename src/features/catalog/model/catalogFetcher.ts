@@ -52,17 +52,15 @@ export async function fetchAllBusinesses(
     // Emit partial snapshot only for the first batch to achieve sub-second FCP
     if (offset === raw.length) {
       callbacks.onBatch(accumulated, false);
-      // Give browser an uninterrupted window to paint LCP, settle DOM, and clear TBT
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-    } else {
-      await new Promise((resolve) => {
-        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(resolve, { timeout: 2000 });
-        } else {
-          setTimeout(resolve, 100);
-        }
-      });
     }
+    // Schedule subsequent batches during idle time so main thread stays responsive for user interactions
+    await new Promise((resolve) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(resolve, { timeout: 3500 });
+      } else {
+        setTimeout(resolve, 200);
+      }
+    });
   }
 }
 

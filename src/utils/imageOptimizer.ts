@@ -20,5 +20,12 @@ export function getOptimizedImageUrl(url: string | undefined | null, width = 600
     return `${renderUrl}?width=${width}&height=${targetHeight}&quality=75`;
   }
 
+  // 3. Unsplash Photos CDN (Imgix dynamic WebP compression & exact dimension resize)
+  if (url.includes('images.unsplash.com')) {
+    const targetHeight = height || Math.round(width * 0.75);
+    const [baseUrl] = url.split('?');
+    return `${baseUrl}?auto=format&fit=crop&w=${width}&h=${targetHeight}&q=70`;
+  }
+
   return url;
 }
