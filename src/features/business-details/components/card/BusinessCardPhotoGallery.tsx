@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Pressable } from '../../../../shared/ui';
 import { Business } from '../../../../types';
 import { getOptimizedImageUrl } from '../../../../utils/imageOptimizer';
-import { getCategoryFallbackCover, isValidPhotoUrl } from '../../../../utils/categoryPhotos';
+import { collectDisplayPhotos, getCategoryFallbackCover } from '../../../../utils/categoryPhotos';
 import { displayBusinessName } from '../../../../shared/lib/format';
 import { ShieldCheck, Heart, Play, MapPin, Store } from 'lucide-react';
 import { BusinessCardGalleryNav } from './BusinessCardGalleryNav';
@@ -42,9 +42,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
   const [fallbackLoaded, setFallbackLoaded] = useState(false);
 
   const fallbackCover = getCategoryFallbackCover(business.category);
-  const rawList = business.photos && business.photos.length > 0 ? business.photos : business.coverPhoto ? [business.coverPhoto] : [];
-  const rawPhotos = rawList.filter(isValidPhotoUrl);
-  const gallery = rawPhotos.slice(0, 4);
+  const gallery = collectDisplayPhotos(business.photos, business.coverPhoto).slice(0, 4);
   const hasMultiple = gallery.length > 1;
   const isVerified = business.verificationStatus === 'verified' || business.packageId?.includes('verified');
   const hasVideo = Boolean(business.videoUrl || (business as unknown as { videos?: string[] }).videos?.length);

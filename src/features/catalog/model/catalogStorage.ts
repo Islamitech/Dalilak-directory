@@ -2,6 +2,7 @@ import { Business } from '../../../types';
 import { isPublicBusiness } from '../../../shared/publicBusiness';
 import { readCatalogCache } from './catalogCache';
 import { BIDI_CONTROL_REGEX } from './businessMapper';
+import { collectDisplayPhotos } from '../../../utils/categoryPhotos';
 
 export function getInitialCachedBusinesses(): Business[] {
   try {
@@ -15,7 +16,7 @@ export function getInitialCachedBusinesses(): Business[] {
             ...b,
             nameAr: typeof b.nameAr === 'string' ? b.nameAr.replace(BIDI_CONTROL_REGEX, '').trim() : b.nameAr,
             nameEn: typeof b.nameEn === 'string' ? b.nameEn.replace(BIDI_CONTROL_REGEX, '').trim() : b.nameEn,
-            photos: Array.isArray(b.photos) && b.photos.length > 0 ? b.photos : (b.coverPhoto ? [b.coverPhoto] : []),
+            photos: collectDisplayPhotos(b.photos, b.coverPhoto),
           }));
       }
     }
@@ -47,7 +48,7 @@ export async function hydrateFromIndexedDb(): Promise<Business[]> {
           ...item,
           nameAr: typeof item.nameAr === 'string' ? item.nameAr.replace(BIDI_CONTROL_REGEX, '').trim() : item.nameAr,
           nameEn: typeof item.nameEn === 'string' ? item.nameEn.replace(BIDI_CONTROL_REGEX, '').trim() : item.nameEn,
-          photos: Array.isArray(item.photos) && item.photos.length ? item.photos : item.coverPhoto ? [item.coverPhoto] : [],
+          photos: collectDisplayPhotos(item.photos, item.coverPhoto),
         } as Business)
     );
 }

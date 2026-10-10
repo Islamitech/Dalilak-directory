@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resvg } from '@resvg/resvg-js';
 
 import { findPublicBusiness, loadPublicDirectory, publicBusinessSlug } from '../src/server/directoryData.js';
+import { collectDisplayPhotos } from '../src/utils/categoryPhotos.js';
 
 function escapeXml(unsafe: string): string {
   return (unsafe || '').replace(/[<>&'"]/g, (c) => {
@@ -127,7 +128,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (biz.photos.startsWith('http') || biz.photos.startsWith('data:')) rawPhotos = [biz.photos];
       }
     }
-    const photo = coverPhoto || (rawPhotos.length > 0 ? rawPhotos[0] : null);
+    const photo =
+      collectDisplayPhotos(rawPhotos, coverPhoto)[0] ||
+      (typeof coverPhoto === 'string' && coverPhoto.startsWith('data:') ? coverPhoto : null);
 
     // 2. Process Business Photo
     if (typeof photo === 'string' && photo.length > 0) {

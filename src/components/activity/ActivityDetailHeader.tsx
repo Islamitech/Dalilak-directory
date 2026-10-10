@@ -4,7 +4,7 @@ import { AlertCircle, Camera, CheckCheck, Heart, MapPin, Play, Share2, ShieldChe
 import { Business } from '../../types';
 import { displayBusinessName } from '../../shared/lib/format';
 import { getCategoryVisual } from '../../utils/categoryVisuals';
-import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
+import { collectDisplayPhotos, getCategoryFallbackCover } from '../../utils/categoryPhotos';
 
 export interface ActivityDetailHeaderProps {
   business: Business;
@@ -33,10 +33,9 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
 }) => {
   const visual = getCategoryVisual(business.category);
   const fallbackCover = getCategoryFallbackCover(business.category);
-  const validPhotos = photos.filter(isValidPhotoUrl);
-  const rawCover = isValidPhotoUrl(business.coverPhoto) ? business.coverPhoto : null;
-  const mainPhoto = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallbackCover);
-  const hasPhotos = validPhotos.length > 0 || Boolean(rawCover);
+  const validPhotos = collectDisplayPhotos(photos, business.coverPhoto);
+  const mainPhoto = validPhotos[0] || fallbackCover;
+  const hasPhotos = validPhotos.some((photo) => !photo.includes('images.unsplash.com'));
   const isVerified = business.verificationStatus === 'verified' || Boolean(business.packageId?.includes('verified'));
   const rawName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
   const displayName = rawName

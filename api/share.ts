@@ -4,6 +4,7 @@ import { findPublicBusiness, findPublicBusinessWithStatus, loadPublicDirectory, 
 import { LIST_BUSINESS_SELECT, catalogQuery } from '../src/shared/catalogQuery.js';
 import { resolveRequestOrigin } from '../src/server/httpSecurity.js';
 import { escapeHtml, getBaseTemplate, resolveSchemaType, slugify } from '../src/server/share/template.js';
+import { collectDisplayPhotos } from '../src/utils/categoryPhotos.js';
 
 function listHeadScript(): string {
   const url = `${SUPABASE_URL}/rest/v1/${catalogQuery(LIST_BUSINESS_SELECT)}`;
@@ -361,7 +362,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (biz.photos.startsWith('http') || biz.photos.startsWith('data:')) rawPhotos = [biz.photos];
       }
     }
-    const directPhoto = coverPhoto || (rawPhotos.length > 0 ? rawPhotos[0] : null);
+    const directPhoto = collectDisplayPhotos(rawPhotos, coverPhoto)[0] || null;
 
     let ogImageUrl = '';
     let ogImageType = 'image/jpeg';

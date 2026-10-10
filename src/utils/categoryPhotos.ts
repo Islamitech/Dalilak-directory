@@ -103,7 +103,27 @@ export function isValidPhotoUrl(url?: string | null): boolean {
   const trimmed = url.trim();
   if (trimmed.length < 10) return false;
   if (trimmed.startsWith('data:')) return false;
-  // Exclude dead Google Places API media URLs that return 429 quota exhaustion
+  // A Places media URL carries the API key and is billed on every view.
   if (trimmed.includes('places.googleapis.com')) return false;
-  return true;
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://');
+}
+
+function rememberPhoto(url: string | null | undefined, real: string[], stock: string[]): void {
+  if (!isValidPhotoUrl(url)) return;
+  const trimmed = url!.trim();
+  if (real.includes(trimmed) || stock.includes(trimmed)) return;
+  if (trimmed.includes('images.unsplash.com')) stock.push(trimmed);
+  else real.push(trimmed);
+}
+
+/** Photos the screen can show. Skips Places API links. A real photo wins over a stock image. */
+export function collectDisplayPhotos(
+  photos?: readonly (string | null | undefined)[] | null,
+  coverPhoto?: string | null
+): string[] {
+  const real: string[] = [];
+  const stock: string[] = [];
+  rememberPhoto(coverPhoto, real, stock);
+  for (const photo of photos || []) rememberPhoto(photo, real, stock);
+  return real.length > 0 ? real : stock;
 }

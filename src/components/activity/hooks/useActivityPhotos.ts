@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Business } from '../../../types';
 import { SUPABASE_REST_BASE, SUPABASE_ANON_KEY } from '../../../shared/lib/supabase';
-import { isValidPhotoUrl } from '../../../utils/categoryPhotos';
+import { collectDisplayPhotos } from '../../../utils/categoryPhotos';
 
 export function useActivityPhotos(business: Business | null): string[] {
   const [livePhotos, setLivePhotos] = useState<string[]>(() => {
@@ -50,6 +50,7 @@ export function useActivityPhotos(business: Business | null): string[] {
                 }
               }
             }
+            if (typeof row.cover_photo === 'string') fetchedPhotos.unshift(row.cover_photo);
             if (isMounted) {
               setLivePhotos(fetchedPhotos);
             }
@@ -67,21 +68,8 @@ export function useActivityPhotos(business: Business | null): string[] {
 
   return useMemo(() => {
     if (!business) return [];
-    const list: string[] = [];
-    const sourcePhotos = livePhotos && livePhotos.length > 0 ? livePhotos : (business.photos || []);
-
-    if (Array.isArray(sourcePhotos) && sourcePhotos.length > 0) {
-      sourcePhotos.forEach((p) => {
-        if (isValidPhotoUrl(p) && !list.includes(p.trim())) {
-          list.push(p.trim());
-        }
-      });
-      if (isValidPhotoUrl(business.coverPhoto) && !list.includes(business.coverPhoto!.trim())) {
-        list.unshift(business.coverPhoto!.trim());
-      }
-    } else if (isValidPhotoUrl(business.coverPhoto)) {
-      list.push(business.coverPhoto!.trim());
-    }
-    return list;
+    const fromDatabase = collectDisplayPhotos(livePhotos, business.coverPhoto);
+    if (fromDatabase.length > 0) return fromDatabase;
+    return collectDisplayPhotos(business.photos, business.coverPhoto);
   }, [business, livePhotos]);
 }

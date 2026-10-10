@@ -1,12 +1,10 @@
 import { Business } from '../../types';
 import { escapeHtml } from './constants/mapConstants';
 import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
-import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
+import { collectDisplayPhotos, getCategoryFallbackCover } from '../../utils/categoryPhotos';
 
 function getValidBusinessPhoto(biz: Business, fallbackCover: string): string {
-  const validCover = isValidPhotoUrl(biz.coverPhoto) ? biz.coverPhoto : null;
-  const validPhotos = (biz.photos || []).filter(isValidPhotoUrl);
-  return validCover || (validPhotos.length > 0 ? validPhotos[0] : fallbackCover);
+  return collectDisplayPhotos(biz.photos, biz.coverPhoto)[0] || fallbackCover;
 }
 import {
   getBusinessOpenStatus,

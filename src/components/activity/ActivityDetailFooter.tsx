@@ -3,7 +3,7 @@ import { Pressable, Button } from '../../shared/ui';
 import { Store, AlertTriangle } from 'lucide-react';
 import { Business } from '../../types';
 import { getFirstStrongDirection } from '../../shared/lib/textDirection';
-import { getCategoryFallbackCover, isValidPhotoUrl } from '../../utils/categoryPhotos';
+import { collectDisplayPhotos, getCategoryFallbackCover } from '../../utils/categoryPhotos';
 
 export interface ActivityDetailFooterProps {
   business: Business;
@@ -29,9 +29,7 @@ export const ActivityDetailFooter: React.FC<ActivityDetailFooterProps> = ({
           <div className="dl-g">
             {similarPlaces.map((sim) => {
               const fallback = getCategoryFallbackCover(sim.category);
-              const validPhotos = (sim.photos || []).filter(isValidPhotoUrl);
-              const rawCover = isValidPhotoUrl(sim.coverPhoto) ? sim.coverPhoto : null;
-              const simCover = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallback);
+              const simCover = collectDisplayPhotos(sim.photos, sim.coverPhoto)[0] || fallback;
 
               return (
                 <Pressable

@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { findPublicBusiness, loadPublicDirectory, publicBusinessSlug } from '../src/server/directoryData.js';
 import { resolveRequestOrigin } from '../src/server/httpSecurity.js';
 import { slugify } from '../src/server/share/template.js';
+import { collectDisplayPhotos } from '../src/utils/categoryPhotos.js';
 
 function escapeXml(str: string): string {
   return (str || '')
@@ -90,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const lastMod = (biz.seo_generated_at || biz.updated_at || biz.created_at || BASELINE_DEPLOY_DATE).slice(0, 10);
 
       // Collect primary photos for Image Sitemap
-      const primaryPhoto = coverPhoto || (Array.isArray(biz.photos) && biz.photos.length > 0 ? biz.photos[0] : null);
+      const primaryPhoto = collectDisplayPhotos(Array.isArray(biz.photos) ? biz.photos : [], coverPhoto)[0] || null;
       let imageTag = '';
       if (primaryPhoto && typeof primaryPhoto === 'string' && primaryPhoto.startsWith('http')) {
         imageTag = `

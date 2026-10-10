@@ -7,7 +7,7 @@ import {
   getBusinessOpenStatus,
 } from '../../../utils/directoryEnhancements';
 import { getOptimizedImageUrl } from '../../../utils/imageOptimizer';
-import { getCategoryFallbackCover, isValidPhotoUrl } from '../../../utils/categoryPhotos';
+import { collectDisplayPhotos, getCategoryFallbackCover } from '../../../utils/categoryPhotos';
 import { getFirstStrongDirection } from '../../../shared/lib/textDirection';
 import { ShieldCheck } from 'lucide-react';
 import { getBusinessEntryGate } from '../../../utils/hadayekZoneHelper';
@@ -20,9 +20,7 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
   priority = false,
 }) => {
   const fallbackCover = getCategoryFallbackCover(business.category);
-  const validPhotos = (business.photos || []).filter(isValidPhotoUrl);
-  const rawCover = isValidPhotoUrl(business.coverPhoto) ? business.coverPhoto : null;
-  const mainPhoto = validPhotos.length > 0 ? validPhotos[0] : (rawCover || fallbackCover);
+  const mainPhoto = collectDisplayPhotos(business.photos, business.coverPhoto)[0] || fallbackCover;
 
   const openStatus = getBusinessOpenStatus(business.workingHours);
   const distanceKm =

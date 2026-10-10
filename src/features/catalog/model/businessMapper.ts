@@ -1,6 +1,7 @@
 import { Business } from '../../../types';
 import { SUPABASE_REST_BASE } from '../../../shared/lib/supabase';
 import { FAST_BUSINESS_SELECT, catalogQuery } from '../../../shared/catalogQuery';
+import { collectDisplayPhotos } from '../../../utils/categoryPhotos';
 
 export { FAST_BUSINESS_SELECT, LIST_BUSINESS_SELECT } from '../../../shared/catalogQuery';
 
@@ -11,11 +12,7 @@ export const BIDI_CONTROL_REGEX = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069
 export function getSafeCacheList(list: Business[]): Business[] {
   return list.map((b) => ({
     ...b,
-    photos: Array.isArray(b.photos)
-      ? b.photos
-          .filter((p: string) => typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://')))
-          .slice(0, 1)
-      : (b.coverPhoto && !b.coverPhoto.startsWith('data:') ? [b.coverPhoto] : []),
+    photos: collectDisplayPhotos(b.photos, b.coverPhoto).slice(0, 1),
   }));
 }
 
@@ -138,6 +135,8 @@ export function mapRawToBusiness(r: any): Business {
     cleanCategory = 'معرض سيارات / بيع وشراء';
   }
 
+  const displayPhotos = collectDisplayPhotos(rawPhotos, metaCoverPhoto);
+
   return {
     id: r.id,
     nameAr: rawName,
@@ -157,8 +156,8 @@ export function mapRawToBusiness(r: any): Business {
     whatsapp: r.whatsapp || r.phone || '',
     workingHours: r.working_hours || r.workingHours || '',
     description: typeof r.description === 'string' ? r.description.replace(BIDI_CONTROL_REGEX, '') : '',
-    photos: rawPhotos,
-    coverPhoto: metaCoverPhoto || (rawPhotos.length > 0 ? rawPhotos[0] : undefined),
+    photos: displayPhotos,
+    coverPhoto: displayPhotos[0],
     videos: rawVideos,
     logo: r.logo || '',
     googlePlaceId: metaGooglePlaceId || r.google_place_id || r.googlePlaceId || '',
