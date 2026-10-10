@@ -44,7 +44,7 @@ export const Logo: React.FC<LogoProps> = ({
     '2xl': 'text-base sm:text-lg',
   }[size];
 
-  const wordColor = lightText ? 'text-[var(--logo-gold-0)]' : 'text-[var(--brand-hover)]';
+  const wordColor = lightText ? 'text-[var(--logo-gold-0)]' : 'text-[var(--brand-deep)]';
 
   const Mark = (
     <svg viewBox="0 0 100 100" fill="none" className="h-full w-full" aria-hidden="true">

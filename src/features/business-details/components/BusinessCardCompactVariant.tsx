@@ -57,7 +57,7 @@ export const BusinessCardCompactVariant: React.FC<BusinessCardVariantProps> = ({
           <h4 dir={getFirstStrongDirection(business.nameAr)} className="text-sm font-extrabold text-slate-900 truncate">
             <bdi dir="auto">{business.nameAr}</bdi>
           </h4>
-          {isVerified && <ShieldCheck className="w-3.5 h-3.5 text-[var(--brand)] shrink-0" />}
+          {isVerified && <ShieldCheck className="w-3.5 h-3.5 text-[var(--brand-ink)] shrink-0" />}
         </div>
         <p className="text-caption font-bold text-amber-700 truncate mt-0.5">{business.category}</p>
         {entryGate && <p className="text-caption font-bold text-slate-500 truncate">{entryGate.line}</p>}

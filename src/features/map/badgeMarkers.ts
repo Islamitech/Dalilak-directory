@@ -452,7 +452,7 @@ export function createExpandedActivityCardHtml(
   isSelected: boolean = true
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number]; fallbackCover: string } {
   const cardWidth = 256;
-  const photoHeight = 100;
+  const photoHeight = 132;
   const pointerHeight = 9;
 
   const isVerified = biz.verificationStatus === 'verified';
@@ -486,7 +486,7 @@ export function createExpandedActivityCardHtml(
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #d97706; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #047857; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = hoursLabel ? `
@@ -505,10 +505,10 @@ export function createExpandedActivityCardHtml(
   const html = `
     <div class="activity-card-pin ${isSelected ? 'selected-expanded-pin' : 'detailed-activity-preview-pin'}" style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: ${isSelected ? 'default' : 'pointer'}; user-select: none; width: ${cardWidth}px; height: ${estimatedTotalHeight}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl;">
       <!-- Card Container with glowing golden amber border -->
-      <div style="background: #ffffff; border: ${isSelected ? '2.5px solid #f59e0b' : '1.5px solid #e2e8f0'}; box-shadow: ${isSelected ? '0 0 28px rgba(245, 158, 11, 0.85), 0 12px 36px rgba(0,0,0,0.3)' : '0 6px 20px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(0,0,0,0.1)'}; border-radius: 16px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+      <div style="background: #ffffff; border: ${isSelected ? '2.5px solid #f59e0b' : '1.5px solid #e2e8f0'}; box-shadow: ${isSelected ? '0 0 28px rgba(245, 158, 11, 0.85), 0 12px 36px rgba(0,0,0,0.3)' : '0 8px 24px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(0,0,0,0.08)'}; border-radius: 18px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
         
         <!-- 1. Visual Photo Header with Fixed Dimensions (Zero CLS) -->
-        <div class="biz-card-frame" style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 14px; border-top-right-radius: 14px;">
+        <div class="biz-card-frame" style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 16px; border-top-right-radius: 16px;">
           <img
             class="biz-card-photo"
             src="${escapeHtml(photoUrl)}"
@@ -657,7 +657,7 @@ export function createLightweightBadgeHtml(
   }
 
   const cardWidth = 184;
-  const photoHeight = 76;
+  const photoHeight = 104;
   const bodyHeight = 72;
   const pointerHeight = 9;
   const totalHeight = photoHeight + bodyHeight + pointerHeight;
@@ -692,7 +692,7 @@ export function createLightweightBadgeHtml(
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #d97706; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #047857; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = !hoursLabel
@@ -709,9 +709,9 @@ export function createLightweightBadgeHtml(
   const html = `
     <div class="activity-card-pin ${isTopProminent ? 'top-prominent-pin' : ''}" style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; width: ${cardWidth}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl;">
       <!-- Card Container (Fixed 184px, zero layout shift) -->
-      <div style="background: #ffffff; ${cardBorder} border-radius: 14px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+      <div style="background: #ffffff; ${cardBorder} border-radius: 16px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
         <!-- 1. Visual Photo Header with Fixed Dimensions -->
-        <div class="biz-card-frame" style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+        <div class="biz-card-frame" style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 14px; border-top-right-radius: 14px;">
           <img
             class="biz-card-photo"
             src="${escapeHtml(photoUrl)}"

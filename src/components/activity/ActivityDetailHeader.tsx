@@ -90,12 +90,18 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
       {/* Bottom gradient + merged title block (same look as the list card) */}
       <div className="dl-dh-grad" aria-hidden="true" />
 
-      {(isVerified || showRating) && (
+      {(isVerified || showRating || photos.length > 0) && (
         <div className="dl-dtl">
           {isVerified && (
             <span className="dl-hv">
               <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
               <span>موثق</span>
+            </span>
+          )}
+          {photos.length > 0 && (
+            <span className="dl-dcam">
+              <Camera className="w-3.5 h-3.5" />
+              <span>{photos.length}</span>
             </span>
           )}
           {showRating && (
@@ -119,14 +125,6 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
         )}
       </div>
 
-      {/* Photo Count Chip (bottom-end / left in RTL) */}
-      {photos.length > 0 && (
-        <span className="dl-dcam">
-          <Camera className="w-3.5 h-3.5" />
-          <span>{photos.length}</span>
-        </span>
-      )}
-
       {/* Video Pill (bottom-start / right in RTL) */}
       {business.videos && business.videos.length > 0 && onOpenVideoModal && (
         <Pressable
@@ -140,7 +138,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
         </Pressable>
       )}
 
-      {/* Close Button (top-start / right in RTL, 36px/44px touch) */}
+      {/* Close Button (top-end / left in RTL, where the heart used to sit) */}
       {onClose && (
         <Pressable
           type="button"
@@ -153,7 +151,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
         </Pressable>
       )}
 
-      {/* Share / copy link (next to favorite) */}
+      {/* Share stays beside the corner the heart left */}
       {onShare && (
         <Pressable
           type="button"
@@ -171,7 +169,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           )}
         </Pressable>
       )}
-      {/* Favorite Button (top-end / left in RTL, 36px/44px touch) */}
+      {/* Favorite Button (bottom-end / left in RTL, where the photo count was) */}
       {onToggleFavorite && (
         <Pressable
           type="button"

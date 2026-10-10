@@ -8,10 +8,10 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const BASE =
-  'inline-flex items-center justify-center gap-1.5 min-h-11 px-3.5 rounded-pill border text-label font-bold whitespace-nowrap select-none cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:opacity-55 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-1.5 min-h-11 px-3.5 rounded-pill border text-label font-bold whitespace-nowrap select-none cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-55 disabled:cursor-not-allowed';
 
 const IDLE = 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300';
-const ACTIVE = 'bg-[var(--brand-soft)] border-[var(--brand)] text-[var(--brand-hover)] font-extrabold';
+const ACTIVE = 'bg-[var(--brand-soft)] border-[var(--brand-strong)] text-[var(--brand-ink)] font-extrabold';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
   ({ children, active = false, icon, count, trailing, className = '', type = 'button', ...props }, ref) => (
@@ -23,7 +23,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       )}
       <span className="min-w-0 truncate">{children}</span>
       {count !== undefined && (
-        <span className={`text-caption font-extrabold ${active ? 'text-[var(--brand)]' : 'text-slate-500'}`}>
+        <span className={`text-caption font-extrabold ${active ? 'text-[var(--brand-ink)]' : 'text-slate-500'}`}>
           {count}
         </span>
       )}

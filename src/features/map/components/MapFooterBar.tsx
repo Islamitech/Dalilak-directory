@@ -67,7 +67,7 @@ export const MapFooterBar: React.FC<MapFooterBarProps> = ({
           onClick={onCopy}
           className="flex items-center gap-1 bg-[var(--input-bg)] hover:bg-amber-500/10 text-[var(--text-primary)] px-2.5 py-1.5 rounded-pill border border-[var(--border-color)] transition-all font-bold text-caption cursor-pointer"
         >
-          {copied ? <Check className="w-3.5 h-3.5 text-[var(--brand)]" /> : <Copy className="w-3.5 h-3.5 text-[var(--text-muted)]" />}
+          {copied ? <Check className="w-3.5 h-3.5 text-[var(--brand-ink)]" /> : <Copy className="w-3.5 h-3.5 text-[var(--text-muted)]" />}
           <span>{copied ? 'تم النسخ!' : 'نسخ الإحداثيات'}</span>
         </Pressable>
 

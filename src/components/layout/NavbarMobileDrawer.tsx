@@ -100,7 +100,7 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-pill flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500/10 text-amber-800 border-s-2 border-s-[var(--brand)]'
+                      ? 'bg-amber-500/10 text-amber-800 border-s-2 border-s-[var(--brand-strong)]'
                       : 'text-slate-700 hover:bg-slate-100 border-s-2 border-s-transparent'
                   }`}
                 >
@@ -148,7 +148,7 @@ export const NavbarMobileDrawer: React.FC<NavbarMobileDrawerProps> = ({
               variant="secondary"
               size="lg"
               fullWidth
-              leadingIcon={<BadgeDollarSign className="text-[var(--brand)]" />}
+              leadingIcon={<BadgeDollarSign className="text-[var(--brand-ink)]" />}
             >
               باقات النمو والتوثيق الميداني
             </ButtonLink>

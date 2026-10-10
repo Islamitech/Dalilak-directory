@@ -41,7 +41,7 @@ export const BusinessCardDetailVariant: React.FC<BusinessCardVariantProps> = ({
           <h2 id="activity-detail-modal-title">
             <bdi dir="auto">{business.nameAr}</bdi>
             {isVerified && (
-              <ShieldCheck className="w-[18px] h-[18px] text-[var(--brand)] shrink-0" aria-label="موثق" />
+              <ShieldCheck className="w-[18px] h-[18px] text-[var(--brand-ink)] shrink-0" aria-label="موثق" />
             )}
           </h2>
           <span className="dl-c">

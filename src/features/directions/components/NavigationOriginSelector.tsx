@@ -37,9 +37,9 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
           }}
         >
           {isGettingGps ? (
-            <Loader2 className="w-4 h-4 animate-spin text-[var(--brand)]" />
+            <Loader2 className="w-4 h-4 animate-spin text-[var(--brand-ink)]" />
           ) : (
-            <MapPin className="w-4 h-4 text-[var(--brand)]" />
+            <MapPin className="w-4 h-4 text-[var(--brand-ink)]" />
           )}
           <span>موقعي الحالي</span>
         </Pressable>

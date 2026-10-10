@@ -8,7 +8,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 }
 
 const BASE =
-  'inline-flex items-center justify-center rounded-pill border transition-colors duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:opacity-55 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95';
+  'inline-flex items-center justify-center rounded-pill border transition-colors duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-55 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95';
 
 // All sizes enforce the WCAG minimum touch target of 44x44px.
 const SIZES = {
@@ -18,7 +18,7 @@ const SIZES = {
 };
 
 const VARIANTS = {
-  primary: 'bg-[var(--logo-gold-1)] border-[var(--logo-gold-2)] text-[var(--logo-ink-core)] hover:bg-[var(--logo-gold-2)] hover:border-[var(--logo-gold-3)]',
+  primary: 'bg-[var(--brand)] border-[var(--brand-strong)] text-[var(--logo-ink-core)] hover:bg-[var(--brand-strong)] hover:border-[var(--brand-deep)]',
   secondary: 'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-600 hover:bg-slate-100',
   danger: 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100',

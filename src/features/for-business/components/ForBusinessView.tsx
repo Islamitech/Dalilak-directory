@@ -104,7 +104,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
 
         {submitted ? (
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center space-y-4 animate-fade-in">
-            <CheckCircle2 className="w-12 h-12 text-[var(--brand)] mx-auto" />
+            <CheckCircle2 className="w-12 h-12 text-[var(--brand-ink)] mx-auto" />
             <div className="space-y-1">
               <h4 className="font-extrabold text-base text-slate-900">تم تجهيز طلب الإدراج بنجاح</h4>
               <p className="text-xs text-slate-600 font-medium">
@@ -150,7 +150,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
                 </div>
                 {copyStatus === 'copied' && (
                   <p role="status" className="text-xs font-bold text-slate-700 flex items-center gap-1.5 pt-1">
-                    <Check className="w-4 h-4 text-[var(--brand)]" />
+                    <Check className="w-4 h-4 text-[var(--brand-ink)]" />
                     <span>تم نسخ الرسالة بنجاح إلى الحافظة! يمكنك الآن لصقها في محادثة واتساب.</span>
                   </p>
                 )}
@@ -183,7 +183,7 @@ export const ForBusinessView: React.FC<ForBusinessViewProps> = ({ onNavigate }) 
                 variant="ghost"
                 size="sm"
                 onClick={() => onNavigate('/pricing')}
-                leadingIcon={<BadgeDollarSign className="text-[var(--brand)]" />}
+                leadingIcon={<BadgeDollarSign className="text-[var(--brand-ink)]" />}
               >
                 الاطلاع على باقات التسويق والتأسيس الرقمي
               </Button>

@@ -69,7 +69,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({ pkg, isExpanded, onTog
         <div className="space-y-2 pt-2 border-t border-[var(--border-color)] text-xs text-slate-700 font-medium">
           {pkg.deliverables.map((item, idx) => (
             <div key={idx} className="flex items-start gap-2 leading-relaxed">
-              <Check className="w-4 h-4 text-[var(--brand)] shrink-0 mt-0.5 stroke-[2.5]" />
+              <Check className="w-4 h-4 text-[var(--brand-ink)] shrink-0 mt-0.5 stroke-[2.5]" />
               <span>{item}</span>
             </div>
           ))}

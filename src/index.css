@@ -19,15 +19,24 @@
   --text-2: #334155;
   --text-3: #5c6e82; /* Remediated for > 5.0:1 AAA contrast */
 
-  --brand: #c59b27;
-  --brand-hover: #b5871f;
+  /* Gold ramp — single source for every brand surface, border and label.
+     --brand-ink is the only gold that clears 4.5:1 as text on light backgrounds,
+     so icons and labels must use it instead of --brand. */
   --brand-soft: #fdf9ee;
-  --brand-ring: rgba(197, 155, 39, 0.22);
+  --brand: #f59e0b;
+  --brand-strong: #d97706;
+  --brand-deep: #b45309;
+  --brand-ink: #7a5a12;
+  --brand-hover: var(--brand-strong);
+  --brand-ring: rgba(245, 158, 11, 0.22);
   --gold: var(--brand);
 
+  /* Ink ring: 17.85:1 on white and still visible on gold surfaces, where a gold ring disappears. */
+  --focus-ring: var(--logo-ink-0);
+
   --primary: var(--brand);
-  --primary-2: #eab308;
-  --primary-dark: var(--brand-hover);
+  --primary-2: var(--brand-strong);
+  --primary-dark: var(--brand-deep);
   --primary-soft: var(--brand-soft);
   --primary-ring: var(--brand-ring);
 
@@ -42,7 +51,7 @@
   --shadow-card: 0 2px 6px rgba(10, 15, 29, 0.03), 0 10px 24px rgba(10, 15, 29, 0.05);
   --shadow-floating: 0 8px 24px rgba(10, 15, 29, 0.09);
   --shadow-modal: 0 20px 50px rgba(10, 15, 29, 0.16);
-  --shadow-primary: 0 6px 20px rgba(197, 155, 39, 0.28);
+  --shadow-primary: 0 6px 20px rgba(245, 158, 11, 0.28);
 
   --t: 280ms cubic-bezier(0.4, 0, 0.2, 1);
   --t-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -53,11 +62,12 @@
   --header-h: 64px;
   --cat-h: 58px;
 
-  /* Logo mark — referenced from Logo.tsx so components stay free of raw hex. */
+  /* Logo mark — referenced from Logo.tsx so components stay free of raw hex.
+     The mark keeps its own ramp on purpose: aliasing it to --brand would recolour the identity. */
   --logo-gold-0: #fef08a;
-  --logo-gold-1: #f59e0b;
-  --logo-gold-2: var(--brand);
-  --logo-gold-3: var(--brand-hover);
+  --logo-gold-1: var(--brand);
+  --logo-gold-2: #c59b27;
+  --logo-gold-3: #b5871f;
   --logo-silver-0: #ffffff;
   --logo-silver-1: #f8f9fb;
   --logo-silver-2: #e2e8f0;
@@ -341,7 +351,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: inherit;
 }
@@ -563,7 +573,7 @@ path.selected-district-polygon-focus {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 32%;
+  object-position: center 28%;
   display: block;
   filter: saturate(1.16) contrast(1.06) brightness(1.05);
   transform: scale(1.04);

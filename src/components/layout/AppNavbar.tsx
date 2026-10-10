@@ -108,7 +108,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
             <Button
               variant="icon"
               onClick={() => onNavigate('/favorites')}
-              className={`relative ${cleanRoute === '/favorites' ? 'text-[var(--brand)]! border-[var(--brand)]!' : ''}`}
+              className={`relative ${cleanRoute === '/favorites' ? 'text-[var(--brand-ink)]! border-[var(--brand-strong)]!' : ''}`}
               aria-label={`المفضلة${favoritesCount > 0 ? ` (${favoritesCount})` : ''}`}
               aria-current={cleanRoute === '/favorites' ? 'page' : undefined}
               title="المفضلة"

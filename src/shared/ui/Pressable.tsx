@@ -3,7 +3,7 @@ import React from 'react';
 export type PressableProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const BASE =
-  'cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:cursor-not-allowed';
+  'cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:cursor-not-allowed';
 
 /**
  * Pressable — the unstyled interactive primitive.

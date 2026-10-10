@@ -20,7 +20,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & Button
 export type ButtonLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & ButtonStyleOptions & ButtonContentProps;
 
 const BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-pill border font-bold whitespace-nowrap select-none cursor-pointer no-underline transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:opacity-55 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:opacity-55 aria-disabled:pointer-events-none';
+  'inline-flex items-center justify-center gap-1.5 rounded-pill border font-bold whitespace-nowrap select-none cursor-pointer no-underline transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-55 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:opacity-55 aria-disabled:pointer-events-none';
 
 const SIZES: Record<ButtonSize, string> = {
   sm: 'min-h-9 px-3.5 text-label',
@@ -30,7 +30,7 @@ const SIZES: Record<ButtonSize, string> = {
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--logo-gold-1)] border-[var(--logo-gold-2)] text-[var(--logo-ink-core)] hover:bg-[var(--logo-gold-2)] hover:border-[var(--logo-gold-3)] shadow-xs hover:shadow-sm',
+    'bg-[var(--brand)] border-[var(--brand-strong)] text-[var(--logo-ink-core)] hover:bg-[var(--brand-strong)] hover:border-[var(--brand-deep)] shadow-xs hover:shadow-sm',
   secondary:
     'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-700 hover:bg-slate-100',

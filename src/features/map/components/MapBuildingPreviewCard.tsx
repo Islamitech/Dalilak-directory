@@ -63,7 +63,7 @@ export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
             عمارة رقم {building.buildingNumber}
           </div>
           <div className="mt-1 flex items-center gap-1 text-caption font-bold text-slate-500">
-            <Store className="h-3.5 w-3.5 text-[var(--brand)]" />
+            <Store className="h-3.5 w-3.5 text-[var(--brand-ink)]" />
             <span>{formatNearbyActivityCount(associatedBusinessesCount)}</span>
             <span className="ms-auto inline-flex items-center gap-0.5 text-amber-700">
               التفاصيل <ChevronLeft className="h-3.5 w-3.5" />

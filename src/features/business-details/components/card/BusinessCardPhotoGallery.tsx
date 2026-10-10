@@ -101,6 +101,15 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
                 decoding="async"
                 className={loadedPhotos[idx] ? 'dl-in' : ''}
                 onLoad={() => setLoadedPhotos((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }))}
+                onError={(event) => {
+                  const img = event.currentTarget;
+                  if (fallbackCover && img.dataset.fallback !== '1') {
+                    img.dataset.fallback = '1';
+                    img.src = fallbackCover;
+                    return;
+                  }
+                  setLoadedPhotos((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
+                }}
               />
             </div>
           ))}

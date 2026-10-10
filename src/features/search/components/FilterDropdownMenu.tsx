@@ -83,7 +83,7 @@ export const FilterDropdownMenu: React.FC<FilterDropdownMenuProps> = ({
           <ChevronDown
             size={compact ? 12 : 14}
             aria-hidden="true"
-            className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[var(--brand)]' : 'text-slate-400'}`}
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[var(--brand-ink)]' : 'text-slate-400'}`}
           />
         }
       >

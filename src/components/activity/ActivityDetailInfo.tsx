@@ -45,8 +45,8 @@ export const ActivityDetailInfo: React.FC<ActivityDetailInfoProps> = ({
               <i aria-hidden="true" />
             </span>
             <span>{openStatus.badgeText}</span>
-            <small>· {hoursLabel}</small>
           </span>
+          <span className="dl-hours">{hoursLabel}</span>
         </div>
       )}
 
