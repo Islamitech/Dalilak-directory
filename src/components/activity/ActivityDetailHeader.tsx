@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Pressable } from '../../shared/ui';
 import { AlertCircle, Camera, CheckCheck, Heart, MapPin, Play, Share2, ShieldCheck, X } from 'lucide-react';
 import { Business } from '../../types';
@@ -7,6 +7,7 @@ import { getCategoryVisual } from '../../utils/categoryVisuals';
 import { collectRealPhotos } from '../../utils/categoryPhotos';
 import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 import { formatBusinessAreaLabel } from '../../utils/hadayekZoneHelper';
+import { getBusinessOpenStatus } from '../../utils/directoryEnhancements';
 
 export interface ActivityDetailHeaderProps {
   business: Business;
@@ -36,16 +37,54 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
   const visual = getCategoryVisual(business.category, 'light');
   const realPhotos = collectRealPhotos(photos, business.coverPhoto);
   const [brokenSrc, setBrokenSrc] = useState('');
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
   const mainPhoto = realPhotos[0] && brokenSrc !== realPhotos[0] ? realPhotos[0] : '';
   const isVerified = business.verificationStatus === 'verified' || Boolean(business.packageId?.includes('verified'));
   const rawName = displayBusinessName(business.nameAr, business.nameEn) || business.nameAr;
   const displayName = rawName.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim() || rawName;
   const areaString = formatBusinessAreaLabel(business);
+  const openStatus = getBusinessOpenStatus(business.workingHours);
+
+  const handleCarouselScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (!el.clientWidth) return;
+    const nextIdx = Math.round(Math.abs(el.scrollLeft) / el.clientWidth);
+    if (nextIdx >= 0 && nextIdx < realPhotos.length && nextIdx !== activePhotoIdx) {
+      setActivePhotoIdx(nextIdx);
+    }
+  };
 
   return (
     <>
-      <div className={`dl-dh ${mainPhoto ? 'dl-has-photo' : 'dl-dh-plain'}`}>
-        {mainPhoto ? (
+      <div className={`dl-dh relative ${realPhotos.length > 0 ? 'dl-has-photo' : 'dl-dh-plain'}`}>
+        {realPhotos.length > 1 ? (
+          <div
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none w-full h-full"
+            style={{ scrollBehavior: 'smooth' }}
+          >
+            {realPhotos.map((photo, idx) => (
+              <Pressable
+                key={photo}
+                type="button"
+                className="snap-center shrink-0 w-full h-full relative block cursor-pointer p-0"
+                aria-label={`معاينة صورة ${idx + 1} لـ ${business.nameAr}`}
+                onClick={() => onPreviewPhoto(idx)}
+              >
+                <img
+                  src={getOptimizedImageUrl(photo, 960, 720)}
+                  alt=""
+                  className="dl-dh-full-img w-full h-full object-cover"
+                  loading={idx === 0 ? 'eager' : 'lazy'}
+                />
+                <div className="dl-dh-full-overlay" />
+              </Pressable>
+            ))}
+          </div>
+        ) : mainPhoto ? (
           <Pressable
             type="button"
             className="dl-dh-full-btn"
@@ -67,6 +106,29 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           </div>
         )}
 
+        {realPhotos.length > 1 && (
+          <div className="absolute bottom-2.5 inset-inline-0 flex items-center justify-center gap-1.5 z-10">
+            {realPhotos.map((_, i) => (
+              <Pressable
+                key={i}
+                type="button"
+                aria-label={`صورة ${i + 1}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePhotoIdx(i);
+                  if (carouselRef.current) {
+                    const w = carouselRef.current.clientWidth;
+                    carouselRef.current.scrollTo({ left: w * i, behavior: 'smooth' });
+                  }
+                }}
+                className={`h-1.5 rounded-pill transition-all cursor-pointer p-0 border-0 ${
+                  i === activePhotoIdx ? 'w-4 bg-white shadow-sm' : 'w-1.5 bg-white/60 hover:bg-white/90'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
         {(isVerified || realPhotos.length > 1) && (
           <div className="dl-dtl">
             {isVerified && (
@@ -76,7 +138,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
               </span>
             )}
             {realPhotos.length > 1 && (
-              <Pressable type="button" className="dl-dcam" onClick={() => onPreviewPhoto(0)} aria-label={`${realPhotos.length} صور`}>
+              <Pressable type="button" className="dl-dcam" onClick={() => onPreviewPhoto(activePhotoIdx)} aria-label={`${realPhotos.length} صور`}>
                 <Camera className="w-3.5 h-3.5" />
                 <span>{realPhotos.length}</span>
               </Pressable>
@@ -124,7 +186,21 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
       </div>
 
       <div className="dl-dmeta">
-        {business.category && <p className="dl-hcat-quiet">{business.category}</p>}
+        <div className="flex items-center justify-between gap-2">
+          {business.category && <p className="dl-hcat-quiet">{business.category}</p>}
+          {openStatus && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-pill text-caption font-extrabold ${
+                openStatus.isOpen
+                  ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                  : 'text-slate-600 bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <i className={`w-1.5 h-1.5 rounded-pill shrink-0 ${openStatus.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              <span>{openStatus.badgeText}</span>
+            </span>
+          )}
+        </div>
         <div className="dl-dmeta-row">
           <h2 id="activity-detail-modal-title" className="dl-dnm-h">
             <bdi dir="rtl">{displayName}</bdi>

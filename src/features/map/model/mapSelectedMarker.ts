@@ -1,7 +1,6 @@
 import { Business } from '../../../types';
 import {
-  createExpandedActivityCardHtml,
-  attachCardDomListeners,
+  createCompactActivityPinHtml,
 } from '../badgeMarkers';
 
 export function renderSelectedBusinessMarker(
@@ -9,8 +8,8 @@ export function renderSelectedBusinessMarker(
   selectedMarkerRef: { current: any },
   selectedBiz: Business | null,
   onSelectBusiness: (biz: Business) => void,
-  onDeselect: () => void,
-  onStartNavigation?: (biz: Business) => void
+  _onDeselect: () => void,
+  _onStartNavigation?: (biz: Business) => void
 ): void {
   if (!selectedLayer || !window.L) return;
 
@@ -22,18 +21,18 @@ export function renderSelectedBusinessMarker(
     return;
   }
 
-  const cardData = createExpandedActivityCardHtml(selectedBiz);
+  // Phase 4: Replace bloated 256x300px HTML popup card with high-performance sleek glowing pin,
+  // while the native spring bottom sheet opens immediately in Peek mode (~110px).
+  const pinData = createCompactActivityPinHtml(selectedBiz, true, false, undefined, [0, 0], true);
 
   const bizIcon = window.L.divIcon({
-    className: 'custom-biz-pin selected-expanded-card animate-scale-in',
-    html: cardData.html,
-    iconSize: cardData.iconSize,
-    iconAnchor: cardData.iconAnchor,
+    className: 'custom-biz-pin selected-glowing-pin animate-scale-in',
+    html: pinData.html,
+    iconSize: pinData.iconSize,
+    iconAnchor: pinData.iconAnchor,
   });
 
-  const handleDirections = onStartNavigation ? () => onStartNavigation(selectedBiz) : undefined;
-
-  const handleCardClick = () => {
+  const handlePinClick = () => {
     onSelectBusiness(selectedBiz);
   };
 
@@ -41,8 +40,7 @@ export function renderSelectedBusinessMarker(
     selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
     selectedMarkerRef.current.setIcon(bizIcon);
     selectedMarkerRef.current.off('click');
-    selectedMarkerRef.current.on('click', handleCardClick);
-    attachCardDomListeners(selectedMarkerRef.current, cardData.fallbackCover, onDeselect, handleDirections);
+    selectedMarkerRef.current.on('click', handlePinClick);
   } else {
     selectedLayer.clearLayers();
     const marker = window.L.marker([selectedBiz.lat, selectedBiz.lng], {
@@ -50,9 +48,8 @@ export function renderSelectedBusinessMarker(
       pane: 'selectedPinPane',
       zIndexOffset: 1200,
     });
-    marker.on('click', handleCardClick);
+    marker.on('click', handlePinClick);
     selectedLayer.addLayer(marker);
-    attachCardDomListeners(marker, cardData.fallbackCover, onDeselect, handleDirections);
     selectedMarkerRef.current = marker;
   }
 }

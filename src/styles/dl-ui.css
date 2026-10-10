@@ -1463,113 +1463,195 @@
 
   .dl-msheet .dl-dbar { box-shadow: none; }
 
-  /* One entity sheet: phone snaps, wide screen is a 420px side panel. */
+  /* Native Spring Bottom Sheet: phone snaps (Peek 110px, Half 48vh, Full 90vh), Desktop >= 1024px floating side panel. */
   .dl-esheet {
-    position: absolute;
+    position: fixed;
     z-index: 1100;
     inset-inline: 0;
     bottom: 0;
+    top: auto;
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: #fff;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
     border-bottom: 0;
     border-radius: 22px 22px 0 0;
-    box-shadow: var(--shadow-floating);
+    box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.12), 0 -2px 6px rgba(15, 23, 42, 0.04);
     outline: none;
+    transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: height, transform;
+    touch-action: pan-y;
+  }
+  .dl-esheet[data-placement="map"] {
+    position: absolute;
+  }
+  .dl-esheet[data-placement="page"] {
+    position: fixed;
+  }
+  .dl-esheet.is-dragging {
+    transition: none !important;
   }
   .dl-esheet-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 59;
+    z-index: 1090;
     border: 0;
     padding: 0;
     cursor: pointer;
-    background: rgba(15, 23, 42, 0.28);
+    background: rgba(15, 23, 42, 0.32);
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s ease;
   }
-  .dl-esheet[data-placement="page"] {
-    position: fixed;
-    z-index: 60;
-    inset-inline: 0;
+  .dl-esheet[data-snap="peek"] ~ .dl-esheet-backdrop,
+  .dl-esheet-backdrop[data-snap="peek"] {
+    display: none !important;
+    pointer-events: none !important;
   }
-  .dl-esheet[data-snap="peek"] { height: 180px; }
-  .dl-esheet[data-placement="map"][data-snap="half"] { height: 55%; }
-  .dl-esheet[data-placement="map"][data-snap="full"] { height: 100%; border-radius: 0; }
-  /* A floating window: the directory stays visible around it. */
-  .dl-esheet[data-placement="page"],
-  .dl-esheet[data-placement="page"][data-snap="half"],
-  .dl-esheet[data-placement="page"][data-snap="full"] {
-    top: 50%;
-    bottom: auto;
-    inset-inline: auto;
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%);
-    width: min(440px, calc(100vw - 40px));
-    max-width: calc(100vw - 40px);
-    height: min(70dvh, 640px);
-    max-height: calc(100dvh - 36px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    border-radius: 22px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08), 0 28px 60px rgba(15, 23, 42, 0.22);
+
+  /* Snap Points on Mobile: Peek (~110px), Half (~48vh), Full (~90vh) */
+  .dl-esheet[data-snap="peek"] {
+    height: 110px;
+    max-height: 110px;
   }
-  .dl-esheet[data-placement="page"] .dl-esheet-handle { display: none; }
-  .dl-esheet[data-placement="page"] .dl-esheet-body { overflow: hidden; }
-  .dl-esheet[data-placement="page"] .dl-dh { height: 200px; }
-  .dl-esheet[data-placement="page"] .dl-dh.dl-has-photo { height: clamp(240px, 46%, 320px); }
-  .dl-esheet[data-placement="page"] .dl-dwrap {
-    height: 100%;
-    max-height: 100%;
-    min-height: 0;
+  .dl-esheet[data-snap="peek"] .dl-esheet-x {
+    top: 6px;
+    inset-inline-end: 10px;
   }
-  .dl-esheet[data-placement="page"] .dl-dscroll {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
+  .dl-esheet[data-snap="half"] {
+    height: 48vh;
+    height: 48dvh;
+    max-height: 48vh;
+    max-height: 48dvh;
   }
-  @media (min-width: 720px) {
-    .dl-esheet[data-placement="page"],
-    .dl-esheet[data-placement="page"][data-snap="half"],
-    .dl-esheet[data-placement="page"][data-snap="full"] {
-      width: min(520px, calc(100vw - 120px));
-      height: min(72dvh, 760px);
-    }
-    .dl-esheet[data-placement="page"] .dl-dh { height: 220px; }
-    .dl-esheet[data-placement="page"] .dl-dh.dl-has-photo { height: clamp(300px, 48%, 380px); }
+  .dl-esheet[data-snap="full"] {
+    height: 90vh;
+    height: 90dvh;
+    max-height: 90vh;
+    max-height: 90dvh;
+  }
+
+  .dl-esheet-handle-zone {
+    flex: none;
+    width: 100%;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+    padding-top: 2px;
+  }
+  .dl-esheet-handle-zone:active {
+    cursor: grabbing;
   }
   .dl-esheet-handle {
     flex: none;
-    width: 48px;
-    height: 18px;
-    margin: 6px auto 0;
-    cursor: grab;
-    touch-action: none;
-    background: linear-gradient(#cbd5e1, #cbd5e1) center / 42px 4px no-repeat;
+    width: 44px;
+    height: 4.5px;
+    border-radius: 9999px;
+    background: #cbd5e1;
+    transition: background 0.15s ease, width 0.15s ease;
   }
-  .dl-esheet-x { position: absolute; top: 8px; inset-inline-end: 8px; z-index: 2; }
+  .dl-esheet-handle-zone:active .dl-esheet-handle,
+  .dl-esheet.is-dragging .dl-esheet-handle {
+    cursor: grabbing;
+    background: #94a3b8;
+    width: 52px;
+  }
+  .dl-esheet-x {
+    position: absolute;
+    top: 8px;
+    inset-inline-end: 8px;
+    z-index: 20;
+  }
   .dl-esheet-body {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
   }
+
+  .dl-esheet .dl-dwrap {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .dl-esheet .dl-dscroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Header dynamics based on snap point & scroll collapse */
+  .dl-esheet .dl-dh {
+    transition: height 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
+  }
+  .dl-esheet[data-snap="half"] .dl-dh {
+    height: 140px;
+  }
+  .dl-esheet[data-snap="full"] .dl-dh {
+    height: clamp(200px, 30vh, 270px);
+  }
+  .dl-dwrap[data-scrolled="true"] .dl-dh {
+    height: 96px !important;
+  }
+  .dl-dwrap[data-scrolled="true"] .dl-dh .dl-dtl {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Desktop >= 1024px: Floating Side Panel */
   @media (min-width: 1024px) {
+    .dl-esheet,
+    .dl-esheet[data-placement="page"],
     .dl-esheet[data-placement="map"],
-    .dl-esheet[data-placement="map"][data-snap="peek"],
-    .dl-esheet[data-placement="map"][data-snap="half"],
-    .dl-esheet[data-placement="map"][data-snap="full"] {
-      top: 0;
-      bottom: 0;
-      height: auto;
-      width: 420px;
-      max-width: 100%;
-      inset-inline-start: auto;
-      border-radius: 0;
-      border-inline-start: 1px solid #e2e8f0;
+    .dl-esheet[data-snap="peek"],
+    .dl-esheet[data-snap="half"],
+    .dl-esheet[data-snap="full"] {
+      position: fixed !important;
+      top: 16px !important;
+      bottom: 16px !important;
+      left: auto !important;
+      right: auto !important;
+      inset-inline-start: auto !important;
+      inset-inline-end: 16px !important;
+      width: 440px !important;
+      max-width: calc(100vw - 32px) !important;
+      height: calc(100dvh - 32px) !important;
+      max-height: calc(100dvh - 32px) !important;
+      border-radius: 20px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 16px 40px -4px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+      transform: none !important;
+      z-index: 1100 !important;
     }
+    .dl-esheet .dl-esheet-handle-zone,
+    .dl-esheet .dl-esheet-handle {
+      display: none !important;
+    }
+    .dl-esheet-backdrop {
+      background: rgba(15, 23, 42, 0.14);
+      backdrop-filter: none;
+    }
+    .dl-esheet .dl-dh {
+      height: 240px !important;
+    }
+  }
+
+  /* Selected Activity Pin Glowing Highlight */
+  .activity-pin-wrapper.selected-pin .activity-pin-head {
+    filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.95)) drop-shadow(0 2px 5px rgba(15, 23, 42, 0.35));
+    transform: scale(1.12);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
   }
 
   button.dl-ir {

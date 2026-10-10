@@ -7,6 +7,8 @@ import { HADAYEK_GATES } from '../shared/data/hadayek/hadayekGeo';
 import { MAP_ZOOM_POLICY, isLocalPinPresentationZoom } from '../utils/mapZoomPolicy';
 import { getVisualViewportPadding, planCameraTransitionOnZoneChange } from '../features/map/utils/cameraPlanner';
 import { getMapBusinessSearchMatches, isSearchSelectedBusiness } from '../utils/mapSearch';
+import { createCompactActivityPinHtml } from '../features/map/badgeMarkers';
+import fs from 'node:fs';
 
 function business(partial: Partial<Business> & Pick<Business, 'id' | 'nameAr' | 'category' | 'lat' | 'lng'>): Business {
   return {
@@ -65,5 +67,26 @@ describe('map repair safety contracts', () => {
 
   it('parses building number with Arabic digits and an explicit zone', () => {
     expect(parseHadayekBuildingAddress('عمارة ٤٥٦ ب')).toEqual({ buildingNumber: '456', zoneLetter: 'ب' });
+  });
+
+  it('enforces Phase 4 Native Spring Bottom Sheet styling and snap points in dl-ui.css', () => {
+    const css = fs.readFileSync('src/styles/dl-ui.css', 'utf8');
+    expect(css).toContain('.dl-esheet[data-snap="peek"]');
+    expect(css).toContain('height: 110px');
+    expect(css).toContain('.dl-esheet[data-snap="half"]');
+    expect(css).toContain('height: 48dvh');
+    expect(css).toContain('.dl-esheet[data-snap="full"]');
+    expect(css).toContain('height: 90dvh');
+    expect(css).toContain('.dl-esheet-handle-zone');
+    expect(css).toContain('data-scrolled="true"');
+    expect(css).toContain('.activity-pin-wrapper.selected-pin');
+  });
+
+  it('renders sleek glowing pin for selected marker without bulky HTML popup card', () => {
+    const biz = business({ id: 'b1', nameAr: 'نشاط تجريبي', category: 'مطاعم', lat: 29.97, lng: 31.10 });
+    const { html, iconAnchor } = createCompactActivityPinHtml(biz, true, false, undefined, [0, 0], true);
+    expect(html).toContain('selected-pin');
+    expect(html).toContain('نشاط تجريبي');
+    expect(iconAnchor[1]).toBeGreaterThan(50);
   });
 });
