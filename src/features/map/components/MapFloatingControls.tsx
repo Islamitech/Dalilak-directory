@@ -64,7 +64,7 @@ export const MapFloatingControls: React.FC<MapFloatingControlsProps> = ({
         </div>
       )}
 
-      <div className="map-floating map-icon-controls absolute bottom-6 start-3 z-[1010] pointer-events-auto flex flex-col gap-2">
+      <div className="map-floating map-icon-controls absolute bottom-28 lg:bottom-6 start-3 z-[1010] pointer-events-auto flex flex-col gap-2">
         <div className="flex flex-col">
           {/* 1. Locate Me (44px target) — the single amber-accented action */}
           {mode === 'view' && onLocate && (

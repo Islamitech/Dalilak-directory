@@ -56,14 +56,10 @@ export function getTileCoordinatesInBounds(
 export function buildTileUrl(type: MapTileLayerType, x: number, y: number, z: number, subIndex: number = 0): string {
   switch (type) {
     case 'google-streets': {
-      const subdomains = ['0', '1', '2', '3'];
-      const sub = subdomains[subIndex % subdomains.length];
-      return `https://mt${sub}.google.com/vt/lyrs=m&x=${x}&y=${y}&z=${z}`;
+      return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`;
     }
     case 'google-hybrid': {
-      const subdomains = ['0', '1', '2', '3'];
-      const sub = subdomains[subIndex % subdomains.length];
-      return `https://mt${sub}.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${z}`;
+      return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
     }
     case 'dalelak-clean': {
       const subdomains = ['a', 'b', 'c'];
@@ -75,7 +71,9 @@ export function buildTileUrl(type: MapTileLayerType, x: number, y: number, z: nu
     }
     case 'dalelak-white':
     default: {
-      return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+      const subdomains = ['a', 'b', 'c'];
+      const sub = subdomains[subIndex % subdomains.length];
+      return `https://${sub}.tile.openstreetmap.fr/hot/${z}/${x}/${y}.png`;
     }
   }
 }

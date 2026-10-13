@@ -2,13 +2,54 @@
   "name": "منصة دليلك | دليل المحلات والأنشطة والخدمات المعتمدة في مصر",
   "short_name": "دليلك",
   "description": "الدليل المعتمد لاستكشاف المحلات والأنشطة التجارية والطبية والحرفية والمواقع الموثقة على خرائط Google في مصر.",
+  "id": "/?source=pwa",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f8f9fb",
-  "theme_color": "#d97706",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "ar",
   "dir": "rtl",
+  "shortcuts": [
+    {
+      "name": "الخريطة التفاعلية",
+      "short_name": "الخريطة",
+      "description": "استكشف الأنشطة والخدمات على خريطة حدائق الأهرام",
+      "url": "/map",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "دليل الأنشطة",
+      "short_name": "الدليل",
+      "description": "تصفح قائمة الأنشطة التجارية والخدمات الميدانية",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "المفضلة",
+      "short_name": "المفضلة",
+      "description": "الأنشطة والأماكن المحفوظة لديك",
+      "url": "/favorites",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "/favicon.svg",

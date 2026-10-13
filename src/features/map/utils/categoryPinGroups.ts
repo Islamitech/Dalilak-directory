@@ -24,7 +24,7 @@ const PIN_BOX_HEIGHT = 54;
  * are shown so the map stays airy; zooming in splits clusters and reveals the rest.
  */
 export function categoryPinLimitForZoom(zoom: number): number {
-  return zoom < 15.5 ? 2 : 6;
+  return zoom < 15.5 ? 2 : 3;
 }
 
 /** Splits a cluster into per-category sub-groups, biggest category first (stable). */

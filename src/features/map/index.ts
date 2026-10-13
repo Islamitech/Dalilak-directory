@@ -40,6 +40,12 @@ export {
   type TargetBuildingData,
 } from './model/mapTargetBuildingLayer';
 
+export {
+  syncCadastralNumbersLayer,
+  CADASTRAL_NUMBERS_MIN_ZOOM,
+  type CadastralNumbersParams,
+} from './model/mapCadastralNumbersLayer';
+
 export { sortBusinessesForMap } from './model/mapBusinessFilter';
 export { renderSelectedBusinessMarker } from './model/mapSelectedMarker';
 export { executePinPipeline, type PinPipelineContext } from './model/mapPinPipeline';

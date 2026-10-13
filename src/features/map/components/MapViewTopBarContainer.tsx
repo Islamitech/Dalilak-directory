@@ -1,6 +1,5 @@
 import React from 'react';
 import { Business } from '../../../types';
-import { MapModernTopBar } from './MapModernTopBar';
 import { MapCanvasTransit } from './MapCanvasTransit';
 
 export interface MapViewTopBarContainerProps {
@@ -45,25 +44,11 @@ export const MapViewTopBarContainer: React.FC<MapViewTopBarContainerProps> = ({
   }
 
   return (
-    <>
-      <MapModernTopBar
-        onViewList={onViewList}
-        businesses={businesses}
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        categoryFilter={categoryFilter}
-        onCategoryChange={onCategoryChange}
-        selectedZone={activeZone || 'all'}
-        onZoneChange={onSelectZone}
-        directoryScope={directoryScope}
-        onDirectoryScopeChange={onDirectoryScopeChange}
-      />
-      <MapCanvasTransit
-        count={matchingCount ?? 0}
-        onOpenList={onViewList}
-        filtersActive={filtersActive}
-        onReset={onResetAll}
-      />
-    </>
+    <MapCanvasTransit
+      count={matchingCount ?? 0}
+      onOpenList={onViewList}
+      filtersActive={filtersActive}
+      onReset={onResetAll}
+    />
   );
 };

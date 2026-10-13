@@ -17,24 +17,7 @@ export function buildDistrictsLayer(
   districtsLayer.clearLayers();
   const polygons: DistrictPolygonItem[] = [];
   const labeled = new Set<string>();
-
-  const worldRing: [number, number][] = [
-    [35.0, 25.0],
-    [35.0, 37.0],
-    [25.0, 37.0],
-    [25.0, 25.0],
-  ];
-
-  const mask = window.L.polygon([worldRing], {
-    pane: 'maskPane',
-    stroke: false,
-    fillColor: '#090d16',
-    fillOpacity: 0.0,
-    fillRule: 'evenodd',
-    interactive: false,
-    className: 'hadayek-spotlight-focus-mask',
-  });
-  districtsLayer.addLayer(mask);
+  const mask = null;
 
   HADAYEK_OFFICIAL_DISTRICTS.forEach((district) => {
     district.polygons.forEach((polyCoords) => {
@@ -84,7 +67,7 @@ export function updateDistrictHighlightStyles(
   zoneLetter: string,
   shouldHighlight: boolean
 ) {
-  mask?.setStyle({ fillOpacity: 0 });
+  if (mask?.setStyle) mask.setStyle({ fillOpacity: 0 });
 
   polygons.forEach(({ letterAr, polygon, label }) => {
     const isSelected = shouldHighlight && letterAr === zoneLetter;

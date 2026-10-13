@@ -69,10 +69,10 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
         </div>
       )}
 
-      {originType === 'gps' && gpsError && (
+      {gpsError && (
         <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-caption font-bold text-amber-900 flex items-center gap-1.5">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>{gpsError}</span>
+          <span className="flex-1 leading-snug">{gpsError}</span>
         </div>
       )}
     </div>

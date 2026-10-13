@@ -184,11 +184,17 @@ export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): bool
   const normFilter = normalizeArabicText(zoneFilter);
 
   // 1. Gate Matching
+  const isGateQuery = normFilter.includes('بواب') || normFilter.includes('gate');
   const gateMatch = HADAYEK_GATES.find(
     (g) =>
       normFilter.includes(normalizeArabicText(g.nameAr)) ||
       normFilter.includes(normalizeArabicText(g.popularNameAr)) ||
-      normFilter.includes(normalizeArabicText(g.shortNameAr))
+      normFilter.includes(normalizeArabicText(g.shortNameAr)) ||
+      (isGateQuery && (
+        normalizeArabicText(g.nameAr).includes(normFilter) ||
+        normalizeArabicText(g.popularNameAr).includes(normFilter) ||
+        normalizeArabicText(g.shortNameAr).includes(normFilter)
+      ))
   );
 
   if (gateMatch) {

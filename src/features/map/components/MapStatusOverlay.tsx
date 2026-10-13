@@ -77,7 +77,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
       {/* Status banner for busy/error */}
       {mode === 'view' && ((busy && showBusy) || (!busy && directoryLoad.error)) && (
         <div
-          className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none"
+          className="absolute bottom-28 lg:bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none"
           role="status"
           aria-live="polite"
           aria-atomic="true"
@@ -135,7 +135,7 @@ export const MapStatusOverlay: React.FC<MapStatusOverlayProps> = ({
         !searchPending &&
         !directoryLoad.error &&
         matchingBusinessesCount === 0 && (
-          <div className="absolute bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none transition-all duration-300">
+          <div className="absolute bottom-28 lg:bottom-5 inset-x-3 z-[850] flex justify-center pointer-events-none transition-all duration-300">
             <div className="bg-slate-900/90 backdrop-blur-md text-amber-300 border border-amber-500/40 rounded-pill px-4 py-1.5 text-xs font-bold shadow-xl flex items-center gap-2 select-none">
               <span className="text-sm">🔍</span>
               <span>

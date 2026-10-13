@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Pressable } from '../../../shared/ui';
-import { Building2, ChevronLeft, Store } from 'lucide-react';
+import { Pressable, Button } from '../../../shared/ui';
+import { Building2, ChevronLeft, Navigation, Store } from 'lucide-react';
 import { Business } from '../../../types';
 import { getHadayekZone } from '../../../shared/data/hadayek/hadayekGeo';
 import { isBusinessAssociatedWithBuilding } from '../../../utils/hadayekBuildingSearch';
@@ -16,12 +16,14 @@ interface MapBuildingPreviewCardProps {
   };
   businesses: Business[];
   onOpenDetails: () => void;
+  onStartNavigation?: () => void;
 }
 
 export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
   building,
   businesses,
   onOpenDetails,
+  onStartNavigation,
 }) => {
   const zone = getHadayekZone(building.zoneLetter);
   const associatedBusinessesCount = useMemo(
@@ -70,6 +72,18 @@ export const MapBuildingPreviewCard: React.FC<MapBuildingPreviewCardProps> = ({
             </span>
           </div>
         </Pressable>
+
+        {onStartNavigation && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onStartNavigation}
+            leadingIcon={<Navigation className="w-3.5 h-3.5" />}
+            aria-label="ابدأ الاتجاهات إلى هذه العمارة"
+          >
+            الاتجاهات
+          </Button>
+        )}
       </div>
   );
 };

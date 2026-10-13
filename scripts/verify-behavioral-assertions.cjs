@@ -221,6 +221,13 @@ async function runBehavioralTests() {
           return fav && (fav.classList.contains('dl-on') || fav.getAttribute('aria-pressed') === 'true' || fav.getAttribute('aria-label')?.includes('إزالة'));
         }, { timeout: 7000 });
 
+        // Assert showcase toast appears with message and undo action
+        const toast = page.locator('.dl-toast');
+        await toast.waitFor({ state: 'visible', timeout: 5000 });
+        const toastText = await toast.innerText();
+        assert.ok(toastText.includes('أُضيف إلى المفضلة'), 'Toast notification must show favorite confirmation');
+        assert.ok(toastText.includes('تراجع'), 'Toast notification must include undo button');
+
         // 2. Open mobile drawer to navigate to Favorites (/favorites)
         const moreBtn = page.locator('button[aria-label*="المزيد"]').first();
         await moreBtn.waitFor({ state: 'visible', timeout: 7000 });

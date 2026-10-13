@@ -1,11 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { type SearchViewProps, CadastralBuildingCard, UnifiedSearchFilterBar } from '../../features/search';
+import { type SearchViewProps, CadastralBuildingCard } from '../../features/search';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { BusinessCardGrid } from '../../components/cards/BusinessCardGrid';
-import { ViewSegmentedSwitch } from '../layout/ViewSegmentedSwitch';
 import { ActivityListHeader } from './ActivityListHeader';
-import { Button } from '../../shared/ui';
-import { X } from 'lucide-react';
 import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
 import { getRecommendedGateForZone } from '../../shared/data/hadayek/hadayekGeo';
 import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
@@ -156,35 +153,9 @@ export const SearchView: React.FC<SearchViewProps> = ({
 
   return (
     <div
-      className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 pt-2 pb-[calc(96px+env(safe-area-inset-bottom,0px))] bg-[var(--bg)]"
+      className="max-w-7xl mx-auto w-full px-3 min-[380px]:px-4 sm:px-6 pt-2 pb-[calc(140px+env(safe-area-inset-bottom,0px))] bg-[var(--bg)]"
       dir="rtl"
     >
-      <div className="sticky top-[calc(var(--app-header-h,var(--header-h))+0.5rem)] z-30 flex justify-center pointer-events-none mb-4">
-        <div className="pointer-events-auto flex flex-nowrap overflow-x-auto no-scrollbar items-center justify-center gap-2 max-w-full py-1">
-          <div className="shrink-0 rounded-pill bg-white/95 border border-slate-200/80 shadow-sm backdrop-blur-md p-0.5">
-            <ViewSegmentedSwitch
-              activeView="list"
-              size="sm"
-              onViewChange={(view) => {
-                if (view === 'map') onNavigate('/map');
-              }}
-            />
-          </div>
-          <div className="rounded-pill bg-white/95 border border-slate-200/80 shadow-sm backdrop-blur-md px-1 py-0.5">
-            <UnifiedSearchFilterBar
-              searchQuery={searchQuery}
-              onSearchChange={onSearchChange}
-              selectedCategory={categoryFilter}
-              onCategoryChange={onCategoryChange}
-              selectedZone={selectedZone}
-              onZoneChange={onZoneChange}
-              businesses={scopeCatalog}
-              showZone={directoryScope === 'hadayek'}
-              variant="list"
-            />
-          </div>
-        </div>
-      </div>
 
       <ActivityListHeader
         shown={effectiveFilteredBusinesses.length}
@@ -219,21 +190,6 @@ export const SearchView: React.FC<SearchViewProps> = ({
         userCoords={userCoords}
         onResetFilters={onResetAllFilters}
       />
-
-      {hasActiveFilters && (
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] inset-x-0 z-40 flex justify-center pointer-events-none">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="pointer-events-auto min-h-11! px-3! text-caption! shadow-md"
-            leadingIcon={<X />}
-            onClick={onResetAllFilters}
-            aria-label="مسح الفلاتر"
-          >
-            مسح الفلتر
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

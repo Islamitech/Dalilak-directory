@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseHadayekBuildingAddress, normalizeHadayekZoneLetter, searchInsideHadayekZone } from '../utils/hadayekBuildingSearch';
+import { parseHadayekBuildingAddress, normalizeHadayekZoneLetter, searchInsideHadayekZone, searchBuildingsAcrossZones } from '../utils/hadayekBuildingSearch';
 import { searchBuildingCoordinatesExact } from '../shared/data/hadayek/hadayekGeo';
 
 describe('Hadayek Building Number Search Contract (A2)', () => {
@@ -68,6 +68,12 @@ describe('Hadayek Building Number Search Contract (A2)', () => {
 
       // 8. Unknown building number in valid zone
       { input: '999 ح', expected: { buildingNumber: '999', zoneLetter: 'ح' }, description: 'unknown building number parsed syntactically' },
+
+      // 9. Lenient address parser: common Hadayek phrases and suffixes
+      { input: 'عمارة 179 ج حدائق الأهرام', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'full phrase with hadayek al-ahram' },
+      { input: '179 ج مكرر', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'repeated building suffix (مكرر)' },
+      { input: '179 ج حدائق الاهرام', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'bare alef in hadayek al-ahram' },
+      { input: 'عمارة 179 في منطقة ج', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'preposition filler (في)' },
     ];
 
     for (const tc of testCases) {
@@ -124,6 +130,22 @@ describe('Hadayek Building Number Search Contract (A2)', () => {
       const coordsLetter = await searchBuildingCoordinatesExact('ha', '265');
       expect(coordsLetter).not.toBeNull();
       expect(coordsLetter?.lat).toBeCloseTo(29.969, 1);
+    });
+
+    it('searchBuildingsAcrossZones finds building matches across zones for bare number', async () => {
+      const results = await searchBuildingsAcrossZones('179', []);
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every((r) => r.type === 'building' && r.buildingNumber === '179')).toBe(true);
+    });
+
+    it('searchBuildingsAcrossZones normalizes Arabic-Indic and Perso-Arabic bare numerals', async () => {
+      const arabicIndicResults = await searchBuildingsAcrossZones('١٧٩', []);
+      expect(arabicIndicResults.length).toBeGreaterThan(0);
+      expect(arabicIndicResults.every((r) => r.type === 'building' && r.buildingNumber === '179')).toBe(true);
+
+      const persoArabicResults = await searchBuildingsAcrossZones('۱۷۹', []);
+      expect(persoArabicResults.length).toBeGreaterThan(0);
+      expect(persoArabicResults.every((r) => r.type === 'building' && r.buildingNumber === '179')).toBe(true);
     });
   });
 

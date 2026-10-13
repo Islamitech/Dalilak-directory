@@ -26,12 +26,44 @@ registerRoute(
   })
 );
 
+// Leaflet Library CDN Cache (ensures map loads offline without CDN SPOF)
+registerRoute(
+  ({ url }) =>
+    (url.hostname.includes('unpkg.com') || url.hostname.includes('cdnjs.cloudflare.com')) &&
+    url.pathname.includes('leaflet'),
+  new CacheFirst({
+    cacheName: 'dalilak-leaflet-cdn',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 10, maxAgeSeconds: 30 * 24 * 60 * 60 }),
+    ],
+  })
+);
+
+// Dedicated Map Tiles Cache (prevents tile churn from evicting business images)
+registerRoute(
+  ({ url }) =>
+    url.hostname.includes('openfreemap.org') ||
+    url.hostname.includes('openstreetmap.') ||
+    url.hostname.includes('arcgisonline.com'),
+  new CacheFirst({
+    cacheName: 'dalilak-map-tiles',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 350, maxAgeSeconds: 7 * 24 * 60 * 60 }),
+    ],
+  })
+);
+
 registerRoute(
   ({ url, request }) =>
-    request.destination === 'image' ||
-    url.hostname.includes('googleusercontent.com') ||
-    url.hostname.includes('ggpht.com') ||
-    url.pathname.includes('/storage/v1/render/image/'),
+    !url.hostname.includes('openfreemap.org') &&
+    !url.hostname.includes('openstreetmap.') &&
+    !url.hostname.includes('arcgisonline.com') &&
+    (request.destination === 'image' ||
+      url.hostname.includes('googleusercontent.com') ||
+      url.hostname.includes('ggpht.com') ||
+      url.pathname.includes('/storage/v1/render/image/')),
   new CacheFirst({
     cacheName: 'dalilak-images',
     plugins: [

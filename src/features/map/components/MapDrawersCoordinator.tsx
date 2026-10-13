@@ -4,6 +4,7 @@ import { EntitySheet, type EntitySheetSnap } from '../../../shared/ui';
 import { BuildingDetailDrawer } from './BuildingDetailDrawer';
 import { InAppNavigationDrawer } from '../../directions';
 import { MapBuildingPreviewCard } from './MapBuildingPreviewCard';
+import { getRecommendedGateForZone } from '../../../shared/data/hadayek/hadayekGeo';
 
 export interface MapDrawersCoordinatorProps {
   mode: 'picker' | 'view';
@@ -73,6 +74,20 @@ export const MapDrawersCoordinator: React.FC<MapDrawersCoordinatorProps> = ({
 
   const showBuilding = Boolean(selectedBuildingState) && !navigationTargetState && !activityOpen;
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('map:building-active', { detail: { active: showBuilding } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('map:building-active', { detail: { active: false } }));
+    };
+  }, [showBuilding]);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('map:navigation-active', { detail: { active: Boolean(navigationTargetState) } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('map:navigation-active', { detail: { active: false } }));
+    };
+  }, [Boolean(navigationTargetState)]);
+
   return (
     <>
       {showBuilding && selectedBuildingState && (
@@ -87,6 +102,15 @@ export const MapDrawersCoordinator: React.FC<MapDrawersCoordinatorProps> = ({
               building={selectedBuildingState}
               businesses={businesses}
               onOpenDetails={() => setSnap('half')}
+              onStartNavigation={() => {
+                onSetNavigationTarget({
+                  title: `عمارة ${selectedBuildingState.buildingNumber} - منطقة ${selectedBuildingState.zoneLetter}`,
+                  lat: selectedBuildingState.lat,
+                  lng: selectedBuildingState.lng,
+                  type: 'building',
+                  preferredGateId: getRecommendedGateForZone(selectedBuildingState.zoneLetter)?.primaryGate?.id,
+                });
+              }}
             />
           }
         >

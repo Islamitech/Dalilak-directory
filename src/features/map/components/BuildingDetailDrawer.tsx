@@ -19,7 +19,14 @@ export interface BuildingDetailDrawerProps {
   onClose: () => void;
   businesses?: Business[];
   onSelectBusiness?: (biz: Business) => void;
-  onStartNavigation?: (target: { title: string; lat: number; lng: number; type: 'building' | 'business'; details?: string }) => void;
+  onStartNavigation?: (target: {
+    title: string;
+    lat: number;
+    lng: number;
+    type: 'building' | 'business';
+    details?: string;
+    preferredGateId?: string;
+  }) => void;
 }
 
 export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
@@ -50,6 +57,7 @@ export const BuildingDetailDrawer: React.FC<BuildingDetailDrawerProps> = ({
         lng: building.lng,
         type: 'building',
         details: `أقرب بوابة: ${gateInfo.primaryGate.popularNameAr}`,
+        preferredGateId: gateInfo.primaryGate?.id,
       });
     }
   };

@@ -8,6 +8,7 @@ import {
   computeRouteStats,
   getGoogleHandoffUrl,
 } from '../model/directionsModel';
+import { NavigationOriginSelector } from './NavigationOriginSelector';
 
 export interface InAppNavigationDrawerProps {
   target: NavigationTarget | null;
@@ -26,12 +27,34 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
   onClose,
   onUpdateRoute,
 }) => {
+  const defaultGateId = useMemo(() => {
+    if (target?.preferredGateId) return target.preferredGateId;
+    if (!target) return 'gate_1';
+    let best = HADAYEK_OFFICIAL_GATES[0];
+    let minD = Infinity;
+    for (const g of HADAYEK_OFFICIAL_GATES) {
+      const d = (g.lat - target.lat) ** 2 + (g.lng - target.lng) ** 2;
+      if (d < minD) { minD = d; best = g; }
+    }
+    return best.id;
+  }, [target]);
+
   const [originType, setOriginType] = useState<'gps' | 'gate'>(target?.preferredGateId ? 'gate' : 'gps');
-  const [selectedGateId, setSelectedGateId] = useState<string>(target?.preferredGateId || 'gate_1');
+  const [selectedGateId, setSelectedGateId] = useState<string>(target?.preferredGateId || defaultGateId);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [isGettingGps, setIsGettingGps] = useState<boolean>(false);
   const [realRouteData, setRealRouteData] = useState<RealRoadRouteResult | null>(null);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('map:navigation-active', { detail: { active: true } }));
+    return () => { window.dispatchEvent(new CustomEvent('map:navigation-active', { detail: { active: false } })); };
+  }, []);
+
+  useEffect(() => {
+    if (target?.preferredGateId) { setOriginType('gate'); setSelectedGateId(target.preferredGateId); }
+    else if (defaultGateId) { setSelectedGateId(defaultGateId); }
+  }, [target?.preferredGateId, defaultGateId]);
 
   const fetchGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -45,10 +68,17 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setGpsCoords({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const isInsideHadayek = lat >= 29.930 && lat <= 30.010 && lng >= 31.060 && lng <= 31.140;
+        if (!isInsideHadayek) {
+          setGpsError('موقعك الحالي خارج حدائق الأهرام. تم اختيار أقرب بوابة كنقطة انطلاق للمسار الداخلي.');
+          setOriginType('gate');
+          setSelectedGateId(defaultGateId);
+          setIsGettingGps(false);
+          return;
+        }
+        setGpsCoords({ lat, lng });
         setIsGettingGps(false);
       },
       (err) => {
@@ -88,8 +118,8 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
 
   useEffect(() => {
     let isMounted = true;
+    setRealRouteData(null);
     if (!currentOrigin || !target) {
-      setRealRouteData(null);
       if (onUpdateRoute) onUpdateRoute(null);
       return;
     }
@@ -186,6 +216,21 @@ export const InAppNavigationDrawer: React.FC<InAppNavigationDrawerProps> = ({
         >
           <X className="w-4 h-4" />
         </Pressable>
+      </div>
+
+      <div className="absolute top-[68px] inset-x-0 mx-auto w-max max-w-[calc(100%-24px)] z-[1100] pointer-events-auto">
+        <div className="px-3 py-1.5 bg-white/95 rounded-xl border border-slate-200/80 shadow-md backdrop-blur-md">
+          <NavigationOriginSelector
+            originType={originType}
+            setOriginType={setOriginType}
+            selectedGateId={selectedGateId}
+            setSelectedGateId={setSelectedGateId}
+            isGettingGps={isGettingGps}
+            gpsError={gpsError}
+            gpsCoords={gpsCoords}
+            onFetchGps={fetchGpsLocation}
+          />
+        </div>
       </div>
 
       <div className="dl-navgo-wrap pointer-events-none font-['Cairo',sans-serif]" dir="rtl">

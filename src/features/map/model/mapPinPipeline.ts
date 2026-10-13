@@ -4,9 +4,10 @@ import {
   createCategoryClusterPinHtml,
   createLightweightClusterHtml,
 } from '../badgeMarkers';
-import { getCategoryPinStyle } from '../markers/categoryPinStyle';
+import { getCategoryPinStyle, getBusinessPinCategoryId } from '../markers/categoryPinStyle';
 import { categoryPinKey, categoryPinLimitForZoom, categoryPinOffset, splitGroupByCategory } from '../utils/categoryPinGroups';
 import { formatActivityCountLabel } from '../../../shared/lib/format';
+import { escapeHtml } from './mapMarkerHtml';
 import { MAP_ZOOM_POLICY } from '../../../utils/mapZoomPolicy';
 import { scheduleProgressiveWork } from '../utils/progressiveWork';
 import { buildVisiblePinPipeline, visiblePinClusterKey } from '../utils/visiblePinPipeline';
@@ -83,6 +84,52 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
     for (const sub of splitGroupByCategory(group, pinLimit)) nextCategoryPinKeys.add(categoryPinKey(groupKey, sub.categoryId));
   }
 
+  // Subtle Background Dots: only render a calm, capped subset at close street zoom so user stays focused
+  if (pipeline.backgroundBusinesses && zoom >= 16.5 && window.L?.canvas) {
+    const canvasRenderer =
+      (map as any)._dlCanvasRenderer ||
+      ((map as any)._dlCanvasRenderer = window.L.canvas({ pane: 'pinsPane' }));
+
+    const bgLimit = 30;
+    const toRender = pipeline.backgroundBusinesses.slice(0, bgLimit);
+    for (const biz of toRender) {
+      nextIds.add(biz.id);
+      const existing = markersRegistry.get(biz.id);
+      const categoryId = getBusinessPinCategoryId(biz);
+      const style = getCategoryPinStyle(categoryId);
+      const iconKey = `canvas_dot_${categoryId}`;
+
+      if (existing) {
+        if (existing.iconKey === iconKey) {
+          existing.biz = biz;
+          continue;
+        } else {
+          cardsLayer.removeLayer(existing.marker);
+          markersRegistry.delete(biz.id);
+        }
+      }
+
+      const dotMarker = window.L.circleMarker([biz.lat, biz.lng], {
+        renderer: canvasRenderer,
+        radius: 2.5,
+        fillColor: style.color,
+        fillOpacity: 0.7,
+        color: '#ffffff',
+        weight: 1,
+        pane: 'pinsPane',
+        interactive: true,
+      });
+
+      dotMarker.on('click', (e: any) => {
+        e?.originalEvent?.stopPropagation?.();
+        onSelectBusiness(biz);
+      });
+
+      cardsLayer.addLayer(dotMarker);
+      markersRegistry.set(biz.id, { marker: dotMarker, biz, iconKey });
+    }
+  }
+
   markersRegistry.forEach((entry, id) => {
     if (!nextIds.has(id)) {
       cardsLayer.removeLayer(entry.marker);
@@ -156,19 +203,22 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
             } else {
               const list = document.createElement('div');
               list.dir = 'rtl';
-              list.style.cssText = 'max-height:240px;overflow:auto;min-width:190px';
-              const heading = document.createElement('strong');
-              heading.textContent = `${style.label}: ${members.length} ${formatActivityCountLabel(members.length)} في هذا المكان`;
+              list.style.cssText = 'max-height:260px;overflow-y:auto;min-width:210px;padding:8px 6px;font-family:Cairo,sans-serif;';
+              const heading = document.createElement('div');
+              heading.style.cssText = 'font-weight:800;font-size:12px;color:#0f172a;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:6px;';
+              heading.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${style.color};"></span><span>${escapeHtml(style.label)} (${members.length})</span>`;
               list.append(heading);
               members.forEach((biz) => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = biz.nameAr || biz.name || 'عرض النشاط';
-                button.style.cssText = 'display:block;width:100%;padding:12px;text-align:right;border-bottom:1px solid #eee;cursor:pointer;background:white;color:#0f172a';
-                button.onclick = () => { map.closePopup(); onSelectBusiness(biz); };
-                list.append(button);
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 10px;text-align:right;border:none;border-radius:8px;cursor:pointer;background:#f8fafc;color:#1e293b;font-size:11px;font-weight:700;font-family:inherit;margin-bottom:4px;transition:background 0.15s ease;';
+                item.textContent = biz.nameAr || biz.name || 'عرض النشاط';
+                item.onmouseenter = () => { item.style.background = '#e2e8f0'; item.style.color = '#0f172a'; };
+                item.onmouseleave = () => { item.style.background = '#f8fafc'; item.style.color = '#1e293b'; };
+                item.onclick = () => { map.closePopup(); onSelectBusiness(biz); };
+                list.append(item);
               });
-              marker.bindPopup(list).openPopup();
+              marker.bindPopup(list, { maxWidth: 280 }).openPopup();
             }
           });
 
@@ -191,6 +241,11 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
         return;
       }
 
+      if (existing && typeof existing.marker.setIcon !== 'function') {
+        cardsLayer.removeLayer(existing.marker);
+        markersRegistry.delete(biz.id);
+      }
+
       const data = createCompactActivityPinHtml(biz, false, false, undefined, [0, 0], showName);
 
       const icon = window.L.divIcon({
@@ -200,12 +255,13 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
         iconAnchor: data.iconAnchor.map((n: number) => n * cardScale),
       });
 
-      if (existing) {
-        existing.biz = biz;
-        existing.marker.setLatLng([biz.lat, biz.lng]);
-        if (existing.iconKey !== iconKey) {
-          existing.marker.setIcon(icon);
-          existing.iconKey = iconKey;
+      const currentEntry = markersRegistry.get(biz.id);
+      if (currentEntry) {
+        currentEntry.biz = biz;
+        currentEntry.marker.setLatLng([biz.lat, biz.lng]);
+        if (currentEntry.iconKey !== iconKey) {
+          currentEntry.marker.setIcon(icon);
+          currentEntry.iconKey = iconKey;
         }
       } else {
         const marker = window.L.marker([biz.lat, biz.lng], {
@@ -214,7 +270,8 @@ export function executePinPipeline(ctx: PinPipelineContext): () => void {
           title: biz.nameAr || '',
           zIndexOffset: showName ? 180 : 100,
         });
-        marker.on('click', () => {
+        marker.on('click', (e: any) => {
+          e?.originalEvent?.stopPropagation?.();
           const current = markersRegistry.get(biz.id)?.biz || biz;
           onSelectBusiness(current);
         });

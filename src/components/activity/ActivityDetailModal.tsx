@@ -48,18 +48,22 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
 
   const photos = useActivityPhotos(business);
+  const isMapContext = () => {
+    const bg = typeof window !== 'undefined' ? (window.history.state?.directoryBackground || '').split('?')[0] : '';
+    return typeof window !== 'undefined' && (window.location.pathname.startsWith('/map') || window.location.pathname === '/' || bg === '/' || bg.startsWith('/map'));
+  };
+
   const [snap, setSnap] = useState<EntitySheetSnap>(() => {
     if (initialSnap) return initialSnap;
     const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
-    return isDesktop || !(typeof window !== 'undefined' && window.location.pathname.startsWith('/map')) ? 'full' : 'peek';
+    return isDesktop || !isMapContext() ? 'full' : 'peek';
   });
   const entryGate = business ? getBusinessEntryGate(business) : null;
 
   useEffect(() => {
     if (!business || business.verificationStatus === 'rejected') return;
     const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
-    const isMap = typeof window !== 'undefined' && window.location.pathname.startsWith('/map');
-    const targetSnap = initialSnap ?? (isDesktop || !isMap ? 'full' : 'peek');
+    const targetSnap = initialSnap ?? (isDesktop || !isMapContext() ? 'full' : 'peek');
     setSnap(targetSnap);
     window.dispatchEvent(new Event('directory:subscribe'));
     window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: true, snap: targetSnap } }));

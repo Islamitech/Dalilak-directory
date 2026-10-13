@@ -71,16 +71,10 @@ export const useMapPinsClustering = ({
       selectedMarkerRef,
       onSelectBusiness: (biz) => onSelectBusiness?.(biz),
       onStartBusinessNavigation: (biz) => startBusinessNavigationRef.current?.(biz),
-      onClearSelectedBiz: () => {
-        state.setSelectedBiz(null);
-        onClearFocusedBusiness?.();
-      },
+      onClearSelectedBiz: () => { state.setSelectedBiz(null); onClearFocusedBusiness?.(); },
+      onSelectZone: (zone) => { state.setSelectedZone(zone); onSelectZoneRef.current?.(zone); },
     });
-  }, [
-    effectiveZone, effectiveCategory, buildingSearchActive, targetBuilding,
-    showHadayekGates, state.showGatesLayer, state.showTargetPin, mapInstance.isMapReady,
-    activeRoute, state.selectedBiz,
-  ]);
+  }, [effectiveZone, effectiveCategory, buildingSearchActive, targetBuilding, showHadayekGates, state.showGatesLayer, state.showTargetPin, mapInstance.isMapReady, activeRoute, state.selectedBiz, mapInstance.zoomLevel]);
 
   useMapSelectionDismissal(mode, mapInstance, state.selectedBiz, state.setSelectedBiz, onClearFocusedBusiness);
   useMapSelectionCamera(state.selectedBiz, mapInstance, effectiveZone, mode);
@@ -89,9 +83,9 @@ export const useMapPinsClustering = ({
     const mapZoom = viewportSnapshot?.zoom ?? mapInstance.zoomLevel;
     const source = resultsReady
       ? businesses
-      : filterBusinessesForMap(businesses, 'all', effectiveCategory || 'all', state.onlyVerifiedFilter, mapZoom);
+      : filterBusinessesForMap(businesses, effectiveZone || 'all', effectiveCategory || 'all', state.onlyVerifiedFilter, mapZoom);
     return sortBusinessesForMap(source);
-  }, [businesses, effectiveCategory, state.onlyVerifiedFilter, viewportSnapshot?.zoom, mapInstance.zoomLevel, Boolean(activeRoute), resultsReady]);
+  }, [businesses, effectiveZone, effectiveCategory, state.onlyVerifiedFilter, viewportSnapshot?.zoom, mapInstance.zoomLevel, Boolean(activeRoute), resultsReady]);
 
   useEffect(() => {
     if (mode !== 'view' || !layersRef.current || !mapInstance.leafletMapRef.current || !mapInstance.isMapReady) return;
@@ -106,14 +100,17 @@ export const useMapPinsClustering = ({
       sortedBusinesses,
       selectedBiz: state.selectedBiz,
       effectiveCategoryFilter: effectiveCategory,
-      effectiveSelectedZone: '',
+      effectiveSelectedZone: effectiveZone,
       searchQuery,
       viewportSnapshot,
       cameraController: mapInstance.cameraController,
-      onSelectBusiness: (b) => state.setSelectedBiz(b),
+      onSelectBusiness: (b) => {
+        state.setSelectedBiz(b);
+        onSelectBusiness?.(b);
+      },
       onComplete: () => setIsRendering(false),
     });
-  }, [mode, mapInstance.isMapReady, sortedBusinesses, effectiveCategory, state.selectedBiz?.id, viewportSnapshot]);
+  }, [mode, mapInstance.isMapReady, sortedBusinesses, effectiveCategory, effectiveZone, state.selectedBiz?.id, viewportSnapshot]);
 
   return { isRenderingActivities: isRendering };
 };

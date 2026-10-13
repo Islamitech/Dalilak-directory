@@ -25,7 +25,7 @@
     "test:axe": "node scripts/verify-axe.cjs",
     "test:behavioral": "node scripts/verify-behavioral-assertions.cjs",
     "test:cadastral": "node scripts/verify-cadastral-search.playwright.cjs",
-    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts src/tests/category_pins.test.ts",
+    "test:map:unit": "vitest run src/tests/map_repair_safety.test.ts src/tests/map_state.test.ts src/tests/camera_controller.test.ts src/tests/visible_pin_pipeline.test.ts src/tests/category_pins.test.ts src/tests/map_optimization_enhancements.test.ts",
     "test:security": "vitest run src/tests/serverless_security.test.ts",
     "test:unit": "vitest run src/tests/shared_lib.test.ts src/tests/building_search_contract.test.ts src/tests/integrated_filters.test.ts",
     "test:map:e2e": "playwright test -c playwright.map.config.ts",

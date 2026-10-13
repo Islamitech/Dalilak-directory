@@ -9,6 +9,7 @@ import {
   ZoneScopedSearchResult,
   normalizeBuildingQuery,
   parseHadayekBuildingAddress,
+  searchBuildingsAcrossZones,
 } from '../../utils/hadayekBuildingSearch';
 import { SearchField } from '../../shared/ui/SearchField';
 
@@ -68,6 +69,22 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
       };
       if (searchZone) {
         searchInsideHadayekZone(searchZone, query, businesses, 8).then(apply);
+        return;
+      }
+      const normalizedDigits = normalizeBuildingQuery(query);
+      if (/^\d+$/.test(normalizedDigits)) {
+        searchBuildingsAcrossZones(normalizedDigits, businesses, 6).then((bldgs) => {
+          if (request !== requestRef.current) return;
+          if (bldgs.length > 0) {
+            apply(bldgs);
+          } else {
+            const activities = businesses
+              .filter((business) => (!confineToHadayek || isBusinessInHadayekZone(business, 'all')) && matchesBusinessSearch(business, query))
+              .slice(0, 8)
+              .map((business) => ({ type: 'business' as const, business }));
+            apply(activities);
+          }
+        });
         return;
       }
       const activities = businesses
@@ -145,7 +162,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         <div
           role="listbox"
           aria-label="نتائج البحث"
-          className="absolute inset-x-0 top-full z-[1200] mt-2 max-h-[min(60vh,420px)] overflow-y-auto rounded-lg border border-slate-200 bg-white/98 p-1.5 shadow-xl backdrop-blur-md"
+          className="absolute inset-x-0 bottom-full z-[1200] mb-2.5 max-h-[min(45vh,340px)] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white/98 p-1.5 shadow-2xl backdrop-blur-md"
         >
           {isLoading && results.length === 0 && (
             <div className="px-3 py-2 text-xs font-bold text-slate-500" role="status">

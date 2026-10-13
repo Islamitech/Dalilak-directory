@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useDirectoryNavigation } from '../app/router/useDirectoryNavigation';
 import { useDirectoryLoad, DirectorySearchContext } from '../features/catalog';
 import { DirectoryStatus } from './DirectoryStatus';
@@ -10,6 +10,9 @@ import { AppNavbar } from './layout/AppNavbar';
 import { AppFooter } from './layout/AppFooter';
 import { WhatsAppFloatingButton } from './layout/WhatsAppFloatingButton';
 import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState';
+
+const FloatingBottomDock = React.lazy(() => import('./layout/FloatingBottomDock').then((m) => ({ default: m.FloatingBottomDock })));
+import { useShowcaseToast } from './showcase/hooks/useShowcaseToast';
 import { useDirectoryBusinesses } from './showcase/hooks/useDirectoryBusinesses';
 import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
@@ -36,34 +39,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   const currentPath = routing.path;
   const directoryLoad = useDirectoryLoad();
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastAction, setToastAction] = useState<{ label: string; onAction: () => void } | null>(null);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hideToast = useCallback(() => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = null;
-    setToastMessage(null);
-    setToastAction(null);
-  }, []);
-  const showToast = useCallback((msg: string, undo?: () => void) => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    setToastMessage(msg);
-    setToastAction(
-      undo
-        ? {
-            label: 'تراجع',
-            onAction: () => {
-              undo();
-              hideToast();
-            },
-          }
-        : null
-    );
-    toastTimerRef.current = setTimeout(hideToast, undo ? 5000 : 3500);
-  }, [hideToast]);
-  useEffect(() => () => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-  }, []);
+  const { toastMessage, toastAction, showToast } = useShowcaseToast();
 
   const filterState = useShowcaseFilterState(currentPath);
   const { favorites, toggleFavorite } = useFavorites(showToast);
@@ -175,13 +151,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
       <AppNavbar
         currentPath={currentPath}
         onNavigate={handleNavigate}
-        searchQuery={filterState.searchQuery}
-        onSearchChange={filterState.setSearchQuery}
         favoritesCount={favorites.length}
-        buildingSearchZone={filterState.hadayekZoneFilter}
-        confineToHadayek={filterState.directoryScope === 'hadayek'}
-        businesses={publicBusinesses}
-        onSelectBusiness={handleOpenBusiness}
       />
 
       <DirectoryStatus showSync={false} />
@@ -192,7 +162,7 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
         className={
           isMapRoute
             ? "flex-1 w-full min-h-0 relative overflow-hidden flex flex-col"
-            : "flex-1 pb-[env(safe-area-inset-bottom,0px)]"
+            : "flex-1 pt-16 sm:pt-20 pb-[env(safe-area-inset-bottom,0px)]"
         }
       >
         <React.Suspense fallback={<div className={isMapRoute ? 'h-full w-full bg-[var(--bg-primary)]' : 'min-h-[40vh]'} role="status" aria-live="polite" />}>
@@ -224,6 +194,27 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
 
       {!isMapRoute && (currentPath !== '/search' || directoryBusinesses.length > 0 || !directoryLoad.pending) && (
         <AppFooter onNavigate={handleNavigate} />
+      )}
+
+      {(isMapRoute || currentPath === '/search') && (
+        <React.Suspense fallback={null}>
+          <FloatingBottomDock
+            currentPath={currentPath}
+            onNavigate={handleNavigate}
+            searchQuery={filterState.searchQuery}
+            onSearchChange={filterState.setSearchQuery}
+            selectedCategory={effectiveMapCategoryFilter}
+            onCategoryChange={(cat) => {
+              if (parseActivitySearchIntent(filterState.searchQuery)) filterState.setSearchQuery('');
+              filterState.handleCategoryChange(cat);
+            }}
+            selectedZone={effectiveSearchZone}
+            onZoneChange={filterState.setHadayekZoneFilter}
+            businesses={publicBusinesses}
+            confineToHadayek={filterState.directoryScope === 'hadayek'}
+            onSelectBusiness={handleOpenBusiness}
+          />
+        </React.Suspense>
       )}
 
       <PublicShowcaseModals

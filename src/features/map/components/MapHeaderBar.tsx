@@ -95,13 +95,13 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
   }, [isMapFilterOpen, setIsMapFilterOpen]);
 
   return (
-    <div className="relative bg-slate-900/95 backdrop-blur-md px-2 py-2 border-b border-slate-800/80 z-30 text-white select-none">
+    <div className="relative bg-white/90 backdrop-blur-md px-2 py-2 border-b border-slate-200/80 z-30 text-slate-800 select-none shadow-xs">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
         {/* Quick Selectors & Micro Toggles */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0 w-full sm:w-auto">
           {/* City Fixed Badge */}
-          <div className="inline-flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/50 text-amber-300 font-extrabold text-caption sm:text-xs rounded-pill px-2 py-1 shrink-0 shadow-xs" title="الخريطة مثبتة على نطاق حدائق الأهرام">
-            <span className="w-1.5 h-1.5 rounded-pill bg-amber-400 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-300/80 text-amber-800 font-extrabold text-caption sm:text-xs rounded-pill px-2 py-1 shrink-0 shadow-xs" title="الخريطة مثبتة على نطاق حدائق الأهرام">
+            <span className="w-1.5 h-1.5 rounded-pill bg-amber-500 animate-pulse" />
             <span>حدائق الأهرام</span>
           </div>
 
@@ -114,12 +114,12 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
 
         {/* Action Buttons: Filters + Explore + Fullscreen */}
         <div className="flex items-center gap-1.5 flex-wrap shrink-0 w-full sm:w-auto ms-0 sm:ms-auto justify-start">
-          <label className="inline-flex items-center gap-1 text-indigo-300 hover:text-indigo-200 font-bold cursor-pointer text-caption sm:text-xs transition-colors shrink-0 pe-1 border-e border-slate-700/50 ps-1 me-1">
+          <label className="inline-flex items-center gap-1 text-indigo-700 hover:text-indigo-900 font-bold cursor-pointer text-caption sm:text-xs transition-colors shrink-0 pe-1 border-e border-slate-200 ps-1 me-1">
             <input
               type="checkbox"
               checked={showDistrictsOverlay}
               onChange={(e) => setShowDistrictsOverlay(e.target.checked)}
-              className="rounded-sm accent-indigo-500 w-3 h-3 cursor-pointer"
+              className="rounded-sm accent-indigo-600 w-3 h-3 cursor-pointer"
             />
             <span>مناطق</span>
           </label>
@@ -145,7 +145,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
                 className={`px-2 py-0.5 rounded-pill text-caption sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer select-none ${
                   mapCategoryFilter !== 'all' || onlyVerifiedFilter
                     ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
                 }`}
                 title="فلاتر وتصنيفات الأنشطة"
               >
@@ -216,7 +216,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
             className={`p-1 rounded-pill border text-caption font-bold flex items-center justify-center transition-all cursor-pointer ${
               isExpanded
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xs'
-                : 'bg-slate-800/90 hover:bg-slate-700 text-slate-300 border-slate-700'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
             }`}
             title={isExpanded ? 'إنهاء وضع الشاشة الكاملة' : 'توسيع الخريطة'}
           >

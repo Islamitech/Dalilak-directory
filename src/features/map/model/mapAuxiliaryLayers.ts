@@ -6,6 +6,7 @@ import { renderGatesMarkers } from './mapGatesLayer';
 import { renderRouteLayer, ActiveRouteData } from './mapRouteLayer';
 import { renderTargetBuildingMarker, TargetBuildingData } from './mapTargetBuildingLayer';
 import { renderSelectedBusinessMarker } from './mapSelectedMarker';
+import { syncCadastralNumbersLayer } from './mapCadastralNumbersLayer';
 import type { MapViewportSnapshot } from '../state/mapViewport';
 
 export interface UseMapPinsClusteringProps {
@@ -50,6 +51,8 @@ export interface SyncAuxiliaryLayersParams {
   onSelectBusiness?: (biz: Business) => void;
   onClearSelectedBiz: () => void;
   onStartBusinessNavigation?: (biz: Business) => void;
+  onSelectZone?: (letter: string) => void;
+  onSelectGate?: (gate: any) => void;
 }
 
 export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
@@ -59,7 +62,7 @@ export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
   updateDistrictHighlightStyles(p.districts, p.mask, p.effectiveZone, shouldHighlight);
 
   if (p.showHadayekGates) {
-    renderGatesMarkers(p.layers.gatesLayerGroup, p.effectiveZone);
+    renderGatesMarkers(p.layers.gatesLayerGroup, p.effectiveZone, p.onSelectZone, p.onSelectGate);
     p.districts.forEach(({ polygon }) => {
       const el = polygon.getElement?.();
       if (el) el.style.pointerEvents = '';
@@ -85,4 +88,12 @@ export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
     p.onClearSelectedBiz,
     p.onStartBusinessNavigation
   );
+
+  syncCadastralNumbersLayer({
+    map: (p.layers.cadastralLayerGroup as any)?._map || (p.layers.districtsLayerGroup as any)?._map,
+    cadastralLayer: p.layers.cadastralLayerGroup,
+    zoom: p.zoomLevel,
+    activeZone: p.effectiveZone,
+    onSelectBuilding: p.onSelectBuilding,
+  });
 }

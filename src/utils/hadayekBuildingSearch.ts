@@ -179,8 +179,31 @@ export function normalizeHadayekZoneLetter(raw: string): string | null {
 }
 
 export const CONFIRMED_BUILDING_FILLER_WORDS = new Set([
-  'عمارة', 'عماره', 'مبنى', 'مبني', 'منطقة', 'منطقه'
+  'عمارة', 'عماره', 'مبنى', 'مبني', 'منطقة', 'منطقه',
+  'حدائق', 'الاهرام', 'الأهرام', 'هضبة', 'هضبه',
+  'مكرر', 'رقم', 'حرف', 'قطاع', 'بوابة', 'بوابه',
+  'في', 'شارع'
 ]);
+
+function isBuildingFiller(w: string): boolean {
+  if (CONFIRMED_BUILDING_FILLER_WORDS.has(w)) return true;
+  const bare = w.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه');
+  return (
+    bare === 'الاهرام' ||
+    bare === 'عماره' ||
+    bare === 'مبني' ||
+    bare === 'منطقه' ||
+    bare === 'هضبه' ||
+    bare === 'بوابه' ||
+    bare === 'حدائق' ||
+    bare === 'مكرر' ||
+    bare === 'رقم' ||
+    bare === 'حرف' ||
+    bare === 'قطاع' ||
+    bare === 'في' ||
+    bare === 'شارع'
+  );
+}
 
 export function parseHadayekBuildingAddress(raw: string, currentZone?: string): ParsedHadayekBuilding | null {
   if (!raw || !raw.trim()) return null;
@@ -205,7 +228,7 @@ export function parseHadayekBuildingAddress(raw: string, currentZone?: string): 
     .replace(/\d+/, ' ')
     .split(/\s+/)
     .map((w) => w.replace(/\u0640/g, '').trim())
-    .filter((w) => Boolean(w) && !CONFIRMED_BUILDING_FILLER_WORDS.has(w));
+    .filter((w) => Boolean(w) && !isBuildingFiller(w));
 
   // 4. If no words remain, use currentZone if selected
   if (words.length === 0) {
@@ -216,14 +239,65 @@ export function parseHadayekBuildingAddress(raw: string, currentZone?: string): 
     return null;
   }
 
-  // 5. Must have exactly one zone token
+  // 5. Must have a valid zone token
   if (words.length === 1) {
     const matchedZone = normalizeHadayekZoneLetter(words[0]);
     if (matchedZone) {
       return { buildingNumber: bldgNum, zoneLetter: matchedZone };
     }
+  } else if (words.length > 1) {
+    const zoneTokens = words.map((w) => normalizeHadayekZoneLetter(w)).filter(Boolean) as string[];
+    if (zoneTokens.length === 1) {
+      return { buildingNumber: bldgNum, zoneLetter: zoneTokens[0] };
+    }
   }
 
   return null;
+}
+
+export async function searchBuildingsAcrossZones(
+  buildingNumber: string,
+  allBusinesses: Business[] = [],
+  maxResults: number = 6
+): Promise<BuildingSearchResult[]> {
+  const cleanNumber = normalizeBuildingQuery(buildingNumber).match(/\d+/)?.[0];
+  if (!cleanNumber) return [];
+
+  const zoneMatches = await Promise.all(
+    HADAYEK_ZONE_LETTERS.map(async (zoneLetter) => {
+      const coords = await searchBuildingCoordinatesExact(zoneLetter, cleanNumber);
+      return coords ? { zoneLetter, coords } : null;
+    })
+  );
+
+  const results: BuildingSearchResult[] = [];
+  for (const match of zoneMatches) {
+    if (!match) continue;
+    if (results.length >= maxResults) break;
+    const { zoneLetter, coords } = match;
+
+    const zone = getHadayekZone(zoneLetter);
+    const zoneName = zone ? zone.nameAr : `منطقة ${zoneLetter}`;
+    const gateInfo = getRecommendedGateForZone(zoneLetter);
+    const nearestGateName = gateInfo.primaryGate.popularNameAr;
+
+    const associatedBiz = allBusinesses.filter(
+      (b) =>
+        isBusinessInHadayekZone(b, zoneLetter) &&
+        isBusinessAssociatedWithBuilding(b, cleanNumber, zoneLetter, coords)
+    );
+
+    results.push({
+      type: 'building',
+      buildingNumber: cleanNumber,
+      zoneLetter,
+      zoneName,
+      lat: coords.lat,
+      lng: coords.lng,
+      nearestGateName,
+      associatedBusinessesCount: associatedBiz.length,
+    });
+  }
+  return results;
 }
 

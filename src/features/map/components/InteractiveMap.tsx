@@ -139,7 +139,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => window.clearTimeout(timer);
   }, [busy]);
 
-  const canvasWrapperClasses = 'relative w-full flex-1 h-full min-h-0 overflow-hidden z-0';
+  const canvasWrapperClasses = 'relative w-full flex-1 h-full min-h-0 overflow-hidden';
 
   return (
     <div className="relative w-full h-full flex-1 min-h-0 flex flex-col overflow-hidden bg-[var(--bg-primary)]">

@@ -26,6 +26,7 @@ export interface VisiblePinPipelineResult {
   layouts: Map<string, PinLayout>;
   isDistrictView: boolean;
   scale: number;
+  backgroundBusinesses?: Business[];
 }
 
 export const visiblePinClusterKey = (group: Business[]) =>
@@ -187,10 +188,13 @@ export function buildVisiblePinPipeline(input: {
   const groupMeters = input.zoom < MAP_ZOOM_POLICY.localPinPresentationFrom ? CITY_OVERVIEW_GROUP_METERS : LOCAL_GROUP_METERS;
   const isOverview = input.zoom < MAP_ZOOM_POLICY.localPinPresentationFrom;
   const pinLimit = categoryPinLimitForZoom(input.zoom);
-  // Wider screen-space cells at overview zoom => fewer, evenly spread pins instead of dense hotspots.
-  // Deliberately sparse: a handful of well-spaced, diverse pins that never crowd the map.
-  const individualMinDistance = input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom ? 96 : isOverview ? 82 : 80;
-  const individualMaxPins = input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom ? 22 : isOverview ? 12 : 18;
+  // Balanced, calmer screen-space spacing to prevent visual distraction
+  const individualMinDistance = input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom
+    ? (input.hasSelectedZone ? 64 : 76)
+    : isOverview ? 92 : (input.hasSelectedZone ? 72 : 84);
+  const individualMaxPins = input.hasSelectedZone
+    ? (input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom ? 25 : isOverview ? 12 : 18)
+    : input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom ? 22 : isOverview ? 12 : 18;
   const baseGroups = input.individual
     ? scatterIndividualActivities(candidates, input.point, individualMinDistance, individualMaxPins)
     : groupNearbyActivities(candidates, input.project, input.groupRadius ?? (isOverview ? 40 : 64), groupMeters);
@@ -255,5 +259,14 @@ export function buildVisiblePinPipeline(input: {
     if (type === 'card') occupied.push({ x: p.x, y: p.y, width: cardWidth, height: cardHeight, cluster: false });
   }
 
-  return { groups, singletonIds, clusterKeys, layouts, isDistrictView, scale };
+  const placedIds = new Set<string>();
+  for (const group of groups) {
+    for (const b of group) placedIds.add(b.id);
+  }
+  singletonIds.forEach(id => placedIds.add(id));
+  if (input.selectedBusiness) placedIds.add(input.selectedBusiness.id);
+
+  const backgroundBusinesses = candidates.filter(b => !placedIds.has(b.id));
+
+  return { groups, singletonIds, clusterKeys, layouts, isDistrictView, scale, backgroundBusinesses };
 }

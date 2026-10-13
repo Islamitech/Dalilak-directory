@@ -6,6 +6,7 @@ export interface MapLayerGroups {
   gatesLayerGroup: any;
   targetLayerGroup: any;
   routeLayerGroup: any;
+  cadastralLayerGroup: any;
 }
 
 export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
@@ -24,6 +25,10 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
     const districtLabelsPane = map.createPane('districtLabelsPane');
     districtLabelsPane.style.zIndex = '460';
   }
+  if (!map.getPane('cadastralPane')) {
+    const cadastralPane = map.createPane('cadastralPane');
+    cadastralPane.style.zIndex = '450';
+  }
   if (!map.getPane('pinsPane')) {
     const pinsPane = map.createPane('pinsPane');
     pinsPane.style.zIndex = '600';
@@ -40,6 +45,7 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
   const gatesLayerGroup = window.L.layerGroup([], { pane: 'districtsPane' }).addTo(map);
   const targetLayerGroup = window.L.layerGroup([], { pane: 'selectedPinPane' }).addTo(map);
   const routeLayerGroup = window.L.layerGroup([], { pane: 'districtsPane' }).addTo(map);
+  const cadastralLayerGroup = window.L.layerGroup([], { pane: 'cadastralPane' }).addTo(map);
 
   return {
     districtsLayerGroup,
@@ -49,5 +55,6 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
     gatesLayerGroup,
     targetLayerGroup,
     routeLayerGroup,
+    cadastralLayerGroup,
   };
 }

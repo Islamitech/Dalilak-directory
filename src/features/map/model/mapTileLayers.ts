@@ -28,20 +28,20 @@ export function getTileLayerConfig(type: MapTileLayerType): TileLayerConfig {
   switch (type) {
     case 'google-streets':
       return {
-        url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
         maxZoom: 20,
-        maxNativeZoom: 20,
-        subdomains: ['0', '1', '2', '3'],
-        attribution: 'Map data © Google',
+        maxNativeZoom: 19,
+        subdomains: [],
+        attribution: 'Tiles © Esri — Source: Esri, HERE, Garmin, OpenStreetMap contributors',
         ...commonOptions,
       };
     case 'google-hybrid':
       return {
-        url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-        maxZoom: 20,
-        maxNativeZoom: 20,
-        subdomains: ['0', '1', '2', '3'],
-        attribution: 'Map data © Google',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        maxZoom: 19,
+        maxNativeZoom: 18,
+        subdomains: [],
+        attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
         ...commonOptions,
       };
     case 'dalelak-clean':
@@ -56,11 +56,11 @@ export function getTileLayerConfig(type: MapTileLayerType): TileLayerConfig {
     case 'dalelak-white':
     default:
       return {
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
         maxZoom: 20,
         maxNativeZoom: 19,
-        subdomains: [],
-        attribution: '© OpenStreetMap contributors',
+        subdomains: ['a', 'b', 'c'],
+        attribution: '© OpenStreetMap contributors / Humanitarian OSM',
         className: 'dl-tiles-white',
         ...commonOptions,
       };

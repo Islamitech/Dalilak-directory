@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { INTEGRATED_FILTER_CATEGORIES } from '../features/search/model/filterModel';
 import { HADAYEK_OFFICIAL_DISTRICTS } from '../shared/data/hadayek/hadayekDistrictsGeoData';
 import { matchesCategoryFilter } from '../utils/categoryMatcher';
+import { isBusinessInHadayekZone } from '../utils/hadayekZoneHelper';
 import { Business } from '../types';
 
 describe('Integrated Search and Filter System', () => {
@@ -115,5 +116,13 @@ describe('Integrated Search and Filter System', () => {
     for (const biz of sampleBusinesses) {
       expect(matchesCategoryFilter(biz, 'all')).toBe(true);
     }
+  });
+
+  it('matches businesses served by gates correctly', () => {
+    const restaurant = sampleBusinesses[0]; // Zone أ, served by Gate 1 (Khufu)
+    expect(isBusinessInHadayekZone(restaurant, 'البوابة الأولى')).toBe(true);
+    expect(isBusinessInHadayekZone(restaurant, 'البوابة الأولى (خوفو)')).toBe(true);
+    expect(isBusinessInHadayekZone(restaurant, 'بوابة خوفو')).toBe(true);
+    expect(isBusinessInHadayekZone(restaurant, 'البوابة الرابعة (مينا)')).toBe(false);
   });
 });

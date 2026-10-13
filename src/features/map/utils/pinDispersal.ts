@@ -245,8 +245,8 @@ export function disperseActivityCardsScreenSpace(
   // 4. Viewport boundaries clamping with spacing preservation
   const padLeft = 12;
   const padRight = 12;
-  const padTop = 75; // Space for MapModernTopBar
-  const padBottom = 25;
+  const padTop = 50; // Space for floating top chrome
+  const padBottom = 90; // Space for FloatingBottomDock
 
   const minCenterScreenX = padLeft + cardWidth / 2;
   const maxCenterScreenX = mapWidth - padRight - cardWidth / 2;

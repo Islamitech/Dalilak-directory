@@ -164,7 +164,7 @@ export const EXPANDED_ACTIVITY_CARD_HEIGHT = 264;
 export function selectedCardCameraShiftY(
   viewportHeight: number,
   topChromePx: number,
-  bottomChromePx = 64,
+  bottomChromePx = 90,
   cardHeight = EXPANDED_ACTIVITY_CARD_HEIGHT,
 ): number {
   const centerY = viewportHeight / 2;
@@ -178,12 +178,12 @@ export function selectedCardCameraShiftY(
 export function readMapTopChromePx(map: any): number {
   try {
     const container: HTMLElement | null = map?.getContainer?.() ?? null;
-    const bar = container?.parentElement?.querySelector('[data-map-top-bar]') as HTMLElement | null;
-    if (!container || !bar) return 76;
+    const bar = (container?.parentElement?.querySelector('[data-map-top-bar]') || (typeof document !== 'undefined' ? document.querySelector('header') : null)) as HTMLElement | null;
+    if (!container || !bar) return CAMERA_SAFETY_PAD.padTop;
     const top = bar.getBoundingClientRect().bottom - container.getBoundingClientRect().top;
-    return Math.max(56, Math.round(top) + 10);
+    return Math.max(CAMERA_SAFETY_PAD.padTop, Math.round(top) + 10);
   } catch {
-    return 76;
+    return CAMERA_SAFETY_PAD.padTop;
   }
 }
 
@@ -231,9 +231,10 @@ export function panSelectedCardBelowChrome(
 ): void {
   const container: HTMLElement | null = map?.getContainer?.() ?? null;
   const card = container?.querySelector('.selected-expanded-pin') as HTMLElement | null;
-  const bar = container?.parentElement?.querySelector('[data-map-top-bar]') as HTMLElement | null;
-  if (!container || !card || !bar) return;
-  const overlap = bar.getBoundingClientRect().bottom + 10 - card.getBoundingClientRect().top;
+  const bar = (container?.parentElement?.querySelector('[data-map-top-bar]') || (typeof document !== 'undefined' ? document.querySelector('header') : null)) as HTMLElement | null;
+  if (!container || !card) return;
+  const topLimit = bar ? bar.getBoundingClientRect().bottom + 10 : CAMERA_SAFETY_PAD.padTop + 10;
+  const overlap = topLimit - card.getBoundingClientRect().top;
   if (overlap < 24) return;
   cameraController?.request(
     { kind: 'panBy', offset: [0, -Math.round(overlap)], options: { duration: 0.6 } },
@@ -245,18 +246,20 @@ export function panSelectedCardBelowChrome(
  * Calculates asymmetric viewport padding to ensure visual center is not obscured
  * by the floating top search bar or bottom detail drawers.
  */
+export const CAMERA_SAFETY_PAD = { padTop: 50, padBottom: 90 };
+
 export function getVisualViewportPadding(
   isMobile: boolean,
   hasBottomDrawer: boolean
 ): { paddingTopLeft: [number, number]; paddingBottomRight: [number, number] } {
   if (isMobile) {
     return {
-      paddingTopLeft: [20, 95], // Room for floating search bar [x, y]
-      paddingBottomRight: [20, hasBottomDrawer ? 165 : 45], // Room for bottom drawer [x, y]
+      paddingTopLeft: [20, 95], // Room for floating top chrome [x, y]
+      paddingBottomRight: [20, hasBottomDrawer ? 165 : 90], // Room for floating dock [x, y]
     };
   }
   return {
     paddingTopLeft: [40, 90],
-    paddingBottomRight: [50, 40],
+    paddingBottomRight: [50, 90],
   };
 }
