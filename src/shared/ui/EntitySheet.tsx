@@ -40,6 +40,15 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
   const sheetRef = useRef<HTMLElement>(null);
   const dragRef = useRef<{ startY: number; startTime: number; startHeight: number; initialSnap: EntitySheetSnap } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const requestClose = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 180);
+  }, [isClosing, onClose]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches && snap !== 'full') {
@@ -126,8 +135,8 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
     }
     if (dy > 40 || velocity > 0.25) {
       if (initialSnap === 'full') onSnapChange(dy > 220 || velocity > 0.75 ? 'peek' : 'half');
-      else if (initialSnap === 'half') (dy > 220 || velocity > 0.8 ? onClose() : onSnapChange('peek'));
-      else if (initialSnap === 'peek' && (dy > 45 || velocity > 0.35)) onClose();
+      else if (initialSnap === 'half') (dy > 220 || velocity > 0.8 ? requestClose() : onSnapChange('peek'));
+      else if (initialSnap === 'peek' && (dy > 45 || velocity > 0.35)) requestClose();
     }
   };
 
@@ -136,7 +145,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
   return (
     <>
       {placement === 'page' && snap !== 'peek' && (
-        <button type="button" className="dl-esheet-backdrop" aria-label="إغلاق" onClick={onClose} />
+        <button type="button" className={`dl-esheet-backdrop ${isClosing ? 'is-closing' : ''}`} aria-label="إغلاق" onClick={requestClose} />
       )}
       <section
         ref={sheetRef}
@@ -151,9 +160,9 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
         dir="rtl"
-        className={`dl-esheet pointer-events-auto text-start font-['Cairo',sans-serif] ${isDragging ? 'is-dragging' : ''}`}
+        className={`dl-esheet pointer-events-auto text-start font-['Cairo',sans-serif] ${isDragging ? 'is-dragging' : ''} ${isClosing ? 'is-closing' : ''}`}
         onKeyDown={(e) => {
-          if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+          if (e.key === 'Escape') { e.stopPropagation(); requestClose(); }
           else if (e.key === 'ArrowUp') { e.preventDefault(); step(1); }
           else if (e.key === 'ArrowDown') { e.preventDefault(); step(-1); }
         }}
@@ -170,7 +179,7 @@ export const EntitySheet: React.FC<EntitySheetProps> = ({
             aria-label="إغلاق"
             variant="ghost"
             size="sm"
-            onClick={onClose}
+            onClick={requestClose}
             className="dl-esheet-x"
             icon={<X className="w-4 h-4" />}
           />

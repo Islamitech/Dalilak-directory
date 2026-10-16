@@ -223,6 +223,10 @@ export function parseHadayekBuildingAddress(raw: string, currentZone?: string): 
   if (!digitMatch) return null;
   const bldgNum = digitMatch[0];
 
+  // Building numbers are 1-4 digit runs (e.g. "265", leading-zero "0265");
+  // longer runs are phone numbers/IDs and stay regular text search.
+  if (bldgNum.length > 4) return null;
+
   // 3. Remove digits and collect remaining word tokens (strip tatweel per token)
   const words = s
     .replace(/\d+/, ' ')

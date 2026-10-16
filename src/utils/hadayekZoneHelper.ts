@@ -7,6 +7,7 @@ import { isCitywideFilterZoom } from './mapZoomPolicy';
 
 const ZONE_CACHE_LIMIT = 5000;
 const businessZoneCache = new Map<string, string | null>();
+const reportedZoneConflicts = new Set<string>();
 
 function hasUsableCoordinates(biz: Business): boolean {
   return (
@@ -82,40 +83,48 @@ export function matchArabicWordPattern(text: string, pattern: string): boolean {
  * 2. Structured field if available (e.g. biz.zone).
  * 3. Text search across street, landmark, city, description, name as last resort fallback.
  */
+function maybeReportZoneConflict(biz: Business, districtLetter: string, cacheKey: string): void {
+  if (import.meta.env?.VITE_DEBUG_ZONES !== 'true') return;
+  const conflictKey = biz.id || biz.nameAr || cacheKey;
+  if (reportedZoneConflicts.has(conflictKey)) return;
+
+  const textCorpus = `${biz.street || ''} ${biz.landmark || ''} ${biz.city || ''} ${biz.description || ''} ${biz.nameAr || ''}`;
+  const normCorpus = normalizeArabicText(textCorpus);
+  for (const d of HADAYEK_OFFICIAL_DISTRICTS) {
+    const normLetter = normalizeZoneLetter(d.letterAr);
+    const isTextMatch =
+      matchArabicWordPattern(normCorpus, `منطقه\\s*${normLetter}`) ||
+      matchArabicWordPattern(normCorpus, `قطاع\\s*${normLetter}`) ||
+      matchArabicWordPattern(normCorpus, `عماره\\s*\\d+\\s*${normLetter}`) ||
+      matchArabicWordPattern(normCorpus, `\\d+\\s*${normLetter}`);
+
+    if (isTextMatch && normalizeZoneLetter(d.letterAr) !== normalizeZoneLetter(districtLetter)) {
+      reportedZoneConflicts.add(conflictKey);
+      console.warn(
+        `[Zone Conflict] Business "${biz.nameAr || biz.id}" text mentions zone "${d.letterAr}", but exact GPS coordinates (${biz.lat}, ${biz.lng}) place it in official district "${districtLetter}". Enforcing GPS.`
+      );
+      break;
+    }
+  }
+}
+
 export function getBusinessHadayekZoneLetter(biz: Business): string | null {
   if (!biz) return null;
 
   const cacheKey = getZoneCacheKey(biz);
   if (businessZoneCache.has(cacheKey)) {
-    return businessZoneCache.get(cacheKey) ?? null;
+    const cached = businessZoneCache.get(cacheKey) ?? null;
+    if (cached && hasUsableCoordinates(biz)) {
+      maybeReportZoneConflict(biz, cached, cacheKey);
+    }
+    return cached;
   }
 
-  const textCorpus = `${biz.street || ''} ${biz.landmark || ''} ${biz.city || ''} ${biz.description || ''} ${biz.nameAr || ''}`;
-  const normCorpus = normalizeArabicText(textCorpus);
-
-  // 1. 🌐 Spatial GIS Polygon point-in-polygon coordinates check FIRST
+  // 1. 🌐 Spatial GIS Polygon point-in-polygon coordinates check FIRST (instant, no text normalization)
   if (hasUsableCoordinates(biz)) {
     const district = findDistrictForCoordinates(biz.lat, biz.lng);
     if (district && district.letterAr) {
-      // Check for textual conflict to log warning
-      for (const d of HADAYEK_OFFICIAL_DISTRICTS) {
-        const normLetter = normalizeZoneLetter(d.letterAr);
-        const isTextMatch =
-          matchArabicWordPattern(normCorpus, `منطقه\\s*${normLetter}`) ||
-          matchArabicWordPattern(normCorpus, `قطاع\\s*${normLetter}`) ||
-          matchArabicWordPattern(normCorpus, `عماره\\s*\\d+\\s*${normLetter}`) ||
-          matchArabicWordPattern(normCorpus, `\\d+\\s*${normLetter}`);
-
-        if (isTextMatch && normalizeZoneLetter(d.letterAr) !== normalizeZoneLetter(district.letterAr)) {
-          if (import.meta.env?.DEV) {
-            console.warn(
-              `[Zone Conflict] Business "${biz.nameAr || biz.id}" text mentions zone "${d.letterAr}", but exact GPS coordinates (${biz.lat}, ${biz.lng}) place it in official district "${district.letterAr}". Enforcing GPS.`
-            );
-          }
-          break;
-        }
-      }
-
+      maybeReportZoneConflict(biz, district.letterAr, cacheKey);
       return rememberBusinessZone(cacheKey, district.letterAr);
     }
 
@@ -132,6 +141,9 @@ export function getBusinessHadayekZoneLetter(biz: Business): string | null {
   }
 
   // 3. Comprehensive text search fallback (only for missing or unresolved coordinates)
+  const textCorpus = `${biz.street || ''} ${biz.landmark || ''} ${biz.city || ''} ${biz.description || ''} ${biz.nameAr || ''}`;
+  const normCorpus = normalizeArabicText(textCorpus);
+
   for (const district of HADAYEK_OFFICIAL_DISTRICTS) {
     const normLetter = normalizeZoneLetter(district.letterAr);
     // Patterns: "منطقة أ", "قطاع أ", "عمارة 123 أ", "123 أ", "123أ"
@@ -161,8 +173,14 @@ export function getBusinessHadayekZoneLetter(biz: Business): string | null {
 export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): boolean {
   if (!biz) return false;
 
-  const textCorpus = `${biz.street || ''} ${biz.landmark || ''} ${biz.city || ''} ${biz.description || ''} ${biz.nameAr || ''}`;
-  const normCorpus = normalizeArabicText(textCorpus);
+  let _normCorpus: string | null = null;
+  const getNormCorpus = () => {
+    if (_normCorpus === null) {
+      const textCorpus = `${biz.street || ''} ${biz.landmark || ''} ${biz.city || ''} ${biz.description || ''} ${biz.nameAr || ''}`;
+      _normCorpus = normalizeArabicText(textCorpus);
+    }
+    return _normCorpus;
+  };
 
   // If 'all' is requested, verify the business actually belongs to Hadayek Al-Ahram
   if (!zoneFilter || zoneFilter === 'all') {
@@ -173,17 +191,42 @@ export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): bool
 
     // Textual fallback only for an explicit district name. A bare «الأهرام»
     // or «منطقة» also matches places outside Hadayek Al-Ahram.
+    const norm = getNormCorpus();
     return (
-      normCorpus.includes('حدايق الاهرام') ||
-      normCorpus.includes('حدائق الاهرام') ||
-      normCorpus.includes('هضبه الاهرام') ||
-      normCorpus.includes('هضبة الاهرام')
+      norm.includes('حدايق الاهرام') ||
+      norm.includes('حدائق الاهرام') ||
+      norm.includes('هضبه الاهرام') ||
+      norm.includes('هضبة الاهرام')
+    );
+  }
+
+  // 1. Alphabetical Zone Matching ('منطقة أ' or 'أ') - most common on map
+  const cleanLetter = extractZoneLetter(zoneFilter);
+  if (cleanLetter && cleanLetter.length <= 3 && !zoneFilter.startsWith('شارع ') && !zoneFilter.includes('بواب')) {
+    const targetNormLetter = normalizeZoneLetter(cleanLetter);
+    const bizZoneLetter = getBusinessHadayekZoneLetter(biz);
+    if (bizZoneLetter) {
+      return normalizeZoneLetter(bizZoneLetter) === targetNormLetter;
+    }
+
+    // If business has valid coordinates but is not inside this district polygon, do NOT fall back to text
+    if (hasUsableCoordinates(biz)) {
+      return false;
+    }
+
+    // Direct pattern matching fallback (only for businesses without valid GPS coordinates)
+    const norm = getNormCorpus();
+    return (
+      matchArabicWordPattern(norm, `منطقه\\s*${targetNormLetter}`) ||
+      matchArabicWordPattern(norm, `قطاع\\s*${targetNormLetter}`) ||
+      matchArabicWordPattern(norm, `عماره\\s*\\d+\\s*${targetNormLetter}`) ||
+      matchArabicWordPattern(norm, `\\d+\\s*${targetNormLetter}`)
     );
   }
 
   const normFilter = normalizeArabicText(zoneFilter);
 
-  // 1. Gate Matching
+  // 2. Gate Matching
   const isGateQuery = normFilter.includes('بواب') || normFilter.includes('gate');
   const gateMatch = HADAYEK_GATES.find(
     (g) =>
@@ -206,10 +249,11 @@ export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): bool
       );
     }
 
+    const norm = getNormCorpus();
     if (
-      normCorpus.includes(normalizeArabicText(gateMatch.popularNameAr)) ||
-      normCorpus.includes(normalizeArabicText(gateMatch.shortNameAr)) ||
-      normCorpus.includes(normalizeArabicText(gateMatch.nameAr))
+      norm.includes(normalizeArabicText(gateMatch.popularNameAr)) ||
+      norm.includes(normalizeArabicText(gateMatch.shortNameAr)) ||
+      norm.includes(normalizeArabicText(gateMatch.nameAr))
     ) {
       return true;
     }
@@ -223,31 +267,28 @@ export function isBusinessInHadayekZone(biz: Business, zoneFilter: string): bool
     return false;
   }
 
-  // 2. Arterial Street Matching
+  // 3. Arterial Street Matching
   if (zoneFilter.startsWith('شارع ') || normFilter.startsWith('شارع ')) {
-    return normCorpus.includes(normFilter) || normCorpus.includes(normFilter.replace('شارع ', ''));
+    const norm = getNormCorpus();
+    return norm.includes(normFilter) || norm.includes(normFilter.replace('شارع ', ''));
   }
 
-  // 3. Alphabetical Zone Matching ('منطقة أ' or 'أ')
-  const cleanLetter = extractZoneLetter(zoneFilter);
+  // Fallback alphabetical zone matching if reached here
   const targetNormLetter = normalizeZoneLetter(cleanLetter);
-
   const bizZoneLetter = getBusinessHadayekZoneLetter(biz);
   if (bizZoneLetter) {
     return normalizeZoneLetter(bizZoneLetter) === targetNormLetter;
   }
-
-  // If business has valid coordinates but is not inside this district polygon, do NOT fall back to text
   if (hasUsableCoordinates(biz)) {
     return false;
   }
 
-  // Direct pattern matching fallback (only for businesses without valid GPS coordinates)
+  const norm = getNormCorpus();
   return (
-    matchArabicWordPattern(normCorpus, `منطقه\\s*${targetNormLetter}`) ||
-    matchArabicWordPattern(normCorpus, `قطاع\\s*${targetNormLetter}`) ||
-    matchArabicWordPattern(normCorpus, `عماره\\s*\\d+\\s*${targetNormLetter}`) ||
-    matchArabicWordPattern(normCorpus, `\\d+\\s*${targetNormLetter}`)
+    matchArabicWordPattern(norm, `منطقه\\s*${targetNormLetter}`) ||
+    matchArabicWordPattern(norm, `قطاع\\s*${targetNormLetter}`) ||
+    matchArabicWordPattern(norm, `عماره\\s*\\d+\\s*${targetNormLetter}`) ||
+    matchArabicWordPattern(norm, `\\d+\\s*${targetNormLetter}`)
   );
 }
 

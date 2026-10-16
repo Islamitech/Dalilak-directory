@@ -18,7 +18,7 @@ const SIZES = {
 };
 
 const VARIANTS = {
-  primary: 'bg-[var(--brand)] border-[var(--brand-strong)] text-[var(--logo-ink-core)] hover:bg-[var(--brand-strong)] hover:border-[var(--brand-deep)]',
+  primary: 'bg-[var(--brand-deep)] border-[var(--brand-deep)] text-white hover:bg-[var(--brand-ink)] hover:border-[var(--brand-ink)]',
   secondary: 'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-600 hover:bg-slate-100',
   danger: 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100',

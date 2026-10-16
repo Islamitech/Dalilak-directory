@@ -22,15 +22,16 @@ export type ButtonLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & Bu
 const BASE =
   'inline-flex items-center justify-center gap-1.5 rounded-pill border font-bold whitespace-nowrap select-none cursor-pointer no-underline transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-55 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:opacity-55 aria-disabled:pointer-events-none';
 
+// All sizes enforce the 44px minimum touch target; lg stays a deliberate 48px large tier.
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'min-h-9 px-3.5 text-label',
-  md: 'min-h-[42px] px-4 text-label',
+  sm: 'min-h-11 px-3.5 text-label',
+  md: 'min-h-11 px-4 text-label',
   lg: 'min-h-12 px-5 text-body',
 };
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--brand)] border-[var(--brand-strong)] text-[var(--logo-ink-core)] hover:bg-[var(--brand-strong)] hover:border-[var(--brand-deep)] shadow-xs hover:shadow-sm',
+    'bg-[var(--brand-deep)] border-[var(--brand-deep)] text-white hover:bg-[var(--brand-ink)] hover:border-[var(--brand-ink)] shadow-xs hover:shadow-sm',
   secondary:
     'bg-[var(--logo-silver-1)] border-[var(--logo-silver-2)] text-[var(--logo-ink-0)] hover:bg-[var(--logo-silver-0)] hover:border-[var(--logo-silver-3)]',
   ghost: 'bg-transparent border-transparent text-slate-700 hover:bg-slate-100',

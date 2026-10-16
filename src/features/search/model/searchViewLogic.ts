@@ -21,6 +21,7 @@ export interface SearchViewProps {
   openNowOnly: boolean;
   onToggleOpenNow: () => void;
   verifiedOnly?: boolean;
+  onToggleVerified?: () => void;
   hasRatingOnly: boolean;
   onToggleHasRating: () => void;
   hasVideoOnly: boolean;

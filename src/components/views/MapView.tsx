@@ -2,6 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Business } from '../../types';
 import { InteractiveMap, stashCameraReturn, useMapViewUrlState } from '../../features/map';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
+import { useBuildingIntent } from '../showcase/hooks/useBuildingIntent';
 import { parseActivitySearchIntent } from '../../utils/activitySearchIntent';
 import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
 import { hasMapCoordinates, type DirectoryScope } from '../../utils/directoryScope';
@@ -75,6 +76,7 @@ export const MapView: React.FC<MapViewProps> = ({
     activeBuildingNumber,
     setActiveBuildingNumber,
     exactBuildingCoords,
+    selectZone,
     clearTarget,
     clearBuilding,
   } = useMapViewUrlState(focusedBusiness, selectedZone, onZoneChange);
@@ -99,8 +101,8 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [activeZoneLetter]);
 
   const handleSelectZoneJump = useCallback((letter: string) => {
-    setActiveZoneLetter(!letter || letter === 'all' ? '' : letter);
-  }, [setActiveZoneLetter]);
+    selectZone(letter);
+  }, [selectZone]);
 
   const handleSelectBuilding = useCallback((bldg: { buildingNumber: string; zoneLetter: string; lat: number; lng: number }) => {
     stashCameraReturn();
@@ -137,6 +139,7 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [handleSelectBuilding]);
 
   const activityIntent = useMemo(() => parseActivitySearchIntent(searchQuery || ''), [searchQuery]);
+  const { buildingIntent, buildingCoords } = useBuildingIntent(searchQuery || '', selectedZone || 'all');
 
   const effectiveFilteredBusinesses = useMemo(() => {
     const openScope = directoryScope === 'all';
@@ -146,7 +149,7 @@ export const MapView: React.FC<MapViewProps> = ({
       deferredSearchQuery: searchQuery || '',
       categoryFilter: activityIntent ? 'all' : categoryFilter,
       subcategoryFilter: 'all',
-      effectiveSearchZone: 'all',
+      effectiveSearchZone: activeZoneLetter || 'all',
       govFilter: 'all',
       cityFilter: 'all',
       openNowOnly,
@@ -157,8 +160,10 @@ export const MapView: React.FC<MapViewProps> = ({
       userCoords,
       shuffleSeed: 1,
       pinnedDirectBizId: null,
+      buildingIntent,
+      buildingCoords,
     });
-    return openScope ? listed.filter(hasMapCoordinates) : filterBusinessesForMap(listed, 'all', 'all', false);
+    return openScope ? listed.filter(hasMapCoordinates) : filterBusinessesForMap(listed, activeZoneLetter || 'all', 'all', false);
   }, [
     businesses,
     activityIntent,
@@ -169,6 +174,9 @@ export const MapView: React.FC<MapViewProps> = ({
     sortBy,
     userCoords,
     directoryScope,
+    buildingIntent,
+    buildingCoords,
+    activeZoneLetter,
   ]);
 
   return (

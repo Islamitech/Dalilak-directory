@@ -96,17 +96,14 @@ function scatterIndividualActivities(
   minDistance: number,
   maxPins: number
 ): Business[][] {
-  const cell = minDistance;
-  const grid = new Map<string, PinPoint[]>();
-  const picked: Business[][] = [];
   // Round-robin across categories (each in stable pseudo-random order) so the visible set is diverse:
   // every activity type gets a pin before any type gets a second one.
   const buckets = new Map<string, Business[]>();
-  for (const biz of candidates) {
-    const id = getBusinessPinCategoryId(biz);
+  for (const b of candidates) {
+    const id = getBusinessPinCategoryId(b);
     const list = buckets.get(id);
-    if (list) list.push(biz);
-    else buckets.set(id, [biz]);
+    if (list) list.push(b);
+    else buckets.set(id, [b]);
   }
   const lists = [...buckets.entries()]
     .sort(([a], [b]) => hashId(a) - hashId(b) || a.localeCompare(b))
@@ -115,6 +112,10 @@ function scatterIndividualActivities(
   for (let round = 0; lists.some(l => round < l.length); round++) {
     for (const l of lists) if (round < l.length) ordered.push(l[round]);
   }
+
+  const cell = minDistance;
+  const grid = new Map<string, PinPoint[]>();
+  const picked: Business[][] = [];
   for (const biz of ordered) {
     if (picked.length >= maxPins) break;
     const p = point(biz);
@@ -198,12 +199,14 @@ export function buildVisiblePinPipeline(input: {
   const baseGroups = input.individual
     ? scatterIndividualActivities(candidates, input.point, individualMinDistance, individualMaxPins)
     : groupNearbyActivities(candidates, input.project, input.groupRadius ?? (isOverview ? 40 : 64), groupMeters);
-  const groups = mergeOverlappingGroups(
-    isOverview && !input.individual ? spreadGroupsEvenly(baseGroups, input.point, 88) : baseGroups,
-    input.point,
-    pinLimit,
-    isOverview ? 60 : 90
-  );
+  const groups = input.individual
+    ? baseGroups
+    : mergeOverlappingGroups(
+        isOverview ? spreadGroupsEvenly(baseGroups, input.point, 88) : baseGroups,
+        input.point,
+        pinLimit,
+        isOverview ? 60 : 90
+      );
   const clusterKeys = new Set(groups.filter(g => g.length > 1).map(visiblePinClusterKey));
   const prominent = new Set(candidates.slice(0, 3).map(b => b.id));
   const useDetailedCard = input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom;

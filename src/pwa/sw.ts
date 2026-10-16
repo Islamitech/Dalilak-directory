@@ -60,10 +60,14 @@ registerRoute(
     !url.hostname.includes('openfreemap.org') &&
     !url.hostname.includes('openstreetmap.') &&
     !url.hostname.includes('arcgisonline.com') &&
-    (request.destination === 'image' ||
+    ((request.destination === 'image' &&
+      (url.origin === self.location.origin ||
+        url.hostname.endsWith('supabase.co') ||
+        url.hostname.includes('googleusercontent.com') ||
+        url.hostname.includes('ggpht.com'))) ||
       url.hostname.includes('googleusercontent.com') ||
       url.hostname.includes('ggpht.com') ||
-      url.pathname.includes('/storage/v1/render/image/')),
+      (url.hostname.endsWith('supabase.co') && url.pathname.includes('/storage/v1/render/image/'))),
   new CacheFirst({
     cacheName: 'dalilak-images',
     plugins: [

@@ -26,6 +26,7 @@ interface UnifiedMapSearchProps {
     lng: number;
   }) => void;
   onSelectBusiness?: (business: Business) => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
@@ -36,12 +37,14 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
   confineToHadayek = true,
   onSelectBuilding,
   onSelectBusiness,
+  onOpenChange,
 }) => {
   const [results, setResults] = useState<ZoneScopedSearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const requestRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDropdownOpen = isOpen && value.trim().length >= 2;
 
   const resolvedZone = (query: string) => {
     const parsed = parseHadayekBuildingAddress(query, zone);
@@ -138,6 +141,10 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
     onSelectBuilding(building);
   };
 
+  useEffect(() => {
+    onOpenChange?.(isDropdownOpen);
+  }, [isDropdownOpen, onOpenChange]);
+
   const selectActivity = (business: Business) => {
     setIsOpen(false);
     onSelectBusiness?.(business);
@@ -158,7 +165,7 @@ export const UnifiedMapSearch: React.FC<UnifiedMapSearchProps> = ({
         className="w-full"
       />
 
-      {isOpen && value.trim() && (
+      {isDropdownOpen && (
         <div
           role="listbox"
           aria-label="نتائج البحث"

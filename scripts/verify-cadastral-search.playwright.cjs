@@ -132,19 +132,21 @@ async function run() {
     await mapSuggestion.click();
     await page.waitForTimeout(800);
 
-    // C. Unknown Building "999 ح": clear "not found" state, no crash, no fake result
-    console.log(`  [${vp.name}] C. Unknown building "999 ح" not-found contract`);
+    // C. Unknown Building "999 ح": no phantom UI, standard empty state, no crash, no fake result
+    console.log(`  [${vp.name}] C. Unknown building "999 ح" silent-contract`);
     await page.goto(`${baseUrl}/search?q=999%20%D8%AD`);
     await page.waitForTimeout(800);
 
-    const unknownCardTitle = page.locator('text=عمارة 999 — منطقة (ح)').first();
-    await unknownCardTitle.waitFor({ timeout: 5000 });
-    const notFoundText = page.locator('text=هذه العمارة غير مسجلة في قاعدة بيانات حدائق الأهرام المساحية').first();
-    await notFoundText.waitFor({ timeout: 5000 });
-    assert.strictEqual(await notFoundText.isVisible(), true, 'Must display truthful not-found message for unknown building');
-    const notFoundBadge = page.locator('text=غير مسجلة').first();
-    await notFoundBadge.waitFor({ timeout: 5000 });
-    assert.strictEqual(await notFoundBadge.isVisible(), true, 'Must display "غير مسجلة" badge');
+    // The removed "not registered" card must never render again
+    const grayCardBadge = page.locator('text=غير مسجلة');
+    assert.strictEqual(await grayCardBadge.count(), 0, 'Removed "غير مسجلة" UI must not appear for unknown buildings');
+    const unknownCardTitle = page.locator('text=عمارة 999 — منطقة (ح)');
+    assert.strictEqual(await unknownCardTitle.count(), 0, 'No building card must render for unknown building');
+
+    // Standard honest empty state instead
+    const unknownEmptyState = page.locator('text=لم نجد أنشطة مطابقة').first();
+    await unknownEmptyState.waitFor({ timeout: 5000 });
+    assert.strictEqual(await unknownEmptyState.isVisible(), true, 'Standard empty state must render for unknown building');
 
     // Action button must NOT exist for unknown building
     const unknownActionBtn = page.locator('button:has-text("عرض على الخريطة")');

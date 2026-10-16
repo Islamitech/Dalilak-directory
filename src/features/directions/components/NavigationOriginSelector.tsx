@@ -53,6 +53,8 @@ export const NavigationOriginSelector: React.FC<NavigationOriginSelectorProps> =
       {originType === 'gate' && (
         <div className="relative">
           <select
+            id="nav-origin-gate-select"
+            name="nav-origin-gate"
             value={selectedGateId}
             onChange={(e) => setSelectedGateId(e.target.value)}
             aria-label="اختر بوابة الانطلاق"

@@ -280,23 +280,75 @@ async function runBehavioralTests() {
     }
 
     // -------------------------------------------------------------
-    // Contract 4: Desktop Viewport at >= 1024px
+    // Contract 4: Desktop Viewport at >= 1024px & Live UX Runtime Contracts
     // -------------------------------------------------------------
-    console.log('\n--- Contract 4: Desktop Viewport at >= 1024px ---');
+    console.log('\n--- Contract 4: Desktop Viewport at >= 1024px & Live UX Runtime Contracts ---');
     {
       const { context, page } = await setupContext(browser, { width: 1280, height: 800 });
+      const zoneConflictWarnings = [];
+      page.on('console', (msg) => {
+        if (msg.text().includes('[Zone Conflict]')) {
+          zoneConflictWarnings.push(msg.text());
+        }
+      });
       try {
         await page.goto(`${baseUrl}/search`, { waitUntil: 'domcontentloaded' });
         await page.locator('[data-biz-id="biz_alpha"]').first().waitFor({ state: 'visible', timeout: 7000 });
         assert.ok(await page.locator('[data-biz-id="biz_alpha"]').first().isVisible(), 'List card must be visible on desktop search');
+
+        // Verify SearchField autofill hardening attributes
+        const searchInput = page.locator('input[name="dalilak-search"]').first();
+        await searchInput.waitFor({ state: 'visible', timeout: 7000 });
+        assert.equal(await searchInput.getAttribute('autocomplete'), 'off', 'SearchField must set autocomplete="off"');
+        assert.equal(await searchInput.getAttribute('data-lpignore'), 'true', 'SearchField must set data-lpignore="true"');
+        assert.equal(await searchInput.getAttribute('data-1p-ignore'), 'true', 'SearchField must set data-1p-ignore="true"');
+        assert.equal(await searchInput.getAttribute('data-form-type'), 'other', 'SearchField must set data-form-type="other"');
+
+        // Verify Tier 1 filter bar hides when UnifiedMapSearch suggestions listbox opens and restores on Escape
+        const catFilterBtn = page.locator('button[aria-label="تصفية حسب نوع النشاط"]').first();
+        assert.ok(await catFilterBtn.isVisible(), 'Tier 1 category filter must be visible when search dropdown is closed');
+
+        // 1-char query must NOT open suggestions listbox or hide Tier 1
+        await searchInput.fill('أ');
+        const suggestionsListbox = page.locator('[role="listbox"][aria-label="نتائج البحث"]').first();
+        assert.equal(await suggestionsListbox.isVisible(), false, '1-char query must not open suggestions listbox');
+        assert.ok(await catFilterBtn.isVisible(), 'Tier 1 filter bar must stay visible on 1-char query');
+
+        // 2+ char query opens suggestions listbox and hides Tier 1 filter bar
+        await searchInput.fill('ألفا');
+        await suggestionsListbox.waitFor({ state: 'visible', timeout: 7000 });
+        await catFilterBtn.waitFor({ state: 'hidden', timeout: 7000 });
+        assert.equal(await catFilterBtn.isVisible(), false, 'Tier 1 filter bar must be hidden while search suggestions listbox is open');
+
+        // Pressing Escape closes suggestions listbox and restores Tier 1 filter bar
+        await page.keyboard.press('Escape');
+        await suggestionsListbox.waitFor({ state: 'hidden', timeout: 7000 });
+        await catFilterBtn.waitFor({ state: 'visible', timeout: 7000 });
+        await searchInput.fill('');
+
+        // Verify WhatsAppFloatingButton is visible on desktop and hides when ActivityDetailModal opens
+        const waBtn = page.locator('a[aria-label="تواصل عبر واتساب"]').first();
+        await waBtn.waitFor({ state: 'visible', timeout: 7000 });
+        assert.ok(await waBtn.isVisible(), 'WhatsAppFloatingButton must be visible on desktop when no sheet is open');
+
+        await page.locator('[data-biz-id="biz_alpha"] h3 button').first().click();
+        const detailModal = page.locator('[role="dialog"][aria-labelledby="activity-detail-modal-title"]').first();
+        await detailModal.waitFor({ state: 'visible', timeout: 7000 });
+        await waBtn.waitFor({ state: 'hidden', timeout: 7000 });
+        assert.equal(await waBtn.isVisible(), false, 'WhatsAppFloatingButton must hide when activity detail sheet is open');
+
+        await detailModal.locator('button[aria-label="إغلاق"]').first().click();
+        await detailModal.waitFor({ state: 'hidden', timeout: 7000 });
+        await waBtn.waitFor({ state: 'visible', timeout: 7000 });
 
         // Navigate to map on desktop
         await page.goto(`${baseUrl}/map`, { waitUntil: 'domcontentloaded' });
         const mapCanvas = page.locator('.leaflet-container').first();
         await mapCanvas.waitFor({ state: 'visible', timeout: 7000 });
         assert.ok(await mapCanvas.isVisible(), 'Map with Leaflet canvas must be visible on desktop at 1280px');
+        assert.equal(zoneConflictWarnings.length, 0, 'Console must not emit [Zone Conflict] warnings when VITE_DEBUG_ZONES is not enabled');
 
-        console.log('✓ Contract 4 Passed: Desktop views render list grid and map cleanly at 1280px.');
+        console.log('✓ Contract 4 Passed: Desktop views, autofill hardening, Tier 1 dropdown coordination, WhatsApp overlay hiding, and silent zone conflict handling verified at 1280px.');
         results.push({ contract: '4. Desktop Viewport (>=1024px)', status: 'PASS' });
       } catch (err) {
         console.error('✗ Contract 4 Failed with error stack:\n', err);

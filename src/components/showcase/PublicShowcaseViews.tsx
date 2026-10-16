@@ -118,6 +118,7 @@ export const PublicShowcaseViews: React.FC<PublicShowcaseViewsProps> = ({
           openNowOnly={filterState.openNowOnly}
           onToggleOpenNow={() => filterState.setOpenNowOnly(!filterState.openNowOnly)}
           verifiedOnly={filterState.verifiedOnly}
+          onToggleVerified={() => filterState.setVerifiedOnly(!filterState.verifiedOnly)}
           hasRatingOnly={filterState.hasRatingOnly}
           onToggleHasRating={() => filterState.setHasRatingOnly(!filterState.hasRatingOnly)}
           hasVideoOnly={filterState.hasVideoOnly}

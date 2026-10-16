@@ -3,6 +3,7 @@ import { useDirectoryLoad } from '../../../features/catalog';
 import { Business } from '../../../types';
 import { parseActivitySearchIntent } from '../../../utils/activitySearchIntent';
 import { filterBusinessesForMap } from '../../../utils/hadayekZoneHelper';
+import type { ParsedHadayekBuilding } from '../../../utils/hadayekBuildingSearch';
 import type { DirectoryScope } from '../../../utils/directoryScope';
 import { computeFilteredBusinesses } from '../model/showcaseFilterModel';
 import type { ShowcaseSort } from '../model/showcaseFilterQuery';
@@ -12,6 +13,8 @@ type ActivityIntent = ReturnType<typeof parseActivitySearchIntent>;
 interface DirectoryBusinessesInput {
   publicBusinesses: Business[];
   activityIntent: ActivityIntent;
+  buildingIntent?: ParsedHadayekBuilding | null;
+  buildingCoords?: { lat: number; lng: number } | null;
   deferredSearchQuery: string;
   categoryFilter: string;
   subcategoryFilter: string;
@@ -32,6 +35,8 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
   const {
     publicBusinesses,
     activityIntent,
+    buildingIntent,
+    buildingCoords,
     deferredSearchQuery,
     categoryFilter,
     subcategoryFilter,
@@ -56,6 +61,8 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
     return computeFilteredBusinesses({
       publicBusinesses: source,
       activityIntent,
+      buildingIntent,
+      buildingCoords,
       deferredSearchQuery,
       categoryFilter: activityIntent ? 'all' : categoryFilter,
       subcategoryFilter: activityIntent ? 'all' : subcategoryFilter,
@@ -75,6 +82,8 @@ export function useDirectoryBusinesses(input: DirectoryBusinessesInput): Busines
   }, [
     publicBusinesses,
     activityIntent,
+    buildingIntent,
+    buildingCoords,
     deferredSearchQuery,
     categoryFilter,
     subcategoryFilter,

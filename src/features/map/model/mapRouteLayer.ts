@@ -38,7 +38,7 @@ export function renderRouteLayer(
   routeLayer.addLayer(casing);
 
   const routeLine = window.L.polyline(routePoints, {
-    color: '#f59e0b',
+    color: '#d97706',
     weight: 6,
     opacity: 1,
     lineCap: 'round',

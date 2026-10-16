@@ -24,8 +24,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   initialShowBusinesses = false, onToggleBusinessesVisibility, defaultExpanded = false,
   onExploreDirectory, onResetFilters, filtersActive = false, activeRoute: externalActiveRoute, onUpdateRoute,
   onStartNavigation: externalOnStartNavigation, onClearBuilding,
-  focusedBusiness, onClearFocusedBusiness, resultsReady = false,
-  directoryScope = 'hadayek', onDirectoryScopeChange,
+  focusedBusiness, onClearFocusedBusiness, resultsReady = false, directoryScope = 'hadayek', onDirectoryScopeChange,
 }) => {
   const directoryLoad = useDirectoryLoad();
   const searchPending = useDirectorySearchPending();
@@ -61,8 +60,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   const matchingBusinessesCount = useMemo(() => {
     if (resultsReady) return businesses.length;
-    return filterBusinessesForMap(businesses, 'all', activeCategory || 'all', state.onlyVerifiedFilter).length;
-  }, [resultsReady, businesses, activeCategory, state.onlyVerifiedFilter]);
+    return filterBusinessesForMap(businesses, activeZone || 'all', activeCategory || 'all', state.onlyVerifiedFilter).length;
+  }, [resultsReady, businesses, activeZone, activeCategory, state.onlyVerifiedFilter]);
 
   const mapInstance = useMapInstance({
     containerRef,
@@ -195,7 +194,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             matchingCount={matchingBusinessesCount}
             filtersActive={filtersActive}
             onResetAll={onResetFilters ?? (() => { onSearchChange?.(''); onCategoryChange?.('all'); onSelectZone?.('all'); })}
-            directoryScope={directoryScope}
             onDirectoryScopeChange={onDirectoryScopeChange}
           />
         )}

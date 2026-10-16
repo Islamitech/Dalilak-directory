@@ -55,6 +55,9 @@ function toBusinesses(rows: any[]): Business[] {
 
 function waitForFirstCardImage(signal: AbortSignal): Promise<void> {
   if (typeof document === 'undefined') return Promise.resolve();
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/map')) {
+    return Promise.resolve();
+  }
   return new Promise((resolve) => {
     let settled = false;
     const finish = () => {
@@ -62,6 +65,7 @@ function waitForFirstCardImage(signal: AbortSignal): Promise<void> {
       settled = true;
       observer.disconnect();
       clearTimeout(timer);
+      clearTimeout(noPhotoFallbackTimer);
       signal.removeEventListener('abort', finish);
       resolve();
     };
@@ -76,7 +80,12 @@ function waitForFirstCardImage(signal: AbortSignal): Promise<void> {
     };
     const observer = new MutationObserver(watch);
     observer.observe(document.documentElement, { childList: true, subtree: true });
-    const timer = setTimeout(finish, 8000);
+    // On map views there are no .dl-photo cards in DOM, so fallback quickly (600ms)
+    const noPhotoFallbackTimer = setTimeout(() => {
+      if (!document.querySelector('.dl-photo')) finish();
+    }, 600);
+    // Hard ceiling reduced from 8000ms to 1200ms to keep catalog streaming smooth
+    const timer = setTimeout(finish, 1200);
     signal.addEventListener('abort', finish);
     watch();
   });

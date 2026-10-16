@@ -14,6 +14,7 @@ import { useShowcaseFilterState } from './showcase/hooks/useShowcaseFilterState'
 const FloatingBottomDock = React.lazy(() => import('./layout/FloatingBottomDock').then((m) => ({ default: m.FloatingBottomDock })));
 import { useShowcaseToast } from './showcase/hooks/useShowcaseToast';
 import { useDirectoryBusinesses } from './showcase/hooks/useDirectoryBusinesses';
+import { useBuildingIntent } from './showcase/hooks/useBuildingIntent';
 import { useFavorites } from '../features/favorites';
 import { useShowcaseMetadata } from './showcase/hooks/useShowcaseMetadata';
 import { useShowcaseGeolocation } from './showcase/hooks/useShowcaseGeolocation';
@@ -75,6 +76,10 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
   );
   const intentZone = activityIntent?.zone;
   const effectiveSearchZone = intentZone && intentZone !== 'all' ? intentZone : filterState.hadayekZoneFilter;
+  const { buildingIntent, buildingCoords } = useBuildingIntent(
+    isDirectoryRoute ? filterState.deferredSearchQuery : '',
+    effectiveSearchZone
+  );
   const effectiveMapCategoryFilter = activityIntent?.category ?? (filterState.subcategoryFilter !== 'all' ? filterState.subcategoryFilter : filterState.categoryFilter);
 
   const handleReshuffle = useCallback(() => {
@@ -129,6 +134,8 @@ export const PublicShowcase: React.FC<PublicShowcaseProps> = ({
     shuffleSeed: filterState.shuffleSeed,
     pinnedDirectBizId,
     directoryScope: filterState.directoryScope,
+    buildingIntent,
+    buildingCoords,
   });
 
   const isMapRoute = currentPath === '/' || currentPath === '/map';

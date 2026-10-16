@@ -32,7 +32,13 @@ export function buildDistrictsLayer(
       });
 
       polygon.on('click', (event: { originalEvent?: Event }) => {
-        event.originalEvent?.stopPropagation?.();
+        if (event.originalEvent) {
+          event.originalEvent.stopPropagation?.();
+          (event.originalEvent as any)._stopped = true;
+        }
+        if (window.L?.DomEvent?.stopPropagation) {
+          window.L.DomEvent.stopPropagation(event);
+        }
         onSelectDistrict(district.letterAr);
       });
 
@@ -43,7 +49,7 @@ export function buildDistrictsLayer(
         const [lat, lng] = getDistrictLabelPosition(district);
         label = window.L.marker([lat, lng], {
           pane: 'districtLabelsPane',
-          interactive: false,
+          interactive: true,
           keyboard: false,
           icon: window.L.divIcon({
             className: 'hadayek-district-label',
@@ -51,6 +57,16 @@ export function buildDistrictsLayer(
             iconSize: [28, 28],
             iconAnchor: [14, 14],
           }),
+        });
+        label.on('click', (event: { originalEvent?: Event }) => {
+          if (event.originalEvent) {
+            event.originalEvent.stopPropagation?.();
+            (event.originalEvent as any)._stopped = true;
+          }
+          if (window.L?.DomEvent?.stopPropagation) {
+            window.L.DomEvent.stopPropagation(event);
+          }
+          onSelectDistrict(district.letterAr);
         });
         districtsLayer.addLayer(label);
       }
@@ -69,26 +85,31 @@ export function updateDistrictHighlightStyles(
 ) {
   if (mask?.setStyle) mask.setStyle({ fillOpacity: 0 });
 
-  polygons.forEach(({ letterAr, polygon, label }) => {
+  polygons.forEach(({ letterAr, polygon, color, label }) => {
     const isSelected = shouldHighlight && letterAr === zoneLetter;
     const path = polygon.getElement?.();
+    const labelEl = label?.getElement?.();
 
     if (isSelected) {
       polygon.setStyle({
-        color: '#334155',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0,
+        color: color || '#d97706',
+        weight: 2.5,
+        opacity: 0.95,
+        fillColor: color || '#d97706',
+        fillOpacity: 0.12,
       });
       if (path) path.classList.add('selected-district-polygon-focus');
+      if (labelEl) labelEl.classList.add('selected-district-label-focus');
     } else {
       polygon.setStyle({
         color: '#334155',
         weight: 0,
         opacity: 0,
+        fillColor: '#334155',
         fillOpacity: 0,
       });
       if (path) path.classList.remove('selected-district-polygon-focus');
+      if (labelEl) labelEl.classList.remove('selected-district-label-focus');
     }
     label?.setOpacity(1);
   });

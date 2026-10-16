@@ -40,11 +40,22 @@ export const FloatingBottomDock: React.FC<FloatingBottomDockProps> = ({
 }) => {
   const isListView = currentPath === '/search';
   const activeView: DirectoryViewMode = isListView ? 'list' : 'map';
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
-  const [buildingOpen, setBuildingOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(
+    () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-entity-sheet][data-placement="page"]'))
+  );
+  const [navOpen, setNavOpen] = useState(
+    () => typeof document !== 'undefined' && Boolean(document.querySelector('.dl-navpill'))
+  );
+  const [buildingOpen, setBuildingOpen] = useState(
+    () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-entity-sheet][data-placement="map"]'))
+  );
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
 
   useEffect(() => {
+    setSheetOpen(Boolean(document.querySelector('[data-entity-sheet][data-placement="page"]')));
+    setNavOpen(Boolean(document.querySelector('.dl-navpill')));
+    setBuildingOpen(Boolean(document.querySelector('[data-entity-sheet][data-placement="map"]')));
+
     const handleSheet = (e: Event) => setSheetOpen(Boolean((e as CustomEvent).detail?.open));
     const handleNav = (e: Event) => setNavOpen(Boolean((e as CustomEvent).detail?.active));
     const handleBuilding = (e: Event) => setBuildingOpen(Boolean((e as CustomEvent).detail?.active));
@@ -94,11 +105,17 @@ export const FloatingBottomDock: React.FC<FloatingBottomDockProps> = ({
       dir="rtl"
       aria-hidden={isHiddenByOverlay}
       className={`fixed bottom-3 sm:bottom-5 inset-x-0 z-[1000] flex flex-col items-center pointer-events-none px-3 min-[380px]:px-4 pb-[env(safe-area-inset-bottom,0px)] gap-1.5 transition-all duration-300 ${
-        isHiddenByOverlay ? 'translate-y-[140%] opacity-0 pointer-events-none [&_*]:pointer-events-none' : 'translate-y-0 opacity-100'
+        isHiddenByOverlay ? 'translate-y-[140%] opacity-0 invisible pointer-events-none [&_*]:pointer-events-none' : 'translate-y-0 opacity-100 visible'
       }`}
     >
       {/* Tier 1: شريط الفلاتر المصغر */}
-      <div className="pointer-events-auto rounded-pill bg-white/95 border border-slate-200/80 shadow-floating backdrop-blur-md px-1 py-0.5">
+      <div
+        className={`rounded-pill bg-white/95 border border-slate-200/80 shadow-floating backdrop-blur-md px-1 py-0.5 transition-all duration-200 ${
+          searchDropdownOpen || isHiddenByOverlay
+            ? 'opacity-0 translate-y-1 pointer-events-none invisible'
+            : 'opacity-100 translate-y-0 pointer-events-auto visible'
+        }`}
+      >
         <UnifiedSearchFilterBar
           selectedCategory={selectedCategory}
           onCategoryChange={onCategoryChange}
@@ -121,6 +138,7 @@ export const FloatingBottomDock: React.FC<FloatingBottomDockProps> = ({
             confineToHadayek={confineToHadayek}
             onSelectBuilding={handleSelectBuilding}
             onSelectBusiness={onSelectBusiness}
+            onOpenChange={setSearchDropdownOpen}
           />
         </div>
         <div className="shrink-0">

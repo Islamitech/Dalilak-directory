@@ -79,6 +79,8 @@ export function resolveCategorySelection(filter?: string | null): CategorySelect
 }
 
 const classificationCache = new WeakMap<object, { signature: string; result: CategoryClassification }>();
+const signatureCache = new Map<string, CategoryClassification>();
+const MAX_SIGNATURE_CACHE = 4000;
 
 /**
  * Classification scores every subcategory alias against several normalized text fields, which is
@@ -87,6 +89,7 @@ const classificationCache = new WeakMap<object, { signature: string; result: Cat
  */
 export function classifyBusinessCategory(entity: BusinessOrLeadEntity): CategoryClassification {
   const signature = [
+    (entity as any).id || '',
     entity.mainCategoryId,
     entity.subcategoryId,
     entity.category,
@@ -96,10 +99,25 @@ export function classifyBusinessCategory(entity: BusinessOrLeadEntity): Category
     entity.notes,
     entity.services ? entity.services.join('|') : '',
   ].join('\u0001');
-  const cached = classificationCache.get(entity);
-  if (cached && cached.signature === signature) return { ...cached.result };
+
+  const cachedObj = classificationCache.get(entity);
+  if (cachedObj && cachedObj.signature === signature) return { ...cachedObj.result };
+
+  const cachedSig = signatureCache.get(signature);
+  if (cachedSig) {
+    classificationCache.set(entity, { signature, result: cachedSig });
+    return { ...cachedSig };
+  }
+
   const result = classifyBusinessCategoryUncached(entity);
   classificationCache.set(entity, { signature, result });
+
+  if (signatureCache.size >= MAX_SIGNATURE_CACHE) {
+    const oldestKey = signatureCache.keys().next().value;
+    if (oldestKey !== undefined) signatureCache.delete(oldestKey);
+  }
+  signatureCache.set(signature, result);
+
   return { ...result };
 }
 

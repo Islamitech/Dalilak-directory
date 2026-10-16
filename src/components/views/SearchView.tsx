@@ -1,11 +1,13 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { type SearchViewProps, CadastralBuildingCard } from '../../features/search';
 import { computeFilteredBusinesses } from '../showcase/model/showcaseFilterModel';
 import { BusinessCardGrid } from '../../components/cards/BusinessCardGrid';
 import { ActivityListHeader } from './ActivityListHeader';
-import { parseHadayekBuildingAddress } from '../../utils/hadayekBuildingSearch';
+import { useBuildingIntent } from '../showcase/hooks/useBuildingIntent';
 import { getRecommendedGateForZone } from '../../shared/data/hadayek/hadayekGeo';
 import { filterBusinessesForMap } from '../../utils/hadayekZoneHelper';
+import { SearchQuickSortPills } from './SearchQuickSortPills';
+import { HadayekEmergencyModal } from './HadayekEmergencyModal';
 
 export type { SearchViewProps };
 
@@ -29,11 +31,16 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onCategoryChange,
   subcategoryFilter,
   sortBy,
+  onSortChange,
   openNowOnly,
+  onToggleOpenNow,
   verifiedOnly = false,
+  onToggleVerified,
   hasRatingOnly,
   hasVideoOnly,
   userCoords,
+  isLocatingUser = false,
+  onRequestLocation,
   onOpenBusiness,
   onToggleFavorite,
   favorites,
@@ -43,12 +50,16 @@ export const SearchView: React.FC<SearchViewProps> = ({
   directoryScope = 'hadayek',
   onDirectoryScopeChange,
 }) => {
+  const { buildingIntent, buildingCoords } = useBuildingIntent(searchQuery || '', selectedZone);
+
   const effectiveFilteredBusinesses = useMemo(() => {
     if (filteredBusinesses) return filteredBusinesses;
     return computeFilteredBusinesses({
       publicBusinesses: allBusinesses,
       activityIntent: null,
       deferredSearchQuery: searchQuery,
+      buildingIntent,
+      buildingCoords,
       categoryFilter,
       subcategoryFilter,
       effectiveSearchZone: selectedZone,
@@ -67,6 +78,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
     filteredBusinesses,
     allBusinesses,
     searchQuery,
+    buildingIntent,
+    buildingCoords,
     categoryFilter,
     subcategoryFilter,
     selectedZone,
@@ -81,40 +94,22 @@ export const SearchView: React.FC<SearchViewProps> = ({
   ]);
 
   const cadastralBuilding = useMemo(() => {
-    if (!searchQuery) return null;
-    const match = parseHadayekBuildingAddress(searchQuery, selectedZone);
-    if (!match) return null;
-    const gateInfo = getRecommendedGateForZone(match.zoneLetter);
+    if (!buildingIntent) return null;
+    const gateInfo = getRecommendedGateForZone(buildingIntent.zoneLetter);
     return {
-      buildingNumber: match.buildingNumber,
-      zoneLetter: match.zoneLetter,
+      buildingNumber: buildingIntent.buildingNumber,
+      zoneLetter: buildingIntent.zoneLetter,
       nearestGateName: gateInfo?.primaryGate?.popularNameAr || 'البوابة الأولى',
     };
-  }, [searchQuery, selectedZone]);
+  }, [buildingIntent]);
 
-  const [isBuildingFound, setIsBuildingFound] = useState<boolean>(true);
+  const buildingFound = Boolean(buildingIntent && buildingCoords);
+  const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
+
   const scopeCatalog = useMemo(
     () => (directoryScope === 'all' ? allBusinesses : filterBusinessesForMap(allBusinesses, 'all', 'all', false)),
     [allBusinesses, directoryScope]
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!cadastralBuilding) {
-      setIsBuildingFound(true);
-      return;
-    }
-    import('../../shared/data/hadayek/hadayekGeo').then(({ searchBuildingCoordinatesExact }) => {
-      searchBuildingCoordinatesExact(cadastralBuilding.zoneLetter, cadastralBuilding.buildingNumber).then((coords) => {
-        if (!cancelled) {
-          setIsBuildingFound(Boolean(coords));
-        }
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [cadastralBuilding?.zoneLetter, cadastralBuilding?.buildingNumber]);
 
   useEffect(() => {
     let saved = 0;
@@ -169,13 +164,28 @@ export const SearchView: React.FC<SearchViewProps> = ({
         onScopeChange={onDirectoryScopeChange}
       />
 
-      {cadastralBuilding && (
+      {onSortChange && onToggleOpenNow && (
+        <div className="mb-3">
+          <SearchQuickSortPills
+            sortBy={sortBy}
+            onSortChange={onSortChange}
+            openNowOnly={openNowOnly}
+            onToggleOpenNow={onToggleOpenNow}
+            verifiedOnly={verifiedOnly}
+            onToggleVerified={onToggleVerified}
+            onRequestLocation={onRequestLocation}
+            isLocatingUser={isLocatingUser}
+            onOpenEmergency={() => setShowEmergencyModal(true)}
+          />
+        </div>
+      )}
+
+      {cadastralBuilding && buildingFound && (
         <div className="mb-4">
           <CadastralBuildingCard
             buildingNumber={cadastralBuilding.buildingNumber}
             zoneLetter={cadastralBuilding.zoneLetter}
             nearestGateName={cadastralBuilding.nearestGateName}
-            isFound={isBuildingFound}
             onNavigateToMap={(z, b) => onNavigate(`/map?zone=${encodeURIComponent(z)}&bldg=${encodeURIComponent(b)}`)}
           />
         </div>
@@ -189,6 +199,12 @@ export const SearchView: React.FC<SearchViewProps> = ({
         favorites={favorites}
         userCoords={userCoords}
         onResetFilters={onResetAllFilters}
+      />
+
+      <HadayekEmergencyModal
+        isOpen={showEmergencyModal}
+        onClose={() => setShowEmergencyModal(false)}
+        onSelectCategory={onCategoryChange}
       />
     </div>
   );

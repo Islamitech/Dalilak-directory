@@ -37,10 +37,13 @@ export function renderSelectedBusinessMarker(
   };
 
   if (selectedMarkerRef.current && selectedLayer.hasLayer(selectedMarkerRef.current)) {
-    selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
-    selectedMarkerRef.current.setIcon(bizIcon);
-    selectedMarkerRef.current.off('click');
-    selectedMarkerRef.current.on('click', handlePinClick);
+    if (selectedMarkerRef.current.__bizId !== selectedBiz.id) {
+      selectedMarkerRef.current.__bizId = selectedBiz.id;
+      selectedMarkerRef.current.setLatLng([selectedBiz.lat, selectedBiz.lng]);
+      selectedMarkerRef.current.setIcon(bizIcon);
+      selectedMarkerRef.current.off('click');
+      selectedMarkerRef.current.on('click', handlePinClick);
+    }
   } else {
     selectedLayer.clearLayers();
     const marker = window.L.marker([selectedBiz.lat, selectedBiz.lng], {
@@ -48,6 +51,7 @@ export function renderSelectedBusinessMarker(
       pane: 'selectedPinPane',
       zIndexOffset: 1200,
     });
+    marker.__bizId = selectedBiz.id;
     marker.on('click', handlePinClick);
     selectedLayer.addLayer(marker);
     selectedMarkerRef.current = marker;

@@ -38,8 +38,12 @@ export function useMapSelectionCamera(
   const shieldRef = useRef<CameraShieldState>(createCameraShieldState());
 
   useEffect(() => {
+    if (!selectedBiz) {
+      lastSelectedBizIdRef.current = null;
+      return;
+    }
     const map = mapInstance.leafletMapRef.current;
-    if (!selectedBiz || !map || !mapInstance.isMapReady) return;
+    if (!map || !mapInstance.isMapReady) return;
     if (lastSelectedBizIdRef.current === selectedBiz.id) return;
     lastSelectedBizIdRef.current = selectedBiz.id;
     flyCameraToSelectedBusiness(map, mapInstance.cameraController, selectedBiz);

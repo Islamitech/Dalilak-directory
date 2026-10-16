@@ -31,11 +31,10 @@
     padding: 2px;
     border-radius: 999px;
     background: var(--bg-2);
-    border: 1px solid var(--border);
   }
 
   .dl-scope-btn {
-    min-height: 32px;
+    min-height: 44px;
     padding: 0 10px;
     border: 0;
     border-radius: 999px;
@@ -246,7 +245,7 @@
     padding: 3px 8px;
     border-radius: 9px;
     border: 1px solid rgba(212, 163, 42, 0.55);
-    background: rgba(10, 15, 29, 0.78);
+    background: var(--glass-ink-1);
     backdrop-filter: blur(8px);
     pointer-events: none;
     user-select: none;
@@ -338,7 +337,7 @@
     padding: 3px 9px;
     border-radius: 999px;
     color: #ffffff;
-    background: rgba(2, 6, 23, 0.58);
+    background: var(--glass-ink-2);
     border: 1px solid rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(10px);
   }
@@ -347,13 +346,14 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #ffffff;
-    background: var(--success-hover);
-    border-color: var(--success-border);
+    color: #7a5a12;
+    background: #fbf1da;
+    border: 1px solid rgba(180, 83, 9, 0.4);
+    font-weight: 800;
   }
 
   .dl-hv svg {
-    color: var(--success-border);
+    color: var(--brand-deep);
   }
 
   .dl-hcat {
@@ -833,7 +833,7 @@
 
   .dl-rbtn {
     width: 100%;
-    min-height: 36px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -874,7 +874,7 @@
     display: inline-block;
     direction: ltr;
     font-size: 14px;
-    background: linear-gradient(90deg, #f59e0b var(--p), #cbd5e1 var(--p));
+    background: linear-gradient(90deg, #d97706 var(--p), #cbd5e1 var(--p));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -977,17 +977,17 @@
   }
 
   .dl-btn-whatsapp {
-    background-color: #25d366 !important;
-    border-color: #25d366 !important;
-    color: var(--logo-ink-0) !important;
+    background-color: #1f9d55 !important;
+    border-color: #1f9d55 !important;
+    color: var(--logo-silver-0) !important;
     font-weight: 800;
-    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.22);
+    box-shadow: 0 2px 8px rgba(31, 157, 85, 0.22);
   }
 
   .dl-btn-whatsapp:hover {
-    background-color: #20bd5a !important;
-    border-color: #20bd5a !important;
-    color: var(--logo-ink-0) !important;
+    background-color: #188a49 !important;
+    border-color: #188a49 !important;
+    color: var(--logo-silver-0) !important;
   }
 
   /* ── 7. Toast Notification (Bottom with Undo) ── */
@@ -1047,9 +1047,15 @@
     transition: color 0.15s;
   }
 
-  .dl-toast-undo:hover, .dl-toast-undo:focus-visible {
-    color: #fbbf24;
-    outline: none;
+  .dl-toast-undo:hover {
+    color: var(--brand);
+  }
+
+  .dl-toast-undo:focus-visible {
+    color: var(--brand);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
   /* ── 8. Activity detail (dl-dh, dl-dscroll, etc.) ── */
@@ -1166,7 +1172,7 @@
   }
 
   .dl-dhp:focus-visible {
-    outline: 2px solid #fbbf24;
+    outline: 2px solid var(--focus-ring);
     outline-offset: -2px;
   }
 
@@ -1282,6 +1288,70 @@
     transform: scale(1.06);
   }
 
+  .dl-dh-toolbar {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 10px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dl-dh-tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(12px);
+    color: rgb(255, 255, 255);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
+  }
+
+  .dl-dh-tool-btn:hover, .dl-dh-tool-btn:focus-visible {
+    background: rgba(15, 23, 42, 0.72);
+    transform: scale(1.06);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .dl-dh-tool-btn.dl-on {
+    background: rgba(2, 6, 23, 0.75);
+    border-color: rgba(245, 158, 11, 0.6);
+    color: var(--brand);
+  }
+
+  /* Quick-Sort Pills on Search */
+  .dl-sort-pill {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .dl-sort-pill:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .dl-sort-pill-active {
+    background: var(--brand-soft) !important;
+    border-color: var(--brand) !important;
+    color: var(--brand-ink) !important;
+  }
+
+  .dl-sort-pill-inactive:hover {
+    background: var(--surface-elevated);
+    border-color: var(--brand-soft);
+  }
+
   /* Pinned primary-action bar (call / WhatsApp / directions) */
   .dl-dbar {
     flex: none;
@@ -1297,8 +1367,8 @@
     top: 10px;
     inset-inline-end: 62px;
     z-index: 2;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.25);
     background: rgba(15, 23, 42, 0.45);
@@ -1328,7 +1398,7 @@
     align-items: center;
     gap: 4px;
     padding: 6px 10px;
-    min-height: 32px;
+    min-height: 44px;
     border-radius: 10px;
     border: 1px solid #fcd34d;
     background: #fffbeb;
@@ -1433,8 +1503,8 @@
   .dl-msx {
     flex: none;
     align-self: flex-start;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 0;
     background: rgba(241, 245, 249, 0.95);
@@ -1493,6 +1563,18 @@
   }
   .dl-esheet.is-dragging {
     transition: none !important;
+  }
+  .dl-esheet.is-closing {
+    transform: translateY(105%) !important;
+    opacity: 0 !important;
+    transition: transform 0.18s cubic-bezier(0.32, 0, 0.67, 0), opacity 0.18s ease-in !important;
+    pointer-events: none !important;
+  }
+  @media (min-width: 1024px) {
+    .dl-esheet.is-closing {
+      transform: translateX(110%) !important;
+      opacity: 0 !important;
+    }
   }
   .dl-esheet-backdrop {
     position: fixed;
@@ -1649,8 +1731,9 @@
 
   /* Selected Activity Pin Glowing Highlight */
   .activity-pin-wrapper.selected-pin .activity-pin-head {
-    filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.95)) drop-shadow(0 2px 5px rgba(15, 23, 42, 0.35));
-    transform: scale(1.12);
+    filter: drop-shadow(0 0 10px rgba(180, 83, 9, 0.5)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.32));
+    transform: translateY(-2px) scale(1.16);
+    transform-origin: 50% 100%;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
   }
 
@@ -1826,10 +1909,10 @@
     width: min(100%, 340px);
     padding: 11px 16px;
     border-radius: 16px;
-    border: 1px solid #f59e0b;
-    background: linear-gradient(180deg, #fbbf24, #f59e0b);
-    color: #0f172a;
-    box-shadow: 0 10px 26px rgba(217, 119, 6, 0.35);
+    border: 1px solid var(--brand-deep);
+    background: linear-gradient(180deg, #d97706, #b45309);
+    color: #ffffff;
+    box-shadow: 0 10px 26px rgba(180, 83, 9, 0.3);
     cursor: pointer;
     text-align: start;
   }
@@ -1852,7 +1935,7 @@
   .dl-navgo-t small {
     font-size: 12px;
     font-weight: 700;
-    color: #78350f;
+    color: rgba(255, 255, 255, 0.85);
   }
   /* Route stats tiles */
   .dl-stats {
@@ -2029,23 +2112,62 @@
     padding: 12px 14px 10px;
     display: flex;
     flex-direction: column;
+    gap: 12px;
+  }
+
+  .dl-detail-card {
+    background: rgb(255, 255, 255);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    transition: border-color 0.15s ease;
+  }
+
+  .dl-detail-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.9);
+  }
+
+  .dl-detail-card-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dl-service-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .dl-service-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--brand-soft);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: var(--brand-ink);
   }
 
   .dl-db .dl-hrow {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-  }
-
-  .dl-db .dl-sp.dl-closed {
-    background: #fef2f2;
-    color: #b91c1c;
-    border-color: #fecaca;
-  }
-
-  .dl-db .dl-sp.dl-closed .dl-pd i {
-    background: #dc2626;
   }
 
   .dl-db .dl-hours {
@@ -2102,7 +2224,7 @@
     padding: 10px 12px;
     border-radius: 12px;
     background: linear-gradient(135deg, #fffbeb, rgba(254, 243, 199, 0.5));
-    border: 1.5px dashed #fbbf24;
+    border: 1.5px dashed rgba(180, 83, 9, 0.4);
     font-size: 12px;
     font-weight: 800;
     color: #78350f;
@@ -2398,8 +2520,8 @@
   .dl-fb select:focus,
   .dl-fsel:focus,
   .dl-filter-sheet .fb select:focus {
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    border-color: #d97706;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.16);
   }
 
   /* Live count */

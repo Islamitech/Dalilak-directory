@@ -20,129 +20,19 @@ const UNIFIED_PIN_PATH =
   'M15 37.2C15 37.2 4.2 24.4 4.2 15.2 4.2 8.6 9 3.8 15 3.8s10.8 4.8 10.8 11.4C25.8 24.4 15 37.2 15 37.2z';
 
 /**
- * Inner SVG (viewBox 0 0 30 40) of the flat activity pin: solid category colour with a white rim.
- * The glyph is drawn by the caller on top.
+ * Inner SVG (viewBox 0 0 30 40) of the global-standard POI activity pin:
+ * - Ground contact shadow ellipse for natural map anchoring
+ * - Teardrop body in category colour with crisp white rim
+ * - Inner recessed medallion disc for high-contrast glyph framing
+ * - Precision tip anchor dot
  */
 function buildActivityPinSvgInner(_categoryId: string, color: string): string {
-  return `<path d="${UNIFIED_PIN_PATH}" fill="${color}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>`;
-}
-export interface CategoryBadgeConfig {
-  bg: string;
-  borderColor: string;
-  iconSvg: string;
-}
-
-/**
- * Lightweight, high-performance category logo badges:
- * Simple vector paths, zero SVG defs, zero filters, zero lag.
- */
-export function getCategoryBadgeConfig(category: string = ''): CategoryBadgeConfig {
-  const cat = (category || '').toLowerCase();
-
-  // 1. Food & Cafes (Amber)
-  if (
-    cat.includes('مطاعم') ||
-    cat.includes('مطعم') ||
-    cat.includes('كافيه') ||
-    cat.includes('مقهى') ||
-    cat.includes('أكل') ||
-    cat.includes('مأكولات') ||
-    cat.includes('حلويات') ||
-    cat.includes('مخبز') ||
-    cat.includes('مشويات') ||
-    cat.includes('عصائر')
-  ) {
-    return {
-      bg: '#f59e0b',
-      borderColor: '#fbbf24',
-      iconSvg:
-        '<path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2M15 2v19M5 2v4a3 3 0 0 0 3 3v0a3 3 0 0 0 3-3V2M8 9v12"/>',
-    };
-  }
-
-  // 2. Supermarkets & Groceries (Emerald)
-  if (
-    cat.includes('سوبر') ||
-    cat.includes('ماركت') ||
-    cat.includes('بقالة') ||
-    cat.includes('تموين') ||
-    cat.includes('هايبر') ||
-    cat.includes('خضروات') ||
-    cat.includes('لحوم') ||
-    cat.includes('جزارة') ||
-    cat.includes('فواكه')
-  ) {
-    return {
-      bg: '#10b981',
-      borderColor: '#34d399',
-      iconSvg:
-        '<circle cx="8" cy="21" r="1.5" fill="#ffffff"/><circle cx="19" cy="21" r="1.5" fill="#ffffff"/><path d="M2.5 2.5h2.5l2.4 12a2 2 0 0 0 2 1.6h9.6a2 2 0 0 0 1.9-1.5l1.6-7.5H5.4"/>',
-    };
-  }
-
-  // 3. Health, Clinics & Pharmacies (Sky Blue)
-  if (
-    cat.includes('صيدل') ||
-    cat.includes('طبي') ||
-    cat.includes('عياد') ||
-    cat.includes('مستشفى') ||
-    cat.includes('علاج') ||
-    cat.includes('أسنان') ||
-    cat.includes('صحة') ||
-    cat.includes('تحاليل') ||
-    cat.includes('أشعة')
-  ) {
-    return {
-      bg: '#0284c7',
-      borderColor: '#38bdf8',
-      iconSvg:
-        '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7ZM8.5 8.5l7 7"/>',
-    };
-  }
-
-  // 4. Fashion & Clothing (Purple)
-  if (
-    cat.includes('ملابس') ||
-    cat.includes('أزياء') ||
-    cat.includes('فاشون') ||
-    cat.includes('أحذية') ||
-    cat.includes('موضة') ||
-    cat.includes('عبايات') ||
-    cat.includes('بدل')
-  ) {
-    return {
-      bg: '#8b5cf6',
-      borderColor: '#a78bfa',
-      iconSvg:
-        '<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>',
-    };
-  }
-
-  // 5. Automotive & Maintenance (Rose Red)
-  if (
-    cat.includes('سيار') ||
-    cat.includes('صيانة') ||
-    cat.includes('مركبات') ||
-    cat.includes('أوتو') ||
-    cat.includes('كاوتش') ||
-    cat.includes('ميكانيك') ||
-    cat.includes('زيوت')
-  ) {
-    return {
-      bg: '#f43f5e',
-      borderColor: '#fb7185',
-      iconSvg:
-        '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="1.8" fill="#ffffff"/><path d="M9 17h6"/><circle cx="17" cy="17" r="1.8" fill="#ffffff"/>',
-    };
-  }
-
-  // 6. General Commercial & Services (Indigo)
-  return {
-    bg: '#6366f1',
-    borderColor: '#818cf8',
-    iconSvg:
-      '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18ZM6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2ZM18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2ZM10 6h4M10 10h4M10 14h4M10 18h4"/>',
-  };
+  return [
+    '<ellipse cx="15" cy="37.6" rx="4.2" ry="1.5" fill="rgba(15,23,42,0.18)"/>',
+    `<path d="${UNIFIED_PIN_PATH}" fill="${color}" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/>`,
+    '<circle cx="15" cy="14.8" r="8.2" fill="rgba(15,23,42,0.12)" stroke="rgba(255,255,255,0.22)" stroke-width="0.75"/>',
+    '<circle cx="15" cy="36.8" r="1.1" fill="#ffffff" fill-opacity="0.9"/>',
+  ].join('');
 }
 
 /**
@@ -223,26 +113,26 @@ export function createCompactActivityPinHtml(
 
   const rankBadgeHtml =
     isTopProminent && prominenceRank
-      ? `<span style="position:absolute;top:-4px;right:-4px;z-index:5;background:#f59e0b;color:#0f172a;font-size:8px;font-weight:800;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #ffffff;">#${prominenceRank}</span>`
+      ? `<span style="position:absolute;top:-3px;right:-3px;z-index:5;background:#fbf1da;color:#7a5a12;font-size:8px;font-weight:900;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #ffffff;box-shadow:0 1px 3px rgba(15,23,42,.28);">#${prominenceRank}</span>`
       : '';
 
   const verifiedDotHtml = isVerified
-    ? `<span style="position:absolute;top:-3px;left:-3px;z-index:5;width:11px;height:11px;border-radius:50%;background:#d97706;border:1.5px solid #ffffff;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
+    ? `<span style="position:absolute;top:-2px;left:-2px;z-index:5;width:12px;height:12px;border-radius:50%;background:#b45309;border:1.5px solid #ffffff;box-shadow:0 1px 3px rgba(15,23,42,.25);display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
     : '';
 
   const nameHtml = showName
-    ? `<div style="max-width:100px;margin-bottom:2px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.96);border:1px solid #e2e8f0;color:#0f172a;font-size:10px;font-weight:800;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeName}</div>`
+    ? `<div class="activity-pin-label" style="max-width:112px;margin-bottom:3px;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.97);border:1px solid rgba(15,23,42,.1);box-shadow:0 2px 6px rgba(15,23,42,.16);color:#0f172a;font-size:10px;font-weight:800;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeName}</div>`
     : '';
 
   const html = `
     <div class="activity-pin-wrapper marker-pin ${isSelected ? 'selected-pin active' : ''}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;user-select:none;width:${boxWidth}px;height:${pinHeight}px;font-family:'Cairo',system-ui,sans-serif;" title="${safeName} - ${safeCategory}">
       ${nameHtml}
-      <div class="activity-pin-head" style="position:relative;width:42px;height:56px;flex:0 0 56px;filter:drop-shadow(0 2px 3px rgba(15,23,42,.28));">
-        <svg width="42" height="56" viewBox="0 0 30 40" style="display:block;overflow:visible;">
+      <div class="activity-pin-head" style="position:relative;width:38px;height:50px;flex:0 0 50px;filter:drop-shadow(0 3px 6px rgba(15,23,42,.20));">
+        <svg width="38" height="50" viewBox="0 0 30 40" style="display:block;overflow:visible;">
           ${buildActivityPinSvgInner(pinStyle.id, pinStyle.color)}
         </svg>
-        <div style="position:absolute;left:0;right:0;top:11px;height:22px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${pinStyle.iconSvg}</svg>
+        <div style="position:absolute;left:0;right:0;top:8.5px;height:20px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${pinStyle.iconSvg}</svg>
         </div>
         ${rankBadgeHtml}
         ${verifiedDotHtml}
@@ -306,9 +196,9 @@ export function renderUnifiedCompactCardHtml(
   const { ratingText } = formatDisplayRating(biz);
 
   const containerBorder = isSelected
-    ? 'border: 2px solid #f59e0b; box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 14px rgba(245, 158, 11, 0.35);'
+    ? 'border: 2px solid #b45309; box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 14px rgba(180, 83, 9, 0.22);'
     : isTopProminent
-    ? 'border: 1.5px solid #f59e0b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25), 0 1px 4px rgba(0,0,0,0.06);'
+    ? 'border: 1.5px solid #b45309; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.16), 0 1px 4px rgba(0,0,0,0.06);'
     : 'border: 1.5px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.10), 0 1px 3px rgba(0,0,0,0.05);';
 
   const closeButtonHtml = isSelected
@@ -321,7 +211,7 @@ export function renderUnifiedCompactCardHtml(
     : '';
 
   const rankBadgeHtml = isTopProminent && prominenceRank
-    ? `<span style="position: absolute; top: 2px; left: 2px; z-index: 3; font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: #f59e0b; color: #020617;">#${prominenceRank}</span>`
+    ? `<span style="position: absolute; top: 2px; left: 2px; z-index: 3; font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: #fbf1da; color: #7a5a12;">#${prominenceRank}</span>`
     : '';
 
   // Bottom action cue / rating text
@@ -329,7 +219,7 @@ export function renderUnifiedCompactCardHtml(
   if (isSelected) {
     bottomActionHtml = `
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 1px;">
-        <span style="font-size: 8.5px; font-weight: 800; color: #d97706; display: inline-flex; align-items: center; gap: 2px;">
+        <span style="font-size: 8.5px; font-weight: 800; color: #7a5a12; display: inline-flex; align-items: center; gap: 2px;">
           <span>انقر لعرض كامل التفاصيل</span>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </span>
@@ -338,8 +228,8 @@ export function renderUnifiedCompactCardHtml(
     bottomActionHtml = `
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 1px;">
         ${ratingText ? `
-          <span style="display: inline-flex; align-items: center; gap: 2px; font-family: monospace; font-size: 9px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.1); padding: 0.5px 4.5px; border-radius: 4px;">
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span style="display: inline-flex; align-items: center; gap: 2px; font-family: monospace; font-size: 9px; font-weight: 800; color: #7a5a12; background: rgba(180, 83, 9, 0.10); padding: 0.5px 4.5px; border-radius: 4px;">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>${ratingText}</span>
           </span>
         ` : `
@@ -363,7 +253,7 @@ export function renderUnifiedCompactCardHtml(
         ${closeButtonHtml}
 
         <!-- 1. Thumbnail Photo -->
-        <div class="biz-card-frame" style="position: relative; width: ${thumbSize}px; height: ${thumbSize}px; min-width: ${thumbSize}px; border-radius: 8px; overflow: hidden; background: #0f172a; border: 1px solid ${isSelected ? 'rgba(245, 158, 11, 0.3)' : 'rgba(226, 232, 240, 0.8)'};">
+        <div class="biz-card-frame" style="position: relative; width: ${thumbSize}px; height: ${thumbSize}px; min-width: ${thumbSize}px; border-radius: 8px; overflow: hidden; background: #0f172a; border: 1px solid ${isSelected ? 'rgba(180, 83, 9, 0.25)' : 'rgba(226, 232, 240, 0.8)'};">
           <img
             class="biz-card-photo"
             src="${escapeHtml(photoUrl)}"
@@ -376,7 +266,7 @@ export function renderUnifiedCompactCardHtml(
           <div class="biz-card-shade"></div>
           ${rankBadgeHtml}
           ${isVerified ? `
-            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 13px; height: 13px; border-radius: 50%; background: #d97706; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
+            <span style="position: absolute; bottom: 2px; right: 2px; z-index: 2; width: 13px; height: 13px; border-radius: 50%; background: #b45309; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="موثق">
               <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
           ` : ''}
@@ -409,14 +299,14 @@ export function renderUnifiedCompactCardHtml(
         hasOffset
           ? `
             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: -1;">
-              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="${isSelected ? '#f59e0b' : '#94a3b8'}" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="${isSelected ? '#f59e0b' : '#64748b'}" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 4px rgba(0,0,0,0.3))" />
+              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="${isSelected ? '#b45309' : '#94a3b8'}" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="${isSelected ? '#b45309' : '#64748b'}" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 4px rgba(0,0,0,0.3))" />
             </svg>
-            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${isSelected ? '#f59e0b' : '#94a3b8'}; margin-top: -1px;"></div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${isSelected ? '#b45309' : '#94a3b8'}; margin-top: -1px;"></div>
           `
           : `
             <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12));"></div>
-            <div style="width: 7px; height: 7px; border-radius: 50%; background: ${isSelected ? '#f59e0b' : '#0284c7'}; border: 1.5px solid #ffffff; margin-top: -3px; box-shadow: 0 0 6px rgba(0,0,0,0.25);"></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: ${isSelected ? '#b45309' : '#0284c7'}; border: 1.5px solid #ffffff; margin-top: -3px; box-shadow: 0 0 6px rgba(0,0,0,0.25);"></div>
           `
       }
     </div>
@@ -486,11 +376,11 @@ export function createExpandedActivityCardHtml(
   const smartWhatsAppUrl = sanitizeSafeUrl(getSmartWhatsAppUrl(biz));
 
   const rankBadgeHtml = isTopProminent && prominenceRank
-    ? `<span style="position: absolute; top: 6px; left: 36px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; border: 0.5px solid #fef08a; box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
+    ? `<span style="position: absolute; top: 6px; left: 36px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: #fbf1da; color: #7a5a12; border: 0.5px solid rgba(180, 83, 9, 0.35); box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #047857; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 6px; right: 6px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 2px 6.5px; border-radius: 9999px; background: #19634e; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = hoursLabel ? `
@@ -509,7 +399,7 @@ export function createExpandedActivityCardHtml(
   const html = `
     <div class="activity-card-pin ${isSelected ? 'selected-expanded-pin' : 'detailed-activity-preview-pin'}" style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: ${isSelected ? 'default' : 'pointer'}; user-select: none; width: ${cardWidth}px; height: ${estimatedTotalHeight}px; font-family: 'Cairo', system-ui, sans-serif; direction: rtl;">
       <!-- Card Container with glowing golden amber border -->
-      <div style="background: #ffffff; border: ${isSelected ? '2.5px solid #f59e0b' : '1.5px solid #e2e8f0'}; box-shadow: ${isSelected ? '0 0 28px rgba(245, 158, 11, 0.85), 0 12px 36px rgba(0,0,0,0.3)' : '0 8px 24px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(0,0,0,0.08)'}; border-radius: 18px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+      <div style="background: #ffffff; border: ${isSelected ? '2.5px solid #b45309' : '1.5px solid #e2e8f0'}; box-shadow: ${isSelected ? '0 0 28px rgba(180, 83, 9, 0.35), 0 12px 36px rgba(0,0,0,0.3)' : '0 8px 24px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(0,0,0,0.08)'}; border-radius: 18px; overflow: hidden; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
         
         <!-- 1. Visual Photo Header with Fixed Dimensions (Zero CLS) -->
         <div class="biz-card-frame" style="position: relative; width: 100%; height: ${photoHeight}px; background: #0f172a; overflow: hidden; border-top-left-radius: 16px; border-top-right-radius: 16px;">
@@ -559,8 +449,8 @@ export function createExpandedActivityCardHtml(
           <!-- Rating & Review Count (Authentic - never fake 4.9) -->
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 1px;">
             ${ratingText ? `
-              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 10px; font-weight: 800; color: #7a5a12; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
-                <svg width="9.5" height="9.5" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 10px; font-weight: 800; color: #7a5a12; background: rgba(180, 83, 9, 0.12); padding: 1px 6px; border-radius: 5px; border: 0.5px solid rgba(180, 83, 9, 0.25); line-height: 1;">
+                <svg width="9.5" height="9.5" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>${ratingText}${wordRating ? ` ${escapeHtml(wordRating)}` : ''}</span>
               </span>
             ` : `
@@ -596,8 +486,8 @@ export function createExpandedActivityCardHtml(
               </span>
             `}
             ${phone ? `
-              <a href="tel:${escapeHtml(phone)}" class="card-action-link" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #f59e0b; color: #0f172a; border: 1px solid #fbbf24; border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="اتصال هاتفي">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a href="tel:${escapeHtml(phone)}" class="card-action-link" style="display: flex; align-items: center; justify-content: center; gap: 3px; background: #b45309; color: #ffffff; border: 1px solid rgba(180, 83, 9, 0.35); border-radius: 8px; padding: 4.5px 2px; text-decoration: none; font-size: 9.5px; font-weight: 800; cursor: pointer;" title="اتصال هاتفي">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 <span>اتصال</span>
               </a>
             ` : `
@@ -614,15 +504,15 @@ export function createExpandedActivityCardHtml(
         hasOffset
           ? `
             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: -1;">
-              <path d="M ${cardWidth / 2} ${estimatedTotalHeight - 12} Q ${cardWidth / 2} ${(estimatedTotalHeight - 12 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="7" fill="rgba(245,158,11,0.3)" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="4.5" fill="#f59e0b" stroke="#ffffff" stroke-width="2" filter="drop-shadow(0 0 8px rgba(245,158,11,1))" />
+              <path d="M ${cardWidth / 2} ${estimatedTotalHeight - 12} Q ${cardWidth / 2} ${(estimatedTotalHeight - 12 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#b45309" stroke-width="2.5" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="7" fill="rgba(180,83,9,0.22)" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="2" filter="drop-shadow(0 0 8px rgba(180,83,9,0.45))" />
             </svg>
-            <div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 10px solid #f59e0b; margin-top: -1px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));"></div>
+            <div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 10px solid #b45309; margin-top: -1px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));"></div>
           `
           : `
-            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 9px solid #f59e0b; margin-top: -1px;"></div>
-            <div style="width: 10px; height: 10px; margin-top: -2px; border-radius: 50%; background: #f59e0b; border: 2px solid #ffffff; box-shadow: 0 1px 4px rgba(15,23,42,0.35);"></div>
+            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 9px solid #b45309; margin-top: -1px;"></div>
+            <div style="width: 10px; height: 10px; margin-top: -2px; border-radius: 50%; background: #b45309; border: 2px solid #ffffff; box-shadow: 0 1px 4px rgba(15,23,42,0.35);"></div>
           `
       }
     </div>
@@ -688,15 +578,15 @@ export function createLightweightBadgeHtml(
     : (biz.workingHours?.trim() ? 'ساعات العمل غير واضحة' : '');
 
   const cardBorder = isTopProminent
-    ? 'border: 2px solid #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35), 0 2px 8px rgba(0,0,0,0.12);'
+    ? 'border: 2px solid #b45309; box-shadow: 0 6px 20px rgba(180, 83, 9, 0.2), 0 2px 8px rgba(0,0,0,0.12);'
     : 'border: 1.5px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0,0,0,0.06);';
 
   const rankBadgeHtml = isTopProminent && prominenceRank
-    ? `<span style="position: absolute; top: 5px; left: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; border: 0.5px solid #fef08a; box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
+    ? `<span style="position: absolute; top: 5px; left: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px; background: #fbf1da; color: #7a5a12; border: 0.5px solid rgba(180, 83, 9, 0.35); box-shadow: 0 1px 4px rgba(0,0,0,0.35); line-height: 1.2;">#${prominenceRank} الأبرز</span>`
     : '';
 
   const verifiedBadgeHtml = isVerified
-    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #047857; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
+    ? `<span style="position: absolute; top: 5px; right: 5px; z-index: 4; display: inline-flex; align-items: center; gap: 2.5px; font-size: 8.5px; font-weight: 800; padding: 1.5px 5.5px; border-radius: 9999px; background: #19634e; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.35); backdrop-filter: blur(4px); line-height: 1.2;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>موثق</span>`
     : '';
 
   const openStatusBadgeHtml = !hoursLabel
@@ -747,8 +637,8 @@ export function createLightweightBadgeHtml(
           <!-- Rating & Action Link (Authentic - never fake 4.9) -->
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 3.5px; margin-top: 2px;">
             ${ratingText ? `
-              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 9.5px; font-weight: 800; color: #7a5a12; background: rgba(245, 158, 11, 0.12); padding: 0.5px 5px; border-radius: 5px; border: 0.5px solid rgba(245, 158, 11, 0.25); line-height: 1;">
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="display: inline-flex; align-items: center; gap: 2.5px; font-family: monospace; font-size: 9.5px; font-weight: 800; color: #7a5a12; background: rgba(180, 83, 9, 0.12); padding: 0.5px 5px; border-radius: 5px; border: 0.5px solid rgba(180, 83, 9, 0.25); line-height: 1;">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>${ratingText}${wordRating ? ` ${escapeHtml(wordRating)}` : ''}</span>
               </span>
             ` : `
@@ -758,7 +648,7 @@ export function createLightweightBadgeHtml(
             `}
 
             <!-- Mini Action Link -->
-            <span style="font-size: 9px; font-weight: 800; color: #d97706; display: inline-flex; align-items: center; gap: 2px;">
+            <span style="font-size: 9px; font-weight: 800; color: #7a5a12; display: inline-flex; align-items: center; gap: 2px;">
               <span>التفاصيل</span>
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </span>
@@ -771,14 +661,14 @@ export function createLightweightBadgeHtml(
         hasOffset
           ? `
             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: -1;">
-              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#f59e0b" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
-              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 6px rgba(245,158,11,0.9))" />
+              <path d="M ${cardWidth / 2} ${totalHeight - 8} Q ${cardWidth / 2} ${(totalHeight - 8 + anchorY) / 2} ${anchorX} ${anchorY}" stroke="#b45309" stroke-width="2.2" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+              <circle cx="${anchorX}" cy="${anchorY}" r="4" fill="#b45309" stroke="#ffffff" stroke-width="1.8" filter="drop-shadow(0 0 6px rgba(180,83,9,0.35))" />
             </svg>
-            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #f59e0b; margin-top: -1px;"></div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #b45309; margin-top: -1px;"></div>
           `
           : `
             <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid #ffffff; margin-top: -1px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));"></div>
-            <div style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #ffffff; margin-top: -2px; box-shadow: 0 0 8px rgba(245,158,11,0.85);"></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #b45309; border: 1.5px solid #ffffff; margin-top: -2px; box-shadow: 0 0 8px rgba(180,83,9,0.3);"></div>
           `
       }
     </div>
@@ -899,12 +789,12 @@ export function createCategoryClusterPinHtml(
 
   const html = `
     <div class="category-cluster-pin" data-category="${escapeHtml(categoryId)}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;user-select:none;width:${boxWidth}px;height:${pinHeight}px;font-family:'Cairo',system-ui,sans-serif;" title="${count > 1 ? countLabel : safeLabel}">
-      <div class="activity-pin-head" style="position:relative;width:42px;height:56px;flex:0 0 56px;filter:drop-shadow(0 2px 3px rgba(15,23,42,.28));">
-        <svg width="42" height="56" viewBox="0 0 30 40" style="display:block;overflow:visible;">
+      <div class="activity-pin-head" style="position:relative;width:38px;height:50px;flex:0 0 50px;filter:drop-shadow(0 3px 6px rgba(15,23,42,.20));">
+        <svg width="38" height="50" viewBox="0 0 30 40" style="display:block;overflow:visible;">
           ${buildActivityPinSvgInner(style.id, style.color)}
         </svg>
-        <div style="position:absolute;left:0;right:0;top:11px;height:22px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${style.iconSvg}</svg>
+        <div style="position:absolute;left:0;right:0;top:8.5px;height:20px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${style.iconSvg}</svg>
         </div>
         ${badgeHtml}
       </div>
@@ -950,13 +840,13 @@ function buildTeardropPinHtml(opts: {
   const html = `
     <div class="${opts.className}" style="position:relative;width:${width}px;height:${totalHeight}px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-family:'Cairo',system-ui,sans-serif;direction:rtl;pointer-events:auto;">
       ${card}
-      <div style="position:relative;width:30px;height:${pinHeight}px;margin-top:${gap}px;filter:drop-shadow(0 3px 4px rgba(15,23,42,.35));">
+      <div style="position:relative;width:30px;height:${pinHeight}px;margin-top:${gap}px;filter:drop-shadow(0 3px 6px rgba(15,23,42,.22));">
         ${opts.pulse ? `<span class="nav-pin-ring" style="--c:${opts.color};"></span>` : ''}
         <svg width="30" height="40" viewBox="0 0 30 40" style="display:block;overflow:visible;position:relative;">
-          <path d="${UNIFIED_PIN_PATH}" fill="${opts.color}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+          ${buildActivityPinSvgInner('', opts.color)}
         </svg>
-        <div style="position:absolute;left:0;right:0;top:11px;height:22px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${opts.iconSvg}</svg>
+        <div style="position:absolute;left:0;right:0;top:6.8px;height:16px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${opts.iconSvg}</svg>
         </div>
       </div>
     </div>
@@ -971,7 +861,7 @@ export function createBuildingPinHtml(
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
   return buildTeardropPinHtml({
     className: 'nav-building-pin',
-    color: '#d97706',
+    color: '#b45309',
     iconSvg: NAV_BUILDING_ICON,
     title,
     subtitle,
@@ -989,7 +879,7 @@ export function createNavigationPinHtml(
   if (!isOrigin) {
     return buildTeardropPinHtml({
       className: 'nav-route-pin nav-dest-pin',
-      color: '#d97706',
+      color: '#b45309',
       iconSvg: NAV_FLAG_ICON,
       title: safeLabel,
       pulse: true,

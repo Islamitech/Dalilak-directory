@@ -62,7 +62,7 @@ export const SearchSuggestionsDropdown: React.FC<SearchSuggestionsDropdownProps>
                   </p>
                 </div>
               </div>
-              <span className="text-caption bg-amber-500 text-slate-950 px-2.5 py-1 rounded-pill shrink-0 font-extrabold">
+              <span className="text-caption bg-[var(--brand-deep)] text-white px-2.5 py-1 rounded-pill shrink-0 font-extrabold">
                 عرض
               </span>
             </Pressable>

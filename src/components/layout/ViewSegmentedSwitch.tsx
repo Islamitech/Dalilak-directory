@@ -79,7 +79,7 @@ export const ViewSegmentedSwitch: React.FC<ViewSegmentedSwitchProps> = ({
             onClick={() => onViewChange(view)}
             className={`relative z-10 inline-flex items-center justify-center rounded-pill cursor-pointer font-extrabold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] min-h-11 ${
               isSm ? 'w-[4.6rem] gap-1 px-2 text-caption' : 'w-[6.2rem] gap-1.5 text-label'
-            } ${checked ? 'text-[var(--logo-gold-1)]' : 'text-[var(--logo-ink-0)] hover:text-[var(--logo-ink-2)]'}`}
+            } ${checked ? 'text-[var(--brand-strong)]' : 'text-[var(--logo-ink-0)] hover:text-[var(--logo-ink-2)]'}`}
           >
             <Icon className={isSm ? 'w-3 h-3 stroke-[2.4]' : 'w-4 h-4 stroke-[2.2]'} aria-hidden="true" />
             <span>{label}</span>

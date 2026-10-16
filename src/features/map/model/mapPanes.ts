@@ -2,6 +2,7 @@ export interface MapLayerGroups {
   districtsLayerGroup: any;
   cardsLayerGroup: any;
   clusterLayerGroup: any;
+  spiderfyLayerGroup: any;
   selectedLayerGroup: any;
   gatesLayerGroup: any;
   targetLayerGroup: any;
@@ -33,6 +34,10 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
     const pinsPane = map.createPane('pinsPane');
     pinsPane.style.zIndex = '600';
   }
+  if (!map.getPane('spiderfyPane')) {
+    const spiderfyPane = map.createPane('spiderfyPane');
+    spiderfyPane.style.zIndex = '650';
+  }
   if (!map.getPane('selectedPinPane')) {
     const selectedPinPane = map.createPane('selectedPinPane');
     selectedPinPane.style.zIndex = '700';
@@ -41,6 +46,7 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
   const districtsLayerGroup = window.L.layerGroup([], { pane: 'districtsPane' }).addTo(map);
   const cardsLayerGroup = window.L.layerGroup([], { pane: 'pinsPane' }).addTo(map);
   const clusterLayerGroup = window.L.layerGroup([], { pane: 'pinsPane' }).addTo(map);
+  const spiderfyLayerGroup = window.L.layerGroup([], { pane: 'spiderfyPane' }).addTo(map);
   const selectedLayerGroup = window.L.layerGroup([], { pane: 'selectedPinPane' }).addTo(map);
   const gatesLayerGroup = window.L.layerGroup([], { pane: 'districtsPane' }).addTo(map);
   const targetLayerGroup = window.L.layerGroup([], { pane: 'selectedPinPane' }).addTo(map);
@@ -51,6 +57,7 @@ export function initializeMapPanesAndLayers(map: any): MapLayerGroups | null {
     districtsLayerGroup,
     cardsLayerGroup,
     clusterLayerGroup,
+    spiderfyLayerGroup,
     selectedLayerGroup,
     gatesLayerGroup,
     targetLayerGroup,

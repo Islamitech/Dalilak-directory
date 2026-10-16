@@ -53,7 +53,7 @@ export const BusinessCardPhotoGallery: React.FC<BusinessCardPhotoGalleryProps> =
   const withoutNotes = displayName.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
   const cardTitle = withoutNotes.split(/\s+\|\s+|\s+[–—-]\s+/).map((p) => p.trim()).find((p) => /[\u0600-\u06FF]/.test(p)) || withoutNotes || displayName;
   const categoryMark = (
-    <div className="dl-icon-cover">
+    <div className="dl-icon-cover" style={{ background: visual.gradient }}>
       {visual.icon}
     </div>
   );

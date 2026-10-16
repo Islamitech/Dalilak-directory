@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Business } from '../../../types';
-import { useMapInstance } from './useMapInstance';
-import { useMapState } from './useMapState';
-import { MapViewportSnapshot } from '../state/mapViewport';
 import { initializeMapPanesAndLayers, type MapLayerGroups } from '../model/mapPanes';
 import { buildDistrictsLayer, type DistrictPolygonItem } from '../model/mapDistrictsLayer';
-import { type ActiveRouteData } from '../model/mapRouteLayer';
-import { type TargetBuildingData } from '../model/mapTargetBuildingLayer';
 import { sortBusinessesForMap } from '../model/mapBusinessFilter';
 import { executePinPipeline } from '../model/mapPinPipeline';
 import { syncAuxiliaryLayers, type UseMapPinsClusteringProps } from '../model/mapAuxiliaryLayers';
@@ -33,6 +28,7 @@ export const useMapPinsClustering = ({
   const seenMarkers = useRef(new Set<string>());
   const startBusinessNavigationRef = useRef(onStartBusinessNavigation); startBusinessNavigationRef.current = onStartBusinessNavigation;
   const onSelectZoneRef = useRef(onSelectZone); onSelectZoneRef.current = onSelectZone;
+  const onSelectBusinessRef = useRef(onSelectBusiness); onSelectBusinessRef.current = onSelectBusiness;
 
   const effectiveZone = selectedZoneProp !== undefined ? (selectedZoneProp === 'all' ? '' : selectedZoneProp) : (state.selectedZone === 'all' ? '' : state.selectedZone);
   const effectiveZoneRef = useRef(effectiveZone); effectiveZoneRef.current = effectiveZone;
@@ -44,11 +40,13 @@ export const useMapPinsClustering = ({
     if (!layersRef.current) return;
     const { polygons, mask } = buildDistrictsLayer(layersRef.current.districtsLayerGroup, (letter) => {
       const next = effectiveZoneRef.current === letter ? '' : letter;
+      state.setSelectedBiz(null);
       state.setSelectedZone(next);
       onSelectZoneRef.current?.(next || 'all');
     });
     districtPolygonsRef.current = polygons;
     maskPolygonRef.current = mask;
+    return () => { (layersRef.current?.spiderfyLayerGroup as any)?.__dlSpiderfyManager?.destroy?.(); };
   }, [mapInstance.isMapReady]);
 
   useEffect(() => {
@@ -69,7 +67,7 @@ export const useMapPinsClustering = ({
       activeRoute,
       selectedBiz: state.selectedBiz,
       selectedMarkerRef,
-      onSelectBusiness: (biz) => onSelectBusiness?.(biz),
+      onSelectBusiness: (biz) => (onSelectBusinessRef.current ?? onSelectBusiness)?.(biz),
       onStartBusinessNavigation: (biz) => startBusinessNavigationRef.current?.(biz),
       onClearSelectedBiz: () => { state.setSelectedBiz(null); onClearFocusedBusiness?.(); },
       onSelectZone: (zone) => { state.setSelectedZone(zone); onSelectZoneRef.current?.(zone); },
@@ -88,12 +86,16 @@ export const useMapPinsClustering = ({
   }, [businesses, effectiveZone, effectiveCategory, state.onlyVerifiedFilter, viewportSnapshot?.zoom, mapInstance.zoomLevel, Boolean(activeRoute), resultsReady]);
 
   useEffect(() => {
-    if (mode !== 'view' || !layersRef.current || !mapInstance.leafletMapRef.current || !mapInstance.isMapReady) return;
+    if (mode !== 'view' || !layersRef.current || !mapInstance.leafletMapRef.current || !mapInstance.isMapReady) {
+      (layersRef.current?.spiderfyLayerGroup as any)?.__dlSpiderfyManager?.collapse?.();
+      return;
+    }
     setIsRendering(true);
     return executePinPipeline({
       map: mapInstance.leafletMapRef.current,
       cardsLayer: layersRef.current.cardsLayerGroup,
       clusterLayer: layersRef.current.clusterLayerGroup,
+      spiderfyLayer: layersRef.current.spiderfyLayerGroup,
       clusterRegistry: clusterRegistry.current,
       markersRegistry: markersRegistryRef.current,
       seenMarkers: seenMarkers.current,
@@ -106,7 +108,7 @@ export const useMapPinsClustering = ({
       cameraController: mapInstance.cameraController,
       onSelectBusiness: (b) => {
         state.setSelectedBiz(b);
-        onSelectBusiness?.(b);
+        if (onSelectBusinessRef.current) onSelectBusinessRef.current(b); else onSelectBusiness?.(b);
       },
       onComplete: () => setIsRendering(false),
     });

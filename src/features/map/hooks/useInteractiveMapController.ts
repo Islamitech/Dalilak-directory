@@ -17,14 +17,9 @@ export interface InteractiveMapControllerParams {
 }
 
 export function useInteractiveMapController({
-  initialShowBusinesses = false,
-  defaultExpanded = false,
-  selectedZone,
-  categoryFilter,
-  searchQuery,
-  onSearchChange,
-  targetBuilding = null,
-  focusedBusiness,
+  initialShowBusinesses = false, defaultExpanded = false,
+  selectedZone, categoryFilter, searchQuery, onSearchChange,
+  targetBuilding = null, focusedBusiness,
 }: InteractiveMapControllerParams) {
   useMapSheetBridge();
   const state = useMapState({ initialShowBusinesses, defaultExpanded, initialSelectedZone: selectedZone });
@@ -34,23 +29,15 @@ export function useInteractiveMapController({
   }, [onSearchChange]);
 
   const [selectedBuildingState, setSelectedBuildingState] = useState<{
-    buildingNumber: string;
-    zoneLetter: string;
-    lat: number;
-    lng: number;
+    buildingNumber: string; zoneLetter: string; lat: number; lng: number;
   } | null>(null);
 
   const [navigationTargetState, setNavigationTargetState] = useState<{
-    title: string;
-    lat: number;
-    lng: number;
-    type: 'building' | 'business';
-    details?: string;
+    title: string; lat: number; lng: number; type: 'building' | 'business'; details?: string;
   } | null>(null);
 
   const [localRoute, setLocalRoute] = useState<{
-    origin: { lat: number; lng: number; label: string };
-    destination: { lat: number; lng: number; label: string };
+    origin: { lat: number; lng: number; label: string }; destination: { lat: number; lng: number; label: string };
   } | null>(null);
 
   const [viewportSnapshot, setViewportSnapshot] = useState<MapViewportSnapshot | null>(null);
@@ -86,8 +73,20 @@ export function useInteractiveMapController({
       state.setShowBusinesses(true);
       setSelectedBuildingState(null);
       setNavigationTargetState(null);
+    } else if (focusedBusiness === null) {
+      state.setSelectedBiz(null);
     }
   }, [focusedBusiness, state.setSelectedBiz, state.setShowBusinesses]);
+
+  useEffect(() => {
+    const onSheet = (e: Event) => {
+      if ((e as CustomEvent<{ open?: boolean }>).detail?.open === false) {
+        state.setSelectedBiz(null);
+      }
+    };
+    window.addEventListener('map:activity-sheet', onSheet);
+    return () => window.removeEventListener('map:activity-sheet', onSheet);
+  }, [state.setSelectedBiz]);
 
   return {
     state,

@@ -4,16 +4,25 @@ import {matchesBusinessSearch,normalizeArabicText} from '../shared/lib/arabicSea
 import {matchesCategorySelection} from './categoryMatcher';
 import {isBusinessInHadayekZone} from './hadayekZoneHelper';
 import {getBusinessOpenStatus} from './directoryEnhancements';
-export interface DirectoryFilterOptions {activityIntent:ReturnType<typeof parseActivitySearchIntent>;deferredSearchQuery:string;categoryFilter:string;subcategoryFilter:string;effectiveSearchZone:string;govFilter:string;cityFilter:string;openNowOnly:boolean;verifiedOnly?:boolean;hasRatingOnly:boolean;hasVideoOnly:boolean;}
-export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,deferredSearchQuery,categoryFilter,subcategoryFilter,effectiveSearchZone,govFilter,cityFilter,openNowOnly,verifiedOnly,hasRatingOnly,hasVideoOnly}:DirectoryFilterOptions):Business[]{
+import {isBusinessAssociatedWithBuilding,type ParsedHadayekBuilding} from './hadayekBuildingSearch';
+export interface DirectoryFilterOptions {activityIntent:ReturnType<typeof parseActivitySearchIntent>;buildingIntent?:ParsedHadayekBuilding|null;buildingCoords?:{lat:number;lng:number}|null;deferredSearchQuery:string;categoryFilter:string;subcategoryFilter:string;effectiveSearchZone:string;govFilter:string;cityFilter:string;openNowOnly:boolean;verifiedOnly?:boolean;hasRatingOnly:boolean;hasVideoOnly:boolean;}
+export function filterDirectoryBusinesses(businesses:Business[],{activityIntent,buildingIntent,buildingCoords,deferredSearchQuery,categoryFilter,subcategoryFilter,effectiveSearchZone,govFilter,cityFilter,openNowOnly,verifiedOnly,hasRatingOnly,hasVideoOnly}:DirectoryFilterOptions):Business[]{
     return businesses.filter((b) => {
       if (!b) return false;
 
-      // 1. Text Search across name, category, city, landmark, etc.
-      const hasSearchText = Boolean(!activityIntent && deferredSearchQuery.trim());
-      const matchesSearch = hasSearchText ? matchesBusinessSearch(b, deferredSearchQuery) : false;
-      if (hasSearchText && !matchesSearch) {
-        return false;
+      // 1. Building query mode: only activities registered at the building
+      // (address match or within 90m). No fuzzy text matching in this mode.
+      let matchesSearch = false;
+      if (buildingIntent) {
+        if (!isBusinessInHadayekZone(b, buildingIntent.zoneLetter)) return false;
+        if (!isBusinessAssociatedWithBuilding(b, buildingIntent.buildingNumber, buildingIntent.zoneLetter, buildingCoords ?? undefined)) return false;
+      } else {
+        // Text Search across name, category, city, landmark, etc.
+        const hasSearchText = Boolean(!activityIntent && deferredSearchQuery.trim());
+        matchesSearch = hasSearchText ? matchesBusinessSearch(b, deferredSearchQuery) : false;
+        if (hasSearchText && !matchesSearch) {
+          return false;
+        }
       }
 
       // 2. Category Filter (Enhanced with Canonical Aliases, Root Synonyms, and Groups)

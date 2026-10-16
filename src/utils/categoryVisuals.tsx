@@ -16,8 +16,8 @@ export interface CategoryVisual {
 
 type CategoryTone = 'dark' | 'light';
 
-function categoryIcon(Icon: typeof Store, tone: CategoryTone) {
-  const color = tone === 'light' ? 'text-[var(--brand-ink)]' : 'text-white';
+function categoryIcon(Icon: typeof Store, tone: CategoryTone, inkClass = 'text-[var(--brand-ink)]') {
+  const color = tone === 'light' ? inkClass : 'text-white';
   return <Icon className={`w-10 h-10 ${color}`} strokeWidth={1.8} />;
 }
 
@@ -36,7 +36,7 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-medical)',
-      icon: categoryIcon(Pill, tone),
+      icon: categoryIcon(Pill, tone, 'text-[var(--cat-ink-medical)]'),
     };
   }
 
@@ -55,7 +55,7 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-food)',
-      icon: categoryIcon(Utensils, tone),
+      icon: categoryIcon(Utensils, tone, 'text-[var(--cat-ink-food)]'),
     };
   }
 
@@ -72,7 +72,7 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-shop)',
-      icon: categoryIcon(ShoppingBag, tone),
+      icon: categoryIcon(ShoppingBag, tone, 'text-[var(--cat-ink-shop)]'),
     };
   }
 
@@ -88,7 +88,7 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-fashion)',
-      icon: categoryIcon(Shirt, tone),
+      icon: categoryIcon(Shirt, tone, 'text-[var(--cat-ink-fashion)]'),
     };
   }
 
@@ -101,7 +101,7 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-auto)',
-      icon: categoryIcon(Car, tone),
+      icon: categoryIcon(Car, tone, 'text-[var(--cat-ink-auto)]'),
     };
   }
 
@@ -115,12 +115,12 @@ export function getCategoryVisual(categoryNameOrType?: string, tone: CategoryTon
   ) {
     return {
       gradient: 'var(--cat-grad-edu)',
-      icon: categoryIcon(GraduationCap, tone),
+      icon: categoryIcon(GraduationCap, tone, 'text-[var(--cat-ink-edu)]'),
     };
   }
 
   return {
-    gradient: 'var(--cat-grad-food)',
-    icon: categoryIcon(Store, tone),
+    gradient: 'var(--cat-grad-other)',
+    icon: categoryIcon(Store, tone, 'text-[var(--cat-ink-other)]'),
   };
 }

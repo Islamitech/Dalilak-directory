@@ -277,6 +277,29 @@ describe('Map Optimization and Enhancement Suite', () => {
       expect(swContent).toContain("cacheName: 'dalilak-leaflet-cdn'");
       expect(swContent).toContain("url.hostname.includes('openstreetmap.')");
     });
+
+    it('aligns vercel.json CSP connect-src with all cross-origin routes intercepted by the Service Worker', () => {
+      const vercelPath = path.resolve(__dirname, '../../vercel.json');
+      const vercelConfig = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
+      const cspHeader = vercelConfig.headers
+        .flatMap((entry: any) => entry.headers || [])
+        .find((h: any) => h.key === 'Content-Security-Policy')?.value || '';
+
+      const connectSrcMatch = cspHeader.match(/connect-src\s+([^;]+)/);
+      expect(connectSrcMatch).not.toBeNull();
+      const connectSrc = connectSrcMatch![1];
+
+      expect(connectSrc).toContain('https://*.supabase.co');
+      expect(connectSrc).toContain('https://server.arcgisonline.com');
+      expect(connectSrc).toContain('https://*.arcgisonline.com');
+      expect(connectSrc).toContain('https://*.openfreemap.org');
+      expect(connectSrc).toContain('https://*.tile.openstreetmap.org');
+      expect(connectSrc).toContain('https://*.openstreetmap.fr');
+      expect(connectSrc).toContain('https://unpkg.com');
+      expect(connectSrc).toContain('https://cdnjs.cloudflare.com');
+      expect(connectSrc).toContain('https://*.googleusercontent.com');
+      expect(connectSrc).toContain('https://*.ggpht.com');
+    });
   });
 
   describe('4. UX Optimization & Interaction Improvements', () => {

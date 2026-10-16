@@ -18,7 +18,13 @@ export function useMapSheetBridge() {
       if (new URLSearchParams(window.location.search).get('bldg')) return;
       const camera: SavedCamera | null = takeCameraReturn();
       if (!camera) return;
-      leafletMap()?.flyTo([camera.lat, camera.lng], camera.zoom, { duration: 0.45 });
+      const map = leafletMap();
+      const ctrl = map?.__cameraController;
+      if (ctrl?.request) {
+        ctrl.request({ kind: 'flyTo', center: [camera.lat, camera.lng], zoom: camera.zoom, options: { duration: 0.45 } }, 'zone');
+      } else {
+        map?.flyTo([camera.lat, camera.lng], camera.zoom, { duration: 0.45 });
+      }
     };
     const onStash = () => stashCameraReturn();
     window.addEventListener('map:sheet-drag', onDrag);

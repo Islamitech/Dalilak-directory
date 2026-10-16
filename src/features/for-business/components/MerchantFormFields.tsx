@@ -39,8 +39,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">اسم المحل أو النشاط التجاري *</label>
+        <label htmlFor="merchant-biz-name" className="text-xs font-extrabold text-slate-700 block">اسم المحل أو النشاط التجاري *</label>
         <input
+          id="merchant-biz-name"
+          name="bizName"
           type="text"
           required
           aria-label="اسم النشاط التجاري"
@@ -52,8 +54,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">اسم صاحب النشاط أو المسؤول</label>
+        <label htmlFor="merchant-owner-name" className="text-xs font-extrabold text-slate-700 block">اسم صاحب النشاط أو المسؤول</label>
         <input
+          id="merchant-owner-name"
+          name="ownerName"
           type="text"
           aria-label="اسم صاحب النشاط"
           value={ownerName}
@@ -64,8 +68,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">رقم الهاتف أو الواتساب للتواصل *</label>
+        <label htmlFor="merchant-phone" className="text-xs font-extrabold text-slate-700 block">رقم الهاتف أو الواتساب للتواصل *</label>
         <input
+          id="merchant-phone"
+          name="phone"
           type="tel"
           required
           aria-label="رقم الهاتف"
@@ -87,8 +93,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">المحافظة</label>
+        <label htmlFor="merchant-gov" className="text-xs font-extrabold text-slate-700 block">المحافظة</label>
         <select
+          id="merchant-gov"
+          name="gov"
           aria-label="المحافظة"
           value={gov}
           onChange={(e) => setGov(e.target.value)}
@@ -101,8 +109,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">الفئة الرئيسية للنشاط</label>
+        <label htmlFor="merchant-main-category" className="text-xs font-extrabold text-slate-700 block">الفئة الرئيسية للنشاط</label>
         <select
+          id="merchant-main-category"
+          name="mainCategoryId"
           aria-label="الفئة الرئيسية"
           value={mainCategoryId}
           onChange={(e) => {
@@ -122,8 +132,10 @@ export const MerchantFormFields: React.FC<MerchantFormFieldsProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-extrabold text-slate-700 block">نوع النشاط أو الخدمة بالتحديد</label>
+        <label htmlFor="merchant-subcategory" className="text-xs font-extrabold text-slate-700 block">نوع النشاط أو الخدمة بالتحديد</label>
         <select
+          id="merchant-subcategory"
+          name="subcategoryId"
           aria-label="نوع النشاط"
           value={subcategoryId}
           onChange={(e) => setSubcategoryId(e.target.value)}

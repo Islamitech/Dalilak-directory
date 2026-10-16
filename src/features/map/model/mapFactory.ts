@@ -54,6 +54,7 @@ export function createLeafletMapInstance(options: MapInstanceInitOptions): {
   });
 
   const cameraController = new CameraController(map);
+  (map as any).__cameraController = cameraController;
 
   if (mode === 'view') {
     map.setMaxBounds(HADAYEK_BOUNDS);

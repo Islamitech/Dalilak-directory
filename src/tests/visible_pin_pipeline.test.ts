@@ -72,4 +72,26 @@ describe('visible pin pipeline', () => {
     expect(closeZoom.layouts.get('nearby')?.useDetailedCard).toBe(true);
     expect(closeZoom.layouts.get('nearby')?.width).toBeGreaterThan(belowThreshold.layouts.get('nearby')!.width);
   });
+
+  it('keeps activities as individual singleton pins without cluster badges in individual mode', () => {
+    const co1 = biz('co-1', 31.12);
+    const co2 = biz('co-2', 31.12);
+    const distant = biz('distant', 31.15);
+    const result = buildVisiblePinPipeline({
+      businesses: [co1, co2, distant],
+      contains: () => true,
+      project: b => ({ x: b.lng * 100000, y: 0 }),
+      point: b => ({ x: b.id === 'distant' ? 240 : 100, y: 100 }),
+      zoom: 17,
+      hasSelectedZone: true,
+      individual: true,
+    });
+
+    expect(result.clusterKeys.size).toBe(0);
+    expect(result.groups).toHaveLength(2);
+    expect(result.groups.every(g => g.length === 1)).toBe(true);
+    expect(result.groups.map(g => g[0].id)).toContain('distant');
+    expect(result.backgroundBusinesses).toHaveLength(1);
+    expect(['co-1', 'co-2']).toContain(result.backgroundBusinesses?.[0].id);
+  });
 });

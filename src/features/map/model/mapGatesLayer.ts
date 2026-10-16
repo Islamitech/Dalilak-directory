@@ -13,7 +13,7 @@ export function renderGatesMarkers(
   HADAYEK_OFFICIAL_GATES.forEach((gate) => {
     const servesZone = Boolean(activeZone && activeZone !== 'all' && gate.servedZones.includes(activeZone));
     const quiet = Boolean(activeZone && activeZone !== 'all' && !servesZone);
-    const fill = quiet ? '#f8fafc' : '#f59e0b';
+    const fill = quiet ? '#f8fafc' : '#d97706';
     const ink = quiet ? '#64748b' : '#0f172a';
     const label = escapeHtml(gate.popularNameAr || gate.shortNameAr);
     const gateHtml = `

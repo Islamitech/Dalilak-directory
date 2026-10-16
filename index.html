@@ -128,18 +128,13 @@
          document head lets discovery, search and shared business pages mount
          without waiting for a third-party map CDN. -->
     <style>
-      /* Universal Reset to eliminate any unwanted borders, boxes, or outlines */
-      *, *::before, *::after {
-        box-sizing: border-box;
-        border: 0 solid transparent;
-        -webkit-tap-highlight-color: transparent;
-      }
-      *:focus:not(:focus-visible) {
-        outline: none !important;
-      }
-      *:focus-visible {
-        outline: 2px solid #d97706 !important;
-        outline-offset: 2px;
+      /* قاعدة غير ملفوفة بـ @layer تتغلب على كل طبقات CSS (Cascade Layers)
+         وتُعطّل حدود المكوّنات والأدوات — أبقِ أي تعريف عام هنا داخل @layer base فقط. */
+      @layer base {
+        *, *::before, *::after {
+          box-sizing: border-box;
+          -webkit-tap-highlight-color: transparent;
+        }
       }
       @keyframes spin {
         to { transform: rotate(360deg); }
@@ -169,7 +164,7 @@
             <span style="font-size: 18px; font-weight: 800; color: #b45309; line-height: 1;">دليلك</span>
           </div>
         </header>
-        <div style="flex: 1; background: #e8edf2;"></div>
+        <div style="flex: 1; background: #f6f3ec;"></div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

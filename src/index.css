@@ -77,13 +77,29 @@
   --logo-ink-2: #020617;
   --logo-ink-core: #070a14;
 
-  /* Category placeholder gradients — referenced from categoryVisuals.tsx. */
-  --cat-grad-medical: linear-gradient(145deg, #0369a1, #0ea5e9);
-  --cat-grad-food: linear-gradient(145deg, #b45309, #d97706);
-  --cat-grad-shop: linear-gradient(145deg, #047857, #10b981);
-  --cat-grad-fashion: linear-gradient(145deg, #6d28d9, #8b5cf6);
-  --cat-grad-auto: linear-gradient(145deg, #be123c, #f43f5e);
-  --cat-grad-edu: linear-gradient(145deg, #3730a3, #6366f1);
+  /* Category placeholder gradients — soft, low-saturation tints referenced from
+     categoryVisuals.tsx. They fill large card areas, so they stay light (L93-95)
+     and their glyph uses the matching --cat-ink-* below. */
+  --cat-grad-medical: linear-gradient(145deg, #e9f3f9, #c4e3f3);
+  --cat-grad-food: linear-gradient(145deg, #f9f2e9, #f3ddc4);
+  --cat-grad-shop: linear-gradient(145deg, #e9f9ef, #c4f3d5);
+  --cat-grad-fashion: linear-gradient(145deg, #f1e9f9, #dcc4f3);
+  --cat-grad-auto: linear-gradient(145deg, #f9e9e9, #f3c4c4);
+  --cat-grad-edu: linear-gradient(145deg, #eae9f9, #c8c4f3);
+  --cat-grad-other: linear-gradient(145deg, #e9f0f9, #c4d7f3);
+
+  /* Ink colours matching the tints above (icon strokes on light category tints). */
+  --cat-ink-medical: #2878a1;
+  --cat-ink-food: #b2742d;
+  --cat-ink-shop: #25944e;
+  --cat-ink-fashion: #924bd2;
+  --cat-ink-auto: #cd3535;
+  --cat-ink-edu: #4338ca;
+  --cat-ink-other: #64748b;
+
+  /* Dark glass surfaces */
+  --glass-ink-1: rgba(15, 23, 42, 0.78);
+  --glass-ink-2: rgba(2, 6, 23, 0.58);
 }
 
 option {
@@ -215,7 +231,7 @@ option {
   --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ===== 4. النظام البصري الأساسي (White & Slate - 85%) ===== */
-  --bg-primary: #f8f9fb;
+  --bg-primary: #f6f3ec;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
   --text-primary: #0a0f1d;
@@ -224,7 +240,7 @@ option {
   --border-color: #e2e8f0;
   --border-hover: #cbd5e1;
 
-  --map-bg: linear-gradient(135deg, #f8f9fb, #eef2f6);
+  --map-bg: linear-gradient(135deg, #f6f3ec, #efeae2);
   --nav-bg: rgba(255, 255, 255, 0.92);
   --input-bg: #ffffff;
 
@@ -344,7 +360,8 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: inherit;
@@ -483,7 +500,7 @@ path.selected-district-polygon-focus {
 .hadayek-district-label {
   background: transparent !important;
   border: none !important;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .hadayek-district-label span {
@@ -495,7 +512,18 @@ path.selected-district-polygon-focus {
   color: var(--text-primary);
   font-size: var(--text-label);
   font-weight: 800;
-  text-shadow: 0 0 2px #fff, 0 0 2px #fff;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.selected-district-label-focus span {
+  transform: scale(1.15);
+  color: var(--brand-ink) !important;
+  background: var(--brand-soft) !important;
+  border: 2px solid var(--brand) !important;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  text-shadow: none !important;
 }
 
 /* 🛡️ Zero-Jitter Transition Shield: Suppress SVG transitions during zoom/pan animations & landing reset */
@@ -611,6 +639,16 @@ path.selected-district-polygon-focus {
   transform: translateY(-4px) scale(1.04);
 }
 
+.custom-biz-pin .activity-pin-head {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+  transform-origin: 50% 100%;
+}
+
+.custom-biz-pin:hover .activity-pin-wrapper:not(.selected-pin) .activity-pin-head {
+  transform: translateY(-3px) scale(1.08);
+  filter: drop-shadow(0 5px 8px rgba(15, 23, 42, 0.32)) drop-shadow(0 1px 2px rgba(15, 23, 42, 0.18));
+}
+
 .custom-district-cluster-pin {
   background: transparent !important;
   border: none !important;
@@ -641,6 +679,8 @@ path.selected-district-polygon-focus {
   }
 }
 
+.animate-scale-in .activity-pin-wrapper,
+.animate-scale-in.activity-pin-wrapper,
 .animate-scale-in .activity-card-pin {
   animation: burstCardScaleIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
@@ -648,6 +688,7 @@ path.selected-district-polygon-focus {
 /* Keep map controls touchable without increasing the visual weight of markers. */
 @media (max-width: 640px) {
   .map-icon-controls button { min-width: 44px; min-height: 44px; }
+  .custom-biz-pin .activity-pin-wrapper,
   .custom-biz-pin .activity-card-pin { text-rendering: optimizeSpeed; }
 }
 
@@ -818,4 +859,23 @@ input[type="search"]::-ms-clear {
   display: none;
   width: 0;
   height: 0;
+}
+
+@keyframes spiderfy-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(8px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.spiderfy-pin-entry {
+  will-change: transform, opacity;
 }

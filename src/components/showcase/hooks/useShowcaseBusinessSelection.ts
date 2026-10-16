@@ -38,7 +38,7 @@ export function useShowcaseBusinessSelection({
 
   const handleShowBusinessOnMap = (biz: Business) => {
     filterState.setHadayekZoneFilter('all');
-    setFocusedMapBiz(biz);
+    setFocusedMapBiz({ ...biz });
     handleNavigate('/map');
   };
 
@@ -47,7 +47,13 @@ export function useShowcaseBusinessSelection({
     routing.open(getDirectoryPath(biz));
   };
 
-  const handleCloseBusiness = routing.close;
+  const handleCloseBusiness = () => {
+    setFocusedMapBiz(null);
+    routing.close();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } }));
+    }
+  };
 
   return {
     selectedVideoBiz,

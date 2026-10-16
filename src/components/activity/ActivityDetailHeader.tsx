@@ -101,7 +101,7 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
             <div className="dl-dh-full-overlay" />
           </Pressable>
         ) : (
-          <div className="dl-icon-cover" aria-hidden="true">
+          <div className="dl-icon-cover" style={{ background: visual.gradient }} aria-hidden="true">
             {visual.icon}
           </div>
         )}
@@ -153,36 +153,38 @@ export const ActivityDetailHeader: React.FC<ActivityDetailHeaderProps> = ({
           </Pressable>
         )}
 
-        {onClose && (
-          <Pressable type="button" onClick={onClose} aria-label="إغلاق" title="إغلاق" className="dl-dx min-w-11 min-h-11">
-            <X className="w-4 h-4" />
-          </Pressable>
-        )}
+        <div className="dl-dh-toolbar">
+          {onToggleFavorite && (
+            <Pressable
+              type="button"
+              onClick={() => onToggleFavorite(business.id)}
+              aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+              aria-pressed={isFavorite}
+              title={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+              className={`dl-dh-tool-btn ${isFavorite ? 'dl-on' : ''}`}
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+            </Pressable>
+          )}
 
-        {onShare && (
-          <Pressable
-            type="button"
-            onClick={onShare}
-            aria-label={copied ? 'تم نسخ الرابط' : copyError ? 'تعذر نسخ الرابط' : 'نسخ رابط النشاط'}
-            title={copied ? 'تم نسخ الرابط' : copyError ? 'تعذر نسخ الرابط' : 'نسخ رابط النشاط'}
-            className={`dl-dsh min-w-[36px] min-h-[36px] ${copied ? 'dl-on' : ''}`}
-          >
-            {copied ? <CheckCheck className="w-4 h-4" /> : copyError ? <AlertCircle className="w-4 h-4 text-rose-500" /> : <Share2 className="w-4 h-4" />}
-          </Pressable>
-        )}
+          {onShare && (
+            <Pressable
+              type="button"
+              onClick={onShare}
+              aria-label={copied ? 'تم نسخ الرابط' : copyError ? 'تعذر نسخ الرابط' : 'نسخ رابط النشاط'}
+              title={copied ? 'تم نسخ الرابط' : copyError ? 'تعذر نسخ الرابط' : 'نسخ رابط النشاط'}
+              className={`dl-dh-tool-btn ${copied ? 'dl-on' : ''}`}
+            >
+              {copied ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : copyError ? <AlertCircle className="w-4 h-4 text-rose-400" /> : <Share2 className="w-4 h-4" />}
+            </Pressable>
+          )}
 
-        {onToggleFavorite && (
-          <Pressable
-            type="button"
-            onClick={() => onToggleFavorite(business.id)}
-            aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-            aria-pressed={isFavorite}
-            title={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-            className={`dl-dfv min-w-[36px] min-h-[36px] ${isFavorite ? 'dl-on' : ''}`}
-          >
-            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-          </Pressable>
-        )}
+          {onClose && (
+            <Pressable type="button" onClick={onClose} aria-label="إغلاق" title="إغلاق" className="dl-dh-tool-btn">
+              <X className="w-4 h-4" />
+            </Pressable>
+          )}
+        </div>
       </div>
 
       <div className="dl-dmeta">

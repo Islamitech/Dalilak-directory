@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Lock, Phone, ShieldCheck } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { Business } from '../../types';
 import { getBusinessMapDetails, downloadBusinessVCard, getSmartWhatsAppUrl, getBusinessOpenStatus } from '../../utils/directoryEnhancements';
 import { getPublicDirectoryUrl } from '../../utils/directoryUrl';
-import { Modal, Button, ButtonLink, Pressable, EntitySheet, type EntitySheetSnap } from '../../shared/ui';
+import { Modal, Button, EntitySheet, type EntitySheetSnap } from '../../shared/ui';
 import { getBusinessEntryGate, formatBusinessAreaLabel } from '../../utils/hadayekZoneHelper';
 import { requestBusinessNavigation } from '../../shared/lib/pendingNavigation';
-import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
-import { getCategoryFallbackCover } from '../../utils/categoryPhotos';
 import { ShowcasePhotoLightbox } from './PhotoLightbox';
 import { useActivityPhotos } from './hooks/useActivityPhotos';
 import { ActivityDetailHeader } from './ActivityDetailHeader';
 import { ActivityDetailQuickActions } from './ActivityDetailActions';
 import { ActivityDetailInfo } from './ActivityDetailInfo';
 import { ActivityDetailFooter } from './ActivityDetailFooter';
+import { ActivityDetailPeek } from './ActivityDetailPeek';
 import { classifyBusinessCategory, matchesCategoryFilter } from '../../utils/categoryMatcher';
 
 export interface ActivityDetailModalProps {
@@ -123,9 +122,6 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
     else if (top <= 15 && isScrolled) setIsScrolled(false);
   };
 
-  const fallbackCover = getCategoryFallbackCover(business.category);
-  const rawCover = business.coverPhoto && !business.coverPhoto.includes('places.googleapis.com') ? business.coverPhoto : null;
-  const peekPhotoSrc = getOptimizedImageUrl(photos[0] || rawCover || fallbackCover, 160, 160) || fallbackCover;
   const isVerified = business.verificationStatus === 'verified' || Boolean(business.packageId?.includes('verified'));
   const openStatus = getBusinessOpenStatus(business.workingHours);
   const areaLabel = formatBusinessAreaLabel(business) || business.street || business.city || '';
@@ -141,52 +137,16 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
         ariaLabel={business.nameAr || 'تفاصيل النشاط'}
         ariaLabelledBy="activity-detail-modal-title"
         peek={
-          <div className="ps-3 pe-14 py-2 flex items-center gap-2.5 h-[80px]">
-            <Pressable
-              type="button"
-              onClick={() => setSnap('half')}
-              className="flex-1 min-w-0 flex items-center gap-2.5 text-start cursor-pointer"
-              aria-label={`عرض تفاصيل ${business.nameAr}`}
-            >
-              <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80">
-                <img
-                  src={peekPhotoSrc}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackCover; }}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-extrabold text-slate-900 truncate">{business.nameAr}</h4>
-                  {isVerified && <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                </div>
-                <p className="text-caption font-medium text-slate-500 truncate mt-0.5">
-                  <span className="font-bold text-amber-800">{business.category}</span>
-                  {areaLabel ? <span className="text-slate-400"> • {areaLabel}</span> : null}
-                </p>
-                <div className="flex items-center gap-2 mt-1 text-caption font-bold text-slate-500">
-                  {openStatus && (
-                    <span className={`inline-flex items-center gap-1 shrink-0 ${openStatus.isOpen ? 'text-emerald-700' : 'text-slate-500'}`}>
-                      <i className={`w-1.5 h-1.5 rounded-pill ${openStatus.isOpen ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                      <span>{openStatus.isOpen ? 'مفتوح' : 'مغلق'}</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Pressable>
-            {business.phone && business.phone.trim().length > 3 && (
-              <ButtonLink
-                href={`tel:${business.phone.trim().replace(/[^\d+]/g, '')}`}
-                variant="secondary"
-                size="sm"
-                leadingIcon={<Phone className="w-4 h-4 text-emerald-600" />}
-                aria-label="اتصال هاتفي مباشر"
-                className="shrink-0 h-10 w-10 rounded-xl p-0 flex items-center justify-center bg-emerald-50 border border-emerald-200 text-emerald-700 me-1"
-              />
-            )}
-          </div>
+          <ActivityDetailPeek
+            business={business}
+            photos={photos}
+            onExpand={() => setSnap('half')}
+            onDirections={onShowOnMap ? () => { requestBusinessNavigation(business.id, entryGate?.id); onShowOnMap(business); } : undefined}
+            isVerified={isVerified}
+            areaLabel={areaLabel}
+            openStatus={openStatus}
+            smartWhatsAppUrl={smartWhatsAppUrl}
+          />
         }
       >
         <div className="dl-dwrap text-start min-h-full" data-scrolled={isScrolled ? 'true' : 'false'}>

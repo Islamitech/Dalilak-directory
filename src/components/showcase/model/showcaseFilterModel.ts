@@ -5,11 +5,14 @@ import {
   shuffleBusinessesWithSeed,
 } from '../../../utils/directoryEnhancements';
 import { filterDirectoryBusinesses } from '../../../utils/directoryFiltering';
+import type { ParsedHadayekBuilding } from '../../../utils/hadayekBuildingSearch';
 import { orderUnfilteredPreview } from './previewOrder';
 
 export interface FilterBusinessesParams {
   publicBusinesses: Business[];
   activityIntent: any;
+  buildingIntent?: ParsedHadayekBuilding | null;
+  buildingCoords?: { lat: number; lng: number } | null;
   deferredSearchQuery: string;
   categoryFilter: string;
   subcategoryFilter: string;
@@ -31,6 +34,8 @@ export interface FilterBusinessesParams {
 export function computeFilteredBusinesses({
   publicBusinesses,
   activityIntent,
+  buildingIntent,
+  buildingCoords,
   deferredSearchQuery,
   categoryFilter,
   subcategoryFilter,
@@ -49,6 +54,8 @@ export function computeFilteredBusinesses({
 }: FilterBusinessesParams): Business[] {
   const list = filterDirectoryBusinesses(publicBusinesses, {
     activityIntent,
+    buildingIntent,
+    buildingCoords,
     deferredSearchQuery,
     categoryFilter,
     subcategoryFilter,
@@ -117,6 +124,7 @@ export function computeFilteredBusinesses({
 
   const hasUserFilters =
     deferredSearchQuery.trim() !== '' ||
+    buildingIntent != null ||
     govFilter !== 'all' ||
     cityFilter !== 'all' ||
     effectiveSearchZone !== 'all' ||

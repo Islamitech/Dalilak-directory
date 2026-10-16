@@ -69,6 +69,12 @@ describe('Hadayek Building Number Search Contract (A2)', () => {
       // 8. Unknown building number in valid zone
       { input: '999 ح', expected: { buildingNumber: '999', zoneLetter: 'ح' }, description: 'unknown building number parsed syntactically' },
 
+      // 10. Phone numbers and long digit runs are never buildings
+      { input: '01001234567', currentZone: 'ح', expected: null, description: 'phone number with active zone stays text search' },
+      { input: '01001234567 ح', expected: null, description: 'phone number with zone letter stays text search' },
+      { input: '12345 ح', expected: null, description: '5-digit run rejected as building' },
+      { input: '0265 ح', expected: { buildingNumber: '0265', zoneLetter: 'ح' }, description: '4-digit leading-zero building still parses' },
+
       // 9. Lenient address parser: common Hadayek phrases and suffixes
       { input: 'عمارة 179 ج حدائق الأهرام', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'full phrase with hadayek al-ahram' },
       { input: '179 ج مكرر', expected: { buildingNumber: '179', zoneLetter: 'ج' }, description: 'repeated building suffix (مكرر)' },
