@@ -94,4 +94,28 @@ describe('visible pin pipeline', () => {
     expect(result.backgroundBusinesses).toHaveLength(1);
     expect(['co-1', 'co-2']).toContain(result.backgroundBusinesses?.[0].id);
   });
+
+  it('keeps every other visible pin untouched when one activity gets selected', () => {
+    const items = Array.from({ length: 8 }, (_, i) => biz(`b-${i}`, 31 + i * 0.002));
+    const base = {
+      businesses: items,
+      contains: () => true,
+      project: (b: Business) => ({ x: b.lng * 100000, y: 0 }),
+      point: (b: Business) => ({ x: b.lng * 100000, y: 100 }),
+      zoom: 17,
+      hasSelectedZone: true,
+      individual: true,
+    };
+    const before = buildVisiblePinPipeline(base);
+    const target = items[3];
+    const after = buildVisiblePinPipeline({ ...base, selectedBusiness: target, selectedBusinessId: target.id });
+
+    expect(before.singletonIds.has(target.id)).toBe(true);
+    expect(after.singletonIds.has(target.id)).toBe(false);
+    for (const id of before.singletonIds) {
+      if (id !== target.id) expect(after.singletonIds.has(id), `pin ${id} must survive selection`).toBe(true);
+    }
+    expect(after.singletonIds.size).toBe(before.singletonIds.size - 1);
+    expect(after.backgroundBusinesses ?? []).toHaveLength(0);
+  });
 });

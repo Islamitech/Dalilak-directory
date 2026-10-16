@@ -185,7 +185,9 @@ export function buildVisiblePinPipeline(input: {
   const scale = activityCardScale(input.zoom);
   const isDistrictView = input.hasSelectedZone || isLocalPinPresentationZoom(input.zoom);
   const selectedBusinessId = input.selectedBusiness?.id ?? input.selectedBusinessId;
-  const candidates = input.businesses.filter(b => b.id !== selectedBusinessId && input.contains(b.lat, b.lng));
+  // Cull by viewport only: the selected activity stays in the candidate set so grouping/scatter picks
+  // stay identical while a selection is active (dropping it re-samples every pin = visible churn).
+  const candidates = input.businesses.filter(b => input.contains(b.lat, b.lng));
   const groupMeters = input.zoom < MAP_ZOOM_POLICY.localPinPresentationFrom ? CITY_OVERVIEW_GROUP_METERS : LOCAL_GROUP_METERS;
   const isOverview = input.zoom < MAP_ZOOM_POLICY.localPinPresentationFrom;
   const pinLimit = categoryPinLimitForZoom(input.zoom);
@@ -199,7 +201,7 @@ export function buildVisiblePinPipeline(input: {
   const baseGroups = input.individual
     ? scatterIndividualActivities(candidates, input.point, individualMinDistance, individualMaxPins)
     : groupNearbyActivities(candidates, input.project, input.groupRadius ?? (isOverview ? 40 : 64), groupMeters);
-  const groups = input.individual
+  const rawGroups = input.individual
     ? baseGroups
     : mergeOverlappingGroups(
         isOverview ? spreadGroupsEvenly(baseGroups, input.point, 88) : baseGroups,
@@ -207,8 +209,12 @@ export function buildVisiblePinPipeline(input: {
         pinLimit,
         isOverview ? 60 : 90
       );
+  // The selected activity renders as its own glow pin; strip it from the regular pin groups.
+  const groups = rawGroups
+    .map(group => group.filter(b => b.id !== selectedBusinessId))
+    .filter(group => group.length > 0);
   const clusterKeys = new Set(groups.filter(g => g.length > 1).map(visiblePinClusterKey));
-  const prominent = new Set(candidates.slice(0, 3).map(b => b.id));
+  const prominent = new Set(candidates.filter(b => b.id !== selectedBusinessId).slice(0, 3).map(b => b.id));
   const useDetailedCard = input.zoom >= MAP_ZOOM_POLICY.detailedActivityCardsFrom;
   const singletonIds = new Set<string>();
   const occupied: Array<{ x: number; y: number; width: number; height: number; cluster: boolean; reserved?: boolean }> = [];
@@ -267,9 +273,8 @@ export function buildVisiblePinPipeline(input: {
     for (const b of group) placedIds.add(b.id);
   }
   singletonIds.forEach(id => placedIds.add(id));
-  if (input.selectedBusiness) placedIds.add(input.selectedBusiness.id);
 
-  const backgroundBusinesses = candidates.filter(b => !placedIds.has(b.id));
+  const backgroundBusinesses = candidates.filter(b => b.id !== selectedBusinessId && !placedIds.has(b.id));
 
   return { groups, singletonIds, clusterKeys, layouts, isDistrictView, scale, backgroundBusinesses };
 }

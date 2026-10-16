@@ -100,7 +100,6 @@ export function createCompactActivityPinHtml(
   pixelOffset: [number, number] = [0, 0],
   showName = false
 ): { html: string; iconSize: [number, number]; iconAnchor: [number, number] } {
-  const isVerified = biz.verificationStatus === 'verified';
   const safeName = escapeHtml(displayBusinessName(biz.nameAr, biz.nameEn) || 'منشأة معتمدة');
   const safeCategory = escapeHtml((biz.category || '').split('/')[0].trim());
   const pinStyle = getCategoryPinStyle(getBusinessPinCategoryId(biz));
@@ -115,10 +114,6 @@ export function createCompactActivityPinHtml(
     isTopProminent && prominenceRank
       ? `<span style="position:absolute;top:-3px;right:-3px;z-index:5;background:#fbf1da;color:#7a5a12;font-size:8px;font-weight:900;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #ffffff;box-shadow:0 1px 3px rgba(15,23,42,.28);">#${prominenceRank}</span>`
       : '';
-
-  const verifiedDotHtml = isVerified
-    ? `<span style="position:absolute;top:-2px;left:-2px;z-index:5;width:12px;height:12px;border-radius:50%;background:#b45309;border:1.5px solid #ffffff;box-shadow:0 1px 3px rgba(15,23,42,.25);display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg></span>`
-    : '';
 
   const nameHtml = showName
     ? `<div class="activity-pin-label" style="max-width:112px;margin-bottom:3px;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.97);border:1px solid rgba(15,23,42,.1);box-shadow:0 2px 6px rgba(15,23,42,.16);color:#0f172a;font-size:10px;font-weight:800;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeName}</div>`
@@ -135,7 +130,6 @@ export function createCompactActivityPinHtml(
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${pinStyle.iconSvg}</svg>
         </div>
         ${rankBadgeHtml}
-        ${verifiedDotHtml}
       </div>
     </div>
   `;

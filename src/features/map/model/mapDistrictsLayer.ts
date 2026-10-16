@@ -85,18 +85,18 @@ export function updateDistrictHighlightStyles(
 ) {
   if (mask?.setStyle) mask.setStyle({ fillOpacity: 0 });
 
-  polygons.forEach(({ letterAr, polygon, color, label }) => {
+  polygons.forEach(({ letterAr, polygon, label }) => {
     const isSelected = shouldHighlight && letterAr === zoneLetter;
     const path = polygon.getElement?.();
     const labelEl = label?.getElement?.();
 
     if (isSelected) {
       polygon.setStyle({
-        color: color || '#d97706',
+        color: '#f59e0b',
         weight: 2.5,
         opacity: 0.95,
-        fillColor: color || '#d97706',
-        fillOpacity: 0.12,
+        fillColor: '#ffffff',
+        fillOpacity: 0.2,
       });
       if (path) path.classList.add('selected-district-polygon-focus');
       if (labelEl) labelEl.classList.add('selected-district-label-focus');

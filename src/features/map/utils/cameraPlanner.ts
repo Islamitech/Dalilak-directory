@@ -192,7 +192,9 @@ export function flyCameraToSelectedBusiness(
   cameraController: { request: (command: unknown, priority: string) => boolean } | null | undefined,
   biz: { id: string; lat: number; lng: number },
 ): void {
-  const decision = planCameraTransitionOnBusinessSelect(null, biz.id, { lat: biz.lat, lng: biz.lng }, map.getZoom(), true);
+  // State 1 (compact pin/card selection): center without the street-level dive.
+  // The 17.5 direct glide is reserved for expanded-card selection (planner State 2).
+  const decision = planCameraTransitionOnBusinessSelect(null, biz.id, { lat: biz.lat, lng: biz.lng }, map.getZoom(), false);
   if (!decision.shouldMove || !decision.targetCenter) return;
   const targetZoom = decision.targetZoom ?? map.getZoom();
   const viewport = map.getSize();

@@ -15,6 +15,19 @@ import { ActivityDetailFooter } from './ActivityDetailFooter';
 import { ActivityDetailPeek } from './ActivityDetailPeek';
 import { classifyBusinessCategory, matchesCategoryFilter } from '../../utils/categoryMatcher';
 
+// Deferred sheet-close: React StrictMode remounts (and keyed business switches) run effect
+// cleanup before the next setup, which would spuriously close the map sheet and drop the
+// selection. Queue the close on a shared timer so the next mounted instance cancels it;
+// a real unmount leaves nothing to cancel, so the close fires one tick later.
+let pendingSheetCloseTimer: number | null = null;
+
+const cancelPendingSheetClose = () => {
+  if (pendingSheetCloseTimer !== null) {
+    window.clearTimeout(pendingSheetCloseTimer);
+    pendingSheetCloseTimer = null;
+  }
+};
+
 export interface ActivityDetailModalProps {
   business: Business | null;
   onClose: () => void;
@@ -60,13 +73,19 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   const entryGate = business ? getBusinessEntryGate(business) : null;
 
   useEffect(() => {
+    cancelPendingSheetClose();
     if (!business || business.verificationStatus === 'rejected') return;
     const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
     const targetSnap = initialSnap ?? (isDesktop || !isMapContext() ? 'full' : 'peek');
     setSnap(targetSnap);
     window.dispatchEvent(new Event('directory:subscribe'));
     window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: true, snap: targetSnap } }));
-    return () => { window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } })); };
+    return () => {
+      pendingSheetCloseTimer = window.setTimeout(() => {
+        pendingSheetCloseTimer = null;
+        window.dispatchEvent(new CustomEvent('map:activity-sheet', { detail: { open: false } }));
+      }, 0);
+    };
   }, [business, initialSnap]);
 
   if (!business) return null;

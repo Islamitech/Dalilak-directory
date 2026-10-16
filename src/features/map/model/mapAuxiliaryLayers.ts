@@ -55,6 +55,8 @@ export interface SyncAuxiliaryLayersParams {
   onSelectGate?: (gate: any) => void;
 }
 
+let gatesRenderCache: { layers: MapLayerGroups; zone: string } | null = null;
+
 export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
   if (!p.layers) return;
 
@@ -62,13 +64,19 @@ export function syncAuxiliaryLayers(p: SyncAuxiliaryLayersParams): void {
   updateDistrictHighlightStyles(p.districts, p.mask, p.effectiveZone, shouldHighlight);
 
   if (p.showHadayekGates) {
-    renderGatesMarkers(p.layers.gatesLayerGroup, p.effectiveZone, p.onSelectZone, p.onSelectGate);
+    // Gate markers depend only on the active zone; skip the clear+recreate on selection-only syncs
+    // (rebuilding them on every selection/zoom was tearing down 6 markers and closing open popups).
+    if (!gatesRenderCache || gatesRenderCache.layers !== p.layers || gatesRenderCache.zone !== p.effectiveZone) {
+      renderGatesMarkers(p.layers.gatesLayerGroup, p.effectiveZone, p.onSelectZone, p.onSelectGate);
+      gatesRenderCache = { layers: p.layers, zone: p.effectiveZone };
+    }
     p.districts.forEach(({ polygon }) => {
       const el = polygon.getElement?.();
       if (el) el.style.pointerEvents = '';
     });
   } else {
     p.layers.gatesLayerGroup?.clearLayers();
+    gatesRenderCache = null;
     p.districts.forEach(({ polygon, label }) => {
       label?.setOpacity(0);
       const el = polygon.getElement?.();
